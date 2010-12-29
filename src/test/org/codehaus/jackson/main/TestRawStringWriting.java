@@ -63,20 +63,6 @@ public class TestRawStringWriting extends main.BaseTest
         jgen.writeEndArray();
         jgen.close();
         byte[] json = out.toByteArray();
-
-        System.err.println("JSON length (for "+strings.size()+" strings) == "+json.length);
-        {
-            out.reset();
-            jgen = jf.createJsonGenerator(out, JsonEncoding.UTF8);
-            jgen.writeStartArray();
-
-            for (byte[] str : strings) {
-                jgen.writeString(new String(str, "UTF-8"));
-                jgen.writeRaw('\n');
-            }
-            jgen.writeEndArray();
-            jgen.close();
-       }
         
         // Ok: let's verify that stuff was written out ok
         JsonParser jp = jf.createJsonParser(json);
