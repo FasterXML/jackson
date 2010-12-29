@@ -98,7 +98,7 @@ public final class TestSerPerf
             int round = (i % 5);
 
             // override?
-            round = 4;
+            round = 1;
 
             long curr = System.currentTimeMillis();
             String msg;

@@ -1050,38 +1050,36 @@ public class Utf8Generator
          */
         len += offset; // becomes end marker, then
 
-        final int[] escCodes = sOutputEscapes;
         final byte[] outputBuffer = _outputBuffer;
+        final int[] escCodes = sOutputEscapes;
 
         while (offset < len) {
             int ch = cbuf[offset];
             if (ch > 0x7F || escCodes[ch] != 0) {
-                _writeStringSegment2(cbuf, offset, len, outputPtr);
-                return;
+                break;
             }
             outputBuffer[outputPtr++] = (byte) ch;
             ++offset;
         }
         _outputTail = outputPtr;
+        if (offset < len) {
+            _writeStringSegment2(cbuf, offset, len);
+        }
     }
 
     /**
      * Secondary method called when content contains characters to escape,
      * and/or multi-byte UTF-8 characters.
      */
-    private final void _writeStringSegment2(final char[] cbuf, int offset, final int end,
-            int outputPtr)
+    private final void _writeStringSegment2(final char[] cbuf, int offset, final int end)
         throws IOException, JsonGenerationException
     {
         // Ok: caller guarantees buffer can have room; but that may require flushing:
-        {
-            int maxLen = 6 * ((end - offset) + 1);
-            if ((outputPtr + maxLen) > _outputEnd) {
-                _outputTail = outputPtr;
-                _flushBuffer();
-                outputPtr = _outputTail;
-            }
+        if ((_outputTail +  6 * (end - offset)) > _outputEnd) {
+            _flushBuffer();
         }
+
+        int outputPtr = _outputTail;
 
         final byte[] outputBuffer = _outputBuffer;
         final int[] escCodes = sOutputEscapes;
