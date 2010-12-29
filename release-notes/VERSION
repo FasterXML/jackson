@@ -66,6 +66,9 @@ Description:
     without extending SerializerFactory (related to [JACKSON-297])
   * [JACKSON-429] Add @JsonIgnoreType to allow ignoring any and all properties of specified
     type; useful to exclude well-known proxy/facade/handler types
+  * [JACKSON-448] Add 'JsonGenerator.writeString()' alternatives that accept pre-encoded
+    UTF-8 byte sequences (.writeUTF8String() and .writeRawUTF8String())
+   (requested by Shay B)
 
   Backwards incompatible changes
 

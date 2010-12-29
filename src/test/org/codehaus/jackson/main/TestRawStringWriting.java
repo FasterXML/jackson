@@ -15,7 +15,6 @@ public class TestRawStringWriting extends main.BaseTest
     /**
      * Unit test for "JsonGenerator.writeRawUTF8String()"
      */
-    /*
     public void testUtf8RawStrings() throws Exception
     {
         // Let's create set of Strings to output; no ctrl chars as we do raw
@@ -43,7 +42,6 @@ public class TestRawStringWriting extends main.BaseTest
         }
         assertToken(JsonToken.END_ARRAY, jp.nextToken());
     }
-    */
 
     /**
      * Unit test for "JsonGenerator.writeUTF8String()", which needs
@@ -66,7 +64,7 @@ public class TestRawStringWriting extends main.BaseTest
         jgen.close();
         byte[] json = out.toByteArray();
 
-        System.err.println("JSON length == "+json.length);
+        System.err.println("JSON length (for "+strings.size()+" strings) == "+json.length);
         {
             out.reset();
             jgen = jf.createJsonGenerator(out, JsonEncoding.UTF8);
@@ -78,8 +76,7 @@ public class TestRawStringWriting extends main.BaseTest
             }
             jgen.writeEndArray();
             jgen.close();
-            System.err.println("Correct length == "+out.size());
-        }
+       }
         
         // Ok: let's verify that stuff was written out ok
         JsonParser jp = jf.createJsonParser(json);
