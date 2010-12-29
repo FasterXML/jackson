@@ -280,7 +280,7 @@ public abstract class JsonGeneratorBase
     /**********************************************************
      */
 
-    // Not implemented at this well, added as placeholders
+    // Not implemented at this level, added as placeholders
 
      /*
     public abstract void writeNumber(int i)

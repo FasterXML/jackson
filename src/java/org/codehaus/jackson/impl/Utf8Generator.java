@@ -296,6 +296,9 @@ public class Utf8Generator
             name.getChars(0, len, _charBuffer, 0);
             // But as one segment, or multiple?
             if (len <= _outputMaxContiguous) {
+                if ((_outputTail + len) > _outputEnd) { // caller must ensure enough space
+                    _flushBuffer();
+                }
                 _writeStringSegment(_charBuffer, 0, len);
             } else {
                 _writeStringSegments(_charBuffer, 0, len);
@@ -362,6 +365,9 @@ public class Utf8Generator
                 name.getChars(0, len, _charBuffer, 0);
                 // But as one segment, or multiple?
                 if (len <= _outputMaxContiguous) {
+                    if ((_outputTail + len) > _outputEnd) { // caller must ensure enough space
+                        _flushBuffer();
+                    }
                     _writeStringSegment(_charBuffer, 0, len);
                 } else {
                     _writeStringSegments(_charBuffer, 0, len);
@@ -435,7 +441,7 @@ public class Utf8Generator
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
-        _writeStringSegment(_charBuffer, 0, len);
+        _writeStringSegment(_charBuffer, 0, len); // we checked space already above
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
 
@@ -478,6 +484,9 @@ public class Utf8Generator
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
         // One or multiple segments?
         if (len <= _outputMaxContiguous) {
+            if ((_outputTail + len) > _outputEnd) { // caller must ensure enough space
+                _flushBuffer();
+            }
             _writeStringSegment(text, offset, len);
         } else {
             _writeStringSegments(text, offset, len);
@@ -1066,6 +1075,9 @@ public class Utf8Generator
         while (left > 0) {
             int len = Math.min(_outputMaxContiguous, left);
             text.getChars(offset, offset+len, cbuf, 0);
+            if ((_outputTail + len) > _outputEnd) { // caller must ensure enough space
+                _flushBuffer();
+            }
             _writeStringSegment(cbuf, 0, len);
             offset += len;
             left -= len;
@@ -1083,6 +1095,9 @@ public class Utf8Generator
     {
         do {
             int len = Math.min(_outputMaxContiguous, totalLen);
+            if ((_outputTail + len) > _outputEnd) { // caller must ensure enough space
+                _flushBuffer();
+            }
             _writeStringSegment(cbuf, offset, len);
             offset += len;
             totalLen -= len;
@@ -1097,18 +1112,10 @@ public class Utf8Generator
     private final void _writeStringSegment(char[] cbuf, int offset, int len)
         throws IOException, JsonGenerationException
     {
-        int outputPtr = _outputTail;
-        // First: assuming ASCII-only, do we have enough room?
-        if ((outputPtr + len) > _outputEnd) { // not yet
-            _flushBuffer(); // but yes once we flush (caller guarantees length restriction)
-            outputPtr = _outputTail;
-        }
-
-        /* And then fast+tight loop for ASCII-only, no-escaping-needed
-         * output.
-         */
+        // Fast+tight loop for ASCII-only, no-escaping-needed output
         len += offset; // becomes end marker, then
 
+        int outputPtr = _outputTail;
         final byte[] outputBuffer = _outputBuffer;
         final int[] escCodes = sOutputEscapes;
 
