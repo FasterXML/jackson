@@ -1108,10 +1108,15 @@ public class Utf8Generator
      * This method called when the string content is already in
      * a char buffer, and its maximum total encoded and escaped length
      * can not exceed size of the output buffer.
+     * Caller must ensure that there is enough space in output buffer,
+     * assuming case of all non-escaped ASCII characters, as well as
+     * potentially enough space for other cases (but not necessarily flushed)
      */
     private final void _writeStringSegment(char[] cbuf, int offset, int len)
         throws IOException, JsonGenerationException
     {
+        // note: caller MUST ensure (via flushing) there's room for ASCII only
+        
         // Fast+tight loop for ASCII-only, no-escaping-needed output
         len += offset; // becomes end marker, then
 
