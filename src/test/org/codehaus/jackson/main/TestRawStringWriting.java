@@ -15,6 +15,7 @@ public class TestRawStringWriting extends main.BaseTest
     /**
      * Unit test for "JsonGenerator.writeRawUTF8String()"
      */
+    /*
     public void testUtf8RawStrings() throws Exception
     {
         // Let's create set of Strings to output; no ctrl chars as we do raw
@@ -42,6 +43,7 @@ public class TestRawStringWriting extends main.BaseTest
         }
         assertToken(JsonToken.END_ARRAY, jp.nextToken());
     }
+    */
 
     /**
      * Unit test for "JsonGenerator.writeUTF8String()", which needs
@@ -55,12 +57,29 @@ public class TestRawStringWriting extends main.BaseTest
         JsonFactory jf = new JsonFactory();
         JsonGenerator jgen = jf.createJsonGenerator(out, JsonEncoding.UTF8);
         jgen.writeStartArray();
+
         for (byte[] str : strings) {
             jgen.writeUTF8String(str, 0, str.length);
+            jgen.writeRaw('\n');
         }
         jgen.writeEndArray();
         jgen.close();
         byte[] json = out.toByteArray();
+
+        System.err.println("JSON length == "+json.length);
+        {
+            out.reset();
+            jgen = jf.createJsonGenerator(out, JsonEncoding.UTF8);
+            jgen.writeStartArray();
+
+            for (byte[] str : strings) {
+                jgen.writeString(new String(str, "UTF-8"));
+                jgen.writeRaw('\n');
+            }
+            jgen.writeEndArray();
+            jgen.close();
+            System.err.println("Correct length == "+out.size());
+        }
         
         // Ok: let's verify that stuff was written out ok
         JsonParser jp = jf.createJsonParser(json);
@@ -68,6 +87,7 @@ public class TestRawStringWriting extends main.BaseTest
         for (byte[] inputBytes : strings) {
             assertToken(JsonToken.VALUE_STRING, jp.nextToken());
             String string = jp.getText();
+
             byte[] outputBytes = string.getBytes("UTF-8");
             assertEquals(inputBytes.length, outputBytes.length);
             assertArrayEquals(inputBytes, outputBytes);
@@ -87,7 +107,7 @@ public class TestRawStringWriting extends main.BaseTest
         ArrayList<byte[]> strings = new ArrayList<byte[]>();
         do {
             int len = 2;
-            int bits = rnd.nextInt(14);
+            int bits = rnd.nextInt(13);
             while (--bits >= 0) {
                 len += len;
             }

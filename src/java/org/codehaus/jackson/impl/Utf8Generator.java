@@ -463,11 +463,24 @@ public class Utf8Generator
     }
 
     @Override
-    public void writeUTF8String(byte[] text, int offset, int length)
+    public void writeUTF8String(byte[] text, int offset, int len)
         throws IOException, JsonGenerationException
     {
-        // @TODO
-        _reportUnsupportedOperation();
+        _verifyValueWrite("write text value");
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
+        // One or multiple segments?
+        if (len <= _outputMaxContiguous) {
+            _writeUTF8Segment(text, offset, len);
+        } else {
+            _writeUTF8Segments(text, offset, len);
+        }
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
     
     /*
@@ -1018,6 +1031,22 @@ public class Utf8Generator
     }
 
     /**
+     * Method called when UTF-8 encoded (but NOT yet escaped!) content is not guaranteed
+     * to fit in the output buffer after escaping; as such, we just need to
+     * chunk writes.
+     */
+    private final void _writeUTF8Segments(byte[] utf8, int offset, int totalLen)
+        throws IOException, JsonGenerationException
+    {
+        do {
+            int len = Math.min(_outputMaxContiguous, totalLen);
+            _writeUTF8Segment(utf8, offset, len);
+            offset += len;
+            totalLen -= len;
+        } while (totalLen > 0);
+    }
+    
+    /**
      * This method called when the string content is already in
      * a char buffer, and its maximum total encoded and escaped length
      * can not exceed size of the output buffer.
@@ -1043,7 +1072,6 @@ public class Utf8Generator
         while (offset < len) {
             int ch = cbuf[offset];
             if (ch > 0x7F || escCodes[ch] != 0) {
-                _outputTail = outputPtr;
                 _writeStringSegment2(cbuf, offset, len, outputPtr);
                 return;
             }
@@ -1065,9 +1093,10 @@ public class Utf8Generator
         {
             int maxLen = 6 * ((end - offset) + 1);
             if ((outputPtr + maxLen) > _outputEnd) {
+                _outputTail = outputPtr;
                 _flushBuffer();
+                outputPtr = _outputTail;
             }
-            outputPtr = _outputTail;
         }
 
         final byte[] outputBuffer = _outputBuffer;
@@ -1080,7 +1109,7 @@ public class Utf8Generator
                      outputBuffer[outputPtr++] = (byte) ch;
                      continue;
                  }
-                int escape = sOutputEscapes[ch];
+                int escape = escCodes[ch];
                 if (escape > 0) { // 2-char escape, fine
                     outputBuffer[outputPtr++] = BYTE_BACKSLASH;
                     outputBuffer[outputPtr++] = (byte) escape;
@@ -1095,6 +1124,65 @@ public class Utf8Generator
                 outputBuffer[outputPtr++] = (byte) (0x80 | (ch & 0x3f));
             } else {
                 outputPtr = _outputMultiByteChar(ch, outputPtr);
+            }
+        }
+        _outputTail = outputPtr;
+    }
+
+    private final void _writeUTF8Segment(byte[] utf8, final int offset, final int len)
+        throws IOException, JsonGenerationException
+    {
+        // fast loop to see if escaping is needed; don't copy, just look
+        final int[] escCodes = sOutputEscapes;
+
+        for (int ptr = offset, end = offset + len; ptr < end; ++ptr) {
+            int ch = (int) utf8[ptr++];
+            if (ch >= 0 && escCodes[ch] != 0) {
+                _writeUTFSegment2(utf8, offset, len);
+                return;
+            }
+        }
+        // yes, fine, just copy the sucker
+        int outputPtr = _outputTail;
+        if ((outputPtr + len) > _outputEnd) { // enough room or need to flush?
+            _flushBuffer(); // but yes once we flush (caller guarantees length restriction)
+            outputPtr = _outputTail;
+        }
+        System.arraycopy(utf8, offset, _outputBuffer, outputPtr, len);
+        _outputTail = outputPtr + len;
+    }
+
+    private final void _writeUTFSegment2(final byte[] utf8, int offset, final int end)
+        throws IOException, JsonGenerationException
+    {
+        int outputPtr = _outputTail;
+
+        // Ok: caller guarantees buffer can have room; but that may require flushing:
+        {
+            int maxLen = 6 * ((end - offset) + 1);
+            if ((outputPtr + maxLen) > _outputEnd) {
+                _flushBuffer();
+                outputPtr = _outputTail;
+            }
+        }
+
+        final byte[] outputBuffer = _outputBuffer;
+        final int[] escCodes = sOutputEscapes;
+        
+        while (offset < end) {
+            byte b = utf8[offset++];
+            int ch = (int) b;
+            if (ch < 0 || escCodes[ch] == 0) {
+                outputBuffer[outputPtr++] = b;
+                continue;
+            }
+            int escape = sOutputEscapes[ch];
+            if (escape > 0) { // 2-char escape, fine
+                outputBuffer[outputPtr++] = BYTE_BACKSLASH;
+                outputBuffer[outputPtr++] = (byte) escape;
+            } else {
+                // ctrl-char, 6-byte escape...
+                outputPtr = _writeEscapedControlChar(escape, outputPtr);
             }
         }
         _outputTail = outputPtr;
@@ -1237,11 +1325,6 @@ public class Utf8Generator
     private int _writeEscapedControlChar(int escCode, int outputPtr)
         throws IOException
     {
-        if ((outputPtr + 6) >= _outputEnd) {
-            _outputTail = outputPtr;
-            _flushBuffer();
-            outputPtr = _outputTail;
-        }
         final byte[] bbuf = _outputBuffer;
         bbuf[outputPtr++] = BYTE_BACKSLASH;
         int value = -(escCode + 1);
