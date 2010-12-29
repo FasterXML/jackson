@@ -475,30 +475,55 @@ public class SmileGenerator
      */
 
     @Override
-    protected final void _writeStartArray() throws IOException, JsonGenerationException
+    public final void writeStartArray() throws IOException, JsonGenerationException
     {
-        _writeByte(TOKEN_LITERAL_START_ARRAY);
-    }
-    
-    @Override
-    protected void _writeEndArray()
-        throws IOException, JsonGenerationException
-    {
-        _writeByte(TOKEN_LITERAL_END_ARRAY);
-    }
-
-    @Override
-    protected void _writeStartObject()
-        throws IOException, JsonGenerationException
-    {
-        _writeByte(TOKEN_LITERAL_START_OBJECT);
+        _verifyValueWrite("start an array");
+        _writeContext = _writeContext.createChildArrayContext();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeStartArray(this);
+        } else {
+            _writeByte(TOKEN_LITERAL_START_ARRAY);
+        }
     }
 
     @Override
-    protected void _writeEndObject()
-        throws IOException, JsonGenerationException
+    public final void writeEndArray() throws IOException, JsonGenerationException
     {
-        _writeByte(TOKEN_LITERAL_END_OBJECT);
+        if (!_writeContext.inArray()) {
+            _reportError("Current context not an ARRAY but "+_writeContext.getTypeDesc());
+        }
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeEndArray(this, _writeContext.getEntryCount());
+        } else {
+            _writeByte(TOKEN_LITERAL_END_ARRAY);
+        }
+        _writeContext = _writeContext.getParent();
+    }
+
+    @Override
+    public final void writeStartObject() throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("start an object");
+        _writeContext = _writeContext.createChildObjectContext();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeStartObject(this);
+        } else {
+            _writeByte(TOKEN_LITERAL_START_OBJECT);
+        }
+    }
+
+    @Override
+    public final void writeEndObject() throws IOException, JsonGenerationException
+    {
+        if (!_writeContext.inObject()) {
+            _reportError("Current context not an object but "+_writeContext.getTypeDesc());
+        }
+        _writeContext = _writeContext.getParent();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeEndObject(this, _writeContext.getEntryCount());
+        } else {
+            _writeByte(TOKEN_LITERAL_END_OBJECT);
+        }
     }
 
     private final void _writeFieldName(String name)

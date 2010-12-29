@@ -41,17 +41,17 @@ public class DefaultXmlPrettyPrinter
 
     @Override
     public void writeStartArray(JsonGenerator jgen) throws IOException, JsonGenerationException {
-        ((ToXmlGenerator) jgen)._writeStartArray();
+        // anything to do here?
     }
 
     @Override
     public void writeArrayValueSeparator(JsonGenerator jgen)  throws IOException, JsonGenerationException {
         // all markup by elements, no separators; nothing to do here
     }
-    
+
     @Override
     public void writeEndArray(JsonGenerator jgen, int nrOfValues) throws IOException, JsonGenerationException {
-        ((ToXmlGenerator) jgen)._writeEndArray();
+        // anything to do here?
     }
     
     /*
@@ -67,7 +67,7 @@ public class DefaultXmlPrettyPrinter
 
     @Override
     public void writeStartObject(JsonGenerator jgen) throws IOException, JsonGenerationException {
-        ((ToXmlGenerator) jgen)._writeStartObject();
+        ((ToXmlGenerator) jgen)._handleStartObject();
     }
 
     @Override
@@ -82,7 +82,7 @@ public class DefaultXmlPrettyPrinter
     
     @Override
     public void writeEndObject(JsonGenerator jgen, int nrOfEntries) throws IOException, JsonGenerationException {
-        ((ToXmlGenerator) jgen)._writeEndObject();
+        ((ToXmlGenerator) jgen)._handleEndObject();
     }
 
 }

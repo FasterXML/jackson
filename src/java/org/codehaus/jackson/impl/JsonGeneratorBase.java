@@ -145,7 +145,7 @@ public abstract class JsonGeneratorBase
      */
 
     @Override
-    public final void writeStartArray() throws IOException, JsonGenerationException
+    public void writeStartArray() throws IOException, JsonGenerationException
     {
         // Array is a value, need to verify it's allowed
         _verifyValueWrite("start an array");
@@ -157,10 +157,17 @@ public abstract class JsonGeneratorBase
         }
     }
 
-    protected abstract void _writeStartArray() throws IOException, JsonGenerationException;
+    /**
+     * @deprecated since 1.7, should just override {@link #writeStartArray} instead
+     *    of defining this method
+     */
+    @Deprecated
+    protected void _writeStartArray() throws IOException, JsonGenerationException {
+        // no-op, to be overridden
+    }
 
     @Override
-    public final void writeEndArray() throws IOException, JsonGenerationException
+    public void writeEndArray() throws IOException, JsonGenerationException
     {
         if (!_writeContext.inArray()) {
             _reportError("Current context not an ARRAY but "+_writeContext.getTypeDesc());
@@ -173,11 +180,17 @@ public abstract class JsonGeneratorBase
         _writeContext = _writeContext.getParent();
     }
 
-    protected abstract void _writeEndArray()
-        throws IOException, JsonGenerationException;
+    /**
+     * @deprecated since 1.7, should just override {@link #writeEndArray} instead
+     *    of defining this method
+     */
+    @Deprecated
+    protected void _writeEndArray() throws IOException, JsonGenerationException {
+        // no-op, to be overridden
+    }
 
     @Override
-    public final void writeStartObject() throws IOException, JsonGenerationException
+    public void writeStartObject() throws IOException, JsonGenerationException
     {
         _verifyValueWrite("start an object");
         _writeContext = _writeContext.createChildObjectContext();
@@ -188,11 +201,17 @@ public abstract class JsonGeneratorBase
         }
     }
 
-    protected abstract void _writeStartObject()
-        throws IOException, JsonGenerationException;
+    /**
+     * @deprecated since 1.7, should just override {@link #writeStartObject} instead
+     *    of defining this method
+     */
+    @Deprecated
+    protected void _writeStartObject() throws IOException, JsonGenerationException {
+        // no-op, to be overridden
+    }
 
     @Override
-    public final void writeEndObject() throws IOException, JsonGenerationException
+    public void writeEndObject() throws IOException, JsonGenerationException
     {
         if (!_writeContext.inObject()) {
             _reportError("Current context not an object but "+_writeContext.getTypeDesc());
@@ -205,11 +224,14 @@ public abstract class JsonGeneratorBase
         }
     }
 
-    protected abstract void _writeEndObject()
-        throws IOException, JsonGenerationException;
-
-
-    public abstract void writeFieldName(String name)  throws IOException, JsonGenerationException;
+    /**
+     * @deprecated since 1.7, should just override {@link #writeEndObject} instead
+     *    of defining this method
+     */
+    @Deprecated
+    protected void _writeEndObject() throws IOException, JsonGenerationException {
+        // no-op, to be overridden
+    }
     
     /*
     /**********************************************************

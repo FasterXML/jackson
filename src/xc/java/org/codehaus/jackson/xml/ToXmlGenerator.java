@@ -299,21 +299,59 @@ public final class ToXmlGenerator
      */
 
     @Override
-    public final void _writeStartArray() throws IOException, JsonGenerationException
+    public final void writeStartArray() throws IOException, JsonGenerationException
     {
-        // nothing to do here; no-operation
+        _verifyValueWrite("start an array");
+        _writeContext = _writeContext.createChildArrayContext();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeStartArray(this);
+        } else {
+            // nothing to do here; no-operation
+        }
     }
     
     @Override
-    public void _writeEndArray()
-        throws IOException, JsonGenerationException
+    public final void writeEndArray() throws IOException, JsonGenerationException
     {
-        // nothing to do here; no-operation
+        if (!_writeContext.inArray()) {
+            _reportError("Current context not an ARRAY but "+_writeContext.getTypeDesc());
+        }
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeEndArray(this, _writeContext.getEntryCount());
+        } else {
+            // nothing to do here; no-operation
+        }
+        _writeContext = _writeContext.getParent();
     }
 
     @Override
-    public void _writeStartObject()
-        throws IOException, JsonGenerationException
+    public final void writeStartObject() throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("start an object");
+        _writeContext = _writeContext.createChildObjectContext();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeStartObject(this);
+        } else {
+            _handleStartObject();
+        }
+    }
+
+    @Override
+    public final void writeEndObject() throws IOException, JsonGenerationException
+    {
+        if (!_writeContext.inObject()) {
+            _reportError("Current context not an object but "+_writeContext.getTypeDesc());
+        }
+        _writeContext = _writeContext.getParent();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeEndObject(this, _writeContext.getEntryCount());
+        } else {
+            _handleEndObject();
+        }
+    }
+
+    // note: public just because pretty printer needs to make a callback
+    public final void _handleStartObject() throws IOException, JsonGenerationException
     {
         if (_nextName == null) {
             handleMissingName();
@@ -326,10 +364,9 @@ public final class ToXmlGenerator
             StaxUtil.throwXmlAsIOException(e);
         }
     }
-
-    @Override
-    public void _writeEndObject()
-        throws IOException, JsonGenerationException
+    
+    // note: public just because pretty printer needs to make a callback
+    public final void _handleEndObject() throws IOException, JsonGenerationException
     {
         // We may want to repeat same element, so:
         _nextName = _elementNameStack.removeLast();

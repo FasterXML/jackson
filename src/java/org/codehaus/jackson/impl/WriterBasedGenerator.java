@@ -139,43 +139,67 @@ public final class WriterBasedGenerator
      */
 
     @Override
-	protected void _writeStartArray()
-        throws IOException, JsonGenerationException
+    public final void writeStartArray() throws IOException, JsonGenerationException
     {
-        if (_outputTail >= _outputEnd) {
-            _flushBuffer();
+        _verifyValueWrite("start an array");
+        _writeContext = _writeContext.createChildArrayContext();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeStartArray(this);
+        } else {
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = '[';
         }
-        _outputBuffer[_outputTail++] = '[';
     }
 
     @Override
-    protected void _writeEndArray()
-        throws IOException, JsonGenerationException
+    public final void writeEndArray() throws IOException, JsonGenerationException
     {
-        if (_outputTail >= _outputEnd) {
-            _flushBuffer();
+        if (!_writeContext.inArray()) {
+            _reportError("Current context not an ARRAY but "+_writeContext.getTypeDesc());
         }
-        _outputBuffer[_outputTail++] = ']';
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeEndArray(this, _writeContext.getEntryCount());
+        } else {
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = ']';
+        }
+        _writeContext = _writeContext.getParent();
     }
 
     @Override
-    protected void _writeStartObject()
-        throws IOException, JsonGenerationException
+    public final void writeStartObject() throws IOException, JsonGenerationException
     {
-        if (_outputTail >= _outputEnd) {
-            _flushBuffer();
+        _verifyValueWrite("start an object");
+        _writeContext = _writeContext.createChildObjectContext();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeStartObject(this);
+        } else {
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = '{';
         }
-        _outputBuffer[_outputTail++] = '{';
     }
 
     @Override
-    protected void _writeEndObject()
-        throws IOException, JsonGenerationException
+    public final void writeEndObject() throws IOException, JsonGenerationException
     {
-        if (_outputTail >= _outputEnd) {
-            _flushBuffer();
+        if (!_writeContext.inObject()) {
+            _reportError("Current context not an object but "+_writeContext.getTypeDesc());
         }
-        _outputBuffer[_outputTail++] = '}';
+        _writeContext = _writeContext.getParent();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeEndObject(this, _writeContext.getEntryCount());
+        } else {
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = '}';
+        }
     }
 
     protected void _writeFieldName(String name, boolean commaBefore)

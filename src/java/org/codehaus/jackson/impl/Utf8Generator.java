@@ -134,6 +134,13 @@ public class Utf8Generator
     /* Most overrides in this section are just to make methods final,
      * to allow better inlining...
      */
+    @Override
+    public final void writeStringField(String fieldName, String value)
+        throws IOException, JsonGenerationException
+    {
+        writeFieldName(fieldName);
+        writeString(value);
+    }
 
     @Override
     public final void writeFieldName(String name)  throws IOException, JsonGenerationException
@@ -142,15 +149,17 @@ public class Utf8Generator
         if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
-        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
-    }
-
-    @Override
-    public final void writeStringField(String fieldName, String value)
-        throws IOException, JsonGenerationException
-    {
-        writeFieldName(fieldName);
-        writeString(value);
+        if (_cfgPrettyPrinter != null) {
+            _writePPFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
+            return;
+        }
+        if (status == JsonWriteContext.STATUS_OK_AFTER_COMMA) { // need comma
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = BYTE_COMMA;
+        }
+        _writeFieldName(name);
     }
     
     @Override
@@ -162,7 +171,17 @@ public class Utf8Generator
         if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
-        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
+        if (_cfgPrettyPrinter != null) {
+            _writePPFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
+            return;
+        }
+        if (status == JsonWriteContext.STATUS_OK_AFTER_COMMA) {
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = BYTE_COMMA;
+        }
+        _writeFieldName(name);
     }
 
     @Override
@@ -174,7 +193,17 @@ public class Utf8Generator
         if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Can not write a field name, expecting a value");
         }
-        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
+        if (_cfgPrettyPrinter != null) {
+            _writePPFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
+            return;
+        }
+        if (status == JsonWriteContext.STATUS_OK_AFTER_COMMA) {
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = BYTE_COMMA;
+        }
+        _writeFieldName(name);
     }
 
     /*
@@ -184,59 +213,72 @@ public class Utf8Generator
      */
 
     @Override
-    protected void _writeStartArray()
-        throws IOException, JsonGenerationException
+    public final void writeStartArray() throws IOException, JsonGenerationException
     {
-        if (_outputTail >= _outputEnd) {
-            _flushBuffer();
-        }
-        _outputBuffer[_outputTail++] = BYTE_LBRACKET;
-    }
-
-    @Override
-    protected void _writeEndArray()
-        throws IOException, JsonGenerationException
-    {
-        if (_outputTail >= _outputEnd) {
-            _flushBuffer();
-        }
-        _outputBuffer[_outputTail++] = BYTE_RBRACKET;
-    }
-
-    @Override
-    protected void _writeStartObject()
-        throws IOException, JsonGenerationException
-    {
-        if (_outputTail >= _outputEnd) {
-            _flushBuffer();
-        }
-        _outputBuffer[_outputTail++] = BYTE_LCURLY;
-    }
-
-    @Override
-    protected void _writeEndObject()
-        throws IOException, JsonGenerationException
-    {
-        if (_outputTail >= _outputEnd) {
-            _flushBuffer();
-        }
-        _outputBuffer[_outputTail++] = BYTE_RCURLY;
-    }
-
-    protected void _writeFieldName(String name, boolean commaBefore)
-        throws IOException, JsonGenerationException
-    {
+        _verifyValueWrite("start an array");
+        _writeContext = _writeContext.createChildArrayContext();
         if (_cfgPrettyPrinter != null) {
-            _writePPFieldName(name, commaBefore);
-            return;
+            _cfgPrettyPrinter.writeStartArray(this);
+        } else {
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = BYTE_LBRACKET;
         }
-        // for fast+std case, need to output up to 2 chars, comma, dquote
-        if ((_outputTail + 1) >= _outputEnd) {
-            _flushBuffer();
+    }
+
+    @Override
+    public final void writeEndArray() throws IOException, JsonGenerationException
+    {
+        if (!_writeContext.inArray()) {
+            _reportError("Current context not an ARRAY but "+_writeContext.getTypeDesc());
         }
-        if (commaBefore) {
-            _outputBuffer[_outputTail++] = BYTE_COMMA;
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeEndArray(this, _writeContext.getEntryCount());
+        } else {
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = BYTE_RBRACKET;
         }
+        _writeContext = _writeContext.getParent();
+    }
+
+    @Override
+    public final void writeStartObject() throws IOException, JsonGenerationException
+    {
+        _verifyValueWrite("start an object");
+        _writeContext = _writeContext.createChildObjectContext();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeStartObject(this);
+        } else {
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = BYTE_LCURLY;
+        }
+    }
+
+    @Override
+    public final void writeEndObject() throws IOException, JsonGenerationException
+    {
+        if (!_writeContext.inObject()) {
+            _reportError("Current context not an object but "+_writeContext.getTypeDesc());
+        }
+        _writeContext = _writeContext.getParent();
+        if (_cfgPrettyPrinter != null) {
+            _cfgPrettyPrinter.writeEndObject(this, _writeContext.getEntryCount());
+        } else {
+            if (_outputTail >= _outputEnd) {
+                _flushBuffer();
+            }
+            _outputBuffer[_outputTail++] = BYTE_RCURLY;
+        }
+    }
+
+    protected void _writeFieldName(String name)
+        throws IOException, JsonGenerationException
+    {
 
         /* To support [JACKSON-46], we'll do this:
          * (Question: should quoting of spaces (etc) still be enabled?)
@@ -269,26 +311,17 @@ public class Utf8Generator
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
 
-    protected void _writeFieldName(SerializableString name, boolean commaBefore)
+    protected void _writeFieldName(SerializableString name)
         throws IOException, JsonGenerationException
     {
-        if (_cfgPrettyPrinter != null) {
-            _writePPFieldName(name, commaBefore);
-            return;
-        }
-        if ((_outputTail + 1) >= _outputEnd) {
-            _flushBuffer();
-        }
-        if (commaBefore) {
-            _outputBuffer[_outputTail++] = BYTE_COMMA;
-        }
         byte[] raw = name.asQuotedUTF8();
         if (!isEnabled(Feature.QUOTE_FIELD_NAMES)) {
             _writeBytes(raw);
             return;
         }
-
-        // we know there's room for at least one more char
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
 
         // Can do it all in buffer?
@@ -385,23 +418,49 @@ public class Utf8Generator
             _writeNull();
             return;
         }
+        // First: can we make a local copy of chars that make up text?
+        final int len = text.length();
+        if (len > _charBufferLength) { // nope: offline handling
+            _writeLongString(text);
+            return;
+        }
+        // yes: good.
+        text.getChars(0, len, _charBuffer, 0);
+        // Output: if we don't know if it fits, offline as well:
+        if (len > _outputMaxContiguous) {
+            _writeLongString(_charBuffer, 0, len);
+            return;
+        }
+        if ((_outputTail + len + 2) > _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
+        _writeStringSegment(_charBuffer, 0, len);
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
+    }
+
+    private final void _writeLongString(String text)
+        throws IOException, JsonGenerationException
+    {
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
-        final int len = text.length();
-        if (len <= _charBufferLength) { // yes, fits right in
-            text.getChars(0, len, _charBuffer, 0);
-            // But as one segment, or multiple?
-            if (len <= _outputMaxContiguous) {
-                _writeStringSegment(_charBuffer, 0, len);
-            } else {
-                _writeStringSegments(_charBuffer, 0, len);
-            }
-        } else {
-            _writeStringSegments(text);
+        _writeStringSegments(text);
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
         }
-        // And finally, closing quotes
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
+    }
+
+    private final void _writeLongString(char[] text, int offset, int len)
+        throws IOException, JsonGenerationException
+    {
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
+        _outputBuffer[_outputTail++] = BYTE_QUOTE;
+        _writeStringSegments(_charBuffer, 0, len);
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
