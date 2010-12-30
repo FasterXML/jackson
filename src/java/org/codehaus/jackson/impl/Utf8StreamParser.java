@@ -17,6 +17,8 @@ public final class Utf8StreamParser
     final static byte BYTE_LF = (byte) '\n';
 
     private final static byte BYTE_0 = (byte) 0;
+
+    private final static int[] sInputCodeUtf8 = CharTypes.getInputCodeUtf8();
     
     /*
     /**********************************************************
@@ -1338,24 +1340,18 @@ public final class Utf8StreamParser
     protected void _finishString()
         throws IOException, JsonParseException
     {
-        int outPtr = 0;
-        char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-
-        final int[] codes = CharTypes.getInputCodeUtf8();
-        final byte[] inputBuffer = _inputBuffer;
-
-        // First, single tight loop for ASCII content, not split across input buffer boundary:
-        
+        // First, single tight loop for ASCII content, not split across input buffer boundary:        
         int ptr = _inputPtr;
         if (ptr >= _inputEnd) {
             loadMoreGuaranteed();
             ptr = _inputPtr;
         }
-        if (outPtr >= outBuf.length) {
-            outBuf = _textBuffer.finishCurrentSegment();
-            outPtr = 0;
-        }
-        final int max = Math.min(_inputEnd, (ptr + (outBuf.length - outPtr)));
+        int outPtr = 0;
+        char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
+        final int[] codes = sInputCodeUtf8;
+
+        final int max = Math.min(_inputEnd, (ptr + outBuf.length));
+        final byte[] inputBuffer = _inputBuffer;
         while (ptr < max) {
             int c = (int) inputBuffer[ptr] & 0xFF;
             if (codes[c] != 0) {
