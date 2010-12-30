@@ -18,7 +18,9 @@ public final class Utf8StreamParser
 
     private final static byte BYTE_0 = (byte) 0;
 
-    private final static int[] sInputCodeUtf8 = CharTypes.getInputCodeUtf8();
+    private final static int[] sInputCodesUtf8 = CharTypes.getInputCodeUtf8();
+
+    private final static int[] sInputCodesLatin1 = CharTypes.getInputCodeLatin1();
     
     /*
     /**********************************************************
@@ -681,7 +683,7 @@ public final class Utf8StreamParser
     /* Internal methods, secondary parsing
     /**********************************************************
      */
-
+    
     protected final Name _parseFieldName(int i)
         throws IOException, JsonParseException
     {
@@ -700,7 +702,7 @@ public final class Utf8StreamParser
          *   later on), and just handle quotes and backslashes here.
          */
         final byte[] input = _inputBuffer;
-        final int[] codes = CharTypes.getInputCodeLatin1();
+        final int[] codes = sInputCodesLatin1;
 
         int q = input[_inputPtr++] & 0xFF;
 
@@ -789,7 +791,7 @@ public final class Utf8StreamParser
         throws IOException, JsonParseException
     {
         // As explained above, will ignore utf-8 encoding at this point
-        final int[] codes = CharTypes.getInputCodeLatin1();
+        final int[] codes = sInputCodesLatin1;
         int qlen = 2;
 
         while (true) {
@@ -895,7 +897,7 @@ public final class Utf8StreamParser
          *   assume that part is ok (if not it will get caught
          *   later on), and just handle quotes and backslashes here.
          */
-        final int[] codes = CharTypes.getInputCodeLatin1();
+        final int[] codes = sInputCodesLatin1;
 
         while (true) {
             if (codes[ch] != 0) {
@@ -1079,7 +1081,7 @@ public final class Utf8StreamParser
 
         // Copied from parseEscapedFieldName, with minor mods:
 
-        final int[] codes = CharTypes.getInputCodeLatin1();
+        final int[] codes = sInputCodesLatin1;
 
         while (true) {
             if (ch == INT_APOSTROPHE) {
@@ -1349,7 +1351,7 @@ public final class Utf8StreamParser
         }
         int outPtr = 0;
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
-        final int[] codes = sInputCodeUtf8;
+        final int[] codes = sInputCodesUtf8;
 
         final int max = Math.min(_inputEnd, (ptr + outBuf.length));
         final byte[] inputBuffer = _inputBuffer;
@@ -1376,7 +1378,7 @@ public final class Utf8StreamParser
         int c;
 
         // Here we do want to do full decoding, hence:
-        final int[] codes = CharTypes.getInputCodeUtf8();
+        final int[] codes = sInputCodesUtf8;
         final byte[] inputBuffer = _inputBuffer;
 
         main_loop:
@@ -1465,7 +1467,7 @@ public final class Utf8StreamParser
         _tokenIncomplete = false;
 
         // Need to be fully UTF-8 aware here:
-        final int[] codes = CharTypes.getInputCodeUtf8();
+        final int[] codes = sInputCodesUtf8;
         final byte[] inputBuffer = _inputBuffer;
 
         main_loop:
@@ -1539,7 +1541,7 @@ public final class Utf8StreamParser
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
 
         // Here we do want to do full decoding, hence:
-        final int[] codes = CharTypes.getInputCodeUtf8();
+        final int[] codes = sInputCodesUtf8;
         final byte[] inputBuffer = _inputBuffer;
 
         main_loop:
