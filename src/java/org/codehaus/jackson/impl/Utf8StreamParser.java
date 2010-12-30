@@ -699,21 +699,22 @@ public final class Utf8StreamParser
          *   assume that part is ok (if not it will get caught
          *   later on), and just handle quotes and backslashes here.
          */
+        final byte[] input = _inputBuffer;
         final int[] codes = CharTypes.getInputCodeLatin1();
 
-        int q = _inputBuffer[_inputPtr++] & 0xFF;
+        int q = input[_inputPtr++] & 0xFF;
 
         if (codes[q] == 0) {
-            i = _inputBuffer[_inputPtr++] & 0xFF;
+            i = input[_inputPtr++] & 0xFF;
             if (codes[i] == 0) {
                 q = (q << 8) | i;
-                i = _inputBuffer[_inputPtr++] & 0xFF;
+                i = input[_inputPtr++] & 0xFF;
                 if (codes[i] == 0) {
                     q = (q << 8) | i;
-                    i = _inputBuffer[_inputPtr++] & 0xFF;
+                    i = input[_inputPtr++] & 0xFF;
                     if (codes[i] == 0) {
                         q = (q << 8) | i;
-                        i = _inputBuffer[_inputPtr++] & 0xFF;
+                        i = input[_inputPtr++] & 0xFF;
                         if (codes[i] == 0) {
                             _quad1 = q;
                             return parseMediumFieldName(i, codes);
