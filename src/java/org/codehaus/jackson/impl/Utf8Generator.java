@@ -426,13 +426,13 @@ public class Utf8Generator
         }
         // First: can we make a local copy of chars that make up text?
         final int len = text.length();
-        if (len > _charBufferLength) { // nope: offline handling
+        if (len > _charBufferLength) { // nope: off-line handling
             _writeLongString(text);
             return;
         }
         // yes: good.
         text.getChars(0, len, _charBuffer, 0);
-        // Output: if we don't know if it fits, offline as well:
+        // Output: if we can't guarantee it fits in output buffer, off-line as well:
         if (len > _outputMaxContiguous) {
             _writeLongString(_charBuffer, 0, len);
             return;

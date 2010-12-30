@@ -24,7 +24,7 @@ public final class TestDeserPerf
 
     private TestDeserPerf() {
         // Let's try to guestimate suitable size
-        REPS = 10000;
+        REPS = 20000;
     }
 
     private MediaItem buildItem()
@@ -84,7 +84,7 @@ public final class TestDeserPerf
         
         while (true) {
 //            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-            int round = 2;
+            int round = 1;
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -98,11 +98,16 @@ public final class TestDeserPerf
                 break;
 
             case 1:
+                msg = "Deserialize, manual, JSON";
+                sum += testDeser(jsonMapper.getJsonFactory(), json, REPS);
+                break;
+
+            case 2:
                 msg = "Deserialize, xml";
                 sum += testDeser(xmlMapper, xml, REPS);
                 break;
 
-            case 2:
+            case 3:
                 msg = "Deserialize, smile";
                 sum += testDeser(smileMapper, smile, REPS * 2);
                 break;
@@ -131,6 +136,17 @@ public final class TestDeserPerf
         return item.hashCode(); // just to get some non-optimizable number
     }
 
+    protected int testDeser(JsonFactory jf, byte[] input, int reps)
+        throws Exception
+    {
+        MediaItem item = null;
+        for (int i = 0; i < reps; ++i) {
+            JsonParser jp = jf.createJsonParser(input);
+            item = MediaItem.deserialize(jp);
+            jp.close();
+        }
+        return item.hashCode(); // just to get some non-optimizable number
+    }
 
     public static void main(String[] args) throws Exception
     {

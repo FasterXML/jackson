@@ -98,7 +98,7 @@ public final class TestSerPerf
             int round = (i % 5);
 
             // override?
-            round = 1;
+            round = 0;
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -108,7 +108,7 @@ public final class TestSerPerf
 
             case 0:
                 msg = "Serialize, JSON";
-                sum += testObjectSer(jsonMapper, item, REPS, result);
+                sum += testObjectSer(jsonMapper, item, REPS+REPS, result);
                 break;
 
             case 1:
