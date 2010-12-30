@@ -30,6 +30,55 @@ public class BeanDeserializerFactory
      */
     private final static Class<?>[] INIT_CAUSE_PARAMS = new Class<?>[] { Throwable.class };
 
+    /*
+    /**********************************************************
+    /* Helper class to contain configuration settings
+    /**********************************************************
+     */
+
+    /**
+     * Configuration settings container class for bean deserializer factory
+     */
+    public static class Config
+    {
+        /**
+         * List of providers for additional deserializers, checked before considering default
+         * basic or bean deserialializers.
+         * 
+         * @since 1.7
+         */
+        protected final Deserializers[] _additionalDeserializers;
+
+        protected Config() {
+            this(NO_DESERIALIZERS);
+        }
+
+        protected Config(Deserializers[] allAdditionalDeserializers)
+        {
+            _additionalDeserializers = (allAdditionalDeserializers == null) ?
+                    NO_DESERIALIZERS : allAdditionalDeserializers;
+        }
+
+        public Config withAdditionalDeserializers(Deserializers additional)
+        {
+            if (additional == null) {
+                throw new IllegalArgumentException("Can not pass null Deserializers");
+            }
+            Deserializers[] all = ArrayBuilders.insertInList(_additionalDeserializers, additional);
+            return new Config(all);
+        }
+
+        protected Deserializers[] deserializers() {
+            return _additionalDeserializers;
+        }
+    }
+    
+    /*
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
+     */
+    
     /**
      * Globally shareable thread-safe instance which has no additional custom deserializers
      * registered
@@ -37,24 +86,26 @@ public class BeanDeserializerFactory
     public final static BeanDeserializerFactory instance = new BeanDeserializerFactory(null);
 
     /**
-     * Provider for additional serializers, checked before considering default
-     * basic or bean serialializers.
+     * Configuration settings for this factory; immutable instance (just like this
+     * factory), new version created via copy-constructor (fluent-style)
      * 
      * @since 1.7
      */
-    protected final Deserializers[] _additionalDeserializers;
+    protected final Config _config;
 
     @Deprecated
-    protected BeanDeserializerFactory() {
+    public BeanDeserializerFactory() {
         this(null);
     }
 
-    protected BeanDeserializerFactory(Deserializers[] allAdditionalDeserializers)
-    {
-        if (allAdditionalDeserializers == null) {
-            allAdditionalDeserializers = NO_DESERIALIZERS;
+    /**
+     * @since 1.7
+     */
+    public BeanDeserializerFactory(Config config) {
+        if (config == null) {
+            config = new Config();
         }
-        _additionalDeserializers = allAdditionalDeserializers;
+        _config = config;
     }
 
     /**
@@ -68,26 +119,18 @@ public class BeanDeserializerFactory
     @Override
     public DeserializerFactory withAdditionalDeserializers(Deserializers additional)
     {
-        if (additional == null) {
-            throw new IllegalArgumentException("Can not pass null Deserializers");
-        }
-        
         /* 22-Nov-2010, tatu: Handling of subtypes is tricky if we do immutable-with-copy-ctor;
          *    and we pretty much have to here either choose between losing subtype instance
-         *    when registering additional serializers, or losing serializers.
-         *    
+         *    when registering additional deserializers, or losing deserializers.
          *    Instead, let's actually just throw an error if this method is called when subtype
-         *    has not properly overridden this method, as that is better alternative than
-         *    continue with what is almost certainly broken or invalid configuration.
+         *    has not properly overridden this method; this to indicate problem as soon as possible.
          */
         if (getClass() != BeanDeserializerFactory.class) {
             throw new IllegalStateException("Subtype of BeanDeserializerFactory ("+getClass().getName()
                     +") has not properly overridden method 'withAdditionalDeserializers': can not instantiate subtype with "
                     +"additional deserializer definitions");
         }
-        
-        Deserializers[] s = ArrayBuilders.insertInList(_additionalDeserializers, additional);
-        return new BeanDeserializerFactory(s);
+        return new BeanDeserializerFactory(_config.withAdditionalDeserializers(additional));
     }
 
     /*
@@ -104,7 +147,7 @@ public class BeanDeserializerFactory
             TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
         throws JsonMappingException
     {
-        for (Deserializers d  : _additionalDeserializers) {
+        for (Deserializers d  : _config.deserializers()) {
             JsonDeserializer<?> deser = d.findArrayDeserializer(type, config, provider, property,
                         elementTypeDeserializer, elementDeserializer);
             if (deser != null) {
@@ -121,7 +164,7 @@ public class BeanDeserializerFactory
             TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
         throws JsonMappingException
     {
-        for (Deserializers d  : _additionalDeserializers) {
+        for (Deserializers d  : _config.deserializers()) {
             JsonDeserializer<?> deser = d.findCollectionDeserializer(type, config, provider, beanDesc, property,
                     elementTypeDeserializer, elementDeserializer);
             if (deser != null) {
@@ -136,7 +179,7 @@ public class BeanDeserializerFactory
             BasicBeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException
     {
-        for (Deserializers d  : _additionalDeserializers) {
+        for (Deserializers d  : _config.deserializers()) {
             JsonDeserializer<?> deser = d.findEnumDeserializer(type, config, beanDesc, property);
             if (deser != null) {
                 return deser;
@@ -152,7 +195,7 @@ public class BeanDeserializerFactory
             TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
         throws JsonMappingException
     {
-        for (Deserializers d  : _additionalDeserializers) {
+        for (Deserializers d  : _config.deserializers()) {
             JsonDeserializer<?> deser = d.findMapDeserializer(type, config, provider, beanDesc, property,
                     keyDeserializer, elementTypeDeserializer, elementDeserializer);
             if (deser != null) {
@@ -167,7 +210,7 @@ public class BeanDeserializerFactory
             DeserializationConfig config, BeanProperty property)
         throws JsonMappingException
     {
-        for (Deserializers d  : _additionalDeserializers) {
+        for (Deserializers d  : _config.deserializers()) {
             JsonDeserializer<?> deser = d.findTreeNodeDeserializer(type, config, property);
             if (deser != null) {
                 return deser;
@@ -182,7 +225,7 @@ public class BeanDeserializerFactory
             DeserializerProvider provider, BasicBeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException
     {
-        for (Deserializers d  : _additionalDeserializers) {
+        for (Deserializers d  : _config.deserializers()) {
             JsonDeserializer<?> deser = d.findBeanDeserializer(type, config, provider, beanDesc, property);
             if (deser != null) {
                 return (JsonDeserializer<Object>) deser;

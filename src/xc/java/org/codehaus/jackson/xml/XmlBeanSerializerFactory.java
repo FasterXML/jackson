@@ -39,9 +39,9 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
     /**********************************************************
      */
     
-    protected XmlBeanSerializerFactory(Serializers[] allAdditionalSerializers)
+    protected XmlBeanSerializerFactory(Config config)
     {
-        super(allAdditionalSerializers);
+        super(config);
     }
 
     @Override
@@ -56,9 +56,7 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
                     +") has not properly overridden method 'withAdditionalSerializers': can not instantiate subtype with "
                     +"additional serializer definitions");
         }
-        
-        Serializers[] s = ArrayBuilders.insertInList(_additionalSerializers, additional);
-        return new XmlBeanSerializerFactory(s);
+        return new XmlBeanSerializerFactory(_config.withAdditionalSerializers(additional));
     }
 
     /*

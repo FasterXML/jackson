@@ -5,7 +5,6 @@ import java.util.*;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.*;
-import org.codehaus.jackson.map.util.ArrayBuilders;
 
 /**
  * Deserializer factory implementation that allows for configuring
@@ -78,12 +77,12 @@ public class CustomDeserializerFactory
      */
 
     public CustomDeserializerFactory() {
-        this(NO_DESERIALIZERS);
+        this(null);
     }
 
-    protected CustomDeserializerFactory(Deserializers[] allAdditionalDeserializers)
+    protected CustomDeserializerFactory(Config config)
     {
-        super(allAdditionalDeserializers);
+        super(config);
     }
     
     @Override
@@ -92,23 +91,13 @@ public class CustomDeserializerFactory
         if (additional == null) {
             throw new IllegalArgumentException("Can not pass null Deserializers");
         }
-        
-        /* 22-Nov-2010, tatu: Handling of subtypes is tricky if we do immutable-with-copy-ctor;
-         *    and we pretty much have to here either choose between losing subtype instance
-         *    when registering additional serializers, or losing serializers.
-         *    
-         *    Instead, let's actually just throw an error if this method is called when subtype
-         *    has not properly overridden this method, as that is better alternative than
-         *    continue with what is almost certainly broken or invalid configuration.
-         */
+        // See super-class method for reasons for this check...
         if (getClass() != CustomDeserializerFactory.class) {
             throw new IllegalStateException("Subtype of CustomDeserializerFactory ("+getClass().getName()
                     +") has not properly overridden method 'withAdditionalDeserializers': can not instantiate subtype with "
                     +"additional deserializer definitions");
         }
-        
-        Deserializers[] s = ArrayBuilders.insertInList(_additionalDeserializers, additional);
-        return new CustomDeserializerFactory(s);
+        return new CustomDeserializerFactory(_config.withAdditionalDeserializers(additional));
     }
     
     /*

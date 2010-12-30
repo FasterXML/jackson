@@ -5,7 +5,6 @@ import java.util.*;
 
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.ClassKey;
-import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -87,11 +86,11 @@ public class CustomSerializerFactory
      */
 
     public CustomSerializerFactory() {
-        this(NO_SERIALIZERS);
+        this(null);
     }
 
-    public CustomSerializerFactory(Serializers[] allAdditionalSerializers) {
-        super(allAdditionalSerializers);
+    public CustomSerializerFactory(Config config) {
+        super(config);
     }
 
     
@@ -102,16 +101,14 @@ public class CustomSerializerFactory
             throw new IllegalArgumentException("Can not pass null Serializers");
         }
         /* 22-Nov-2010, tatu: As with BeanSerializerFactory, must ensure type won't change
-         *   with this method, so
+         *   with this method, so:
          */
         if (getClass() != CustomSerializerFactory.class) {
             throw new IllegalStateException("Subtype of CustomSerializerFactory ("+getClass().getName()
                     +") has not properly overridden method 'withAdditionalSerializers': can not instantiate subtype with "
                     +"additional serializer definitions");
         }
-        
-        Serializers[] s = ArrayBuilders.insertInList(_additionalSerializers, additional);
-        return new CustomSerializerFactory(s);
+        return new CustomSerializerFactory(_config.withAdditionalSerializers(additional));
     }
     
     /*
