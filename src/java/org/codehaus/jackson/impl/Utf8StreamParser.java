@@ -52,6 +52,11 @@ public final class Utf8StreamParser
      */
     protected boolean _tokenIncomplete = false;
 
+    /**
+     * Temporary storage for partially parsed name bytes.
+     */
+    private int _quad1;
+    
     /*
     /**********************************************************
     /* Life-cycle
@@ -59,10 +64,9 @@ public final class Utf8StreamParser
      */
 
     public Utf8StreamParser(IOContext ctxt, int features, InputStream in,
-                            ObjectCodec codec,
-                            BytesToNameCanonicalizer sym,
-                            byte[] inputBuffer, int start, int end,
-                            boolean bufferRecyclable)
+            ObjectCodec codec, BytesToNameCanonicalizer sym,
+            byte[] inputBuffer, int start, int end,
+            boolean bufferRecyclable)
     {
         super(ctxt, features, in, inputBuffer, start, end, bufferRecyclable);
         _objectCodec = codec;
@@ -683,7 +687,7 @@ public final class Utf8StreamParser
             return _handleUnusualFieldName(i);
         }
         // First: can we optimize out bounds checks?
-        if ((_inputEnd - _inputPtr) < 9) { // Need 8 chars, plus one trailing (quote)
+        if ((_inputPtr + 9) > _inputEnd) { // Need 8 chars, plus one trailing (quote)
             return slowParseFieldName();
         }
 
@@ -696,86 +700,84 @@ public final class Utf8StreamParser
         final int[] codes = CharTypes.getInputCodeLatin1();
 
         int q = _inputBuffer[_inputPtr++] & 0xFF;
-        if (codes[q] != 0) {
-            if (q == INT_QUOTE) { // special case, ""
-                return BytesToNameCanonicalizer.getEmptyName();
-            }
-            return parseFieldName(0, q, 0); // quoting or invalid char
-        }
 
-        i = _inputBuffer[_inputPtr++] & 0xFF;
-        if (codes[i] != 0) {
+        if (codes[q] == 0) {
+            i = _inputBuffer[_inputPtr++] & 0xFF;
+            if (codes[i] == 0) {
+                q = (q << 8) | i;
+                i = _inputBuffer[_inputPtr++] & 0xFF;
+                if (codes[i] == 0) {
+                    q = (q << 8) | i;
+                    i = _inputBuffer[_inputPtr++] & 0xFF;
+                    if (codes[i] == 0) {
+                        q = (q << 8) | i;
+                        i = _inputBuffer[_inputPtr++] & 0xFF;
+                        if (codes[i] == 0) {
+                            _quad1 = q;
+                            return parseMediumFieldName(i, codes);
+                        }
+                        if (i == INT_QUOTE) { // one byte/char case or broken
+                            return findName(q, 4);
+                        }
+                        return parseFieldName(q, i, 4);
+                    }
+                    if (i == INT_QUOTE) { // one byte/char case or broken
+                        return findName(q, 3);
+                    }
+                    return parseFieldName(q, i, 3);
+                }                
+                if (i == INT_QUOTE) { // one byte/char case or broken
+                    return findName(q, 2);
+                }
+                return parseFieldName(q, i, 2);
+            }
             if (i == INT_QUOTE) { // one byte/char case or broken
                 return findName(q, 1);
             }
             return parseFieldName(q, i, 1);
+        }     
+        if (q == INT_QUOTE) { // special case, ""
+            return BytesToNameCanonicalizer.getEmptyName();
         }
-        q = (q << 8) | i;
-        i = _inputBuffer[_inputPtr++] & 0xFF;
-        if (codes[i] != 0) {
-            if (i == INT_QUOTE) { // two byte name or broken
-                return findName(q, 2);
-            }
-            return parseFieldName(q, i, 2);
-        }
-        q = (q << 8) | i;
-        i = _inputBuffer[_inputPtr++] & 0xFF;
-        if (codes[i] != 0) {
-            if (i == INT_QUOTE) { // three byte name or broken
-                return findName(q, 3);
-            }
-            return parseFieldName(q, i, 3);
-        }
-        q = (q << 8) | i;
-        i = _inputBuffer[_inputPtr++] & 0xFF;
-        if (codes[i] != 0) {
-            if (i == INT_QUOTE) { // four byte name or broken
-                return findName(q, 4);
-            }
-            return parseFieldName(q, i, 4);
-        }
-        return parseMediumFieldName(q, i);
+        return parseFieldName(0, q, 0); // quoting or invalid char
     }
 
-    protected Name parseMediumFieldName(int q1, int q2)
+    protected final Name parseMediumFieldName(int q2, final int[] codes)
         throws IOException, JsonParseException
     {
-        // As mentioned earlier, we do ignore UTF-8 aspects at this point
-        final int[] codes = CharTypes.getInputCodeLatin1();
-
         // Ok, got 5 name bytes so far
         int i = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[i] != 0) {
             if (i == INT_QUOTE) { // 5 bytes
-                return findName(q1, q2, 1);
+                return findName(_quad1, q2, 1);
             }
-            return parseFieldName(q1, q2, i, 1); // quoting or invalid char
+            return parseFieldName(_quad1, q2, i, 1); // quoting or invalid char
         }
         q2 = (q2 << 8) | i;
         i = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[i] != 0) {
             if (i == INT_QUOTE) { // 6 bytes
-                return findName(q1, q2, 2);
+                return findName(_quad1, q2, 2);
             }
-            return parseFieldName(q1, q2, i, 2);
+            return parseFieldName(_quad1, q2, i, 2);
         }
         q2 = (q2 << 8) | i;
         i = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[i] != 0) {
             if (i == INT_QUOTE) { // 7 bytes
-                return findName(q1, q2, 3);
+                return findName(_quad1, q2, 3);
             }
-            return parseFieldName(q1, q2, i, 3);
+            return parseFieldName(_quad1, q2, i, 3);
         }
         q2 = (q2 << 8) | i;
         i = _inputBuffer[_inputPtr++] & 0xFF;
         if (codes[i] != 0) {
             if (i == INT_QUOTE) { // 8 bytes
-                return findName(q1, q2, 4);
+                return findName(_quad1, q2, 4);
             }
-            return parseFieldName(q1, q2, i, 4);
+            return parseFieldName(_quad1, q2, i, 4);
         }
-        _quadBuffer[0] = q1;
+        _quadBuffer[0] = _quad1;
         _quadBuffer[1] = q2;
         return parseLongFieldName(i);
     }
