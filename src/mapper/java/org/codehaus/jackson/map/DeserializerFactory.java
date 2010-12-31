@@ -29,6 +29,67 @@ import org.codehaus.jackson.type.JavaType;
  */
 public abstract class DeserializerFactory
 {
+    protected final static Deserializers[] NO_DESERIALIZERS = new Deserializers[0];
+
+    /*
+    /**********************************************************
+    /* Helper class to contain configuration settings
+    /**********************************************************
+     */
+
+    /**
+     * Configuration settings container class for bean deserializer factory
+     * 
+     * @since 1.7
+     */
+    public abstract static class Config
+    {
+        /**
+         * Fluent/factory method used to construct a configuration object that
+         * has same deserializer providers as this instance, plus one specified
+         * as argument. Additional provider will be added before existing ones,
+         * meaning it has priority over existing definitions.
+         */
+        public abstract Config withAdditionalDeserializers(Deserializers additional);
+
+        public abstract Iterable<Deserializers> deserializers();
+    }
+
+    /*
+    /********************************************************
+    /* Configuration handling
+    /********************************************************
+     */
+
+    /**
+     * @since 1.7
+     */
+    public abstract Config getConfig();
+    
+    /**
+     * Method used for creating a new instance of this factory, but with different
+     * configuration. Reason for specifying factory method (instead of plain constructor)
+     * is to allow proper sub-classing of factories.
+     *<p>
+     * Note that custom sub-classes <b>must override</b> implementation
+     * of this method, as it usually requires instantiating a new instance of
+     * factory type. Check out javadocs for
+     * {@link org.codehaus.jackson.map.deser.BeanDeserializerFactory} for more details.
+     * 
+     * @since 1.7
+     */
+    public abstract DeserializerFactory withConfig(Config config);
+
+    /**
+     * Convenience method for creating a new factory instance with additional deserializer
+     * provider.
+     * 
+     * @since 1.7
+     */
+    public final DeserializerFactory withAdditionalDeserializers(Deserializers additional) {
+        return withConfig(getConfig().withAdditionalDeserializers(additional));
+    }
+    
     /*
     /**********************************************************
     /* Basic DeserializerFactory API:
@@ -223,24 +284,4 @@ public abstract class DeserializerFactory
     {
         return createTreeDeserializer(config, p, TypeFactory.type(nodeClass), null);
     }
-    
-    /*
-    /********************************************************
-    /* Additional configuration
-    /********************************************************
-     */
-
-    /**
-     * Method that can be used to register additional deserializers to be provided;
-     * will return a factory that uses specified provider, usually a newly
-     * constructed factory instance.
-     *<p>
-     * Note that custom sub-classes <b>must override</b> implementation
-     * of this method, as it usually requires instantiating a new instance of
-     * factory type. Check out javadocs for
-     * {@link org.codehaus.jackson.map.deser.BeanDeserializerFactory} for more details.
-     * 
-     * @since 1.7
-     */
-    public abstract DeserializerFactory withAdditionalDeserializers(Deserializers additionalSerializer);
 }

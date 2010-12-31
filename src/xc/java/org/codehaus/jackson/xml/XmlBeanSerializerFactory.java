@@ -7,7 +7,6 @@ import javax.xml.namespace.QName;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.SerializerFactory;
-import org.codehaus.jackson.map.Serializers;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.ser.BeanPropertyWriter;
@@ -15,7 +14,6 @@ import org.codehaus.jackson.map.ser.BeanSerializer;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
 import org.codehaus.jackson.map.ser.PropertyBuilder;
 import org.codehaus.jackson.map.type.TypeBindings;
-import org.codehaus.jackson.map.util.ArrayBuilders;
 
 /**
  * Specialized version of {@link BeanSerializerFactory} which is used to
@@ -45,18 +43,15 @@ public class XmlBeanSerializerFactory extends BeanSerializerFactory
     }
 
     @Override
-    public SerializerFactory withAdditionalSerializers(Serializers additional)
+    public SerializerFactory withConfig(Config config)
     {
-        if (additional == null) {
-            throw new IllegalArgumentException("Can not pass null Serializers");
-        }
         // Same as super-class, we require all sub-classes to override this method:
         if (getClass() != XmlBeanSerializerFactory.class) {
             throw new IllegalStateException("Subtype of XmlBeanSerializerFactory ("+getClass().getName()
                     +") has not properly overridden method 'withAdditionalSerializers': can not instantiate subtype with "
                     +"additional serializer definitions");
         }
-        return new XmlBeanSerializerFactory(_config.withAdditionalSerializers(additional));
+        return new XmlBeanSerializerFactory(config);
     }
 
     /*

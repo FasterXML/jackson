@@ -23,8 +23,6 @@ import org.codehaus.jackson.type.JavaType;
 public class BeanDeserializerFactory
     extends BasicDeserializerFactory
 {
-    protected final static Deserializers[] NO_DESERIALIZERS = new Deserializers[0];
-
     /**
      * Signature of <b>Throwable.initCause</b> method.
      */
@@ -32,14 +30,16 @@ public class BeanDeserializerFactory
 
     /*
     /**********************************************************
-    /* Helper class to contain configuration settings
+    /* Config class implementation
     /**********************************************************
      */
-
+    
     /**
-     * Configuration settings container class for bean deserializer factory
+     * Standard configuration settings container class implementation.
+     * 
+     * @since 1.7
      */
-    public static class Config
+    public static class ConfigImpl extends Config
     {
         /**
          * List of providers for additional deserializers, checked before considering default
@@ -49,27 +49,37 @@ public class BeanDeserializerFactory
          */
         protected final Deserializers[] _additionalDeserializers;
 
-        protected Config() {
+        /**
+         * Constructor for creating basic configuration with no additional
+         * handlers.
+         */
+        public ConfigImpl() {
             this(NO_DESERIALIZERS);
         }
 
-        protected Config(Deserializers[] allAdditionalDeserializers)
+        /**
+         * Copy-constructor that will create an instance that contains defined
+         * set of additional deserializer providers.
+         */
+        protected ConfigImpl(Deserializers[] allAdditionalDeserializers)
         {
             _additionalDeserializers = (allAdditionalDeserializers == null) ?
                     NO_DESERIALIZERS : allAdditionalDeserializers;
         }
 
+        @Override
         public Config withAdditionalDeserializers(Deserializers additional)
         {
             if (additional == null) {
                 throw new IllegalArgumentException("Can not pass null Deserializers");
             }
             Deserializers[] all = ArrayBuilders.insertInList(_additionalDeserializers, additional);
-            return new Config(all);
+            return new ConfigImpl(all);
         }
 
-        protected Deserializers[] deserializers() {
-            return _additionalDeserializers;
+        @Override
+        public Iterable<Deserializers> deserializers() {
+            return ArrayBuilders.arrayAsIterable(_additionalDeserializers);
         }
     }
     
@@ -101,24 +111,32 @@ public class BeanDeserializerFactory
     /**
      * @since 1.7
      */
-    public BeanDeserializerFactory(Config config) {
+    public BeanDeserializerFactory(DeserializerFactory.Config config) {
         if (config == null) {
-            config = new Config();
+            config = new ConfigImpl();
         }
         _config = config;
     }
 
+    @Override
+    public final Config getConfig() {
+        return _config;
+    }
+    
     /**
-     * Method used by module registration functionality, to attach additional
-     * deserializer providers into this deserializer factory. This is typically
-     * handled by constructing a new instance with additional deserializers,
-     * to ensure thread-safe access.
+     * Method used by module registration functionality, to construct a new bean
+     * deserializer factory
+     * with different configuration settings.
      * 
      * @since 1.7
      */
     @Override
-    public DeserializerFactory withAdditionalDeserializers(Deserializers additional)
+    public DeserializerFactory withConfig(DeserializerFactory.Config config)
     {
+        if (_config == config) {
+            return this;
+        }
+
         /* 22-Nov-2010, tatu: Handling of subtypes is tricky if we do immutable-with-copy-ctor;
          *    and we pretty much have to here either choose between losing subtype instance
          *    when registering additional deserializers, or losing deserializers.
@@ -130,9 +148,9 @@ public class BeanDeserializerFactory
                     +") has not properly overridden method 'withAdditionalDeserializers': can not instantiate subtype with "
                     +"additional deserializer definitions");
         }
-        return new BeanDeserializerFactory(_config.withAdditionalDeserializers(additional));
+        return new BeanDeserializerFactory(config);
     }
-
+    
     /*
     /**********************************************************
     /* Overrides for super-class methods used for finding

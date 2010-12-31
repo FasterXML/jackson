@@ -92,14 +92,10 @@ public class CustomSerializerFactory
     public CustomSerializerFactory(Config config) {
         super(config);
     }
-
     
     @Override
-    public SerializerFactory withAdditionalSerializers(Serializers additional)
+    public SerializerFactory withConfig(Config config)
     {
-        if (additional == null) {
-            throw new IllegalArgumentException("Can not pass null Serializers");
-        }
         /* 22-Nov-2010, tatu: As with BeanSerializerFactory, must ensure type won't change
          *   with this method, so:
          */
@@ -108,7 +104,7 @@ public class CustomSerializerFactory
                     +") has not properly overridden method 'withAdditionalSerializers': can not instantiate subtype with "
                     +"additional serializer definitions");
         }
-        return new CustomSerializerFactory(_config.withAdditionalSerializers(additional));
+        return new CustomSerializerFactory(config);
     }
     
     /*

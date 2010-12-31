@@ -113,7 +113,7 @@ public abstract class BasicDeserializerFactory
 
     // can't be implemented quite here
     @Override
-    public abstract DeserializerFactory withAdditionalDeserializers(Deserializers additionalSerializer);
+    public abstract DeserializerFactory withConfig(DeserializerFactory.Config config);
     
     /*
     /**********************************************************

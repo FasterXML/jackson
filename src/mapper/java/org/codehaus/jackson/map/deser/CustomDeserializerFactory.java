@@ -86,18 +86,15 @@ public class CustomDeserializerFactory
     }
     
     @Override
-    public DeserializerFactory withAdditionalDeserializers(Deserializers additional)
+    public DeserializerFactory withConfig(Config config)
     {
-        if (additional == null) {
-            throw new IllegalArgumentException("Can not pass null Deserializers");
-        }
         // See super-class method for reasons for this check...
         if (getClass() != CustomDeserializerFactory.class) {
             throw new IllegalStateException("Subtype of CustomDeserializerFactory ("+getClass().getName()
                     +") has not properly overridden method 'withAdditionalDeserializers': can not instantiate subtype with "
                     +"additional deserializer definitions");
         }
-        return new CustomDeserializerFactory(_config.withAdditionalDeserializers(additional));
+        return new CustomDeserializerFactory(config);
     }
     
     /*

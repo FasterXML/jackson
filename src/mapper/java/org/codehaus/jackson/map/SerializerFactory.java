@@ -9,6 +9,60 @@ import org.codehaus.jackson.type.JavaType;
  */
 public abstract class SerializerFactory
 {
+
+    /*
+    /**********************************************************
+    /* Helper class to contain configuration settings
+    /**********************************************************
+     */
+
+    /**
+     * Configuration settings container class for bean serializer factory.
+     * 
+     * @since 1.7
+     */
+    public abstract static class Config
+    {
+        public abstract Config withAdditionalSerializers(Serializers additional);
+
+        public abstract Iterable<Serializers> serializers();
+    }
+
+    /*
+    /**********************************************************
+    /* Additional configuration
+    /**********************************************************
+     */
+
+    /**
+     * @since 1.7
+     */
+    public abstract Config getConfig();
+    
+    /**
+     * Method used for creating a new instance of this factory, but with different
+     * configuration. Reason for specifying factory method (instead of plain constructor)
+     * is to allow proper sub-classing of factories.
+     *<p>
+     * Note that custom sub-classes generally <b>must override</b> implementation
+     * of this method, as it usually requires instantiating a new instance of
+     * factory type. Check out javadocs for
+     * {@link org.codehaus.jackson.map.ser.BeanSerializerFactory} for more details.
+     * 
+     * @since 1.7
+     */
+    public abstract SerializerFactory withConfig(Config config);
+
+    /**
+     * Convenience method for creating a new factory instance with additional serializer
+     * provider.
+     * 
+     * @since 1.7
+     */
+    public final SerializerFactory withAdditionalSerializers(Serializers additional) {
+        return withConfig(getConfig().withAdditionalSerializers(additional));
+    }
+    
     /*
     /********************************************************
     /* Basic SerializerFactory API:
@@ -66,24 +120,4 @@ public abstract class SerializerFactory
     public final TypeSerializer createTypeSerializer(JavaType baseType, SerializationConfig config) {
         return createTypeSerializer(config, baseType, null);
     }
-
-    /*
-    /**********************************************************
-    /* Additional configuration
-    /**********************************************************
-     */
-
-    /**
-     * Method that can be used to register additional serializers to be provided;
-     * will return a factory that uses specified provider, usually a newly
-     * constructed factory instance.
-     *<p>
-     * Note that custom sub-classes generally <b>must override</b> implementation
-     * of this method, as it usually requires instantiating a new instance of
-     * factory type. Check out javadocs for
-     * {@link org.codehaus.jackson.map.ser.BeanSerializerFactory} for more details.
-     * 
-     * @since 1.7
-     */
-    public abstract SerializerFactory withAdditionalSerializers(Serializers additionalSerializer);
 }

@@ -4,12 +4,7 @@ import java.util.*;
 
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.introspect.AnnotatedClass;
-import org.codehaus.jackson.map.introspect.AnnotatedField;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
-import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.BasicBeanDescription;
-import org.codehaus.jackson.map.introspect.VisibilityChecker;
+import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeBindings;
@@ -46,62 +41,13 @@ import org.codehaus.jackson.type.JavaType;
  * This means that a global singleton instance can be used.
  *<p>
  * Notes for version 1.7 (and above): the new module registration system
- * required addition of {@link #withAdditionalSerializers}, which has to
+ * required addition of {@link #withConfig}, which has to
  * be redefined by sub-classes so that they can work properly with
  * pluggable additional serializer providing components.
  */
 public class BeanSerializerFactory
     extends BasicSerializerFactory
 {
-    /**
-     * Constant for empty <code>Serializers</code> array (which by definition
-     * is stateless and reusable)
-     */
-    protected final static Serializers[] NO_SERIALIZERS = new Serializers[0];
-    
-    /*
-    /**********************************************************
-    /* Helper class to contain configuration settings
-    /**********************************************************
-     */
-
-    /**
-     * Configuration settings container class for bean serializer factory
-     */
-    public static class Config
-    {
-        /**
-         * List of providers for additional serializers, checked before considering default
-         * basic or bean serialializers.
-         * 
-         * @since 1.7
-         */
-        protected final Serializers[] _additionalSerializers;
-
-        protected Config() {
-            this(NO_SERIALIZERS);
-        }
-
-        protected Config(Serializers[] allAdditionalSerializers)
-        {
-            _additionalSerializers = (allAdditionalSerializers == null) ?
-                    NO_SERIALIZERS : allAdditionalSerializers;
-        }
-
-        public Config withAdditionalSerializers(Serializers additional)
-        {
-            if (additional == null) {
-                throw new IllegalArgumentException("Can not pass null Serializers");
-            }
-            Serializers[] all = ArrayBuilders.insertInList(_additionalSerializers, additional);
-            return new Config(all);
-        }
-
-        protected Serializers[] serializers() {
-            return _additionalSerializers;
-        }
-    }
-
     /**
      * Like {@link BasicSerializerFactory}, this factory is stateless, and
      * thus a single shared global (== singleton) instance can be used
@@ -116,7 +62,60 @@ public class BeanSerializerFactory
      * @since 1.7
      */
     protected final Config _config;
+
+    /*
+    /**********************************************************
+    /* Config class implementation
+    /**********************************************************
+     */
     
+    /**
+     * Configuration settings container class for bean serializer factory
+     * 
+     * @since 1.7
+     */
+    public static class ConfigImpl extends Config
+    {
+        /**
+         * Constant for empty <code>Serializers</code> array (which by definition
+         * is stateless and reusable)
+         */
+        protected final static Serializers[] NO_SERIALIZERS = new Serializers[0];
+
+        /**
+         * List of providers for additional serializers, checked before considering default
+         * basic or bean serialializers.
+         * 
+         * @since 1.7
+         */
+        protected final Serializers[] _additionalSerializers;
+
+        public ConfigImpl() {
+            this(null);
+        }
+
+        protected ConfigImpl(Serializers[] allAdditionalSerializers)
+        {
+            _additionalSerializers = (allAdditionalSerializers == null) ?
+                    NO_SERIALIZERS : allAdditionalSerializers;
+        }
+
+        @Override
+        public Config withAdditionalSerializers(Serializers additional)
+        {
+            if (additional == null) {
+                throw new IllegalArgumentException("Can not pass null Serializers");
+            }
+            Serializers[] all = ArrayBuilders.insertInList(_additionalSerializers, additional);
+            return new ConfigImpl(all);
+        }
+
+        @Override
+        public Iterable<Serializers> serializers() {
+            return ArrayBuilders.arrayAsIterable(_additionalSerializers);
+        }
+    }
+
     /*
     /**********************************************************
     /* Life-cycle: creation, configuration
@@ -134,10 +133,12 @@ public class BeanSerializerFactory
     protected BeanSerializerFactory(Config config)
     {
         if (config == null) {
-            config = new Config();
+            config = new ConfigImpl();
         }
         _config = config;
     }
+
+    @Override public Config getConfig() { return _config; }
     
     /**
      * Method used by module registration functionality, to attach additional
@@ -148,8 +149,11 @@ public class BeanSerializerFactory
      * @since 1.7
      */
     @Override
-    public SerializerFactory withAdditionalSerializers(Serializers additional)
+    public SerializerFactory withConfig(Config config)
     {
+        if (_config == config) {
+            return this;
+        }
         /* 22-Nov-2010, tatu: Handling of subtypes is tricky if we do immutable-with-copy-ctor;
          *    and we pretty much have to here either choose between losing subtype instance
          *    when registering additional serializers, or losing serializers.
@@ -161,7 +165,7 @@ public class BeanSerializerFactory
                     +") has not properly overridden method 'withAdditionalSerializers': can not instantiate subtype with "
                     +"additional serializer definitions");
         }
-        return new BeanSerializerFactory(_config.withAdditionalSerializers(additional));
+        return new BeanSerializerFactory(config);
     }
     
     /*
@@ -224,7 +228,7 @@ public class BeanSerializerFactory
      * {@link Serializers} instances (provided by registered Modules),
      * and return first one found, if any.
      */
-    private static JsonSerializer<?> _findFirstSerializer(Serializers[] sers, SerializationConfig config,
+    private static JsonSerializer<?> _findFirstSerializer(Iterable<Serializers> sers, SerializationConfig config,
             JavaType type, BeanDescription beanDesc, BeanProperty property)
     {
         for (Serializers ser : sers) {
