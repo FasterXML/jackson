@@ -345,16 +345,6 @@ public class TestJaxbAnnotationIntrospector
         assertNull(readEx.propertyToIgnore);
     }
 
-    public void testNamespaceAccess() throws Exception
-    {
-        JaxbAnnotationIntrospector ai = new JaxbAnnotationIntrospector();
-        assertEquals("urn:class", ai.findNamespace(AnnotatedClass.construct(NamespaceBean.class, ai, null)));
-        /* should it return null or empty String? Should be null
-         * for no annotations; empty for explicitly empty NS.
-         */
-        assertNull(ai.findNamespace(AnnotatedClass.construct(SimpleBean.class, ai, null)));
-    }
-
     public void testRootNameAccess() throws Exception
     {
         AnnotationIntrospector ai = new JaxbAnnotationIntrospector();

@@ -12,11 +12,11 @@ import java.io.IOException;
 public interface PrettyPrinter
 {
     /*
-    //////////////////////////////////////////////////////
-    // First methods that act both as events, and expect
-    // output for correct functioning (i.e something gets
-    // output even when not pretty-printing)
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* First methods that act both as events, and expect
+    /* output for correct functioning (i.e something gets
+    /* output even when not pretty-printing)
+    /**********************************************************
      */
 
     // // // Root-level handling:
@@ -133,11 +133,11 @@ public interface PrettyPrinter
         throws IOException, JsonGenerationException;
 
     /*
-    //////////////////////////////////////////////////////
-    // Then events that by default do not produce any output
-    // but that are often overridden to add white space
-    // in pretty-printing mode
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Then events that by default do not produce any output
+    /* but that are often overridden to add white space
+    /* in pretty-printing mode
+    /**********************************************************
      */
 
     /**
