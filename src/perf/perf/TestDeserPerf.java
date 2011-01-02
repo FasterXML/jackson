@@ -6,8 +6,6 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.smile.SmileFactory;
 import org.codehaus.jackson.smile.SmileGenerator;
 import org.codehaus.jackson.type.JavaType;
-import org.codehaus.jackson.xml.XmlFactory;
-import org.codehaus.jackson.xml.XmlMapper;
 
 /**
  * Micro-benchmark for comparing performance of bean deserialization
@@ -64,10 +62,6 @@ public final class TestDeserPerf
         
         final ObjectMapper jsonMapper = new ObjectMapper(jsonF);
 //        jsonMapper.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
-        final XmlMapper xmlMapper = new XmlMapper(new XmlFactory(null,
-                new com.ctc.wstx.stax.WstxInputFactory() // woodstox
-//                new com.fasterxml.aalto.stax.InputFactoryImpl() // aalto
-            , null));
         final SmileFactory smileFactory = new SmileFactory();
         final ObjectMapper smileMapper = new ObjectMapper(smileFactory);
         smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
@@ -77,8 +71,6 @@ public final class TestDeserPerf
         System.out.println("Warmed up: data size is "+json.length+" bytes; "+REPS+" reps -> "
                 +((REPS * json.length) >> 10)+" kB per iteration");
         System.out.println();
-        byte[] xml = xmlMapper.writeValueAsBytes(item);
-        System.out.println(" xml size: "+xml.length+" bytes");
         byte[] smile = smileMapper.writeValueAsBytes(item);
         System.out.println(" smile size: "+smile.length+" bytes");
         
@@ -103,11 +95,6 @@ public final class TestDeserPerf
                 break;
 
             case 2:
-                msg = "Deserialize, xml";
-                sum += testDeser(xmlMapper, xml, REPS);
-                break;
-
-            case 3:
                 msg = "Deserialize, smile";
                 sum += testDeser(smileMapper, smile, REPS * 2);
                 break;

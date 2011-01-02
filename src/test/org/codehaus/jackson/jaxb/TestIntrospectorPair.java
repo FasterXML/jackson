@@ -11,7 +11,6 @@ import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
-import org.codehaus.jackson.xml.XmlAnnotationIntrospector;
 
 /**
  * Simple testing that {@link AnnotationIntrospector.Pair} works as
@@ -278,32 +277,6 @@ public class TestIntrospectorPair
 
         assertFalse(ann.hasCreatorAnnotation(testClass));
     }
-
-    public void testNamespace() throws Exception
-    {
-        // first: test with Jackson/Jaxb pair (jackson having precedence)
-        AnnotationIntrospector pair = new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI);
-        String ns = _findNamespace(pair, AnnotatedClass.construct(NamespaceBean.class, pair, null));
-        assertEquals("urn:whatever", ns);
-
-        // then reverse; should make no difference
-        pair = new AnnotationIntrospector.Pair(_jaxbAI, _jacksonAI);
-        ns = _findNamespace(pair, AnnotatedClass.construct(NamespaceBean.class, pair, null));
-        assertEquals("urn:whatever", ns);
-    }        
-
-    private String _findNamespace(AnnotationIntrospector intrs, AnnotatedClass ann)
-    {
-        for (AnnotationIntrospector intr : intrs.allIntrospectors()) {
-            if (intr instanceof XmlAnnotationIntrospector) {
-                String ns = ((XmlAnnotationIntrospector) intr).findNamespace(ann);
-                if (ns != null) {
-                    return ns;
-                }
-            }
-        }
-        return null;
-    }    
     
     public void testRootName() throws Exception
     {

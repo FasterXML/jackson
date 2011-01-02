@@ -1,15 +1,10 @@
 package perf;
 
 import java.io.*;
-import javax.xml.stream.XMLOutputFactory;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.xml.XmlFactory;
-import org.codehaus.jackson.xml.XmlMapper;
 import org.codehaus.jackson.smile.*;
-
-import com.ctc.wstx.stax.WstxOutputFactory;
 
 public final class TestSerPerf
 {
@@ -70,9 +65,6 @@ public final class TestSerPerf
 
 //      jsonMapper.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
 
-        XMLOutputFactory xmlOut = new WstxOutputFactory(); // Woodstox
-//        XMLOutputFactory xmlOut = new com.fasterxml.aalto.stax.OutputFactoryImpl(); // Aalto
-        final XmlMapper xmlMapper = new XmlMapper(new XmlFactory(null, null, xmlOut));
         final SmileFactory smileFactory = new SmileFactory();
         smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
         smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, false);
@@ -86,8 +78,6 @@ public final class TestSerPerf
             System.out.println("Warmed up: data size is "+stuff.length+" bytes; "+REPS+" reps -> "
                     +((REPS * stuff.length) >> 10)+" kB per iteration");
             System.out.println();
-            stuff = xmlMapper.writeValueAsBytes(item);
-            System.out.println(" xml size: "+stuff.length+" bytes; uses "+xmlOut.getClass().getName());
             stuff = smileMapper.writeValueAsBytes(item);
             System.out.println(" Smile size: "+stuff.length+" bytes");
         }
@@ -95,7 +85,7 @@ public final class TestSerPerf
         while (true) {
 //            Thread.sleep(150L);
             ++i;
-            int round = (i % 5);
+            int round = (i % 4);
 
             // override?
             round = 0;
@@ -115,18 +105,13 @@ public final class TestSerPerf
                 msg = "Serialize, JSON/manual";
                 sum += testObjectSer(jsonMapper.getJsonFactory(), item, REPS+REPS, result);
                 break;
-                
-            case 2:
-                msg = "Serialize, xml";
-                sum += testObjectSer(xmlMapper, item, REPS, result);
-                break;
 
-            case 3:
+            case 2:
                 msg = "Serialize, Smile";
                 sum += testObjectSer(smileMapper, item, REPS, result);
                 break;
 
-            case 4:
+            case 3:
                 msg = "Serialize, Smile/manual";
                 sum += testObjectSer(smileFactory, item, REPS+REPS, result);
                 break;
