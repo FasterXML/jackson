@@ -65,7 +65,7 @@ public final class TestDeserPerf
         final SmileFactory smileFactory = new SmileFactory();
         final ObjectMapper smileMapper = new ObjectMapper(smileFactory);
         smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
-//        smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
+        smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
 
         byte[] json = jsonMapper.writeValueAsBytes(item);
         System.out.println("Warmed up: data size is "+json.length+" bytes; "+REPS+" reps -> "
@@ -73,6 +73,36 @@ public final class TestDeserPerf
         System.out.println();
         byte[] smile = smileMapper.writeValueAsBytes(item);
         System.out.println(" smile size: "+smile.length+" bytes");
+
+        { // verify equality
+            System.out.println("Will verify state of Smile...");
+            MediaItem result = smileMapper.readValue(smile, 0, smile.length, MediaItem.class);
+            String jsonFromSmile = jsonMapper.writeValueAsString(result);
+            String jsonFromItem = jsonMapper.writeValueAsString(item);
+            if (!jsonFromSmile.equals(jsonFromItem)) {
+                int ix = 0;
+
+                for (int max = Math.min(jsonFromSmile.length(), jsonFromItem.length()); ix < max; ++ix) {
+                    if (jsonFromSmile.charAt(ix) != jsonFromItem.charAt(ix)) {
+                        break;
+                    }
+                }
+                
+                System.err.println("Source JSON: ");
+                System.err.println(jsonFromItem);
+                System.err.println("------------");
+                System.err.println("Smile  JSON: ");
+                System.err.println(jsonFromSmile);
+                System.err.println("------------");                
+                for (int i = 0; i < ix; ++i) {
+                    System.err.print('=');
+                }
+                System.err.println("^");
+                System.err.println("------------");                
+                throw new Error("No smile today -- data corruption!");
+            }
+            System.out.println("Verification successful: Smile ok!");
+        }
         
         while (true) {
 //            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }

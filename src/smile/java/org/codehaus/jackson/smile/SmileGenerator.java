@@ -955,6 +955,10 @@ public class SmileGenerator
             _outputBuffer[_outputTail++] = (byte) typeToken;
             System.arraycopy(raw, 0, _outputBuffer, _outputTail, byteLen);
             _outputTail += byteLen;
+            // plus keep reference, if it could be shared:
+            if (_seenStringValueCount >= 0) {
+                _addSeenStringValue(sstr.getValue());
+            }
         } else { // "long" String, never shared
             // but might still fit within buffer?
             byte typeToken = (byteLen == len) ? TOKEN_BYTE_LONG_STRING_ASCII : TOKEN_BYTE_LONG_STRING_UNICODE;

@@ -1,9 +1,10 @@
 package org.codehaus.jackson.smile;
 
 import java.io.*;
-import java.util.Random;
+import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 
 /**
@@ -13,6 +14,67 @@ import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 public class TestSmileParserSymbolHandling
 	extends SmileTestBase
 {
+    /*
+    /**********************************************************
+    /* Helper types, constants
+    /**********************************************************
+     */
+    
+    private final static String[] SHARED_SYMBOLS = new String[] {
+            "g", "J", "v", "B", "S", "JAVA",
+            "h", "J", "LARGE", 
+            "JAVA", "J", "SMALL"
+    };
+
+    static class MediaItem
+    {
+        public Content content;
+        public Image[] images;
+    }
+
+    public enum Size { SMALL, LARGE; }
+    public enum Player { JAVA, FLASH; }
+    
+    static class Image
+    {
+        public String uri;
+        public String title;
+        public int width;
+        public int height;
+        public Size size;
+
+        public Image() { }
+        public Image(String uri, String title, int w, int h, Size s)
+        {
+            this.uri = uri;
+            this.title = title;
+            width = w;
+            height = h;
+            size = s;
+        }
+    }
+
+    static class Content
+    {
+        public Player player;
+        public String uri;
+        public String title;
+        public int width;
+        public int height;
+        public String format;
+        public long duration;
+        public long size;
+        public int bitrate;
+        public String[] persons;
+        public String copyright;
+    }
+        
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+
     public void testSimple() throws IOException
     {
         final String STR1 = "a";
@@ -127,6 +189,217 @@ public class TestSmileParserSymbolHandling
         verifyStringValues(shared, count);
     }
 
+    public void testSharedStringsInArrays() throws IOException
+    {
+        SmileFactory f = new SmileFactory();
+        f.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream(4000);
+        JsonGenerator gen = f.createJsonGenerator(out);
+        gen.writeStartArray();
+        for (String value : SHARED_SYMBOLS) {
+            gen.writeString(value);
+        }
+        gen.writeEndArray();
+        gen.close();
+        
+        byte[] smile = out.toByteArray();
+
+        JsonParser jp = f.createJsonParser(smile);
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        for (String value : SHARED_SYMBOLS) {
+            assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+            assertEquals(value, jp.getText());
+        }
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+    }
+
+    public void testSharedStringsInObject() throws IOException
+    {
+        SmileFactory f = new SmileFactory();
+        f.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
+        ByteArrayOutputStream out = new ByteArrayOutputStream(4000);
+        JsonGenerator gen = f.createJsonGenerator(out);
+        gen.writeStartObject();
+        for (int i = 0; i < SHARED_SYMBOLS.length; ++i) {
+            gen.writeFieldName("a"+i);
+            gen.writeString(SHARED_SYMBOLS[i]);
+        }
+        gen.writeEndObject();
+        gen.close();
+        
+        byte[] smile = out.toByteArray();
+
+        JsonParser jp = f.createJsonParser(smile);
+        assertToken(JsonToken.START_OBJECT, jp.nextToken());
+        for (int i = 0; i < SHARED_SYMBOLS.length; ++i) {
+            assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+            assertEquals("a"+i, jp.getCurrentName());
+            assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+            assertEquals(SHARED_SYMBOLS[i], jp.getText());
+        }
+        assertToken(JsonToken.END_OBJECT, jp.nextToken());
+    }
+
+    public void testSharedStringsMixed() throws IOException
+    {
+        SmileFactory f = new SmileFactory();
+        f.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
+        
+        ByteArrayOutputStream out = new ByteArrayOutputStream(4000);
+        JsonGenerator gen = f.createJsonGenerator(out);
+        gen.writeStartObject();
+
+        gen.writeFieldName("media");
+        gen.writeStartObject();
+
+        gen.writeStringField("uri", "g");
+        gen.writeStringField("title", "J");
+        gen.writeNumberField("width", 640);
+        gen.writeStringField("format", "v");
+        gen.writeFieldName("persons");
+        gen.writeStartArray();
+        gen.writeString("B");
+        gen.writeString("S");
+        gen.writeEndArray();
+        gen.writeStringField("player", "JAVA");
+        gen.writeStringField("copyright", "NONE");
+
+        gen.writeEndObject(); // media
+
+        gen.writeFieldName("images");
+        gen.writeStartArray();
+
+        // 3 instances of identical entries
+        for (int i = 0; i < 3; ++i) {
+            gen.writeStartObject();
+            gen.writeStringField("uri", "h");
+            gen.writeStringField("title", "J");
+            gen.writeNumberField("width", 1024);
+            gen.writeNumberField("height", 768);
+            gen.writeEndObject();
+        }
+        gen.writeEndArray();
+        
+        gen.writeEndObject();
+        gen.close();
+        
+        byte[] smile = out.toByteArray();
+
+        JsonParser jp = f.createJsonParser(smile);
+        assertToken(JsonToken.START_OBJECT, jp.nextToken());
+
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("media", jp.getCurrentName());
+
+        assertToken(JsonToken.START_OBJECT, jp.nextToken());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("uri", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("g", jp.getText());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("title", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("J", jp.getText());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("width", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertEquals(640, jp.getIntValue());
+        
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("format", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("v", jp.getText());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("persons", jp.getCurrentName());
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("B", jp.getText());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("S", jp.getText());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("player", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("JAVA", jp.getText());
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("copyright", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("NONE", jp.getText());
+        
+        assertToken(JsonToken.END_OBJECT, jp.nextToken()); // media
+        
+        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+        assertEquals("images", jp.getCurrentName());
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+
+        // 3 instances of identical entries:
+        for (int i = 0; i < 3; ++i) {
+            assertToken(JsonToken.START_OBJECT, jp.nextToken());
+            assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+            assertEquals("uri", jp.getCurrentName());
+            assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+            assertEquals("h", jp.getText());
+            assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+            assertEquals("title", jp.getCurrentName());
+            assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+            assertEquals("J", jp.getText());
+            assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+            assertEquals("width", jp.getCurrentName());
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(1024, jp.getIntValue());
+            assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+            assertEquals("height", jp.getCurrentName());
+            assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+            assertEquals(768, jp.getIntValue());
+            assertToken(JsonToken.END_OBJECT, jp.nextToken());
+        }
+        
+        assertToken(JsonToken.END_ARRAY, jp.nextToken()); // images
+        
+        assertToken(JsonToken.END_OBJECT, jp.nextToken());
+    }
+
+    public void testDataBindingAndShared() throws IOException
+    {
+        SmileFactory f = new SmileFactory();
+        f.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
+        MediaItem item = new MediaItem();
+        Content c = new Content();
+        c.uri = "g";
+        c.title = "J";
+        c.width = 640;
+        c.height = 480;
+        c.format = "v";
+        c.duration = 18000000L;
+        c.size = 58982400L;
+        c.bitrate = 262144;
+        c.persons = new String[] { "B", "S" };
+        c.player = Player.JAVA;
+        c.copyright = "NONE";
+        item.content = c;
+        item.images = new Image[] {
+            new Image("h", "J", 1024, 768, Size.LARGE),
+            new Image("h", "J", 320, 240, Size.LARGE)
+        };
+
+        // Ok: let's just do quick comparison (yes/no)...
+        ObjectMapper plain = new ObjectMapper();
+        ObjectMapper smiley = new ObjectMapper(f);
+        String exp = plain.writeValueAsString(item);
+        byte[] smile = smiley.writeValueAsBytes(item);
+        MediaItem result = smiley.readValue(smile, 0, smile.length, MediaItem.class);
+        String actual = plain.writeValueAsString(result);
+        assertEquals(exp, actual);
+    }
+    
+    /*
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
+     */
+    
     private final String CHARS_40 = "0123456789012345678901234567890123456789";
     
     private byte[] writeStringValues(boolean enableSharing, int COUNT) throws IOException
