@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.type.TypeReference;
 import org.codehaus.jackson.util.ByteArrayBuilder;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 import org.codehaus.jackson.util.MinimalPrettyPrinter;
@@ -242,6 +243,14 @@ public class ObjectWriter
         return withType(TypeFactory.type(rootType));
     }
 
+    /**
+     * @since 1.7
+     */
+    public ObjectWriter withType(TypeReference<?> rootType)
+    {
+        return withType(TypeFactory.type(rootType));
+    }
+    
     /**
      * Method that will construct a new instance that will use specified pretty
      * printer (or, if null, will not do any pretty-printing)
