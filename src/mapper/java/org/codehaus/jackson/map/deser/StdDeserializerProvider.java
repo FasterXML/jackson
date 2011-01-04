@@ -83,15 +83,19 @@ public class StdDeserializerProvider
      */
     public StdDeserializerProvider() { this(BeanDeserializerFactory.instance); }
 
-    public StdDeserializerProvider(DeserializerFactory f)
-    {
+    public StdDeserializerProvider(DeserializerFactory f) {
         _factory = f;
     }
 
     @Override
-    public DeserializerProvider withAdditionalDeserializers(Deserializers d)
-    {
+    public DeserializerProvider withAdditionalDeserializers(Deserializers d) {
         _factory = _factory.withAdditionalDeserializers(d);
+        return this;
+    }
+
+    @Override
+    public DeserializerProvider withDeserializerModifier(BeanDeserializerModifier modifier) {
+        _factory = _factory.withDeserializerModifier(modifier);
         return this;
     }
     

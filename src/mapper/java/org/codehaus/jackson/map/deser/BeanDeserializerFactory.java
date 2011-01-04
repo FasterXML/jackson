@@ -41,6 +41,8 @@ public class BeanDeserializerFactory
      */
     public static class ConfigImpl extends Config
     {
+        protected final static BeanDeserializerModifier[] NO_MODIFIERS = new BeanDeserializerModifier[0];
+
         /**
          * List of providers for additional deserializers, checked before considering default
          * basic or bean deserialializers.
@@ -50,21 +52,29 @@ public class BeanDeserializerFactory
         protected final Deserializers[] _additionalDeserializers;
 
         /**
+         * List of modifiers that can change the way {@link BeanDeserializer} instances
+         * are configured and constructed.
+         */
+        protected final BeanDeserializerModifier[] _modifiers;
+        
+        /**
          * Constructor for creating basic configuration with no additional
          * handlers.
          */
         public ConfigImpl() {
-            this(NO_DESERIALIZERS);
+            this(null, null);
         }
 
         /**
          * Copy-constructor that will create an instance that contains defined
          * set of additional deserializer providers.
          */
-        protected ConfigImpl(Deserializers[] allAdditionalDeserializers)
+        protected ConfigImpl(Deserializers[] allAdditionalDeserializers,
+                BeanDeserializerModifier[] modifiers)
         {
             _additionalDeserializers = (allAdditionalDeserializers == null) ?
                     NO_DESERIALIZERS : allAdditionalDeserializers;
+            _modifiers = (modifiers == null) ? NO_MODIFIERS : modifiers;
         }
 
         @Override
@@ -74,12 +84,27 @@ public class BeanDeserializerFactory
                 throw new IllegalArgumentException("Can not pass null Deserializers");
             }
             Deserializers[] all = ArrayBuilders.insertInList(_additionalDeserializers, additional);
-            return new ConfigImpl(all);
+            return new ConfigImpl(all, _modifiers);
         }
 
         @Override
+        public Config withDeserializerModifier(BeanDeserializerModifier modifier)
+        {
+            if (modifier == null) {
+                throw new IllegalArgumentException("Can not pass null modifier");
+            }
+            BeanDeserializerModifier[] all = ArrayBuilders.insertInList(_modifiers, modifier);
+            return new ConfigImpl(_additionalDeserializers, all);
+        }
+                
+        @Override
         public Iterable<Deserializers> deserializers() {
             return ArrayBuilders.arrayAsIterable(_additionalDeserializers);
+        }
+
+        @Override
+        public Iterable<BeanDeserializerModifier> deserializerModifiers() {
+            return ArrayBuilders.arrayAsIterable(_modifiers);
         }
     }
     

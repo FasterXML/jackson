@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.io.SegmentedStringWriter;
+import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
@@ -593,6 +594,11 @@ public class ObjectMapper
             @Override
             public void addBeanSerializerModifier(BeanSerializerModifier modifier) {
                 mapper._serializerFactory = mapper._serializerFactory.withSerializerModifier(modifier);
+            }
+
+            @Override
+            public void addBeanDeserializerModifier(BeanDeserializerModifier modifier) {
+                mapper._deserializerProvider = mapper._deserializerProvider.withDeserializerModifier(modifier);
             }
             
             @Override

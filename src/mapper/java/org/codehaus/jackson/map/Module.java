@@ -2,6 +2,7 @@ package org.codehaus.jackson.map;
 
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.Versioned;
+import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
 import org.codehaus.jackson.map.ser.BeanSerializerModifier;
 
 /**
@@ -114,12 +115,20 @@ public abstract class Module
 
         /**
          * Method that module can use to register additional modifier objects to
+         * customize configuration and construction of bean deserializers.
+         * 
+         * @param mod Modifier to register
+         */
+        public void addBeanDeserializerModifier(BeanDeserializerModifier mod);
+
+        /**
+         * Method that module can use to register additional modifier objects to
          * customize configuration and construction of bean serializers.
          * 
          * @param mod Modifier to register
          */
         public void addBeanSerializerModifier(BeanSerializerModifier mod);
-
+        
         /**
          * Method for registering specified {@link AnnotationIntrospector} as the highest
          * priority introspector (will be chained with existing introspector(s) which

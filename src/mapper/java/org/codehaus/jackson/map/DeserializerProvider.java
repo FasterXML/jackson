@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -20,6 +21,11 @@ public abstract class DeserializerProvider
      * @since 1.7
      */
     public abstract DeserializerProvider withAdditionalDeserializers(Deserializers d);
+
+    /**
+     * @since 1.7
+     */
+    public abstract DeserializerProvider withDeserializerModifier(BeanDeserializerModifier modifier);
     
     /*
     /**********************************************************

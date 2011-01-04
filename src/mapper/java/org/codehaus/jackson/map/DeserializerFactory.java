@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.type.JavaType;
 
@@ -52,7 +53,17 @@ public abstract class DeserializerFactory
          */
         public abstract Config withAdditionalDeserializers(Deserializers additional);
 
+        /**
+         * Fluent/factory method used to construct a configuration object that
+         * has same configuration as this instance plus one additional
+         * deserialiazer modifier. Added modified has highest priority (that is, it
+         * gets called before any already registered modifier).
+         */
+        public abstract Config withDeserializerModifier(BeanDeserializerModifier modifier);
+        
         public abstract Iterable<Deserializers> deserializers();
+
+        public abstract Iterable<BeanDeserializerModifier> deserializerModifiers();
     }
 
     /*
@@ -88,6 +99,16 @@ public abstract class DeserializerFactory
      */
     public final DeserializerFactory withAdditionalDeserializers(Deserializers additional) {
         return withConfig(getConfig().withAdditionalDeserializers(additional));
+    }
+
+    /**
+     * Convenience method for creating a new factory instance with additional
+     * {@link BeanDeserializerModifier}.
+     * 
+     * @since 1.7
+     */
+    public final DeserializerFactory withDeserializerModifier(BeanDeserializerModifier modifier) {
+        return withConfig(getConfig().withDeserializerModifier(modifier));
     }
     
     /*

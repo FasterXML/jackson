@@ -8,11 +8,11 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 
 /**
  * Abstract class that defines API for objects that can be registered (for {@link BeanSerializerFactory}
- * to participate in constructiong of {@link BeanSerializer}s.
+ * to participate in constructing {@link BeanSerializer} instances.
  * This is typically done by modules that want alter some aspects of serialization
  * process; and is preferable to sub-classing of {@link BeanSerializerFactory}.
  *<p>
- * Sequence that callbacks are called is as follows:
+ * Sequence in which callback methods are called is as follows:
  * <ol>
  *  <li>After factory has collected tentative set of properties (instances of
  *     <code>BeanPropertyWriter</code>) is sent for modification via
@@ -67,7 +67,9 @@ public abstract class BeanSerializerModifier
      * Method called by {@link BeanSerializerFactory} after constructing default
      * bean serializer instance with properties collected and ordered earlier.
      * Implementations can modify or replace given serializer and return serializer
-     * to use.
+     * to use. Note that although initial serializer being passed is of type
+     * {@link BeanSerializer}, modifiers may return serializers of other types;
+     * and this is why implementations must check for type before casting.
      */
     public JsonSerializer<?> modifySerializer(SerializationConfig config,
             BasicBeanDescription beanDesc, JsonSerializer<?> serializer) {
