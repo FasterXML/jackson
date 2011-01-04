@@ -2,6 +2,7 @@ package org.codehaus.jackson.map;
 
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.Versioned;
+import org.codehaus.jackson.map.ser.BeanSerializerModifier;
 
 /**
  * Simple interface for extensions that can be registered with {@link ObjectMapper}
@@ -110,6 +111,14 @@ public abstract class Module
          *   by module (null returned for non-supported types)
          */
         public void addSerializers(Serializers s);
+
+        /**
+         * Method that module can use to register additional modifier objects to
+         * customize configuration and construction of bean serializers.
+         * 
+         * @param mod Modifier to register
+         */
+        public void addBeanSerializerModifier(BeanSerializerModifier mod);
 
         /**
          * Method for registering specified {@link AnnotationIntrospector} as the highest

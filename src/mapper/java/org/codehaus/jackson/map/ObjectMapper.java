@@ -13,6 +13,7 @@ import org.codehaus.jackson.map.deser.StdDeserializerProvider;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
+import org.codehaus.jackson.map.ser.BeanSerializerModifier;
 import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.ser.StdSerializerProvider;
 import org.codehaus.jackson.map.ser.BeanSerializerFactory;
@@ -587,6 +588,11 @@ public class ObjectMapper
             @Override
             public void addSerializers(Serializers s) {
                 mapper._serializerFactory = mapper._serializerFactory.withAdditionalSerializers(s);
+            }
+
+            @Override
+            public void addBeanSerializerModifier(BeanSerializerModifier modifier) {
+                mapper._serializerFactory = mapper._serializerFactory.withSerializerModifier(modifier);
             }
             
             @Override

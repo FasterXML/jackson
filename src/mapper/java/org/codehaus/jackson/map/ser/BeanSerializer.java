@@ -138,7 +138,7 @@ public class BeanSerializer
     }
     
     /**
-     * "Copy-constructor" used when creating slightly differing instance(s)
+     * "almost-Copy-constructor" used when creating slightly differing instance(s)
      * of an existing serializer
      * 
      * @since 1.7
@@ -156,6 +156,14 @@ public class BeanSerializer
         _anyGetterWriter = anyGetterWriter;
     }
 
+    /**
+     * Copy-constructor that is useful for sub-classes that just want to
+     * copy all super-class properties without modifications
+     */
+    protected BeanSerializer(BeanSerializer src) {
+        this(src, src._filteredProps, src._anyGetterWriter);
+    }
+    
     /*
     /**********************************************************
     /* Life-cycle: factory methods, fluent factories

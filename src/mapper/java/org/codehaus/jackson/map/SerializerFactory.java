@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.map.ser.BeanSerializerModifier;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -23,9 +24,23 @@ public abstract class SerializerFactory
      */
     public abstract static class Config
     {
+        /**
+         * Method for creating a new instance with additional serializer provider.
+         */
         public abstract Config withAdditionalSerializers(Serializers additional);
 
+        /**
+         * Method for creating a new instance with additional bean serializer modifier.
+         */
+        public abstract Config withSerializerModifier(BeanSerializerModifier modifier);
+        
+        public abstract boolean hasSerializers();
+
+        public abstract boolean hasSerializerModifiers();
+        
         public abstract Iterable<Serializers> serializers();
+        
+        public abstract Iterable<BeanSerializerModifier> serializerModifiers();
     }
 
     /*
@@ -61,6 +76,16 @@ public abstract class SerializerFactory
      */
     public final SerializerFactory withAdditionalSerializers(Serializers additional) {
         return withConfig(getConfig().withAdditionalSerializers(additional));
+    }
+
+    /**
+     * Convenience method for creating a new factory instance with additional bean
+     * serializer modifier
+     * 
+     * @since 1.7
+     */
+    public final SerializerFactory withSerializerModifier(BeanSerializerModifier modifier) {
+        return withConfig(getConfig().withSerializerModifier(modifier));
     }
     
     /*

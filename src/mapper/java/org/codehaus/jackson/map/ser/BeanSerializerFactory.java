@@ -61,7 +61,7 @@ public class BeanSerializerFactory
      * 
      * @since 1.7
      */
-    protected final Config _config;
+    protected final Config _factoryConfig;
 
     /*
     /**********************************************************
@@ -82,6 +82,8 @@ public class BeanSerializerFactory
          */
         protected final static Serializers[] NO_SERIALIZERS = new Serializers[0];
 
+        protected final static BeanSerializerModifier[] NO_MODIFIERS = new BeanSerializerModifier[0];
+        
         /**
          * List of providers for additional serializers, checked before considering default
          * basic or bean serialializers.
@@ -90,14 +92,22 @@ public class BeanSerializerFactory
          */
         protected final Serializers[] _additionalSerializers;
 
+        /**
+         * List of modifiers that can change the way {@link BeanSerializer} instances
+         * are configured and constructed.
+         */
+        protected final BeanSerializerModifier[] _modifiers;
+        
         public ConfigImpl() {
-            this(null);
+            this(null, null);
         }
 
-        protected ConfigImpl(Serializers[] allAdditionalSerializers)
+        protected ConfigImpl(Serializers[] allAdditionalSerializers,
+                BeanSerializerModifier[] modifiers)
         {
             _additionalSerializers = (allAdditionalSerializers == null) ?
                     NO_SERIALIZERS : allAdditionalSerializers;
+            _modifiers = (modifiers == null) ? NO_MODIFIERS : modifiers;
         }
 
         @Override
@@ -107,12 +117,33 @@ public class BeanSerializerFactory
                 throw new IllegalArgumentException("Can not pass null Serializers");
             }
             Serializers[] all = ArrayBuilders.insertInList(_additionalSerializers, additional);
-            return new ConfigImpl(all);
+            return new ConfigImpl(all, _modifiers);
         }
 
         @Override
+        public Config withSerializerModifier(BeanSerializerModifier modifier)
+        {
+            if (modifier == null) {
+                throw new IllegalArgumentException("Can not pass null modifier");
+            }
+            BeanSerializerModifier[] modifiers = ArrayBuilders.insertInList(_modifiers, modifier);
+            return new ConfigImpl(_additionalSerializers, modifiers);
+        }
+
+        @Override
+        public boolean hasSerializers() { return _additionalSerializers.length > 0; }
+
+        @Override
+        public boolean hasSerializerModifiers() { return _modifiers.length > 0; }
+        
+        @Override
         public Iterable<Serializers> serializers() {
             return ArrayBuilders.arrayAsIterable(_additionalSerializers);
+        }
+
+        @Override
+        public Iterable<BeanSerializerModifier> serializerModifiers() {
+            return ArrayBuilders.arrayAsIterable(_modifiers);
         }
     }
 
@@ -135,10 +166,10 @@ public class BeanSerializerFactory
         if (config == null) {
             config = new ConfigImpl();
         }
-        _config = config;
+        _factoryConfig = config;
     }
 
-    @Override public Config getConfig() { return _config; }
+    @Override public Config getConfig() { return _factoryConfig; }
     
     /**
      * Method used by module registration functionality, to attach additional
@@ -151,7 +182,7 @@ public class BeanSerializerFactory
     @Override
     public SerializerFactory withConfig(Config config)
     {
-        if (_config == config) {
+        if (_factoryConfig == config) {
             return this;
         }
         /* 22-Nov-2010, tatu: Handling of subtypes is tricky if we do immutable-with-copy-ctor;
@@ -196,7 +227,7 @@ public class BeanSerializerFactory
         JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo(), property);
         if (ser == null) {
             // 22-Nov-2010, tatu: Ok: additional module-provided serializers to consider?
-            ser = _findFirstSerializer(_config.serializers(), config, type, beanDesc, property);
+            ser = _findFirstSerializer(_factoryConfig.serializers(), config, type, beanDesc, property);
             if (ser == null) {
                 // First, fast lookup for exact type:
                 ser = super.findSerializerByLookup(type, config, beanDesc, property);
@@ -251,6 +282,7 @@ public class BeanSerializerFactory
      * Method that will try to construct a {@link BeanSerializer} for
      * given class. Returns null if no properties are found.
      */
+    @SuppressWarnings("unchecked")
     public JsonSerializer<Object> findBeanSerializer(SerializationConfig config, JavaType type,
             BasicBeanDescription beanDesc, BeanProperty property)
     {
@@ -258,7 +290,14 @@ public class BeanSerializerFactory
         if (!isPotentialBeanType(type.getRawClass())) {
             return null;
         }
-        return constructBeanSerializer(config, beanDesc, property);
+        JsonSerializer<Object> serializer = constructBeanSerializer(config, beanDesc, property);
+        // [JACKSON-440] Need to allow overriding actual serializer, as well...
+        if (_factoryConfig.hasSerializerModifiers()) {
+            for (BeanSerializerModifier mod : _factoryConfig.serializerModifiers()) {
+                serializer = (JsonSerializer<Object>)mod.modifySerializer(config, beanDesc, serializer);
+            }
+        }
+        return serializer;
     }
 
     /**
@@ -334,6 +373,17 @@ public class BeanSerializerFactory
         // First: any detectable (auto-detect, annotations) properties to serialize?
         List<BeanPropertyWriter> props = findBeanProperties(config, beanDesc);
         AnnotatedMethod anyGetter = beanDesc.findAnyGetter();
+
+        // [JACKSON-440] Need to allow modification bean properties to serialize:
+        if (_factoryConfig.hasSerializerModifiers()) {
+            if (props == null) {
+                props = new ArrayList<BeanPropertyWriter>();
+            }
+            for (BeanSerializerModifier mod : _factoryConfig.serializerModifiers()) {
+                props = mod.changeProperties(config, beanDesc, props);
+            }
+        }
+        
         // No properties, no serializer
         // 16-Oct-2010, tatu: Except that @JsonAnyGetter needs to count as getter
         if (props == null || props.size() == 0) {
@@ -354,7 +404,14 @@ public class BeanSerializerFactory
             // Do they need to be sorted in some special way?
             props = sortBeanProperties(config, beanDesc, props);
         }
-        BeanSerializer ser = instantiateBeanSerializer(config, beanDesc, props);
+        // [JACKSON-440] Need to allow reordering of properties to serialize
+        if (_factoryConfig.hasSerializerModifiers()) {
+            for (BeanSerializerModifier mod : _factoryConfig.serializerModifiers()) {
+                props = mod.orderProperties(config, beanDesc, props);
+            }
+        }
+
+        BeanSerializer beanSerializer = instantiateBeanSerializer(config, beanDesc, props);
         if (anyGetter != null) { // since 1.6
             JavaType type = anyGetter.getType(beanDesc.bindingsForBeanType());
             // copied from BasicSerializerFactory.buildMapSerializer():
@@ -363,12 +420,11 @@ public class BeanSerializerFactory
             TypeSerializer typeSer = createTypeSerializer(config, valueType, property);
             MapSerializer mapSer = MapSerializer.construct(/* ignored props*/ null, type, staticTyping,
                     typeSer, property);
-            ser = ser.withAnyGetter(new AnyGetterWriter(anyGetter, mapSer));
+            beanSerializer = beanSerializer.withAnyGetter(new AnyGetterWriter(anyGetter, mapSer));
         }
         
         // One more thing: need to gather view information, if any:
-        ser = processViews(config, beanDesc, ser, props);
-        return ser;
+        return processViews(config, beanDesc, beanSerializer, props);
     }
 
     /**
