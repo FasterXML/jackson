@@ -34,8 +34,8 @@ public abstract class BeanDeserializerModifier
     * likewise be modifiable as it may be passed to multiple registered
     * modifiers.
     */
-   public List<?> changeProperties(DeserializationConfig config,
-           BasicBeanDescription beanDesc, List<?> beanProperties) {
+   public List<SettableBeanProperty> changeProperties(DeserializationConfig config,
+           BasicBeanDescription beanDesc, List<SettableBeanProperty> beanProperties) {
        return beanProperties;
    }
 

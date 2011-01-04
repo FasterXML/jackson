@@ -38,7 +38,7 @@ public class BeanDeserializer
 
     /**
      * Class for which deserializer is built; used for accessing
-     * annotations.
+     * annotations during resolution phase (see {@link #resolve}).
      */
     final protected AnnotatedClass _forClass;
     
@@ -70,7 +70,7 @@ public class BeanDeserializer
      * types (which is only useful if additional type information will
      * allow construction of concrete subtype).
      */
-    protected Constructor<?> _defaultConstructor;
+    protected final Constructor<?> _defaultConstructor;
 
     /**
      * If the "bean" class can be instantiated using just a single
@@ -78,7 +78,7 @@ public class BeanDeserializer
      * knows how to invoke method/constructor in question.
      * If so, no setters will be used.
      */
-    protected Creator.StringBased _stringCreator;
+    protected final Creator.StringBased _stringCreator;
 
     /**
      * If the "bean" class can be instantiated using just a single
@@ -87,7 +87,7 @@ public class BeanDeserializer
      * knows how to invoke method/constructor in question.
      * If so, no setters will be used.
      */
-    protected Creator.NumberBased _numberCreator;
+    protected final Creator.NumberBased _numberCreator;
 
     /**
      * If the bean class can be instantiated using a creator
@@ -95,7 +95,7 @@ public class BeanDeserializer
      * this object is used for handling details of how delegate-based
      * deserialization and instance construction works
      */
-    protected Creator.Delegating _delegatingCreator;
+    protected final Creator.Delegating _delegatingCreator;
 
     /**
      * If the bean needs to be instantiated using constructor
@@ -103,7 +103,7 @@ public class BeanDeserializer
      * that takes one or more named properties as argument(s),
      * this creator is used for instantiation.
      */
-    protected Creator.PropertyBased _propertyBasedCreator;
+    protected final Creator.PropertyBased _propertyBasedCreator;
 
     /*
     /**********************************************************
@@ -112,49 +112,38 @@ public class BeanDeserializer
      */
 
     /**
-     * Things set via setters (modifiers) are included in this
-     * Map.
-     * 
-     * @deprecated Since 1.7, this set is only used during
-     *   construction, and should NOT be accessed afterwards.
-     *   It will be cleared with future versions
-     */
-    @Deprecated
-    final protected HashMap<String, SettableBeanProperty> _props;
-
-    /**
-     * Mapping of property names to properties, built when serialized
-     * has been completely resolved.
+     * Mapping of property names to properties, built when all properties
+     * to use have been succesfully resolved.
      * 
      * @since 1.7
      */
-    protected BeanPropertyMap _beanProperties;
+    final protected BeanPropertyMap _beanProperties;
     
     /**
      * Fallback setter used for handling any properties that are not
      * mapped to regular setters. If setter is not null, it will be
      * called once for each such property.
      */
-    protected SettableAnyProperty _anySetter;
+    final protected SettableAnyProperty _anySetter;
 
     /**
      * In addition to properties that are set, we will also keep
      * track of recognized but ignorable properties: these will
      * be skipped without errors or warnings.
      */
-    protected HashSet<String> _ignorableProps;
+    final protected HashSet<String> _ignorableProps;
 
     /**
      * Flag that can be set to ignore and skip unknown properties.
      * If set, will not throw an exception for unknown properties.
      */
-    protected boolean _ignoreAllUnknown;
+    final protected boolean _ignoreAllUnknown;
 
     /**
      * We may also have one or more back reference fields (usually
      * zero or one).
      */
-    protected HashMap<String, SettableBeanProperty> _backRefs;
+    final protected Map<String, SettableBeanProperty> _backRefs;
     
     /*
     /**********************************************************
@@ -174,33 +163,28 @@ public class BeanDeserializer
     /**********************************************************
      */
 
-    public BeanDeserializer(AnnotatedClass forClass, JavaType type, BeanProperty property)
+    public BeanDeserializer(AnnotatedClass forClass, JavaType type, BeanProperty property,
+            CreatorContainer creators,
+            BeanPropertyMap properties, Map<String, SettableBeanProperty> backRefs,
+            HashSet<String> ignorableProps, boolean ignoreAllUnknown,
+            SettableAnyProperty anySetter)
     {
-        super(type.getRawClass());
+        super(type);
         _forClass = forClass;
         _beanType = type;
         _property = property;
-        _props = new HashMap<String, SettableBeanProperty>();
-        _ignorableProps = null;
-    }
+        _beanProperties = properties;
+        _backRefs = backRefs;
+        _ignorableProps = ignorableProps;
+        _ignoreAllUnknown = ignoreAllUnknown;
+        _anySetter = anySetter;
 
-    public void setDefaultConstructor(Constructor<?> ctor) {
-        _defaultConstructor = ctor;
-    }
-
-    /**
-     * Method called by factory after it has introspected all available
-     * Creators (constructors, static factory methods).
-     */
-    public void setCreators(CreatorContainer creators)
-     {
+        // And then creator stuff:
         _stringCreator = creators.stringCreator();
         _numberCreator = creators.numberCreator();
-        /* Delegating constructor means that
-         * the JSON Object is first deserialized into delegated type, and
-         * then resulting value is passed as the argument to delegating
-         * constructor.
-         *
+        /* Delegating constructor means that the JSON Object is first deserialized
+         * into delegated type, and then resulting value is passed as the argument
+         * to delegating constructor.
          * Note that delegating constructors have precedence over default
          * and property-based constructors.
          */
@@ -212,69 +196,42 @@ public class BeanDeserializer
          */
         if (_delegatingCreator != null || _propertyBasedCreator != null) {
             _defaultConstructor = null;
+        } else {
+            _defaultConstructor = creators.getDefaultConstructor();
         }
-    }
-    
-    /**
-     * Method to add a property setter. Will ensure that there is no
-     * unexpected override; if one is found will throw a
-     * {@link IllegalArgumentException}.
-     */
-    public void addProperty(SettableBeanProperty prop)
-    {
-        SettableBeanProperty old =  _props.put(prop.getName(), prop);
-        if (old != null && old != prop) { // should never occur...
-            throw new IllegalArgumentException("Duplicate property '"+prop.getName()+"' for "+_beanType);
-        }
+
     }
 
     /**
-     * @since 1.6
+     * Copy-constructor that can be used by sub-classes to allow
+     * copy-on-write styling copying of settings of an existing instance.
+     * 
+     * @since 1.7
      */
+    protected BeanDeserializer(BeanDeserializer src)
+    {
+        super(src._beanType);
+        _forClass = src._forClass;
+        _beanType = src._beanType;
+        _property = src._property;
+        _beanProperties = src._beanProperties;
+        _backRefs = src._backRefs;
+        _ignorableProps = src._ignorableProps;
+        _ignoreAllUnknown = src._ignoreAllUnknown;
+        _anySetter = src._anySetter;
+
+        // and plethora of creators...
+        _defaultConstructor = src._defaultConstructor;
+        _stringCreator = src._stringCreator;
+        _numberCreator = src._numberCreator;
+        _delegatingCreator = src._delegatingCreator;
+        _propertyBasedCreator = src._propertyBasedCreator;
+    }
+
     public boolean hasProperty(String propertyName) {
-        if (_props == null) {
-            return _beanProperties.find(propertyName) != null;
-        }
-        return _props.containsKey(propertyName);
+        return _beanProperties.find(propertyName) != null;
     }
     
-    public void  addBackReferenceProperty(String referenceName, SettableBeanProperty prop)
-    {
-        if (_backRefs == null) {
-            _backRefs = new HashMap<String, SettableBeanProperty>(4);
-        }
-        _backRefs.put(referenceName, prop);
-    }
-    
-    public SettableBeanProperty removeProperty(String name)
-    {
-        return _props.remove(name);
-    }
-
-    public void setAnySetter(SettableAnyProperty s)
-    {
-        if (_anySetter != null && s != null) {
-            throw new IllegalStateException("_anySetter already set to non-null");
-        }
-        _anySetter = s;
-    }
-
-    public void setIgnoreUnknownProperties(boolean ignore) {
-        _ignoreAllUnknown = ignore;
-    }
-    
-    /**
-     * Method that will add property name as one of properties that can
-     * be ignored if not recognized.
-     */
-    public void addIgnorable(String propName)
-    {
-        if (_ignorableProps == null) {
-            _ignorableProps = new HashSet<String>();
-        }
-        _ignorableProps.add(propName);
-    }
-
     /*
     /**********************************************************
     /* Validation, post-processing
@@ -289,8 +246,9 @@ public class BeanDeserializer
     public void resolve(DeserializationConfig config, DeserializerProvider provider)
         throws JsonMappingException
     {
-        for (Map.Entry<String, SettableBeanProperty> en : _props.entrySet()) {
-            SettableBeanProperty prop = en.getValue();
+        Iterator<SettableBeanProperty> it = _beanProperties.allProperties();
+        while (it.hasNext()) {
+            SettableBeanProperty prop = it.next();
             // May already have deserializer from annotations, if so, skip:
             if (!prop.hasValueDeserializer()) {
                 prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
@@ -331,7 +289,7 @@ public class BeanDeserializer
                             +backRefType.getRawClass().getName()+") not compatible with managed type ("
                             +referredType.getRawClass().getName()+")");
                 }
-                en.setValue(new SettableBeanProperty.ManagedReferenceProperty(refName, prop, backProp,
+                _beanProperties.replace(new SettableBeanProperty.ManagedReferenceProperty(refName, prop, backProp,
                         _forClass.getAnnotations(), isContainer));
             }
         }
@@ -357,27 +315,7 @@ public class BeanDeserializer
                 }
             }
         }
-
-        /* 05-Dec-2010, tatu: One more thing: we may be able to use faster
-         *   lookup mechanism; if so, we need to wait until this point
-         *   to construct instance.
-         */
-        postProcessBeanProperties(_props);
     }
-
-    /**
-     * Internal method called after resolution has been completed and
-     * we can finalize settings for bean properties.
-     * 
-     * @since 1.7
-     */
-    protected void postProcessBeanProperties(Map<String,SettableBeanProperty> props)
-    {
-        BeanPropertyMap map = new BeanPropertyMap(_props);
-        map.assignIndexes();
-        _beanProperties = map;
-    }
-    
     /*
     /**********************************************************
     /* JsonDeserializer implementation
@@ -482,18 +420,15 @@ public class BeanDeserializer
     @Override public JavaType getValueType() { return _beanType; }
 
     /**
-     *<p>
-     * Note: method can <b>only be called before bean has been resolved</b>
-     * (as properties may not be accessible afterwards)
      * 
      * @since 1.6
      */
-    public Iterable<SettableBeanProperty> properties()
+    public Iterator<SettableBeanProperty> properties()
     {
-        if (_props == null) { // since 1.7
+        if (_beanProperties == null) { // since 1.7
             throw new IllegalStateException("Can only call before BeanDeserializer has been resolved");
         }
-        return _props.values();
+        return _beanProperties.allProperties();
     }
 
     /**

@@ -1,6 +1,6 @@
 package org.codehaus.jackson.map.deser.impl;
 
-import java.util.Map;
+import java.util.*;
 
 import org.codehaus.jackson.map.deser.SettableBeanProperty;
 
@@ -18,19 +18,21 @@ import org.codehaus.jackson.map.deser.SettableBeanProperty;
 public final class BeanPropertyMap
 {
     private final Bucket[] _buckets;
+    
+    private final int _hashMask;
 
     private final int _size;
     
-    public BeanPropertyMap(Map<String,SettableBeanProperty> properties)
+    public BeanPropertyMap(Collection<SettableBeanProperty> properties)
     {
-        int size = findSize(properties.size());
-        _size = size;
-        int hashMask = (size-1);
-        Bucket[] buckets = new Bucket[size];
-        for (Map.Entry<String,SettableBeanProperty> entry : properties.entrySet()) {
-            String key = entry.getKey();
-            int index = key.hashCode() & hashMask;
-            buckets[index] = new Bucket(buckets[index], key, entry.getValue());
+        _size = properties.size();
+        int bucketCount = findSize(_size);
+        _hashMask = bucketCount-1;
+        Bucket[] buckets = new Bucket[bucketCount];
+        for (SettableBeanProperty property : properties) {
+            String key = property.getName();
+            int index = key.hashCode() & _hashMask;
+            buckets[index] = new Bucket(buckets[index], key, property);
         }
         _buckets = buckets;
     }
@@ -65,10 +67,17 @@ public final class BeanPropertyMap
      */
 
     public int size() { return _size; }
+
+    /**
+     * Accessor for traversing over all contained properties.
+     */
+    public Iterator<SettableBeanProperty> allProperties() {
+        return new IteratorImpl(_buckets);
+    }
     
     public SettableBeanProperty find(String key)
     {
-        int index = key.hashCode() & (_buckets.length-1);
+        int index = key.hashCode() & _hashMask;
         Bucket bucket = _buckets[index];
         // Let's unroll first lookup since that is null or match in 90+% cases
         if (bucket == null) {
@@ -87,6 +96,39 @@ public final class BeanPropertyMap
         return _findWithEquals(key, index);
     }
 
+    /**
+     * Specialized method that can be used to replace an existing entry
+     * (note: entry MUST exist; otherwise exception is thrown) with
+     * specified replacement.
+     */
+    public void replace(SettableBeanProperty property)
+    {
+        String name = property.getName();
+        int index = name.hashCode() & (_buckets.length-1);
+
+        /* This is bit tricky just because buckets themselves
+         * are immutable, so we need to recreate the chain. Fine.
+         */
+        Bucket tail = null;
+        boolean found = false;
+
+        
+        for (Bucket bucket = _buckets[index]; bucket != null; bucket = bucket.next) {
+            // match to remove?
+            if (!found && bucket.key.equals(name)) {
+                found = true;
+            } else {
+                tail = new Bucket(tail, bucket.key, bucket.value);
+            }
+        }
+        // Not finding specified entry is error, so:
+        if (!found) {
+            throw new NoSuchElementException("No entry '"+property+"' found, can't replace");
+        }
+        // So let's attach replacement in front:
+        _buckets[index] = new Bucket(tail, name, property);
+    }
+    
     /*
     /**********************************************************
     /* Helper methods
@@ -122,6 +164,64 @@ public final class BeanPropertyMap
             this.next = next;
             this.key = key;
             this.value = value;
+        }
+    }
+
+    private final static class IteratorImpl implements Iterator<SettableBeanProperty>
+    {
+        /**
+         * Buckets of the map
+         */
+        private final Bucket[] _buckets;
+
+        /**
+         * Bucket that contains next value to return (if any); null if nothing more to iterate
+         */
+        private Bucket _currentBucket;
+
+        /**
+         * Index of the next bucket in bucket array to check.
+         */
+        private int _nextBucketIndex;
+        
+        public IteratorImpl(Bucket[] buckets) {
+            _buckets = buckets;
+            // need to initialize to point to first entry...
+            int i = 0;
+            for (int len = _buckets.length; i < len; ) {
+                Bucket b = _buckets[i++];
+                if (b != null) {
+                    _currentBucket = b;
+                    break;
+                }
+            }
+            _nextBucketIndex = i;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return _currentBucket != null;
+        }
+
+        @Override
+        public SettableBeanProperty next()
+        {
+            Bucket curr = _currentBucket;
+            if (curr == null) { // sanity check
+                throw new NoSuchElementException();
+            }
+            // need to advance, too
+            Bucket b = curr.next;
+            while (b == null && _nextBucketIndex < _buckets.length) {
+                b = _buckets[_nextBucketIndex++];
+            }
+            _currentBucket = b;
+            return curr.value;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
         }
     }
 }

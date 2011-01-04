@@ -86,6 +86,16 @@ public class BeanSerializer
     }
 
     /**
+     * Copy-constructor that is useful for sub-classes that just want to
+     * copy all super-class properties without modifications.
+     * 
+     * @since 1.7
+     */
+    protected BeanSerializer(BeanSerializer src) {
+        this(src, src._filteredProps, src._anyGetterWriter);
+    }
+    
+    /**
      * @since 1.7, use method that takes bean property filter id
      */
     @Deprecated
@@ -154,14 +164,6 @@ public class BeanSerializer
         // with some overrides
         _filteredProps = filtered;
         _anyGetterWriter = anyGetterWriter;
-    }
-
-    /**
-     * Copy-constructor that is useful for sub-classes that just want to
-     * copy all super-class properties without modifications
-     */
-    protected BeanSerializer(BeanSerializer src) {
-        this(src, src._filteredProps, src._anyGetterWriter);
     }
     
     /*

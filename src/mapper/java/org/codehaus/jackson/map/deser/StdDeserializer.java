@@ -37,6 +37,13 @@ public abstract class StdDeserializer<T>
     protected StdDeserializer(Class<?> vc) {
         _valueClass = vc;
     }
+
+    /**
+     * @since 1.7
+     */
+    protected StdDeserializer(JavaType valueType) {
+        _valueClass = (valueType == null) ? null : valueType.getRawClass();
+    }
     
     /*
     /**********************************************************

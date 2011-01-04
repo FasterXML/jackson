@@ -389,21 +389,16 @@ public class BeanDeserializerFactory
             JavaType type, BasicBeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException
     {
-        BeanDeserializer beanDeserializer = constructBeanDeserializerInstance(config, type, beanDesc, property);
-
-        // First: add constructors
-        addDeserializerCreators(config, beanDesc, beanDeserializer);
-        // and check that there are enough
-        /* 23-Jan-2010, tatu: can not do that any more, must allow partial
-         *   handling of abstract classes with polymorphic types
-         */
-        //deser.validateCreators();
-
-         // And then setters for deserializing from Json Object
-        addBeanProps(config, beanDesc, beanDeserializer);
+        BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(config, type, beanDesc);
+        builder.setCreators(findDeserializerCreators(config, beanDesc));
+         // And then setters for deserializing from JSON Object
+        addBeanProps(config, beanDesc, builder);
         // managed/back reference fields/setters need special handling... first part
-        addReferenceProperties(config, beanDesc, beanDeserializer);
+        addReferenceProperties(config, beanDesc, builder);
 
+        BeanDeserializer beanDeserializer = builder.build(property);
+
+        // [JACKSON-440]: may have modifier(s) that wants to modify or replace serializer we just built:
         if (!_factoryConfig.hasDeserializerModifiers()) {
             return beanDeserializer;
         }
@@ -412,25 +407,22 @@ public class BeanDeserializerFactory
             deserializer = mod.modifyDeserializer(config, beanDesc, deserializer);
         }
         return (JsonDeserializer<Object>) deserializer;
+        
     }
 
+    @SuppressWarnings("unchecked")
     public JsonDeserializer<Object> buildThrowableDeserializer(DeserializationConfig config,
             JavaType type, BasicBeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException
     {
-        /* First, construct plain old bean deserializer and add
-         * basic stuff
-         */
-        BeanDeserializer deser = constructThrowableDeserializerInstance(config, type, beanDesc, property);
-        addDeserializerCreators(config, beanDesc, deser);
-        /* 23-Jan-2010, tatu: can not do that any more, must allow partial
-         *   handling of abstract classes with polymorphic types
-         */
-        //deser.validateCreators();
-        addBeanProps(config, beanDesc, deser);
+        // first: construct like a regular bean deserializer...
+        BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(config, type, beanDesc);
+        builder.setCreators(findDeserializerCreators(config, beanDesc));
 
-        /* But then let's decorate things a bit
-         */
+        addBeanProps(config, beanDesc, builder);
+        // (and assume there won't be any back references)
+
+        // But then let's decorate things a bit
         /* To resolve [JACKSON-95], need to add "initCause" as setter
          * for exceptions (sub-classes of Throwable).
          */
@@ -438,20 +430,29 @@ public class BeanDeserializerFactory
         if (am != null) { // should never be null
             SettableBeanProperty prop = constructSettableProperty(config, beanDesc, "cause", am);
             if (prop != null) {
-                deser.addProperty(prop);
+                builder.addProperty(prop);
             }
         }
 
         // And also need to ignore "localizedMessage"
-        deser.addIgnorable("localizedMessage");
+        builder.addIgnorable("localizedMessage");
         /* As well as "message": it will be passed via constructor,
          * as there's no 'setMessage()' method
         */
-        deser.addIgnorable("message");
+        builder.addIgnorable("message");
 
-        // And finally: make String constructor the thing we need...?
+        BeanDeserializer base = builder.build(property);       
+        ThrowableDeserializer throwableDeserializer = new ThrowableDeserializer(base);
 
-        return deser;
+        // [JACKSON-440]: may have modifier(s) that wants to modify or replace serializer we just built:
+        if (!_factoryConfig.hasDeserializerModifiers()) {
+            return throwableDeserializer;
+        }
+        JsonDeserializer<?> deserializer = throwableDeserializer;
+        for (BeanDeserializerModifier mod : _factoryConfig.deserializerModifiers()) {
+            deserializer = mod.modifyDeserializer(config, beanDesc, deserializer);
+        }
+        return (JsonDeserializer<Object>) deserializer;
     }
 
     /*
@@ -462,33 +463,30 @@ public class BeanDeserializerFactory
      */
 
     /**
-     * Method for construcing "empty" deserializer: overridable to allow
-     * sub-classing of {@link BeanDeserializer}.
+     * Overridable method that constructs a {@link BeanDeserializerBuilder}
+     * which is used to accumulate information needed to create deserializer
+     * instance.
+     * 
+     * @since 1.7
      */
-    protected BeanDeserializer constructBeanDeserializerInstance(DeserializationConfig config,
-            JavaType type,
-            BasicBeanDescription beanDesc, BeanProperty property)
-    {
-        return new BeanDeserializer(beanDesc.getClassInfo(), type, property);
-    }
-
-    protected ThrowableDeserializer constructThrowableDeserializerInstance(DeserializationConfig config,
-            JavaType type,
-            BasicBeanDescription beanDesc, BeanProperty property)
-    {
-        return new ThrowableDeserializer(beanDesc.getClassInfo(), type, property);
+    protected BeanDeserializerBuilder constructBeanDeserializerBuilder(DeserializationConfig config,
+            JavaType type, BasicBeanDescription beanDesc) {
+        return new BeanDeserializerBuilder(getConfig(), config, type, beanDesc);
     }
 
     /**
      * Method that is to find all creators (constructors, factory methods)
      * for the bean type to deserialize.
+     * 
+     * @since 1.7
      */
-    protected void addDeserializerCreators(DeserializationConfig config,
-            BasicBeanDescription beanDesc, BeanDeserializer deser)
+    protected CreatorContainer findDeserializerCreators(DeserializationConfig config,
+            BasicBeanDescription beanDesc)
         throws JsonMappingException
     {
-        AnnotationIntrospector intr = config.getAnnotationIntrospector();
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+        CreatorContainer creators =  new CreatorContainer(beanDesc.getBeanClass(), fixAccess);
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
 
         // First, let's figure out constructor/factory-based instantation
         // 23-Jan-2010, tatus: but only for concrete types
@@ -499,7 +497,7 @@ public class BeanDeserializerFactory
                     ClassUtil.checkAndFixAccess(defaultCtor);
                 }
     
-                deser.setDefaultConstructor(defaultCtor);
+                creators.setDefaultConstructor(defaultCtor);
             }
         }
 
@@ -510,16 +508,14 @@ public class BeanDeserializerFactory
         }
         vchecker = config.getAnnotationIntrospector().findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);
 
-        CreatorContainer creators =  new CreatorContainer(beanDesc.getBeanClass(), fixAccess);
-        _addDeserializerConstructors(config, beanDesc, vchecker, deser, intr, creators);
-        _addDeserializerFactoryMethods(config, beanDesc, vchecker, deser, intr, creators);
-        deser.setCreators(creators);
+        _addDeserializerConstructors(config, beanDesc, vchecker, intr, creators);
+        _addDeserializerFactoryMethods(config, beanDesc, vchecker, intr, creators);
+        return creators;
     }
 
     protected void _addDeserializerConstructors
         (DeserializationConfig config, BasicBeanDescription beanDesc, VisibilityChecker<?> vchecker,
-         BeanDeserializer deser, AnnotationIntrospector intr,
-         CreatorContainer creators)
+         AnnotationIntrospector intr, CreatorContainer creators)
         throws JsonMappingException
     {
         for (AnnotatedConstructor ctor : beanDesc.getConstructors()) {
@@ -586,9 +582,7 @@ public class BeanDeserializerFactory
 
     protected void _addDeserializerFactoryMethods
         (DeserializationConfig config, BasicBeanDescription beanDesc, VisibilityChecker<?> vchecker,
-         BeanDeserializer deser, AnnotationIntrospector intr,        // define unusable constructor to prevent deserialization
-
-         CreatorContainer creators)
+         AnnotationIntrospector intr, CreatorContainer creators)
         throws JsonMappingException
     {
 
@@ -660,7 +654,7 @@ public class BeanDeserializerFactory
      * similar between versions.
      */
     protected void addBeanProps(DeserializationConfig config,
-            BasicBeanDescription beanDesc, BeanDeserializer deser)
+            BasicBeanDescription beanDesc, BeanDeserializerBuilder builder)
         throws JsonMappingException
     {
         // Ok: let's aggregate visibility settings: first, baseline:
@@ -686,7 +680,7 @@ public class BeanDeserializerFactory
             Boolean B = intr.findIgnoreUnknownProperties(beanDesc.getClassInfo());
             if (B != null) {
                 ignoreAny = B.booleanValue();
-                deser.setIgnoreUnknownProperties(ignoreAny);
+                builder.setIgnoreUnknownProperties(ignoreAny);
             }
         }
         // Or explicit/implicit definitions?
@@ -698,18 +692,18 @@ public class BeanDeserializerFactory
         //if (!ignoreAny && config.isEnabled(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES))
         {
             for (String propName : ignored) {
-                deser.addIgnorable(propName);
+                builder.addIgnorable(propName);
             }
             // Implicit ones via @JsonIgnore and equivalent?
             AnnotatedClass ac = beanDesc.getClassInfo();
             for (AnnotatedMethod am : ac.ignoredMemberMethods()) {
                 String name = beanDesc.okNameForSetter(am);
                 if (name != null) {
-                    deser.addIgnorable(name);
+                    builder.addIgnorable(name);
                 }
             }
             for (AnnotatedField af : ac.ignoredFields()) {
-                deser.addIgnorable(af.getName());
+                builder.addIgnorable(af.getName());
             }
         }
 
@@ -724,17 +718,17 @@ public class BeanDeserializerFactory
                 Class<?> type = setter.getParameterClass(0);
                 if (isIgnorableType(config, beanDesc, type, ignoredTypes)) {
                     // important: make ignorable, to avoid errors if value is actually seen
-                    deser.addIgnorable(name);
+                    builder.addIgnorable(name);
                     continue;
                 }
                 SettableBeanProperty prop = constructSettableProperty(config, beanDesc, name, setter);
                 if (prop != null) {
-                    deser.addProperty(prop);
+                    builder.addProperty(prop);
                 }
             }
         }
         if (anySetter != null) {
-            deser.setAnySetter(constructAnySetter(config, beanDesc, anySetter));
+            builder.setAnySetter(constructAnySetter(config, beanDesc, anySetter));
         }
 
         HashSet<String> addedProps = new HashSet<String>(setters.keySet());
@@ -745,18 +739,18 @@ public class BeanDeserializerFactory
         LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findDeserializableFields(vchecker, addedProps);
         for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {
             String name = en.getKey();
-            if (!ignored.contains(name) && !deser.hasProperty(name)) {
+            if (!ignored.contains(name) && !builder.hasProperty(name)) {
                 AnnotatedField field = en.getValue();
                 // [JACKSON-429] Some types are declared as ignorable as well
                 Class<?> type = field.getRawType();
                 if (isIgnorableType(config, beanDesc, type, ignoredTypes)) {
                     // important: make ignorable, to avoid errors if value is actually seen
-                    deser.addIgnorable(name);
+                    builder.addIgnorable(name);
                     continue;
                 }
                 SettableBeanProperty prop = constructSettableProperty(config, beanDesc, name, field);
                 if (prop != null) {
-                    deser.addProperty(prop);
+                    builder.addProperty(prop);
                     addedProps.add(name);
                 }
             }
@@ -784,8 +778,8 @@ public class BeanDeserializerFactory
                     continue;
                 }
                 String name = en.getKey();
-                if (!ignored.contains(name) && !deser.hasProperty(name)) {
-                    deser.addProperty(constructSetterlessProperty(config, beanDesc, name, getter));
+                if (!ignored.contains(name) && !builder.hasProperty(name)) {
+                    builder.addProperty(constructSetterlessProperty(config, beanDesc, name, getter));
                     addedProps.add(name);
                 }
             }
@@ -800,7 +794,7 @@ public class BeanDeserializerFactory
      * @since 1.6
      */
     protected void addReferenceProperties(DeserializationConfig config,
-            BasicBeanDescription beanDesc, BeanDeserializer deser)
+            BasicBeanDescription beanDesc, BeanDeserializerBuilder builder)
         throws JsonMappingException
     {
         // and then back references, not necessarily found as regular properties
@@ -810,10 +804,10 @@ public class BeanDeserializerFactory
                 String name = en.getKey();
                 AnnotatedMember m = en.getValue();
                 if (m instanceof AnnotatedMethod) {
-                    deser.addBackReferenceProperty(name, constructSettableProperty(
+                    builder.addBackReferenceProperty(name, constructSettableProperty(
                             config, beanDesc, m.getName(), (AnnotatedMethod) m));
                 } else {
-                    deser.addBackReferenceProperty(name, constructSettableProperty(
+                    builder.addBackReferenceProperty(name, constructSettableProperty(
                             config, beanDesc, m.getName(), (AnnotatedField) m));
                 }
             }

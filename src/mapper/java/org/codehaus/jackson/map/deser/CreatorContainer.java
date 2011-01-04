@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
+import java.lang.reflect.Constructor;
+
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -13,6 +15,8 @@ public class CreatorContainer
     final Class<?> _beanClass;
     final boolean _canFixAccess;
 
+    protected Constructor<?> _defaultConstructor;
+    
     AnnotatedMethod _strFactory, _intFactory, _longFactory;
     AnnotatedMethod _delegatingFactory;
     AnnotatedMethod _propertyBasedFactory;
@@ -34,6 +38,10 @@ public class CreatorContainer
     /**********************************************************
      */
 
+    public void setDefaultConstructor(Constructor<?> ctor) {
+        _defaultConstructor = ctor;
+    }
+    
     public void addStringConstructor(AnnotatedConstructor ctor) {
         _strConstructor = verifyNonDup(ctor, _strConstructor, "String");
     }
@@ -80,6 +88,8 @@ public class CreatorContainer
     /**********************************************************
      */
 
+    public Constructor<?> getDefaultConstructor() { return _defaultConstructor; }
+    
     public Creator.StringBased stringCreator()
     {
         if (_strConstructor == null &&  _strFactory == null) {

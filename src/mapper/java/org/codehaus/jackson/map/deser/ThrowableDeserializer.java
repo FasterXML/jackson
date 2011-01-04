@@ -4,12 +4,13 @@ import java.io.IOException;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.introspect.AnnotatedClass;
-import org.codehaus.jackson.type.JavaType;
 
 /**
  * Deserializer that builds on basic {@link BeanDeserializer} but
  * override some aspects like instance construction.
+ *<p>
+ * Note that this deserializer was significantly changed in Jackson 1.7
+ * (due to massive changes in {@link BeanDeserializer}).
  */
 public class ThrowableDeserializer
     extends BeanDeserializer
@@ -22,9 +23,9 @@ public class ThrowableDeserializer
     /**********************************************************
      */
 
-    public ThrowableDeserializer(AnnotatedClass forClass, JavaType type, BeanProperty property)
+    public ThrowableDeserializer(BeanDeserializer baseDeserializer)
     {
-        super(forClass, type, property);
+        super(baseDeserializer);
     }
 
     /*

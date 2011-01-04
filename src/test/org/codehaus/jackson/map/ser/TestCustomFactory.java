@@ -10,6 +10,12 @@ import org.codehaus.jackson.map.*;
 public class TestCustomFactory
     extends BaseMapTest
 {
+    /*
+    /**********************************************************
+    /* Helper types
+    /**********************************************************
+     */
+
     static class DummySerializer<T>
         extends JsonSerializer<T>
     {
