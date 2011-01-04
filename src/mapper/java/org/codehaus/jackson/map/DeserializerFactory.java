@@ -64,6 +64,10 @@ public abstract class DeserializerFactory
         public abstract Iterable<Deserializers> deserializers();
 
         public abstract Iterable<BeanDeserializerModifier> deserializerModifiers();
+
+        public abstract boolean hasDeserializers();
+
+        public abstract boolean hasDeserializerModifiers();
     }
 
     /*

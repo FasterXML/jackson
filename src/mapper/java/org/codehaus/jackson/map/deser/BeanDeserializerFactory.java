@@ -96,7 +96,13 @@ public class BeanDeserializerFactory
             BeanDeserializerModifier[] all = ArrayBuilders.insertInList(_modifiers, modifier);
             return new ConfigImpl(_additionalDeserializers, all);
         }
-                
+
+        @Override
+        public boolean hasDeserializers() { return _additionalDeserializers.length > 0; }
+
+        @Override
+        public boolean hasDeserializerModifiers() { return _modifiers.length > 0; }
+        
         @Override
         public Iterable<Deserializers> deserializers() {
             return ArrayBuilders.arrayAsIterable(_additionalDeserializers);
@@ -126,7 +132,7 @@ public class BeanDeserializerFactory
      * 
      * @since 1.7
      */
-    protected final Config _config;
+    protected final Config _factoryConfig;
 
     @Deprecated
     public BeanDeserializerFactory() {
@@ -140,12 +146,12 @@ public class BeanDeserializerFactory
         if (config == null) {
             config = new ConfigImpl();
         }
-        _config = config;
+        _factoryConfig = config;
     }
 
     @Override
     public final Config getConfig() {
-        return _config;
+        return _factoryConfig;
     }
     
     /**
@@ -158,7 +164,7 @@ public class BeanDeserializerFactory
     @Override
     public DeserializerFactory withConfig(DeserializerFactory.Config config)
     {
-        if (_config == config) {
+        if (_factoryConfig == config) {
             return this;
         }
 
@@ -190,7 +196,7 @@ public class BeanDeserializerFactory
             TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
         throws JsonMappingException
     {
-        for (Deserializers d  : _config.deserializers()) {
+        for (Deserializers d  : _factoryConfig.deserializers()) {
             JsonDeserializer<?> deser = d.findArrayDeserializer(type, config, provider, property,
                         elementTypeDeserializer, elementDeserializer);
             if (deser != null) {
@@ -207,7 +213,7 @@ public class BeanDeserializerFactory
             TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
         throws JsonMappingException
     {
-        for (Deserializers d  : _config.deserializers()) {
+        for (Deserializers d  : _factoryConfig.deserializers()) {
             JsonDeserializer<?> deser = d.findCollectionDeserializer(type, config, provider, beanDesc, property,
                     elementTypeDeserializer, elementDeserializer);
             if (deser != null) {
@@ -222,7 +228,7 @@ public class BeanDeserializerFactory
             BasicBeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException
     {
-        for (Deserializers d  : _config.deserializers()) {
+        for (Deserializers d  : _factoryConfig.deserializers()) {
             JsonDeserializer<?> deser = d.findEnumDeserializer(type, config, beanDesc, property);
             if (deser != null) {
                 return deser;
@@ -238,7 +244,7 @@ public class BeanDeserializerFactory
             TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
         throws JsonMappingException
     {
-        for (Deserializers d  : _config.deserializers()) {
+        for (Deserializers d  : _factoryConfig.deserializers()) {
             JsonDeserializer<?> deser = d.findMapDeserializer(type, config, provider, beanDesc, property,
                     keyDeserializer, elementTypeDeserializer, elementDeserializer);
             if (deser != null) {
@@ -253,7 +259,7 @@ public class BeanDeserializerFactory
             DeserializationConfig config, BeanProperty property)
         throws JsonMappingException
     {
-        for (Deserializers d  : _config.deserializers()) {
+        for (Deserializers d  : _factoryConfig.deserializers()) {
             JsonDeserializer<?> deser = d.findTreeNodeDeserializer(type, config, property);
             if (deser != null) {
                 return deser;
@@ -268,7 +274,7 @@ public class BeanDeserializerFactory
             DeserializerProvider provider, BasicBeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException
     {
-        for (Deserializers d  : _config.deserializers()) {
+        for (Deserializers d  : _factoryConfig.deserializers()) {
             JsonDeserializer<?> deser = d.findBeanDeserializer(type, config, provider, beanDesc, property);
             if (deser != null) {
                 return (JsonDeserializer<Object>) deser;
@@ -378,14 +384,15 @@ public class BeanDeserializerFactory
      * may be a valid bean type, and that there are no default simple
      * deserializers.
      */
+    @SuppressWarnings("unchecked")
     public JsonDeserializer<Object> buildBeanDeserializer(DeserializationConfig config,
             JavaType type, BasicBeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException
     {
-        BeanDeserializer deser = constructBeanDeserializerInstance(config, type, beanDesc, property);
+        BeanDeserializer beanDeserializer = constructBeanDeserializerInstance(config, type, beanDesc, property);
 
         // First: add constructors
-        addDeserializerCreators(config, beanDesc, deser);
+        addDeserializerCreators(config, beanDesc, beanDeserializer);
         // and check that there are enough
         /* 23-Jan-2010, tatu: can not do that any more, must allow partial
          *   handling of abstract classes with polymorphic types
@@ -393,11 +400,18 @@ public class BeanDeserializerFactory
         //deser.validateCreators();
 
          // And then setters for deserializing from Json Object
-        addBeanProps(config, beanDesc, deser);
+        addBeanProps(config, beanDesc, beanDeserializer);
         // managed/back reference fields/setters need special handling... first part
-        addReferenceProperties(config, beanDesc, deser);
+        addReferenceProperties(config, beanDesc, beanDeserializer);
 
-        return deser;
+        if (!_factoryConfig.hasDeserializerModifiers()) {
+            return beanDeserializer;
+        }
+        JsonDeserializer<?> deserializer = beanDeserializer;
+        for (BeanDeserializerModifier mod : _factoryConfig.deserializerModifiers()) {
+            deserializer = mod.modifyDeserializer(config, beanDesc, deserializer);
+        }
+        return (JsonDeserializer<Object>) deserializer;
     }
 
     public JsonDeserializer<Object> buildThrowableDeserializer(DeserializationConfig config,
@@ -470,8 +484,7 @@ public class BeanDeserializerFactory
      * for the bean type to deserialize.
      */
     protected void addDeserializerCreators(DeserializationConfig config,
-                                           BasicBeanDescription beanDesc,
-                                           BeanDeserializer deser)
+            BasicBeanDescription beanDesc, BeanDeserializer deser)
         throws JsonMappingException
     {
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
