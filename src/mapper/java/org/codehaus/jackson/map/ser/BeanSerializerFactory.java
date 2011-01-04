@@ -361,10 +361,9 @@ public class BeanSerializerFactory
             boolean staticTyping = config.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING);
             JavaType valueType = type.getContentType();
             TypeSerializer typeSer = createTypeSerializer(config, valueType, property);
-            // should we pass name for "any" property? For now, just pass null
             MapSerializer mapSer = MapSerializer.construct(/* ignored props*/ null, type, staticTyping,
                     typeSer, property);
-            ser.setAnyGetter(new AnyGetterWriter(anyGetter, mapSer));
+            ser = ser.withAnyGetter(new AnyGetterWriter(anyGetter, mapSer));
         }
         
         // One more thing: need to gather view information, if any:

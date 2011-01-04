@@ -15,12 +15,16 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
 /**
- * Serializer class that can serialize arbitrary bean objects.
+ * Serializer class that can serialize arbitrary bean objects
  *<p>
  * Implementation note: we will post-process resulting serializer,
  * to figure out actual serializers for final types. This must be
  * done from {@link #resolve} method, and NOT from constructor;
  * otherwise we could end up with an infinite loop.
+ *<p>
+ * Since 1.7 instances are immutable; instead of mutator methods there
+ * are additional 'fluent-style' factory methods that create new instances
+ * with configuration overrides.
  */
 public class BeanSerializer
     extends SerializerBase<Object>
@@ -57,7 +61,7 @@ public class BeanSerializer
      * 
      * @since 1.6
      */
-    protected AnyGetterWriter _anyGetterWriter;
+    final protected AnyGetterWriter _anyGetterWriter;
 
     /**
      * Id of the bean property filter to use, if any; null if none.
@@ -66,7 +70,7 @@ public class BeanSerializer
     
     /*
     /**********************************************************
-    /* Life-cycle
+    /* Life-cycle: constructors
     /**********************************************************
      */
 
@@ -106,6 +110,7 @@ public class BeanSerializer
         _class = type;
         _filteredProps = filteredProps;
         _propertyFilterId = filterId;
+        _anyGetterWriter = null;
     }
     
     /**
@@ -134,19 +139,28 @@ public class BeanSerializer
     
     /**
      * "Copy-constructor" used when creating slightly differing instance(s)
-     * of an exisitng serializer
+     * of an existing serializer
+     * 
+     * @since 1.7
      */
-    public BeanSerializer(BeanSerializer src, BeanPropertyWriter[] filtered)
+    public BeanSerializer(BeanSerializer src,
+            BeanPropertyWriter[] filtered, AnyGetterWriter anyGetterWriter)
     {
         super(src._class, false);
         // mostly just copy stuff from source
         _props = src._props;
         _class = src._class;
-        _anyGetterWriter = src._anyGetterWriter;
         _propertyFilterId = src._propertyFilterId;
-        // with one override
+        // with some overrides
         _filteredProps = filtered;
+        _anyGetterWriter = anyGetterWriter;
     }
+
+    /*
+    /**********************************************************
+    /* Life-cycle: factory methods, fluent factories
+    /**********************************************************
+     */
     
     /**
      * Method for constructing dummy bean deserializer; one that
@@ -165,15 +179,29 @@ public class BeanSerializer
      */
     public BeanSerializer withFiltered(BeanPropertyWriter[] filtered)
     {
+        // 03-Jan-2011, tatu: Need to ensure sub-classes override, so:
+        if (getClass() != BeanSerializer.class) {
+            throw new IllegalStateException("BeanSerializer.withFiltered() called on base class: sub-classes MUST override method");
+        }
         // if no filters, no need to construct new instance...
-        if (filtered == null) {
+        if (filtered == null && _filteredProps == null) {
             return this;
         }
-        return new BeanSerializer(this, filtered);
+        return new BeanSerializer(this, filtered, _anyGetterWriter);
     }
 
-    public void setAnyGetter(AnyGetterWriter agw) {
-        _anyGetterWriter = agw;
+    /**
+     * Method used for constructing a serializer instance with specified
+     * <code>AnyGetterWrite</code>
+     * 
+     * @since 1.7
+     */
+    public BeanSerializer withAnyGetter(AnyGetterWriter agw)
+    {
+        if (getClass() != BeanSerializer.class) {
+            throw new IllegalStateException("BeanSerializer.withFiltered() called on base class: sub-classes MUST override method");
+        }
+        return new BeanSerializer(this, _filteredProps, agw);
     }
     
     /*
