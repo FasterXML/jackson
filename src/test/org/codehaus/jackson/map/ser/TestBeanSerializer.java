@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.Version;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -97,12 +96,47 @@ public class TestBeanSerializer extends BaseMapTest
         }
     }
 
+    static class BuilderModifier extends BeanSerializerModifier
+    {
+        private final JsonSerializer<?> _serializer;
+        
+        public BuilderModifier(JsonSerializer<?> ser) {
+            _serializer = ser;
+        }
+        
+        @Override
+        public BeanSerializerBuilder updateBuilder(SerializationConfig config,
+                BasicBeanDescription beanDesc, BeanSerializerBuilder builder) {
+            return new BogusSerializerBuilder(beanDesc, _serializer);
+        }
+    }
+
+    static class BogusSerializerBuilder extends BeanSerializerBuilder
+    {
+        private final JsonSerializer<?> _serializer;
+        
+        public BogusSerializerBuilder(BasicBeanDescription beanDesc,
+                JsonSerializer<?> ser) {
+            super(beanDesc);
+            _serializer = ser;
+        }
+
+        @Override
+        public JsonSerializer<?> build() {
+            return _serializer;
+        }
+    }
+    
     static class BogusBeanSerializer extends JsonSerializer<Object>
     {
+        private final int _value;
+        
+        public BogusBeanSerializer(int v) { _value = v; }
+        
         @Override
         public void serialize(Object value, JsonGenerator jgen,
                 SerializerProvider provider) throws IOException {
-            jgen.writeNumber(123);
+            jgen.writeNumber(_value);
         }
     }
     
@@ -128,10 +162,17 @@ public class TestBeanSerializer extends BaseMapTest
         assertEquals("{\"a\":\"a\",\"b\":\"b\"}", mapper.writeValueAsString(bean));
     }
 
+    public void testBuilderReplacement() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new ModuleImpl(new BuilderModifier(new BogusBeanSerializer(17))));
+        Bean bean = new Bean();
+        assertEquals("17", mapper.writeValueAsString(bean));
+    }    
     public void testSerializerReplacement() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new ModuleImpl(new ReplacingModifier(new BogusBeanSerializer())));
+        mapper.registerModule(new ModuleImpl(new ReplacingModifier(new BogusBeanSerializer(123))));
         Bean bean = new Bean();
         assertEquals("123", mapper.writeValueAsString(bean));
     }

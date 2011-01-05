@@ -6,7 +6,6 @@ import java.util.HashSet;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.impl.BeanPropertyMap;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
-import org.codehaus.jackson.type.JavaType;
 
 /**
  * Builder class used for aggregating deserialization information about
@@ -19,24 +18,15 @@ public class BeanDeserializerBuilder
 {
     /*
     /**********************************************************
-    /* Accumulated general configuration
+    /* General information about POJO
     /**********************************************************
      */
-    
-    /**
-     * Configuration settings passed by bean deserializer factory
-     */
-    final protected DeserializerFactory.Config _factoryConfig;
-
-    final protected DeserializationConfig _config;
 
     final protected BasicBeanDescription _beanDesc;
-
-    final protected JavaType _beanType;
     
     /*
     /**********************************************************
-    /* Accumulated properties
+    /* Accumulated information about properties
     /**********************************************************
      */
     
@@ -48,7 +38,7 @@ public class BeanDeserializerBuilder
     /**
      * Back-reference properties this bean contains (if any)
      */
-    protected HashMap<String, SettableBeanProperty> _backRefs;
+    protected HashMap<String, SettableBeanProperty> _backRefProperties;
 
     /**
      * Set of names of properties that are recognized but are to be ignored for deserialization
@@ -81,13 +71,9 @@ public class BeanDeserializerBuilder
     /**********************************************************
      */
     
-    public BeanDeserializerBuilder(DeserializerFactory.Config factoryConfig, DeserializationConfig config,
-            JavaType beanType, BasicBeanDescription beanDesc)
+    public BeanDeserializerBuilder(BasicBeanDescription beanDesc)
     { 
-        _factoryConfig = factoryConfig;
-        _config = config;
         _beanDesc = beanDesc;
-        _beanType = beanType;
     }
  
     public void setCreators(CreatorContainer creators) {
@@ -111,16 +97,16 @@ public class BeanDeserializerBuilder
     {
         SettableBeanProperty old =  _properties.put(prop.getName(), prop);
         if (old != null && old != prop) { // should never occur...
-            throw new IllegalArgumentException("Duplicate property '"+prop.getName()+"' for "+_beanType);
+            throw new IllegalArgumentException("Duplicate property '"+prop.getName()+"' for "+_beanDesc.getType());
         }
     }
     
     public void  addBackReferenceProperty(String referenceName, SettableBeanProperty prop)
     {
-        if (_backRefs == null) {
-            _backRefs = new HashMap<String, SettableBeanProperty>(4);
+        if (_backRefProperties == null) {
+            _backRefProperties = new HashMap<String, SettableBeanProperty>(4);
         }
-        _backRefs.put(referenceName, prop);
+        _backRefProperties.put(referenceName, prop);
     }
 
     /**
@@ -162,13 +148,13 @@ public class BeanDeserializerBuilder
     /**********************************************************
      */
 
-    public BeanDeserializer build(BeanProperty forProperty)
+    public JsonDeserializer<?> build(BeanProperty forProperty)
     {
         BeanPropertyMap propertyMap = new BeanPropertyMap(_properties.values());
         propertyMap.assignIndexes();
 
-        return new BeanDeserializer(_beanDesc.getClassInfo(), _beanType, forProperty,
-                _creators, propertyMap, _backRefs, _ignorableProps, _ignoreAllUnknown,
+        return new BeanDeserializer(_beanDesc.getClassInfo(), _beanDesc.getType(), forProperty,
+                _creators, propertyMap, _backRefProperties, _ignorableProps, _ignoreAllUnknown,
                 _anySetter);
     }
 }

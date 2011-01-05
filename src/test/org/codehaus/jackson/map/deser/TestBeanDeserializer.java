@@ -1,8 +1,6 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -13,9 +11,9 @@ import org.codehaus.jackson.map.module.SimpleModule;
 public class TestBeanDeserializer extends BaseMapTest
 {
     /*
-    /********************************************************
+    /**********************************************************
     /* Helper types
-    /********************************************************
+    /**********************************************************
      */
 
     static class Bean {
@@ -56,17 +54,10 @@ public class TestBeanDeserializer extends BaseMapTest
         public RemovingModifier(String remove) { _removedProperty = remove; }
         
         @Override
-        public List<SettableBeanProperty> changeProperties(DeserializationConfig config, BasicBeanDescription beanDesc,
-                List<SettableBeanProperty> beanProperties)
-        {
-            Iterator<SettableBeanProperty> it = beanProperties.iterator();
-            while (it.hasNext()) {
-                SettableBeanProperty prop = it.next();
-                if (prop.getName().equals(_removedProperty)) {
-                    it.remove();
-                }
-            }
-            return beanProperties;
+        public BeanDeserializerBuilder updateBuilder(DeserializationConfig config,
+                BasicBeanDescription beanDesc, BeanDeserializerBuilder builder) {
+            builder.addIgnorable(_removedProperty);
+            return builder;
         }
     }
     
@@ -85,11 +76,18 @@ public class TestBeanDeserializer extends BaseMapTest
 
     static class BogusBeanDeserializer extends JsonDeserializer<Object>
     {
+        private final String a, b;
+        
+        public BogusBeanDeserializer(String a, String b) {
+            this.a = a;
+            this.b = b;
+        }
+        
         @Override
         public Object deserialize(JsonParser jp, DeserializationContext ctxt)
                 throws IOException, JsonProcessingException
         {
-            return new Bean("foo", "bar");
+            return new Bean(a, b);
         }
     }
     
@@ -103,15 +101,16 @@ public class TestBeanDeserializer extends BaseMapTest
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new ModuleImpl(new RemovingModifier("a")));
-        Bean bean = mapper.readValue("{\"a\":\"1\", \"b\":\"2\"}", Bean.class);
-        assertEquals("1", bean.a);
+        Bean bean = mapper.readValue("{\"b\":\"2\"}", Bean.class);
         assertEquals("2", bean.b);
+        // and 'a' has its default value:
+        assertEquals("a", bean.a);
     } 
 
     public void testDeserializerReplacement() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new ModuleImpl(new ReplacingModifier(new BogusBeanDeserializer())));
+        mapper.registerModule(new ModuleImpl(new ReplacingModifier(new BogusBeanDeserializer("foo", "bar"))));
         Bean bean = mapper.readValue("{\"a\":\"xyz\"}", Bean.class);
         // custom deserializer always produces instance like this:
         assertEquals("foo", bean.a);

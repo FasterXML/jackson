@@ -389,22 +389,26 @@ public class BeanDeserializerFactory
             JavaType type, BasicBeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException
     {
-        BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(config, type, beanDesc);
+        BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(beanDesc);
         builder.setCreators(findDeserializerCreators(config, beanDesc));
          // And then setters for deserializing from JSON Object
         addBeanProps(config, beanDesc, builder);
         // managed/back reference fields/setters need special handling... first part
         addReferenceProperties(config, beanDesc, builder);
 
-        BeanDeserializer beanDeserializer = builder.build(property);
+        // [JACKSON-440]: update builder now that all information is in?
+        if (_factoryConfig.hasDeserializerModifiers()) {
+            for (BeanDeserializerModifier mod : _factoryConfig.deserializerModifiers()) {
+                builder = mod.updateBuilder(config, beanDesc, builder);
+            }
+        }
+        JsonDeserializer<?> deserializer = builder.build(property);
 
         // [JACKSON-440]: may have modifier(s) that wants to modify or replace serializer we just built:
-        if (!_factoryConfig.hasDeserializerModifiers()) {
-            return beanDeserializer;
-        }
-        JsonDeserializer<?> deserializer = beanDeserializer;
-        for (BeanDeserializerModifier mod : _factoryConfig.deserializerModifiers()) {
-            deserializer = mod.modifyDeserializer(config, beanDesc, deserializer);
+        if (_factoryConfig.hasDeserializerModifiers()) {
+            for (BeanDeserializerModifier mod : _factoryConfig.deserializerModifiers()) {
+                deserializer = mod.modifyDeserializer(config, beanDesc, deserializer);
+            }
         }
         return (JsonDeserializer<Object>) deserializer;
         
@@ -416,7 +420,7 @@ public class BeanDeserializerFactory
         throws JsonMappingException
     {
         // first: construct like a regular bean deserializer...
-        BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(config, type, beanDesc);
+        BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(beanDesc);
         builder.setCreators(findDeserializerCreators(config, beanDesc));
 
         addBeanProps(config, beanDesc, builder);
@@ -441,16 +445,26 @@ public class BeanDeserializerFactory
         */
         builder.addIgnorable("message");
 
-        BeanDeserializer base = builder.build(property);       
-        ThrowableDeserializer throwableDeserializer = new ThrowableDeserializer(base);
+        // [JACKSON-440]: update builder now that all information is in?
+        if (_factoryConfig.hasDeserializerModifiers()) {
+            for (BeanDeserializerModifier mod : _factoryConfig.deserializerModifiers()) {
+                builder = mod.updateBuilder(config, beanDesc, builder);
+            }
+        }
+        JsonDeserializer<?> deserializer = builder.build(property);
+        
+        /* At this point it ought to be a BeanDeserializer; if not, must assume
+         * it's some other thing that can handle deserialization ok...
+         */
+        if (deserializer instanceof BeanDeserializer) {
+            deserializer = new ThrowableDeserializer((BeanDeserializer) deserializer);
+        }
 
         // [JACKSON-440]: may have modifier(s) that wants to modify or replace serializer we just built:
-        if (!_factoryConfig.hasDeserializerModifiers()) {
-            return throwableDeserializer;
-        }
-        JsonDeserializer<?> deserializer = throwableDeserializer;
-        for (BeanDeserializerModifier mod : _factoryConfig.deserializerModifiers()) {
-            deserializer = mod.modifyDeserializer(config, beanDesc, deserializer);
+        if (_factoryConfig.hasDeserializerModifiers()) {
+            for (BeanDeserializerModifier mod : _factoryConfig.deserializerModifiers()) {
+                deserializer = mod.modifyDeserializer(config, beanDesc, deserializer);
+            }
         }
         return (JsonDeserializer<Object>) deserializer;
     }
@@ -469,9 +483,8 @@ public class BeanDeserializerFactory
      * 
      * @since 1.7
      */
-    protected BeanDeserializerBuilder constructBeanDeserializerBuilder(DeserializationConfig config,
-            JavaType type, BasicBeanDescription beanDesc) {
-        return new BeanDeserializerBuilder(getConfig(), config, type, beanDesc);
+    protected BeanDeserializerBuilder constructBeanDeserializerBuilder(BasicBeanDescription beanDesc) {
+        return new BeanDeserializerBuilder(beanDesc);
     }
 
     /**

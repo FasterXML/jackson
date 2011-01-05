@@ -228,8 +228,23 @@ public class BeanDeserializer
         _propertyBasedCreator = src._propertyBasedCreator;
     }
 
+    /*
+    /**********************************************************
+    /* Public accessors
+    /**********************************************************
+     */
+
     public boolean hasProperty(String propertyName) {
         return _beanProperties.find(propertyName) != null;
+    }
+
+    /**
+     * Accessor for checking number of deserialized properties.
+     * 
+     * @since 1.7
+     */
+    public int getPropertyCount() { 
+        return _beanProperties.size();
     }
     
     /*

@@ -6,8 +6,8 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
-import org.codehaus.jackson.map.ser.BeanSerializer;
 import org.codehaus.jackson.map.ser.BeanPropertyWriter;
+import org.codehaus.jackson.map.ser.BeanSerializerBuilder;
 import org.codehaus.jackson.map.ser.CustomSerializerFactory;
 
 /**
@@ -71,6 +71,11 @@ public class CustomSerializationView
             _writer = w;
         }
 
+        public UpperCasingWriter(BeanPropertyWriter w, JsonSerializer<Object> ser) {
+            super(w, ser);
+            _writer = w;
+        }
+        
         @Override
         public void serializeAsField(Object bean, JsonGenerator jgen, SerializerProvider prov)
             throws Exception
@@ -80,6 +85,12 @@ public class CustomSerializationView
             // Convert nulls to "", otherwise upper case
             value = (value == null) ? "" : value.toUpperCase();
             jgen.writeStringField("name", value);
+        }
+
+        @Override
+        public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
+        {
+            return new UpperCasingWriter(_writer, ser);
         }
     }
 
@@ -100,18 +111,19 @@ public class CustomSerializationView
          * serialization for all cases.
          */
         @Override
-        protected BeanSerializer processViews(SerializationConfig config, BasicBeanDescription beanDesc,
-                                              BeanSerializer ser, List<BeanPropertyWriter> props)
+        protected void processViews(SerializationConfig config, BeanSerializerBuilder builder)
         {
             // Let's use default serializer modification as the baseline
-            ser = super.processViews(config, beanDesc, ser, props);
+            super.processViews(config, builder);
             
             /* And only change handling of that one bean (more likely,
              * you would want to handle all classes in a package, or with
              * some name -- this would be less work than having separate
              * custom serializer for all classes)
              */
+            BasicBeanDescription beanDesc = builder.getBeanDescription();
             if (beanDesc.getBeanClass() == ViewBean.class) {
+                List<BeanPropertyWriter> props = builder.getProperties();
                 BeanPropertyWriter[] writers = props.toArray(new BeanPropertyWriter[props.size()]);
                 for (int i = 0; i < writers.length; ++i) {
                     String pname = writers[i].getName();
@@ -123,10 +135,9 @@ public class CustomSerializationView
                         writers[i] = new UpperCasingWriter(writers[i]);
                     }
                 }
-                // Important: create new serializer with filtered writers!
-                ser = ser.withFiltered(writers);
+                // Important: update builder with filtered property definitions
+                builder.setFilteredProperties(writers);
             }
-            return ser;
         }
     }
 

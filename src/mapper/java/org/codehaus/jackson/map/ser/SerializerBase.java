@@ -12,6 +12,7 @@ import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.SchemaAware;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Base class used by all standard serializers. Provides some convenience
@@ -27,6 +28,14 @@ public abstract class SerializerBase<T>
         _handledType = t;
     }
 
+    /**
+     * @since 1.7
+     */
+    @SuppressWarnings("unchecked")
+    protected SerializerBase(JavaType type) {
+        _handledType = (Class<T>) type.getRawClass();
+    }
+    
     /**
      * Alternate constructor that is (alas!) needed to work
      * around kinks of generic type handling

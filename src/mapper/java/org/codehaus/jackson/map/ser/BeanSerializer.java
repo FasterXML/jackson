@@ -22,9 +22,8 @@ import org.codehaus.jackson.type.JavaType;
  * done from {@link #resolve} method, and NOT from constructor;
  * otherwise we could end up with an infinite loop.
  *<p>
- * Since 1.7 instances are immutable; instead of mutator methods there
- * are additional 'fluent-style' factory methods that create new instances
- * with configuration overrides.
+ * Since 1.7 instances are immutable; this is achieved by using a
+ * separate builder during construction process.
  */
 public class BeanSerializer
     extends SerializerBase<Object>
@@ -37,12 +36,6 @@ public class BeanSerializer
     /* Configuration
     /**********************************************************
      */
-    
-    /**
-     * Value type of this serializer,
-     * used for error reporting and debugging.
-     */
-    final protected Class<?> _class;
 
     /**
      * Writers used for outputting actual property values
@@ -75,14 +68,32 @@ public class BeanSerializer
      */
 
     /**
-     * 
      * @param type Nominal type of values handled by this serializer
      * @param writers Property writers used for actual serialization
      */
-    public BeanSerializer(Class<?> type, BeanPropertyWriter[] writers,
-            Object beanPropertyFilterId)
+    public BeanSerializer(JavaType type,
+            BeanPropertyWriter[] properties, BeanPropertyWriter[] filteredProperties,
+            AnyGetterWriter anyGetterWriter,
+            Object filterId)
     {
-        this(type, writers, null, beanPropertyFilterId);
+        super(type);
+        _props = properties;
+        _filteredProps = filteredProperties;
+        _anyGetterWriter = anyGetterWriter;
+        _propertyFilterId = filterId;
+    }
+
+    @SuppressWarnings("unchecked")
+    public BeanSerializer(Class<?> rawType,
+            BeanPropertyWriter[] properties, BeanPropertyWriter[] filteredProperties,
+            AnyGetterWriter anyGetterWriter,
+            Object filterId)
+    {
+        super((Class<Object>) rawType);
+        _props = properties;
+        _filteredProps = filteredProperties;
+        _anyGetterWriter = anyGetterWriter;
+        _propertyFilterId = filterId;
     }
 
     /**
@@ -92,100 +103,69 @@ public class BeanSerializer
      * @since 1.7
      */
     protected BeanSerializer(BeanSerializer src) {
-        this(src, src._filteredProps, src._anyGetterWriter);
+        this(src._handledType,
+                src._props, src._filteredProps, src._anyGetterWriter, src._propertyFilterId);
     }
     
     /**
-     * @since 1.7, use method that takes bean property filter id
+     * @deprecated since 1.7, use method that takes more arguments.
+     */
+    @Deprecated
+    @SuppressWarnings("unchecked")
+    public BeanSerializer(Class<?> type, BeanPropertyWriter[] properties, Object filterId)
+    {
+        super((Class<Object>)type);
+        _props = properties;
+        _filteredProps = null;
+        _anyGetterWriter = null;
+        _propertyFilterId = filterId;
+    }
+
+    /**
+     * @deprecated since 1.7, use method that takes more arguments.
+     */
+    @Deprecated
+    @SuppressWarnings("unchecked")
+    public BeanSerializer(Class<?> type, BeanPropertyWriter[] properties,
+            BeanPropertyWriter[] filteredProperties)
+    {
+        super((Class<Object>)type);
+        _props = properties;
+        _filteredProps = filteredProperties;
+        _anyGetterWriter = null;
+        _propertyFilterId = null;
+    }
+
+    /**
+     * @deprecated since 1.7, use method that takes more arguments.
+     */
+    @Deprecated
+    public BeanSerializer(Class<?> type, Collection<BeanPropertyWriter> props)
+    {
+        this(type, props.toArray(new BeanPropertyWriter[props.size()]), null, null, null);
+    }
+    
+    /**
+     * @deprecated since 1.7, use method that takes more arguments.
      */
     @Deprecated
     public BeanSerializer(Class<?> type, BeanPropertyWriter[] writers)
     {
-        this(type, writers, null, null);
-    }
-    
-    /**
-     * Alternate constructor used when class being serialized can
-     * have dynamically enabled JSON Views
-     *
-     * @param filteredProps Filtered property writers to use when there is
-     *   an active view.
-     */
-    public BeanSerializer(Class<?> type, BeanPropertyWriter[] props,
-            BeanPropertyWriter[] filteredProps, Object filterId)
-    {
-        super(type, false);
-        _props = props;
-        // let's store this for debugging
-        _class = type;
-        _filteredProps = filteredProps;
-        _propertyFilterId = filterId;
-        _anyGetterWriter = null;
-    }
-    
-    /**
-     * @since 1.7, use method that takes bean property filter id
-     */
-    @Deprecated
-    public BeanSerializer(Class<?> type, Collection<BeanPropertyWriter> props) {
-        this(type, props, null);
+        this(type, writers, null, null, null);
     }
 
-    public BeanSerializer(Class<?> type, Collection<BeanPropertyWriter> props,
-            Object filterId)
-    {
-        this(type, props.toArray(new BeanPropertyWriter[props.size()]), null, filterId);
-    }
-
-    /**
-     * @since 1.7, use method that takes bean property filter id
-     */
-    @Deprecated
-    public BeanSerializer(Class<?> type, BeanPropertyWriter[] props,
-                          BeanPropertyWriter[] filteredProps)
-    {
-        this(type, props, filteredProps, null);
-    }
-    
-    /**
-     * "almost-Copy-constructor" used when creating slightly differing instance(s)
-     * of an existing serializer
-     * 
-     * @since 1.7
-     */
-    public BeanSerializer(BeanSerializer src,
-            BeanPropertyWriter[] filtered, AnyGetterWriter anyGetterWriter)
-    {
-        super(src._class, false);
-        // mostly just copy stuff from source
-        _props = src._props;
-        _class = src._class;
-        _propertyFilterId = src._propertyFilterId;
-        // with some overrides
-        _filteredProps = filtered;
-        _anyGetterWriter = anyGetterWriter;
-    }
-    
     /*
     /**********************************************************
     /* Life-cycle: factory methods, fluent factories
     /**********************************************************
      */
-    
-    /**
-     * Method for constructing dummy bean deserializer; one that
-     * never outputs any properties
-     */
-    public static BeanSerializer createDummy(Class<?> forType)
-    {
-        return new BeanSerializer(forType, NO_PROPS, NO_PROPS, null);
-    }
 
     /**
      * Method used for constructing a filtered serializer instance, using this
      * serializer as the base.
      *
-     * @since 1.4
+     * @deprecated Since 1.7 should let {@link BeanSerializerBuilder} be used, so that
+     *   copy-methods are not needed
      */
     public BeanSerializer withFiltered(BeanPropertyWriter[] filtered)
     {
@@ -197,21 +177,16 @@ public class BeanSerializer
         if (filtered == null && _filteredProps == null) {
             return this;
         }
-        return new BeanSerializer(this, filtered, _anyGetterWriter);
-    }
+        return new BeanSerializer(handledType(), _props, filtered, _anyGetterWriter, _propertyFilterId);
+    }    
 
     /**
-     * Method used for constructing a serializer instance with specified
-     * <code>AnyGetterWrite</code>
-     * 
-     * @since 1.7
+     * Method for constructing dummy bean deserializer; one that
+     * never outputs any properties
      */
-    public BeanSerializer withAnyGetter(AnyGetterWriter agw)
+    public static BeanSerializer createDummy(Class<?> forType)
     {
-        if (getClass() != BeanSerializer.class) {
-            throw new IllegalStateException("BeanSerializer.withFiltered() called on base class: sub-classes MUST override method");
-        }
-        return new BeanSerializer(this, _filteredProps, agw);
+        return new BeanSerializer(forType, NO_PROPS, null, null, null);
     }
     
     /*
@@ -463,6 +438,6 @@ public class BeanSerializer
      */
 
     @Override public String toString() {
-        return "BeanSerializer for "+_class.getName();
+        return "BeanSerializer for "+handledType().getName();
     }
 }

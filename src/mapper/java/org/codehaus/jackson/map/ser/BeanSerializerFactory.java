@@ -362,6 +362,7 @@ public class BeanSerializerFactory
      * 
      * @since 1.6
      */
+    @SuppressWarnings("unchecked")
     protected JsonSerializer<Object> constructBeanSerializer(SerializationConfig config,
             BasicBeanDescription beanDesc, BeanProperty property)
     {
@@ -369,6 +370,8 @@ public class BeanSerializerFactory
         if (beanDesc.getBeanClass() == Object.class) {
             throw new IllegalArgumentException("Can not create bean serializer for Object.class");
         }
+        
+        BeanSerializerBuilder builder = constructBeanSerializerBuilder(beanDesc);
         
         // First: any detectable (auto-detect, annotations) properties to serialize?
         List<BeanPropertyWriter> props = findBeanProperties(config, beanDesc);
@@ -393,7 +396,7 @@ public class BeanSerializerFactory
                  *  (which may come from a mix-in too)
                  */
                 if (beanDesc.hasKnownClassAnnotations()) {
-                    return BeanSerializer.createDummy(beanDesc.getBeanClass());
+                    return builder.createDummy();
                 }
                 return null;
             }
@@ -410,8 +413,9 @@ public class BeanSerializerFactory
                 props = mod.orderProperties(config, beanDesc, props);
             }
         }
-
-        BeanSerializer beanSerializer = instantiateBeanSerializer(config, beanDesc, props);
+        builder.setProperties(props);
+        builder.setFilterId(findFilterId(config, beanDesc));
+        
         if (anyGetter != null) { // since 1.6
             JavaType type = anyGetter.getType(beanDesc.bindingsForBeanType());
             // copied from BasicSerializerFactory.buildMapSerializer():
@@ -420,11 +424,18 @@ public class BeanSerializerFactory
             TypeSerializer typeSer = createTypeSerializer(config, valueType, property);
             MapSerializer mapSer = MapSerializer.construct(/* ignored props*/ null, type, staticTyping,
                     typeSer, property);
-            beanSerializer = beanSerializer.withAnyGetter(new AnyGetterWriter(anyGetter, mapSer));
+            builder.setAnyGetter(new AnyGetterWriter(anyGetter, mapSer));
         }
-        
         // One more thing: need to gather view information, if any:
-        return processViews(config, beanDesc, beanSerializer, props);
+        processViews(config, builder);
+        // And maybe let interested parties mess with the result bit more...
+        if (_factoryConfig.hasSerializerModifiers()) {
+            for (BeanSerializerModifier mod : _factoryConfig.serializerModifiers()) {
+                builder = mod.updateBuilder(config, beanDesc, builder);
+            }
+        }
+        // And finally construct serializer
+        return (JsonSerializer<Object>) builder.build();
     }
 
     /**
@@ -443,20 +454,8 @@ public class BeanSerializerFactory
         return new PropertyBuilder(config, beanDesc);
     }
 
-    /**
-     * Method called to construct specific subtype of {@link BeanSerializer} with
-     * all information gathered so far; main reason to expose this is to allow
-     * constructing an alternate sub-class.
-     * 
-     * @since 1.7
-     */
-    protected BeanSerializer instantiateBeanSerializer(SerializationConfig config,
-            BasicBeanDescription beanDesc,
-            List<BeanPropertyWriter> properties)
-    {
-        // [JACKSON-312] Support per-serialization dynamic filtering:
-        return new BeanSerializer(beanDesc.getBeanClass(), properties,
-                findFilterId(config, beanDesc));
+    protected BeanSerializerBuilder constructBeanSerializerBuilder(BasicBeanDescription beanDesc) {
+        return new BeanSerializerBuilder(beanDesc);
     }
 
     /**
@@ -465,8 +464,7 @@ public class BeanSerializerFactory
      * 
      * @since 1.7
      */
-    protected Object findFilterId(SerializationConfig config,
-            BasicBeanDescription beanDesc)
+    protected Object findFilterId(SerializationConfig config, BasicBeanDescription beanDesc)
     {
         return config.getAnnotationIntrospector().findFilterId(beanDesc.getClassInfo());
     }
@@ -618,14 +616,14 @@ public class BeanSerializerFactory
      * if they want to provide custom view handling. As such it is not
      * considered an internal implementation detail, and will be supported
      * as part of API going forward.
-     * 
-     * @return Resulting bean serializer, base implementation returns
-     *    serializer passed in
+     *<p>
+     * NOTE: signature of this method changed in 1.7, due to other significant
+     * changes (esp. use of builder for serializer construction).
      */
-    protected BeanSerializer processViews(SerializationConfig config, BasicBeanDescription beanDesc,
-                                          BeanSerializer ser, List<BeanPropertyWriter> props)
+    protected void processViews(SerializationConfig config, BeanSerializerBuilder builder)
     {
         // [JACKSON-232]: whether non-annotated fields are included by default or not is configurable
+        List<BeanPropertyWriter> props = builder.getProperties();
         boolean includeByDefault = config.isEnabled(SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION);
         if (includeByDefault) { // non-annotated are included
             final int propCount = props.size();
@@ -648,10 +646,10 @@ public class BeanSerializerFactory
                         filtered[i] = props.get(i);
                     }
                 }
-                return ser.withFiltered(filtered);
+                builder.setFilteredProperties(filtered);
             }        
-            // No views, return as is
-            return ser;
+            // No views, return
+            return;
         }
         // Otherwise: only include fields with view definitions
         ArrayList<BeanPropertyWriter> explicit = new ArrayList<BeanPropertyWriter>(props.size());
@@ -661,8 +659,7 @@ public class BeanSerializerFactory
                 explicit.add(constructFilteredBeanWriter(bpw, views));
             }            
         }
-        BeanPropertyWriter[] filtered = explicit.toArray(new BeanPropertyWriter[explicit.size()]);
-        return ser.withFiltered(filtered);
+        builder.setFilteredProperties(explicit.toArray(new BeanPropertyWriter[explicit.size()]));
     }
 
     /**

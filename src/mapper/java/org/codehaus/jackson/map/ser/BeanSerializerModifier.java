@@ -21,7 +21,10 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
  *  <li>Resulting set of properties are ordered (sorted) by factory, as per
  *     configuration, and then {@link #orderProperties} is called to allow
  *     modifiers to alter ordering.
- *  <li>Once set and ordering of properties has been determined,
+ *  <li>After all bean properties and related information is accumulated,
+ *     {@link #updateBuilder} is called with builder, to allow builder state
+ *     to be modified (including possibly replacing builder itself if necessary)
+ *  <li>Once all bean information has been determined,
  *     factory creates default {@link BeanSerializer} instance and passes
  *     it to modifiers using {@link #modifySerializer}, for possible
  *     modification or replacement (by any {@link org.codehaus.jackson.map.JsonSerializer} instance)
@@ -63,6 +66,20 @@ public abstract class BeanSerializerModifier
         return beanProperties;
     }
 
+    /**
+     * Method called by {@link BeanSerializerFactory} after collecting all information
+     * regarding POJO to serialize and updating builder with it, but before constructing
+     * serializer.
+     * Implementations may choose to modify state of builder (to affect serializer being
+     * built), or even completely replace it (if they want to build different kind of
+     * serializer). Typically, however, passed-in builder is returned, possibly with
+     * some modifications.
+     */
+    public BeanSerializerBuilder updateBuilder(SerializationConfig config,
+            BasicBeanDescription beanDesc, BeanSerializerBuilder builder) {
+        return builder;
+    }
+    
     /**
      * Method called by {@link BeanSerializerFactory} after constructing default
      * bean serializer instance with properties collected and ordered earlier.

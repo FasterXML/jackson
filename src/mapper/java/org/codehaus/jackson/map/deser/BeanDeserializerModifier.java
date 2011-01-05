@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map.deser;
 
-import java.util.List;
-
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.deser.BeanDeserializer;
@@ -25,30 +23,29 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
  */
 public abstract class BeanDeserializerModifier
 {
-   /**
-    * Method called by {@link BeanDeserializerFactory} with tentative set
-    * of discovered properties.
-    * Implementations can add, remove or replace any of passed properties.
-    *
-    * Properties <code>List</code> passed as argument is modifiable, and returned List must
-    * likewise be modifiable as it may be passed to multiple registered
-    * modifiers.
-    */
-   public List<SettableBeanProperty> changeProperties(DeserializationConfig config,
-           BasicBeanDescription beanDesc, List<SettableBeanProperty> beanProperties) {
-       return beanProperties;
-   }
+    /**
+     * Method called by {@link BeanDeserializerFactory} when it has collected
+     * basic information such as tentative list of properties to deserializer.
+     *
+     * Implementations may choose to modify state of builder (to affect deserializer being
+     * built), or even completely replace it (if they want to build different kind of
+     * deserializer). Typically changes mostly concern set of properties to deserialize.
+     */
+    public BeanDeserializerBuilder updateBuilder(DeserializationConfig config,
+            BasicBeanDescription beanDesc, BeanDeserializerBuilder builder) {
+        return builder;
+    }
 
-   /**
-    * Method called by {@link BeanDeserializerFactory} after constructing default
-    * bean deserializer instance with properties collected and ordered earlier.
-    * Implementations can modify or replace given deserializer and return deserializer
-    * to use. Note that although initial deserializer being passed is of type
-    * {@link BeanDeserializer}, modifiers may return deserializers of other types;
-    * and this is why implementations must check for type before casting.
-    */
-   public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config,
-           BasicBeanDescription beanDesc, JsonDeserializer<?> deserializer) {
-       return deserializer;
-   }
+    /**
+     * Method called by {@link BeanDeserializerFactory} after constructing default
+     * bean deserializer instance with properties collected and ordered earlier.
+     * Implementations can modify or replace given deserializer and return deserializer
+     * to use. Note that although initial deserializer being passed is of type
+     * {@link BeanDeserializer}, modifiers may return deserializers of other types;
+     * and this is why implementations must check for type before casting.
+     */
+    public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config,
+            BasicBeanDescription beanDesc, JsonDeserializer<?> deserializer) {
+        return deserializer;
+    }
 }
