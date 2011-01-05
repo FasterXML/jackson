@@ -124,14 +124,14 @@ public abstract class JsonNumericParserBase
      * point or exponent), in characters.
      * Not used for  pure integer values.
      */
-    protected int mFractLength;
+    protected int _fractLength;
 
     /**
      * Length of the exponent part of the number, if any, not
      * including 'e' marker or sign, just digits. 
      * Not used for  pure integer values.
      */
-    protected int mExpLength;
+    protected int _expLength;
 
     /*
     /**********************************************************
@@ -156,8 +156,8 @@ public abstract class JsonNumericParserBase
     {
         _numberNegative = negative;
         mIntLength = intLen;
-        mFractLength = 0;
-        mExpLength = 0;
+        _fractLength = 0;
+        _expLength = 0;
         _numTypesValid = NR_UNKNOWN; // to force parsing
         return JsonToken.VALUE_NUMBER_INT;
     }
@@ -166,8 +166,8 @@ public abstract class JsonNumericParserBase
     {
         _numberNegative = negative;
         mIntLength = intLen;
-        mFractLength = fractLen;
-        mExpLength = expLen;
+        _fractLength = fractLen;
+        _expLength = expLen;
         _numTypesValid = NR_UNKNOWN; // to force parsing
         return JsonToken.VALUE_NUMBER_FLOAT;
     }

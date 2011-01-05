@@ -47,7 +47,7 @@ public final class Utf8StreamParser
     /**
      * Temporary buffer used for name parsing.
      */
-    protected int[] _quadBuffer = new int[32];
+    protected int[] _quadBuffer = new int[16];
 
     /**
      * Flag that indicates that the current token has not yet
