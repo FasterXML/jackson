@@ -117,7 +117,7 @@ public abstract class JsonNumericParserBase
     /**
      * Length of integer part of the number, in characters
      */
-    protected int mIntLength;
+    protected int _intLength;
 
     /**
      * Length of the fractional part (not including decimal
@@ -155,7 +155,7 @@ public abstract class JsonNumericParserBase
     protected final JsonToken resetInt(boolean negative, int intLen)
     {
         _numberNegative = negative;
-        mIntLength = intLen;
+        _intLength = intLen;
         _fractLength = 0;
         _expLength = 0;
         _numTypesValid = NR_UNKNOWN; // to force parsing
@@ -165,7 +165,7 @@ public abstract class JsonNumericParserBase
     protected final JsonToken resetFloat(boolean negative, int intLen, int fractLen, int expLen)
     {
         _numberNegative = negative;
-        mIntLength = intLen;
+        _intLength = intLen;
         _fractLength = fractLen;
         _expLength = expLen;
         _numTypesValid = NR_UNKNOWN; // to force parsing
@@ -347,67 +347,62 @@ public abstract class JsonNumericParserBase
         if (_currToken == null || !_currToken.isNumeric()) {
             _reportError("Current token ("+_currToken+") not numeric, can not use numeric value accessors");
         }
-        try {
-            // Int or float?
-            if (_currToken == JsonToken.VALUE_NUMBER_INT) {
-                char[] buf = _textBuffer.getTextBuffer();
-                int offset = _textBuffer.getTextOffset();
-                int len = mIntLength;
-                if (_numberNegative) {
-                    ++offset;
-                }
-                if (len <= 9) { // definitely fits in int
-                    int i = NumberInput.parseInt(buf, offset, len);
-                    _numberInt = _numberNegative ? -i : i;
-                    _numTypesValid = NR_INT;
-                    return;
-                }
-                if (len <= 18) { // definitely fits AND is easy to parse using 2 int parse calls
-                    long l = NumberInput.parseLong(buf, offset, len);
-                    if (_numberNegative) {
-                        l = -l;
-                    }
-                    // [JACKSON-230] Could still fit in int, need to check
-                    if (len == 10) {
-                        if (_numberNegative) {
-                            if (l >= MIN_INT_L) {
-                                _numberInt = (int) l;
-                                _numTypesValid = NR_INT;
-                                return;
-                            }
-                        } else {
-                            if (l <= MAX_INT_L) {
-                                _numberInt = (int) l;
-                                _numTypesValid = NR_INT;
-                                return;
-                            }
-                        }
-                    }
-                    _numberLong = l;
-                    _numTypesValid = NR_LONG;
-                    return;
-                }
-                String numStr = _textBuffer.contentsAsString();
-                // [JACKSON-230] Some long cases still...
-                if (NumberInput.inLongRange(buf, offset, len, _numberNegative)) {
-                    // Probably faster to construct a String, call parse, than to use BigInteger
-                    _numberLong = Long.parseLong(numStr);
-                    _numTypesValid = NR_LONG;
-                    return;
-                }
-                // nope, need the heavy guns... (rare case)
-                _numberBigInt = new BigInteger(numStr);
-                _numTypesValid = NR_BIGINT;
+        // Int or float?
+        if (_currToken == JsonToken.VALUE_NUMBER_INT) {
+            char[] buf = _textBuffer.getTextBuffer();
+            int offset = _textBuffer.getTextOffset();
+            int len = _intLength;
+            if (_numberNegative) {
+                ++offset;
+            }
+            if (len <= 9) { // definitely fits in int
+                int i = NumberInput.parseInt(buf, offset, len);
+                _numberInt = _numberNegative ? -i : i;
+                _numTypesValid = NR_INT;
                 return;
             }
+            if (len <= 18) { // definitely fits AND is easy to parse using 2 int parse calls
+                long l = NumberInput.parseLong(buf, offset, len);
+                if (_numberNegative) {
+                    l = -l;
+                }
+                // [JACKSON-230] Could still fit in int, need to check
+                if (len == 10) {
+                    if (_numberNegative) {
+                        if (l >= MIN_INT_L) {
+                            _numberInt = (int) l;
+                            _numTypesValid = NR_INT;
+                            return;
+                        }
+                    } else {
+                        if (l <= MAX_INT_L) {
+                            _numberInt = (int) l;
+                            _numTypesValid = NR_INT;
+                            return;
+                        }
+                    }
+                }
+                _numberLong = l;
+                _numTypesValid = NR_LONG;
+                return;
+            }
+            _parseSlowIntValue(expType, buf, offset, len);
+            return;
+        }
+        _parseSlowFloatValue(expType);
+    }
 
-            /* Nope: floating point. Here we need to be careful to get
-             * optimal parsing strategy: choice is between accurate but
-             * slow (BigDecimal) and lossy but fast (Double). For now
-             * let's only use BD when explicitly requested -- it can
-             * still be constructed correctly at any point since we do
-             * retain textual representation
-             */
+    private final void _parseSlowFloatValue(int expType)
+        throws IOException, JsonParseException
+    {
+        /* Nope: floating point. Here we need to be careful to get
+         * optimal parsing strategy: choice is between accurate but
+         * slow (BigDecimal) and lossy but fast (Double). For now
+         * let's only use BD when explicitly requested -- it can
+         * still be constructed correctly at any point since we do
+         * retain textual representation
+         */
+        try {
             if (expType == NR_BIGDECIMAL) {
                 _numberBigDecimal = _textBuffer.contentsAsDecimal();
                 _numTypesValid = NR_BIGDECIMAL;
@@ -421,7 +416,28 @@ public abstract class JsonNumericParserBase
             _wrapError("Malformed numeric value '"+_textBuffer.contentsAsString()+"'", nex);
         }
     }
-
+    
+    private final void _parseSlowIntValue(int expType, char[] buf, int offset, int len)
+        throws IOException, JsonParseException
+    {
+        String numStr = _textBuffer.contentsAsString();
+        try {
+            // [JACKSON-230] Some long cases still...
+            if (NumberInput.inLongRange(buf, offset, len, _numberNegative)) {
+                // Probably faster to construct a String, call parse, than to use BigInteger
+                _numberLong = Long.parseLong(numStr);
+                _numTypesValid = NR_LONG;
+            } else {
+                // nope, need the heavy guns... (rare case)
+                _numberBigInt = new BigInteger(numStr);
+                _numTypesValid = NR_BIGINT;
+            }
+        } catch (NumberFormatException nex) {
+            // Can this ever occur? Due to overflow, maybe?
+            _wrapError("Malformed numeric value '"+numStr+"'", nex);
+        }
+    }
+    
     /*
     /**********************************************************
     /* Conversions

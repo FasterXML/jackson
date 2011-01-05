@@ -147,6 +147,18 @@ public class MediaItem
       public void setHeight(int h) { _height = h; }
       public void setSize(Size s) { _size = s; }
 
+      private static Size findSize(String id)
+      {
+          if (id.charAt(0) == 'L') {
+              if ("LARGE".equals(id)) {
+                  return Size.LARGE;
+              }
+          } else if ("SMALL".equals(id)) {
+              return Size.SMALL;
+          }
+          throw new IllegalArgumentException();
+      }
+      
       public static Photo deserialize(JsonParser jp) throws IOException
       {
           Photo photo = new Photo();
@@ -169,7 +181,7 @@ public class MediaItem
                       photo.setHeight(jp.getIntValue());
                       continue;
                   case F_SIZE:
-                      photo.setSize(Size.valueOf(jp.getText()));
+                      photo.setSize(findSize(jp.getText()));
                       continue;
                   }
               }
@@ -223,7 +235,7 @@ public class MediaItem
             sFields.put("copyright", F_COPYRIGHT);
         }
 
-        public enum Player { JAVA, FLASH; }
+        public enum Player { JAVA, FLASH;  }
     
         private Player _player;
         private String _uri;
@@ -270,6 +282,17 @@ public class MediaItem
         public void setPersons(List<String> p) {  _persons = p; }
         public void setCopyright(String c) {  _copyright = c; }
 
+        private static Player findPlayer(String id)
+        {
+            if ("JAVA".equals(id)) {
+                return Player.JAVA;
+            }
+            if ("FLASH".equals(id)) {
+                return Player.FLASH;
+            }
+            throw new IllegalArgumentException();
+        }
+        
         public static Content deserialize(JsonParser jp) throws IOException
         {
             if (jp.nextToken() != JsonToken.START_OBJECT) {
@@ -284,7 +307,7 @@ public class MediaItem
                 if (I != null) {
                     switch (I.intValue()) {
                     case F_PLAYER:
-                        content.setPlayer(Player.valueOf(jp.getText()));
+                        content.setPlayer(findPlayer(jp.getText()));
                     case F_URI:
                         content.setUri(jp.getText());
                         continue;

@@ -164,7 +164,7 @@ public final class TestDeserPerf
         }
         return item.hashCode(); // just to get some non-optimizable number
     }
-
+    
     public static void main(String[] args) throws Exception
     {
         new TestDeserPerf().test();

@@ -9,16 +9,16 @@ package org.codehaus.jackson.sym;
  */
 public abstract class Name
 {
-    protected final String mName;
+    protected final String _name;
 
-    protected final int mHashCode;
+    protected final int _hashCode;
 
     protected Name(String name, int hashCode) {
-        mName = name;
-        mHashCode = hashCode;
+        _name = name;
+        _hashCode = hashCode;
     }
 
-    public String getName() { return mName; }
+    public String getName() { return _name; }
 
     /*
     /**********************************************************
@@ -38,14 +38,11 @@ public abstract class Name
     /**********************************************************
      */
 
-    @Override
-        public String toString() { return mName; }
+    @Override public String toString() { return _name; }
 
-    @Override
-        public final int hashCode() { return mHashCode; }
+    @Override public final int hashCode() { return _hashCode; }
 
-    @Override
-        public boolean equals(Object o)
+    @Override public boolean equals(Object o)
     {
         // Canonical instances, can usually just do identity comparison
         return (o == this);

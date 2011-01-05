@@ -37,7 +37,7 @@ public final class Utf8StreamParser
      * Symbol table that contains field names encountered so far
      */
     final protected BytesToNameCanonicalizer _symbols;
-
+    
     /*
     /**********************************************************
     /* Parsing state
