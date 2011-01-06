@@ -28,10 +28,10 @@ public abstract class AnnotatedWithParams
     /**********************************************************
      */
 
-    protected AnnotatedWithParams(AnnotationMap classAnn, AnnotationMap[] paramAnn)
+    protected AnnotatedWithParams(AnnotationMap classAnn, AnnotationMap[] paramAnnotations)
     {
         _annotations = classAnn;
-        _paramAnnotations = paramAnn;
+        _paramAnnotations = paramAnnotations;
     }
 
     /**

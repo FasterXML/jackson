@@ -7,11 +7,11 @@ import java.lang.reflect.Type;
 public final class AnnotatedMethod
     extends AnnotatedWithParams
 {
-    final Method _method;
+    final protected Method _method;
 
     // // Simple lazy-caching:
 
-    public Class<?>[] _paramTypes;
+    protected Class<?>[] _paramTypes;
 
     /*
     /*****************************************************
@@ -19,12 +19,23 @@ public final class AnnotatedMethod
     /*****************************************************
      */
 
-    public AnnotatedMethod(Method method, AnnotationMap classAnn, AnnotationMap[] paramAnn)
+    public AnnotatedMethod(Method method, AnnotationMap classAnn, AnnotationMap[] paramAnnotations)
     {
-        super(classAnn, paramAnn);
+        super(classAnn, paramAnnotations);
         _method = method;
     }
 
+    /**
+     * Method that constructs a new instance with settings (annotations, parameter annotations)
+     * of this instance, but with different physical {@link Method}.
+     * 
+     * @since 1.7
+     */
+    public AnnotatedMethod withMethod(Method m)
+    {
+        return new AnnotatedMethod(m, _annotations, _paramAnnotations);
+    }
+    
     /*
     /*****************************************************
     /* Annotated impl

@@ -71,11 +71,19 @@ Description:
   * [JACKSON-448] Add 'JsonGenerator.writeString()' alternatives that accept pre-encoded
     UTF-8 byte sequences (.writeUTF8String() and .writeRawUTF8String())
    (requested by Shay B)
+  * [JACKSON-450] JAXB annotations chosen incorrectly from interface method (instead of
+    method definition in class), when serializing
+   (reported by Sean P)
 
   Backwards incompatible changes
 
   * [JACKSON-419] (see above) 'java.util.Locale' now serialized as JSON String
     (using Locale.toString()), instead of as bean-like JSON Object
+  * Added 'BeanProperty' argument for many methods in SerializerFactory /
+    DeserializerFactory, SerializerProvider / DeserializerProvider implementations.
+  * Related to [JACKSON-407], will wrap some previously unwrapped exceptions from
+    deserializer (to have symmetric handling; serializer already wrapped); new
+    features to allow disabling wrapping on serialization and/or deserialization.
   
 ------------------------------------------------------------------------
 == History: ==

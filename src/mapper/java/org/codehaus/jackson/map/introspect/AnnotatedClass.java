@@ -23,33 +23,33 @@ public final class AnnotatedClass
      * Class for which annotations apply, and that owns other
      * components (constructors, methods)
      */
-    final Class<?> _class;
+    final protected Class<?> _class;
 
     /**
      * Ordered set of super classes and interfaces of the
      * class itself: included in order of precedence
      */
-    final Collection<Class<?>> _superTypes;
+    final protected Collection<Class<?>> _superTypes;
 
     /**
      * Filter used to determine which annotations to gather; used
      * to optimize things so that unnecessary annotations are
      * ignored.
      */
-    final AnnotationIntrospector _annotationIntrospector;
+    final protected AnnotationIntrospector _annotationIntrospector;
 
     /**
      * Object that knows mapping of mix-in classes (ones that contain
      * annotations to add) with their target classes (ones that
      * get these additional annotations "mixed in").
      */
-    final MixInResolver _mixInResolver;
+    final protected MixInResolver _mixInResolver;
 
     /**
      * Primary mix-in class; one to use for the annotated class
      * itself. Can be null.
      */
-    final Class<?> _primaryMixIn;
+    final protected Class<?> _primaryMixIn;
 
     /*
     /**********************************************************
@@ -61,35 +61,35 @@ public final class AnnotatedClass
      * Combined list of Jackson annotations that the class has,
      * including inheritable ones from super classes and interfaces
      */
-    AnnotationMap _classAnnotations;
+    protected AnnotationMap _classAnnotations;
 
     /**
      * Default constructor of the annotated class, if it has one.
      */
-    AnnotatedConstructor _defaultConstructor;
+    protected AnnotatedConstructor _defaultConstructor;
 
     /**
      * Single argument constructors the class has, if any.
      */
-    List<AnnotatedConstructor> _constructors;
+    protected List<AnnotatedConstructor> _constructors;
 
     /**
      * Single argument static methods that might be usable
      * as factory methods
      */
-    List<AnnotatedMethod> _creatorMethods;
+    protected List<AnnotatedMethod> _creatorMethods;
 
     /**
      * Member methods of interest; for now ones with 0 or 1 arguments
      * (just optimization, since others won't be used now)
      */
-    AnnotatedMethodMap  _memberMethods;
+    protected AnnotatedMethodMap  _memberMethods;
 
     /**
      * Member fields of interest: ones that are either public,
      * or have at least one annotation.
      */
-    List<AnnotatedField> _fields;
+    protected List<AnnotatedField> _fields;
 
     // // // Lists of explicitly ignored entries (optionally populated)
 
@@ -97,13 +97,13 @@ public final class AnnotatedClass
      * Optionally populated list that contains member methods that were
      * excluded from applicable methods due to explicit ignore annotation
      */
-    List<AnnotatedMethod> _ignoredMethods;
+    protected List<AnnotatedMethod> _ignoredMethods;
     
     /**
      * Optionally populated list that contains fields that were
      * excluded from applicable fields due to explicit ignore annotation
      */
-    List<AnnotatedField> _ignoredFields;
+    protected List<AnnotatedField> _ignoredFields;
     
     /*
     /**********************************************************
@@ -519,6 +519,9 @@ public final class AnnotatedClass
      */
 
     /**
+     * Method for resolving member method information: aggregating all non-static methods
+     * and combining annotations (to implement method-annotation inheritance)
+     * 
      * @param collectIgnored Whether to collect list of ignored methods for later retrieval
      */
     public void resolveMemberMethods(MethodFilter methodFilter, boolean collectIgnored)
@@ -586,35 +589,45 @@ public final class AnnotatedClass
             _addMethodMixIns(methodFilter, methods, mixInCls, mixIns);
         }
 
-        if (cls != null) {
-            // then methods from the class itself
-            for (Method m : cls.getDeclaredMethods()) {
-                if (!_isIncludableMethod(m, methodFilter)) {
-                    continue;
+        if (cls == null) { // just so caller need not check when passing super-class
+            return;
+        }
+        // then methods from the class itself
+        for (Method m : cls.getDeclaredMethods()) {
+            if (!_isIncludableMethod(m, methodFilter)) {
+                continue;
+            }
+            AnnotatedMethod old = methods.find(m);
+            if (old == null) {
+                AnnotatedMethod newM = _constructMethod(m);
+                methods.add(newM);
+                // Ok, but is there a mix-in to connect now?
+                old = mixIns.remove(m);
+                if (old != null) {
+                    _addMixOvers(old.getAnnotated(), newM, false);
                 }
-                AnnotatedMethod old = methods.find(m);
-                if (old == null) {
-                    AnnotatedMethod newM = _constructMethod(m);
-                    methods.add(newM);
-                    // Ok, but is there a mix-in to connect now?
-                    old = mixIns.remove(m);
-                    if (old != null) {
-                        _addMixOvers(old.getAnnotated(), newM, false);
-                    }
-                } else {
-                    /* If sub-class already has the method, we only want
-                     * to augment annotations with entries that are not
-                     * masked by sub-class:
-                     */
-                    _addMixUnders(m, old);
+            } else {
+                /* If sub-class already has the method, we only want to augment
+                 * annotations with entries that are not masked by sub-class.
+                 */
+                _addMixUnders(m, old);
+
+                /* 06-Jan-2010, tatu: [JACKSON-450] Except that if method we saw first is
+                 *   from an interface, and we now find a non-interface definition, we should
+                 *   use this method, but with combination of annotations.
+                 *   This helps (or rather, is essential) with JAXB annotations and
+                 *   may also result in faster method calls (interface calls are slightly
+                 *   costlier than regular method calls)
+                 */
+                if (old.getDeclaringClass().isInterface() && !m.getDeclaringClass().isInterface()) {
+                    methods.add(old.withMethod(m));
                 }
             }
         }
     }
 
-    protected void _addMethodMixIns(MethodFilter methodFilter, 
-                                    AnnotatedMethodMap methods,
-                                    Class<?> mixInCls, AnnotatedMethodMap mixIns)
+    protected void _addMethodMixIns(MethodFilter methodFilter, AnnotatedMethodMap methods,
+            Class<?> mixInCls, AnnotatedMethodMap mixIns)
     {
         for (Method m : mixInCls.getDeclaredMethods()) {
             if (!_isIncludableMethod(m, methodFilter)) {

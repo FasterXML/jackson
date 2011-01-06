@@ -16,7 +16,7 @@ public final class AnnotatedMethodMap
     public AnnotatedMethodMap() { }
 
     /**
-     * Method called to add specified annotation in the Map.
+     * Method called to add specified annotated method in the Map.
      */
     public void add(AnnotatedMethod am)
     {
@@ -68,9 +68,9 @@ public final class AnnotatedMethodMap
     }
 
     /*
-    ///////////////////////////////////////////////////////
-    // Iterable implementation (for iterating over values)
-    ///////////////////////////////////////////////////////
+    /**********************************************************
+    /* Iterable implementation (for iterating over values)
+    /**********************************************************
      */
 
     public Iterator<AnnotatedMethod> iterator()

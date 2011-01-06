@@ -69,7 +69,7 @@ Scott Dixon:
     [0.9.5]
   * Suggested [JACKSON-38] Allow serializing/deserializing DOM trees (Node, Document)
     [1.4.0]
-  * Suggested [JACKSON-45]: adding convenience methods to simplify writing
+  * Suggested [JACKSON-45]: Add convenience methods to simplify writing
     custom serializers
     [1.0.0]
 
@@ -472,6 +472,9 @@ Sean Parmelee:
   * Reported [JACKSON-436]: @XmlElementType not working correctly with Collection
     type properties
    [1.6.4]
+  * Reported [JACKSON-450] JAXB annotations chosen incorrectly from interface method
+    (instead of method definition in class), when serializing
+   [1.7.0]
 
 Joe Jensen:
   * Reported [JACKSON-417] Deserialization of "native" types (String, Integer,
@@ -504,9 +507,3 @@ Patrick Leamon:
 Tauren Mills:
   * Suggested [JACKSON-414] Add 'JsonNode.getValueAsBoolean()' (and 'JsonParser.getValueAsBoolean()')
    [1.7.0]
-
-Rostislav Hristov:
-  * Suggested [JACKSON-445] Add 'ToXmlGenerator.Feature.WRITE_XML_DECLARATION' and 'WRITE_XML_1_1'
-    to force writing of XML declaration.
-   [1.7.0]
- 
