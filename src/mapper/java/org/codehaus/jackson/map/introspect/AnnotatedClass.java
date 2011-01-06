@@ -578,9 +578,8 @@ public final class AnnotatedClass
     }
 
     protected void _addMemberMethods(Class<?> cls,
-                                     MethodFilter methodFilter, 
-                                     AnnotatedMethodMap methods,
-                                     Class<?> mixInCls, AnnotatedMethodMap mixIns)
+            MethodFilter methodFilter, AnnotatedMethodMap methods,
+            Class<?> mixInCls, AnnotatedMethodMap mixIns)
     {
         // first, mixIns, since they have higher priority then class methods
         if (mixInCls != null) {
@@ -845,7 +844,7 @@ public final class AnnotatedClass
      *   added as well
      */
     protected void _addMixOvers(Constructor<?> mixin, AnnotatedConstructor target,
-                                boolean addParamAnnotations)
+            boolean addParamAnnotations)
     {
         for (Annotation a : mixin.getDeclaredAnnotations()) {
             if (_annotationIntrospector.isHandled(a)) {
@@ -867,7 +866,7 @@ public final class AnnotatedClass
      *   added as well
      */
     protected void _addMixOvers(Method mixin, AnnotatedMethod target,
-                                boolean addParamAnnotations)
+            boolean addParamAnnotations)
     {
         for (Annotation a : mixin.getDeclaredAnnotations()) {
             if (_annotationIntrospector.isHandled(a)) {
@@ -884,9 +883,13 @@ public final class AnnotatedClass
         }
     }
 
-    protected void _addMixUnders(Method mixin, AnnotatedMethod target)
+    /**
+     * Method that will add annotations from specified source method to target method,
+     * but only if target does not yet have them.
+     */
+    protected void _addMixUnders(Method src, AnnotatedMethod target)
     {
-        for (Annotation a : mixin.getDeclaredAnnotations()) {
+        for (Annotation a : src.getDeclaredAnnotations()) {
             if (_annotationIntrospector.isHandled(a)) {
                 target.addIfNotPresent(a);
             }

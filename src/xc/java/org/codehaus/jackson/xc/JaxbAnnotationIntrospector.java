@@ -53,12 +53,11 @@ import org.codehaus.jackson.util.VersionUtil;
  *    method of serializing list of values as space-separated Strings
  * <li>{@link javax.xml.bind.annotation.XmlMimeType}
  * <li>{@link javax.xml.bind.annotation.XmlMixed} since JSON has no concept of mixed content
- * <li>{@link XmlNs} not (yet?) used, may be used in future for XML compatibility
  * <li>{@link XmlRegistry}
- * <li>{@link XmlRootElement} is not currently used, but it may be used in future for XML compatibility features
- * <li>{@link XmlSchema}
- * <li>{@link XmlSchemaType}
- * <li>{@link XmlSchemaTypes}
+ * <li>{@link XmlRootElement} is recognized and used (as of 1.7) for defining root wrapper name (if used)
+ * <li>{@link XmlSchema} not used, unlikely to be used
+ * <li>{@link XmlSchemaType} not used, unlikely to be used
+ * <li>{@link XmlSchemaTypes} not used, unlikely to be used
  * <li>{@link XmlSeeAlso} not needed for anything currently (could theoretically be useful
  *    for locating subtypes for Polymorphic Type Handling)
  * </ul>
@@ -970,9 +969,8 @@ public class JaxbAnnotationIntrospector
 
     protected String findJaxbSpecifiedPropertyName(PropertyDescriptor prop)
     {
-        /* Should we rely on property name detected earlier? If not, change last argument
-         * to "" and it'll get determined later on.
-         */
+        // Should we rely on property name detected earlier? If not, change last argument
+        // to "" and it'll get determined later on.
         return findJaxbPropertyName(new AnnotatedProperty(prop), prop.getPropertyType(), prop.getName());
     }
 
@@ -1131,7 +1129,6 @@ public class JaxbAnnotationIntrospector
      */
     
     private static class AnnotatedProperty implements AnnotatedElement {
-
         private final PropertyDescriptor pd;
 
         private AnnotatedProperty(PropertyDescriptor pd)
@@ -1141,17 +1138,31 @@ public class JaxbAnnotationIntrospector
 
         public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
         {
-            return (pd.getReadMethod() != null && pd.getReadMethod().isAnnotationPresent(annotationClass))
-                    || (pd.getWriteMethod() != null && pd.getWriteMethod().isAnnotationPresent(annotationClass));
+            Method m = pd.getReadMethod();
+            if (m != null && m.isAnnotationPresent(annotationClass)) {
+                return true;
+            }
+            m = pd.getWriteMethod();
+            if (m != null && m.isAnnotationPresent(annotationClass)) {
+                return true;
+            }
+            return false;
         }
 
         public <T extends Annotation> T getAnnotation(Class<T> annotationClass)
         {
-            T ann = (pd.getReadMethod() != null) ? pd.getReadMethod().getAnnotation(annotationClass) : null;
-            if (ann == null && (pd.getWriteMethod() != null)) {
-                ann = pd.getWriteMethod().getAnnotation(annotationClass);
+            Method m = pd.getReadMethod();
+            if (m != null) {
+                T ann = m.getAnnotation(annotationClass);
+                if (ann != null) {
+                    return ann;
+                }
             }
-            return ann;
+            m = pd.getWriteMethod();
+            if (m != null) {
+                return m.getAnnotation(annotationClass);
+            }
+            return null;
         }
 
         public Annotation[] getAnnotations() { //not used. we don't need to support this yet.

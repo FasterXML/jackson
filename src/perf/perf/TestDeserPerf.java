@@ -128,6 +128,11 @@ public final class TestDeserPerf
                 msg = "Deserialize, smile";
                 sum += testDeser(smileMapper, smile, REPS * 2);
                 break;
+
+            case 3:
+                msg = "Deserialize, manual, Smile";
+                sum += testDeser(smileMapper.getJsonFactory(), smile, REPS * 2);
+                break;
                 
             default:
                 throw new Error("Internal error");
