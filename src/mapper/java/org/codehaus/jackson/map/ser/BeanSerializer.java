@@ -354,7 +354,6 @@ public class BeanSerializer
             JsonNode schemaNode = (ser instanceof SchemaAware) ?
                     ((SchemaAware) ser).getSchema(provider, hint) : 
                     JsonSchema.getDefaultSchemaNode();
-            o.put("items", schemaNode);
             propertiesNode.put(prop.getName(), schemaNode);
         }
         o.put("properties", propertiesNode);

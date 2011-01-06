@@ -22,7 +22,7 @@ public final class TestDeserPerf
 
     private TestDeserPerf() {
         // Let's try to guestimate suitable size
-        REPS = 20000;
+        REPS = 15000;
     }
 
     private MediaItem buildItem()
@@ -106,7 +106,7 @@ public final class TestDeserPerf
         
         while (true) {
 //            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-            int round = 1;
+            int round = 0;
 
             long curr = System.currentTimeMillis();
             String msg;

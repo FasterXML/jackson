@@ -65,6 +65,10 @@ public class TestGenerateJsonSchema
             this.property4 = property4;
         }
     }
+
+    public class TrivialBean {
+        public String name;
+    }
     
     /*
     /**********************************************************
@@ -143,5 +147,18 @@ public class TestGenerateJsonSchema
         try {
             mapper.generateJsonSchema(null);
         } catch (IllegalArgumentException iae) { }
+    }
+
+    /**
+     * Test for [JACKSON-454]
+     */
+    public void testThatObjectsHaveNoItems() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonSchema jsonSchema = mapper.generateJsonSchema(TrivialBean.class);
+        String json = jsonSchema.toString().replaceAll("\"", "'");
+        // can we count on ordering being stable? I think this is true with current ObjectNode impl
+        assertEquals("{'type':'object','optional':true,'properties':{'name':{'type':'string','optional':true}}}",
+                json);
     }
 }
