@@ -22,7 +22,7 @@ public class TestSchemaGeneration extends BaseJaxbTest
      */
     
     @XmlAccessorType(XmlAccessType.FIELD)
-    public class Person {
+    protected static class Person {
         public String firstName;
         public String lastName;
     
@@ -30,12 +30,12 @@ public class TestSchemaGeneration extends BaseJaxbTest
         public IAddress address;
     }
 
-    public interface IAddress {     
+    protected interface IAddress {     
         public String getCity();
         public void setCity(String city);
     }
 
-    public class Address implements IAddress {
+    protected static class Address implements IAddress {
         private String city;
         private String state;
         
@@ -56,11 +56,10 @@ public class TestSchemaGeneration extends BaseJaxbTest
      * 
      * @since 1.7
      */
-    public void testWithJaxb()
-        throws Exception
+    public void testWithJaxb() throws Exception
     {
         ObjectMapper mapper = getJaxbMapper();
-        JsonSchema jsonSchema = mapper.generateJsonSchema(Person.class);
+        JsonSchema jsonSchema = mapper.generateJsonSchema(Address.class);
         ObjectNode root = jsonSchema.getSchemaNode();
         // should find two properties ("city", "state"), not just one...
         JsonNode itemsNode = root.findValue("properties");
