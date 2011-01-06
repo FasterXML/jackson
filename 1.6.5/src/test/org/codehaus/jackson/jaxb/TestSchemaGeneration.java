@@ -60,7 +60,7 @@ public class TestSchemaGeneration extends BaseJaxbTest
         throws Exception
     {
         ObjectMapper mapper = getJaxbMapper();
-        JsonSchema jsonSchema = mapper.generateJsonSchema(Person.class);
+        JsonSchema jsonSchema = mapper.generateJsonSchema(Address.class);
         ObjectNode root = jsonSchema.getSchemaNode();
         // should find two properties ("city", "state"), not just one...
         JsonNode itemsNode = root.findValue("properties");

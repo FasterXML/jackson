@@ -12,6 +12,70 @@ import org.codehaus.jackson.node.ObjectNode;
 public class TestGenerateJsonSchema
     extends org.codehaus.jackson.map.BaseMapTest
 {
+    /*
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
+     */
+
+    public static class SimpleBean
+    {
+        private int property1;
+        private String property2;
+        private String[] property3;
+        private Collection<Float> property4;
+
+        public int getProperty1()
+        {
+            return property1;
+        }
+
+        public void setProperty1(int property1)
+        {
+            this.property1 = property1;
+        }
+
+        public String getProperty2()
+        {
+            return property2;
+        }
+
+        public void setProperty2(String property2)
+        {
+            this.property2 = property2;
+        }
+
+        public String[] getProperty3()
+        {
+            return property3;
+        }
+
+        public void setProperty3(String[] property3)
+        {
+            this.property3 = property3;
+        }
+
+        public Collection<Float> getProperty4()
+        {
+            return property4;
+        }
+
+        public void setProperty4(Collection<Float> property4)
+        {
+            this.property4 = property4;
+        }
+    }
+
+    public class TrivialBean {
+        public String name;
+    }
+    
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+
     /**
      * tests generating json-schema stuff.
      */
@@ -85,52 +149,16 @@ public class TestGenerateJsonSchema
         } catch (IllegalArgumentException iae) { }
     }
 
-    public static class SimpleBean
+    /**
+     * Test for [JACKSON-454]
+     */
+    public void testThatObjectsHaveNoItems() throws Exception
     {
-        private int property1;
-        private String property2;
-        private String[] property3;
-        private Collection<Float> property4;
-
-        public int getProperty1()
-        {
-            return property1;
-        }
-
-        public void setProperty1(int property1)
-        {
-            this.property1 = property1;
-        }
-
-        public String getProperty2()
-        {
-            return property2;
-        }
-
-        public void setProperty2(String property2)
-        {
-            this.property2 = property2;
-        }
-
-        public String[] getProperty3()
-        {
-            return property3;
-        }
-
-        public void setProperty3(String[] property3)
-        {
-            this.property3 = property3;
-        }
-
-        public Collection<Float> getProperty4()
-        {
-            return property4;
-        }
-
-        public void setProperty4(Collection<Float> property4)
-        {
-            this.property4 = property4;
-        }
+        ObjectMapper mapper = new ObjectMapper();
+        JsonSchema jsonSchema = mapper.generateJsonSchema(TrivialBean.class);
+        String json = jsonSchema.toString().replaceAll("\"", "'");
+        // can we count on ordering being stable? I think this is true with current ObjectNode impl
+        assertEquals("{'type':'object','optional':true,'properties':{'name':{'type':'string','optional':true}}}",
+                json);
     }
-
 }

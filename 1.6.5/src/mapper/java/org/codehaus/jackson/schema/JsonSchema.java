@@ -31,6 +31,7 @@ public class JsonSchema
     }
 
     /**
+     * Method for accessing root JSON object of the contained schema.
      *<p>
      * Note: this method is specified with {@link JsonValue} annotation
      * to represent serialization to use; same as if explicitly

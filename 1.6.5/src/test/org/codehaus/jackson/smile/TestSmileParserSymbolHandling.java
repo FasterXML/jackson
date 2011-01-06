@@ -391,8 +391,6 @@ public class TestSmileParserSymbolHandling
         byte[] smile = smiley.writeValueAsBytes(item);
         MediaItem result = smiley.readValue(smile, 0, smile.length, MediaItem.class);
         String actual = plain.writeValueAsString(result);
-
-System.out.println("JSON == "+actual);        
         assertEquals(exp, actual);
     }
     
