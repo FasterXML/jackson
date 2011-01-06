@@ -182,7 +182,7 @@ public final class ArrayBuilders
     {
         int len = array.length;
         @SuppressWarnings("unchecked")
-        T[] result = (T[]) Array.newInstance(element.getClass(), len+1);
+        T[] result = (T[]) Array.newInstance(array.getClass().getComponentType(), len+1);
         if (len > 0) {
             System.arraycopy(array, 0, result, 1, len);
         }

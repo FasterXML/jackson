@@ -128,6 +128,22 @@ public class TestSimpleModule extends BaseMapTest
         }
     }
 
+    protected static class MySimpleSerializers extends SimpleSerializers { }
+    protected static class MySimpleDeserializers extends SimpleDeserializers { }
+
+    /**
+     * Test module which uses custom 'serializers' and 'deserializers' container; used
+     * to trigger type problems.
+     */
+    protected static class MySimpleModule extends SimpleModule
+    {
+        public MySimpleModule(String name, Version version) {
+            super(name, version);
+            _deserializers = new MySimpleDeserializers();
+            _serializers = new MySimpleSerializers();
+        }
+    }
+    
     /*
     /**********************************************************
     /* Unit tests; simple serializers
@@ -178,5 +194,30 @@ public class TestSimpleModule extends BaseMapTest
         SimpleEnum result = mapper.readValue(quote("a"), SimpleEnum.class);
         assertSame(SimpleEnum.A, result);
     }
-    
+ 
+    // Simple verification of [JACKSON-455]
+    public void testMultipleModules() throws Exception
+    {
+        MySimpleModule mod1 = new MySimpleModule("test1", new Version(1, 0, 0, null));
+        SimpleModule mod2 = new SimpleModule("test2", new Version(1, 0, 0, null));
+        mod1.addSerializer(SimpleEnum.class, new SimpleEnumSerializer());
+        mod1.addDeserializer(CustomBean.class, new CustomBeanDeserializer());
+        mod2.addDeserializer(SimpleEnum.class, new SimpleEnumDeserializer());
+        mod2.addSerializer(CustomBean.class, new CustomBeanSerializer());
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(mod1);
+        mapper.registerModule(mod2);
+        assertEquals(quote("b"), mapper.writeValueAsString(SimpleEnum.B));
+        SimpleEnum result = mapper.readValue(quote("a"), SimpleEnum.class);
+        assertSame(SimpleEnum.A, result);
+
+        // also let's try it with different order of registration, just in case
+        mapper = new ObjectMapper();
+        mapper.registerModule(mod2);
+        mapper.registerModule(mod1);
+        assertEquals(quote("b"), mapper.writeValueAsString(SimpleEnum.B));
+        result = mapper.readValue(quote("a"), SimpleEnum.class);
+        assertSame(SimpleEnum.A, result);
+    }
 }
