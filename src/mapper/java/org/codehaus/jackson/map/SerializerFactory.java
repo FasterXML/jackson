@@ -70,7 +70,10 @@ public abstract class SerializerFactory
 
     /**
      * Convenience method for creating a new factory instance with additional serializer
-     * provider.
+     * provider; equivalent to calling
+     *<pre>
+     *   withConfig(getConfig().withAdditionalSerializers(additional));
+     *<pre>
      * 
      * @since 1.7
      */
@@ -80,7 +83,10 @@ public abstract class SerializerFactory
 
     /**
      * Convenience method for creating a new factory instance with additional bean
-     * serializer modifier
+     * serializer modifier; equivalent to calling
+     *<pre>
+     *   withConfig(getConfig().withSerializerModifier(modifier));
+     *<pre>
      * 
      * @since 1.7
      */
@@ -89,9 +95,9 @@ public abstract class SerializerFactory
     }
     
     /*
-    /********************************************************
+    /**********************************************************
     /* Basic SerializerFactory API:
-    /********************************************************
+    /**********************************************************
      */
 
     /**
@@ -115,9 +121,9 @@ public abstract class SerializerFactory
             BeanProperty property);
     
     /*
-    /********************************************************
+    /**********************************************************
     /* Deprecated (as of 1.7) SerializerFactory API:
-    /********************************************************
+    /**********************************************************
      */
 
     /**
