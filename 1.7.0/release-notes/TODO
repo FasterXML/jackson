@@ -1,0 +1,44 @@
+
+Numbers:
+
+[PARTIAL] * Allow checking if value fits in int/long/BigDecimal
+* Use BigDecimal over double if length exceeds limit (23 digits,
+  or exponent over 200?)
+
+Binary data:
+
+* Implement base64 accessors.
+
+Parser/generator properties:
+
+[Defer] * Verify field name uniqueness? (P + G) [not for low-level
+ parser/generator; added to mapper]
+  
+* Are names interned? (P)
+[DONE] * Pretty-printing, w/ default implementation
+
+* Version info? Weave in using Ant
+
+Mapper:
+
+* Allow custom List construction
+* Allow custom Map construction
+* Allow constructing JsonParser from Java/Json types?
+* Allow JsonGenerator to write to Java/Json types?
+
+Additional mappers:
+
+* Query string mapper (with naming conventions; configurable
+  handling)
+
+Tests:
+
+* Generic:
+   - Extra commas after array element, object field
+   - Escaped chars
+* Numbers:
+   - No leading 0
+
+Other:
+
+* Rename 'JsonContext' into 'ParsingScope' tms?

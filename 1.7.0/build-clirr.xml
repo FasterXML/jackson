@@ -1,0 +1,21 @@
+<?xml version="1.0" standalone="yes" ?>
+<project name="Compatibility testing to ensure compatibility between minor versions"
+  default="check-compatibility"
+>
+  <path id="clirr.lib">
+    <fileset dir="${basedir}/regression" includes="clirr*.jar" />
+  </path>
+  <taskdef classpathref="clirr.lib" resource="clirrtask.properties" />
+
+  <target name="check-compatibility">
+    <clirr>
+      <origFiles dir="${basedir}/regression">
+       <include name="jackson*.jar" />
+      </origFiles>
+      <newFiles dir="${basedir}/build">
+       <include name="jackson-core-asl*.jar" />
+       <include name="jackson-mapper-asl*.jar" />
+      </newFiles>
+    </clirr>
+  </target>
+</project>
