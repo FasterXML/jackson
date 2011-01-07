@@ -10,9 +10,9 @@ Description:
 
   * [JACKSON-356]: Type information not written for nested-generics root types
     (reported by Alex R on mailing list)
-  * [JACKSON-450] JAXB annotations chosen incorrectly from interface method (instead of
-    method definition in class), when serializing
-   (reported by Sean P)
+  * [JACKSON-450] JAXB annotations chosen incorrectly from interface method
+    (instead of method definition in class), when serializing
+    (reported by Sean P)
 
   Improvements:
 
@@ -21,10 +21,13 @@ Description:
   * [JACKSON-393]: Allow deserializing UUIDs from VALUE_EMBEDDED_OBJECT
   * [JACKSON-399]: JAX-RS is not passing generic type information as root type
     (reported by Kirill S) 
+  * [JACKSON-409] Add SmileGenerator.writeRaw(byte)
+  * [JACKSON-414] Add 'JsonNode.getValueAsBoolean()' (and 'JsonParser.getValueAsBoolean()')
+   (suggested by Tauren M)
   * [JACKSON-419]: Add explicit support for handling 'java.util.Locale'
     (suggested by Brian R)
-  * [JACKSON-432]: Add 'ObjectMapper.enableDefaultTypingAsProperty()' to allow specifying
-    inclusion type 'As.PROPERTY' and property name to use
+  * [JACKSON-432]: Add 'ObjectMapper.enableDefaultTypingAsProperty()' to allow
+    specifying inclusion type 'As.PROPERTY' and property name to use
     (suggested by Peter L)
   * [JACKSON-434]: Add 'JsonGenerator.writeString(SerializableString)'
   * [JACKSON-438]: Wrap exceptions thrown by Creator methods as JsonMappingException
@@ -32,15 +35,12 @@ Description:
 
   New features:
 
-  * [JACKSON-163] Implement 'SerializationConfig.Feature.WRAP_ROOT_VALUE' which allows
-    wrapping of output within single-property JSON Object.
-  * [JACKSON-297] Add simple "module" abstraction to allow pluggable support
+  * [JACKSON-163] Add 'SerializationConfig.Feature.WRAP_ROOT_VALUE' which
+    allows wrapping of output within single-property JSON Object.
+  * [JACKSON-297] Add simple Module abstraction to allow pluggable support
     tor third-party libraries, data types
-  * [JACKSON-312] Add ability to filter out specific properties on per-serialization
-    call basis.
-  * [JACKSON-317] Add support for Guava (ex-Google-collections); implemented
-    as a new module, see: https://github.com/FasterXML/jackson-module-guava
-  * [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual
+  * [JACKSON-312] Add ability to dynamically filter out serialized properties
+  * [JACKSON-351]: Add @JsonRawValue for injecting literal textual
     value into JSON
    (contributed by Ga�l Marziou)
   * [JACKSON-369]: Allow registering custom Collection and Map deserializers
@@ -48,34 +48,36 @@ Description:
   * [JACKSON-385]: Support contextual serializers, deserializers; works by
     implementing 'org.codehaus.jackson.map.ser.ContextualSerializer' or
     'org.codehaus.jackson.map.deser.ContextualDeserializer'
-  * [JACKSON-394] Add support for using data binding to/from XML (Stax) sources;
-    sort of "mini-JAXB".
-  * [JACKSON-401] Add features 'SerializationConfig.FLUSH_AFTER_WRITE_VALUE' and
-    'JsonGenerator.FLUSH_PASSED_TO_STREAM' to allow blocking of flush() calls to
-    underlying output stream or writer
-  * [JACKSON-405]: Add smile command-line tool for manual Smile encoding/decoding
+  * [JACKSON-401] Add features 'SerializationConfig.FLUSH_AFTER_WRITE_VALUE'
+    and 'JsonGenerator.FLUSH_PASSED_TO_STREAM' to allow blocking of flush()
+    calls to underlying output stream or writer
+  * [JACKSON-405]: Add command-line tool for manual Smile encoding/decoding
   * [JACKSON-407]: Add features (SerializationConfig.Feature.WRAP_EXCEPTIONS,
-    DeserializationConfig.Feature.WRAP_EXCEPTIONS) to allow disabling wrapping of exceptions
-  * [JACKSON-409] Add SmileGenerator.writeRaw(byte)
+    DeserializationConfig.Feature.WRAP_EXCEPTIONS) to disable exception wrapping
   * [JACKSON-412] Add 'DeserializationConfig.Feature.FAIL_ON_NUMBERS_FOR_ENUMS'
     to optionally prevent mapping JSON integers into Java Enum values
    (suggested by Patrick L)
-  * [JACKSON-414] Add 'JsonNode.getValueAsBoolean()' (and 'JsonParser.getValueAsBoolean()')
-   (suggested by Tauren M)
   * [JACKSON-420] Add 'DeserializationConfig.Feature.FAIL_ON_NULL_FOR_PRIMITIVES'
     to optionally prevent JSON null from mapping to default value
    (suggested by Thomas D)
   * [JACKSON-421] Add ability to register multiple sets of serializers
     without extending SerializerFactory (related to [JACKSON-297])
-  * [JACKSON-429] Add @JsonIgnoreType to allow ignoring any and all properties of specified
-    type; useful to exclude well-known proxy/facade/handler types
-  * [JACKSON-440] Add ability to process serializers, deserializers during their construction
-    (to allow adding, removing, modifying properties to handle)
-  * [JACKSON-448] Add 'JsonGenerator.writeString()' alternatives that accept pre-encoded
-    UTF-8 byte sequences (.writeUTF8String() and .writeRawUTF8String())
+  * [JACKSON-429] Add @JsonIgnoreType to allow ignoring any and all properties
+    of specified type; useful to exclude well-known proxy/facade/handler types
+  * [JACKSON-440] Add ability to process serializers, deserializers during their
+    construction (to allow adding, removing, modifying properties to handle)
+  * [JACKSON-448] Add 'JsonGenerator.writeString()' alternatives that accept
+    pre-encoded UTF-8 byte sequences (writeUTF8String() and writeRawUTF8String())
    (requested by Shay B)
 
-  Potentail backwards compatibility issues:
+  Issues handled by new external projects:
+
+  * [JACKSON-317] Add support for Guava (ex-Google-collections); implemented
+    as a new module, see: https://github.com/FasterXML/jackson-module-guava
+  * [JACKSON-394] Add support for using data binding to/from XML (Stax) sources;
+    sort of "mini-JAXB".
+
+  Potential backwards compatibility issues (compared to 1.6.x):
 
   * [JACKSON-419] (see above) 'java.util.Locale' now serialized as JSON String
     (using Locale.toString()), instead of as bean-like JSON Object
@@ -86,7 +88,7 @@ Description:
     features to allow disabling wrapping on serialization and/or deserialization.
   
 ------------------------------------------------------------------------
-== History: ==
+=== History: ===
 ------------------------------------------------------------------------
 
 1.6.4 [21-Dec-2010]
