@@ -526,8 +526,7 @@ public abstract class StdDeserializer<T>
      * @param config Active deserialization configuration 
      * @param provider Deserializer provider to use for actually finding deserializer(s)
      * @param type Type of property to deserialize
-     * @param propertyName Name of logical property being handled
-     * @param forProperty Actual property object (field, method, constuctor parameter) used
+     * @param property Actual property object (field, method, constuctor parameter) used
      *     for passing deserialized values; provided so deserializer can be contextualized if necessary (since 1.7)
      */
     protected JsonDeserializer<Object> findDeserializer(DeserializationConfig config, DeserializerProvider provider,

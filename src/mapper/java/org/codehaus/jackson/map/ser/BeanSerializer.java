@@ -69,7 +69,7 @@ public class BeanSerializer
 
     /**
      * @param type Nominal type of values handled by this serializer
-     * @param writers Property writers used for actual serialization
+     * @param properties Property writers used for actual serialization
      */
     public BeanSerializer(JavaType type,
             BeanPropertyWriter[] properties, BeanPropertyWriter[] filteredProperties,

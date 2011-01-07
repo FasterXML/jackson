@@ -260,7 +260,7 @@ public class SmileGenerator
     
     /**
      * This <code>ThreadLocal</code> contains a {@link java.lang.ref.SoftRerefence}
-     * to a {@link SmileBufferRecycler} used to provide a low-cost
+     * to a buffer recycler used to provide a low-cost
      * buffer recycling for Smile-specific buffers.
      */
     final protected static ThreadLocal<SoftReference<BufferRecycler>> _smileRecyclerRef

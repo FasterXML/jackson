@@ -13,16 +13,23 @@ import org.codehaus.jackson.type.JavaType;
  * Since there are multiple broad categories of deserializers, there are 
  * multiple factory methods:
  *<ul>
- * <li>There is one method to support JSON scalar types: here access is
- *   by declared value type
- *  </li>
  * <li>For JSON "Array" type, we need 2 methods: one to deal with expected
- *   Java arrays; and the other for other Java containers (Lists, Sets)
+ *   Java arrays ({@link #createArrayDeserializer})
+ *   and the other for other Java containers like {@link java.util.List}s
+ *   and {@link java.util.Set}s ({@link #createCollectionDeserializer(DeserializationConfig, DeserializerProvider, CollectionType, BeanProperty)})
  *  </li>
  * <li>For JSON "Object" type, we need 2 methods: one to deal with
- *   expected Java {@link java.util.Map}s, and another for actual
- *   Java objects (beans)
+ *   expected Java {@link java.util.Map}s
+ *   ({@link #createMapDeserializer}), and another for POJOs
+ *   ({@link #createBeanDeserializer(DeserializationConfig, DeserializerProvider, JavaType, BeanProperty)}.
  *  </li>
+ * <li>For Tree Model ({@link org.codehaus.jackson.JsonNode}) properties there is
+ *    {@link #createTreeDeserializer(DeserializationConfig, DeserializerProvider, JavaType, BeanProperty)}
+ * <li>For enumerated types ({@link java.lang.Enum}) there is
+ *    {@link #createEnumDeserializer(DeserializationConfig, DeserializerProvider, JavaType, BeanProperty)}
+ *  </li>
+ * <li>For all other types, {@link #createBeanDeserializer(DeserializationConfig, DeserializerProvider, JavaType, BeanProperty)}
+ *   is used.
  * </ul>
  *<p>
  * All above methods take 2 type arguments, except for the first one

@@ -1,7 +1,7 @@
 Version: 1.7.0
 
 Release date:
-  xx-Dec-2010
+  06-Jan-2011
 
 Description:
   Major new version that includes improvements to extensibility.
@@ -10,6 +10,9 @@ Description:
 
   * [JACKSON-356]: Type information not written for nested-generics root types
     (reported by Alex R on mailing list)
+  * [JACKSON-450] JAXB annotations chosen incorrectly from interface method (instead of
+    method definition in class), when serializing
+   (reported by Sean P)
 
   Improvements:
 
@@ -71,11 +74,8 @@ Description:
   * [JACKSON-448] Add 'JsonGenerator.writeString()' alternatives that accept pre-encoded
     UTF-8 byte sequences (.writeUTF8String() and .writeRawUTF8String())
    (requested by Shay B)
-  * [JACKSON-450] JAXB annotations chosen incorrectly from interface method (instead of
-    method definition in class), when serializing
-   (reported by Sean P)
 
-  Backwards incompatible changes
+  Potentail backwards compatibility issues:
 
   * [JACKSON-419] (see above) 'java.util.Locale' now serialized as JSON String
     (using Locale.toString()), instead of as bean-like JSON Object
@@ -88,6 +88,22 @@ Description:
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
+
+1.6.4 [21-Dec-2010]
+
+  Fixes:
+
+  * [JACKSON-364] @JsonTypeInfo not included properly for Collection types
+    when using JsonView functionality
+  * [JACKSON-428] Type information, Map key deserializer definitions don't
+    work together
+    (reported by Patrick R)
+  * [JACKSON-431] Deserialization fails with JSON array with beans with
+    @JsonCreator, unmapped properties before and after creator properties
+   (reported by Hannu L)
+  * [JACKSON-436] @XmlElementType not working correctly with Collection type
+    properties
+   (reported by Sean P)
 
 1.6.3 [04-Dec-2010]
 

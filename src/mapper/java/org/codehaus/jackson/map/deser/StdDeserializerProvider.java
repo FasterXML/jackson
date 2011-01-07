@@ -233,7 +233,6 @@ public class StdDeserializerProvider
      * @param config Configuration
      * @param type Type of property to deserializer
      * @param property Property (field, setter, ctor arg) to use deserializer for
-     * @param propertyName Logical name of property to deserializer
      */
     protected JsonDeserializer<Object>_createAndCacheValueDeserializer(DeserializationConfig config,
             JavaType type, BeanProperty property)

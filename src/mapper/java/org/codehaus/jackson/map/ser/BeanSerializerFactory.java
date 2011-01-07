@@ -157,9 +157,7 @@ public class BeanSerializerFactory
     protected BeanSerializerFactory() { this(null); }
 
     /**
-     * 
-     * @param allAdditionalSerializers Additional serializer providers used for locating
-     *   serializer implementations; starting with the highest-priority one
+     * Constructor for creating instances with specified configuration.
      */
     protected BeanSerializerFactory(Config config)
     {
