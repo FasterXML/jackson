@@ -167,6 +167,7 @@ public class BeanSerializer
      * @deprecated Since 1.7 should let {@link BeanSerializerBuilder} be used, so that
      *   copy-methods are not needed
      */
+    @Deprecated
     public BeanSerializer withFiltered(BeanPropertyWriter[] filtered)
     {
         // 03-Jan-2011, tatu: Need to ensure sub-classes override, so:
