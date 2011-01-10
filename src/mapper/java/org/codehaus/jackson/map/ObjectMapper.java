@@ -580,10 +580,15 @@ public class ObjectMapper
                 return mapper.getDeserializationConfig();
             }
 
-            public SerializationConfig getSeserializationConfig() {
+            public SerializationConfig getSerializationConfig() {
                 return mapper.getSerializationConfig();
             }
 
+            @Override
+            public SerializationConfig getSeserializationConfig() {
+                return getSerializationConfig();
+            }
+            
             // // // Methods for registering handlers
             
             @Override

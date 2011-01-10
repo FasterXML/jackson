@@ -24,7 +24,6 @@ public class BasicClassIntrospector
     public static class GetterMethodFilter
         implements MethodFilter
     {
-        @SuppressWarnings("hiding")
         public final static GetterMethodFilter instance = new GetterMethodFilter();
 
         private GetterMethodFilter() { }
@@ -47,7 +46,6 @@ public class BasicClassIntrospector
     public static class SetterMethodFilter
         implements MethodFilter
     {
-        @SuppressWarnings("hiding")
         public final static SetterMethodFilter instance = new SetterMethodFilter();
 
         public boolean includeMethod(Method m)
@@ -84,7 +82,6 @@ public class BasicClassIntrospector
     public final static class SetterAndGetterMethodFilter
         extends SetterMethodFilter
     {
-        @SuppressWarnings("hiding")
         public final static SetterAndGetterMethodFilter instance = new SetterAndGetterMethodFilter();
 
         @Override

@@ -507,3 +507,8 @@ Patrick Leamon:
 Tauren Mills:
   * Suggested [JACKSON-414] Add 'JsonNode.getValueAsBoolean()' (and 'JsonParser.getValueAsBoolean()')
    [1.7.0]
+
+Chris Winters:
+  * Reported [JACKSON-457] Misspelled method in Module ("getSeserializationConfig")
+   [1.7.1]
+  

@@ -8,7 +8,7 @@ import org.codehaus.jackson.node.*;
 
 /**
  * Deserializer that can build instances of {@link JsonNode} from any
- * Json content, using appropriate {@link JsonNode} type.
+ * JSON content, using appropriate {@link JsonNode} type.
  */
 public class JsonNodeDeserializer
     extends BaseNodeDeserializer<JsonNode>
@@ -29,10 +29,10 @@ public class JsonNodeDeserializer
     public static JsonDeserializer<? extends JsonNode> getDeserializer(Class<?> nodeClass)
     {
         if (nodeClass == ObjectNode.class) {
-            return ObjectDeserializer.instance;
+            return ObjectDeserializer.getInstance();
         }
         if (nodeClass == ArrayNode.class) {
-            return ArrayDeserializer.instance;
+            return ArrayDeserializer.getInstance();
         }
         // For others, generic one works fine
         return instance;
@@ -65,13 +65,14 @@ public class JsonNodeDeserializer
     final static class ObjectDeserializer
         extends BaseNodeDeserializer<ObjectNode>
     {
-        @SuppressWarnings("hiding")
-        protected final static ObjectDeserializer instance = new ObjectDeserializer();
+        protected final static ObjectDeserializer _instance = new ObjectDeserializer();
 
         protected ObjectDeserializer() {
             super(ObjectNode.class);
         }
 
+        public static ObjectDeserializer getInstance() { return _instance; }
+        
         @Override
         public ObjectNode deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
@@ -90,12 +91,13 @@ public class JsonNodeDeserializer
     final static class ArrayDeserializer
         extends BaseNodeDeserializer<ArrayNode>
     {
-        @SuppressWarnings("hiding")
-        protected final static ArrayDeserializer instance = new ArrayDeserializer();
+        protected final static ArrayDeserializer _instance = new ArrayDeserializer();
 
         protected ArrayDeserializer() {
             super(ArrayNode.class);
         }
+
+        public static ArrayDeserializer getInstance() { return _instance; }
         
         @Override
         public ArrayNode deserialize(JsonParser jp, DeserializationContext ctxt)

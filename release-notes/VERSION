@@ -1,10 +1,22 @@
 Version: 1.7.0
 
 Release date:
-  06-Jan-2011
+  xx-Jan-2011
 
 Description:
-  Major new version that includes improvements to extensibility.
+  First patch release for 1.7.
+
+  Fixes:
+  
+  * [JACKSON-457]: Typo in Module method "getSeserializationConfig" ("bananana error"); renamed
+    as "getSerializationConfig" (version with old spelling retained as deprecated for compatibility)
+   (reported by Chris W)
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.7.0 [06-Jan-2010]
 
   Fixes:
 
@@ -86,10 +98,6 @@ Description:
   * Related to [JACKSON-407], will wrap some previously unwrapped exceptions from
     deserializer (to have symmetric handling; serializer already wrapped); new
     features to allow disabling wrapping on serialization and/or deserialization.
-  
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.6.4 [21-Dec-2010]
 
@@ -184,7 +192,6 @@ Description:
    * [JACKSON-360] Convert empty String to null values for Joda
      (suggested by Shilpa P)
    * [JACKSON-386] Improve registration for optional/external types (javax.xml, joda)
-
 
 1.6.0 [06-Sep-2010]
 

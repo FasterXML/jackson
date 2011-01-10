@@ -97,10 +97,9 @@ public class TestVersions extends main.BaseTest
         assertFalse("Should find version information (got "+v+")", v.isUknownVersion());
         assertEquals(major, v.getMajorVersion());
         assertEquals(minor, v.getMinorVersion());
-        /* 01-Sep-2010, tatus: Check patch level initially; for maintenance versions,
-         *   comment out.
-         */
-        assertEquals(0, v.getPatchLevel());
+        // 07-Jan-2011, tatus: Check patch level initially, comment out for maint versions
+
+        //assertEquals(0, v.getPatchLevel());
     }
 
     private IOContext getIOContext() {

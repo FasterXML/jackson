@@ -86,7 +86,16 @@ public abstract class Module
          * settings. Since modules may be interested in these settings,
          * caller should make sure to make changes to settings before
          * module registrations.
+         * 
+         * @since 1.7.1 (1.7.0 unfortunately had a typo in method name!)
          */
+        public SerializationConfig getSerializationConfig();
+
+        /**
+         * @deprecated Typo in method name included in 1.7.0; with 1.7.1 and
+         *    above, please use correctly named {@link #getSerializationConfig()}.
+         */
+        @Deprecated
         public SerializationConfig getSeserializationConfig();
         
         /*
