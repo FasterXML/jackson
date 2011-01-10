@@ -27,6 +27,21 @@ public class TestBeanConversions
         public boolean boolProp;
     }
 
+    static class WrapperBean {
+        public BooleanBean x;
+    }
+
+    static class ObjectWrapper
+    {
+        private Object data;
+
+        public ObjectWrapper() { }
+        public ObjectWrapper(Object o) { data = o; }
+
+        public Object getData() { return data; }
+        public void setData(Object data) { this.data = data; }
+    }    
+
     /*
     /**********************************************************
     /* Test methods
@@ -42,10 +57,6 @@ public class TestBeanConversions
         assertEquals(-9, point.y);
         // z not included in input, will be whatever default constructor provides
         assertEquals(-13, point.z);
-    }
-
-    static class WrapperBean {
-        public BooleanBean x;
     }
     
     // For [JACKSON-371]; verify that we know property that caused issue...
@@ -68,4 +79,13 @@ public class TestBeanConversions
         }
     }
 
+    public void testIssue458() throws Exception
+    {
+        ObjectWrapper a = new ObjectWrapper("foo");
+        ObjectWrapper b = new ObjectWrapper(a);
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectWrapper b2 = mapper.convertValue(b, ObjectWrapper.class);
+        ObjectWrapper a2 = mapper.convertValue(b2.getData(), ObjectWrapper.class);
+        assertEquals("foo", a2.getData());
+    }
 }

@@ -917,21 +917,25 @@ public class TokenBuffer
         @Override
         public String getText()
         {
-            if (_currToken != null) { // null only before/after document
-                switch (_currToken) {
-                case FIELD_NAME:
-                case VALUE_STRING:
-                    return (String) _currentObject();
-                    // fall through
-                case VALUE_NUMBER_INT:
-                case VALUE_NUMBER_FLOAT:
-                    Object ob = _currentObject();
-                    return (ob == null) ? null : ob.toString();
-                default:
-                    return _currToken.asString();
+            // common cases first:
+            if (_currToken == JsonToken.VALUE_STRING
+                    || _currToken == JsonToken.FIELD_NAME) {
+                Object ob = _currentObject();
+                if (ob instanceof String) {
+                    return (String) ob;
                 }
+                return (ob == null) ? null : ob.toString();
             }
-            return null;
+            if (_currToken == null) {
+                return null;
+            }
+            switch (_currToken) {
+            case VALUE_NUMBER_INT:
+            case VALUE_NUMBER_FLOAT:
+                Object ob = _currentObject();
+                return (ob == null) ? null : ob.toString();
+            }
+            return _currToken.asString();
         }
 
         @Override

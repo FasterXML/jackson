@@ -427,8 +427,10 @@ Shilpa Panaganti:
    [1.6.1]
 
 Larry Yogman:
-   * Reported [JACKSON-371] Provide path of type error in ObjectMapper.convertValue()
+  * Reported [JACKSON-371] Provide path of type error in ObjectMapper.convertValue()
    [1.6.1]
+  * Reported [JACKSON-458]: Problems with ObjectMapper.convertValue(), TokenBuffer, SerializedString
+   [1.7.1]
 
 Bruce Ritchie:
    * Reported [JACKSON-384] @JsonAnyGetter values were duplicated if method name was valid
