@@ -156,4 +156,16 @@ public class TestRootType
         String xml = mapper.writeValueAsString(new StringWrapper("abc"));
         assertEquals("{\"StringWrapper\":{\"str\":\"abc\"}}", xml);
     }
+
+    /**
+     * Test to verify that there is support for specifying root type as primitive,
+     * even if wrapper value is passed (there is no way to pass primitive values as
+     * Objects); this to support frameworks that may pass unprocessed
+     * {@link java.lang.reflect.Type} from field or method.
+     */
+    public void testIssue456WrapperPart() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals("123", mapper.typedWriter(Integer.TYPE).writeValueAsString(Integer.valueOf(123)));
+    }
 }

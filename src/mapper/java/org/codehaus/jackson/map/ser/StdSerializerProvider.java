@@ -8,6 +8,7 @@ import java.util.Date;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.ser.impl.ReadOnlyClassToSerializerMap;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.RootNameLookup;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
@@ -620,8 +621,7 @@ public class StdSerializerProvider
         } else {
             // Let's ensure types are compatible at this point
             if (!rootType.getRawClass().isAssignableFrom(value.getClass())) {
-                throw new JsonMappingException("Incompatible types: declared root type ("+rootType+") vs "
-                        +value.getClass().getName());
+                _reportIncompatibleRootType(value, rootType);
             }
             // root value, not reached via property:
             ser = findTypedValueSerializer(rootType, true, null);
@@ -648,6 +648,23 @@ public class StdSerializerProvider
         }
     }
 
+    protected void _reportIncompatibleRootType(Object value, JavaType rootType)
+        throws IOException, JsonProcessingException
+    {
+        /* 07-Jan-2010, tatu: As per [JACKSON-456] better handle distinction between wrapper types,
+         *    primitives
+         */
+        if (rootType.isPrimitive()) {
+            Class<?> wrapperType = ClassUtil.wrapperType(rootType.getRawClass());
+            // If it's just difference between wrapper, primitive, let it slide
+            if (wrapperType.isAssignableFrom(value.getClass())) {
+                return;
+            }
+        }
+        throw new JsonMappingException("Incompatible types: declared root type ("+rootType+") vs "
+                +value.getClass().getName());
+    }
+    
     /**
      * Method that will try to find a serializer, either from cache
      * or by constructing one; but will not return an "unknown" serializer

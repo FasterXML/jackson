@@ -338,6 +338,12 @@ public final class ClassUtil
         return null;
     }
 
+    /*
+    /**********************************************************
+    /* Primitive type support
+    /**********************************************************
+     */
+    
     /**
      * Helper method used to get default value for wrappers used for primitive types
      * (0 for Integer etc)
@@ -371,6 +377,41 @@ public final class ClassUtil
             return '\0';
         }
         throw new IllegalArgumentException("Class "+cls.getName()+" is not a primitive type");
+    }
+
+    /**
+     * Helper method for finding wrapper type for given primitive type (why isn't
+     * there one in JDK?)
+     * 
+     * @since 1.7.1
+     */
+    public static Class<?> wrapperType(Class<?> primitiveType)
+    {
+        if (primitiveType == Integer.TYPE) {
+            return Integer.class;
+        }
+        if (primitiveType == Long.TYPE) {
+            return Long.class;
+        }
+        if (primitiveType == Boolean.TYPE) {
+            return Boolean.class;
+        }
+        if (primitiveType == Double.TYPE) {
+            return Double.class;
+        }
+        if (primitiveType == Float.TYPE) {
+            return Float.class;
+        }
+        if (primitiveType == Byte.TYPE) {
+            return Byte.class;
+        }
+        if (primitiveType == Short.TYPE) {
+            return Short.class;
+        }
+        if (primitiveType == Character.TYPE) {
+            return Character.class;
+        }
+        throw new IllegalArgumentException("Class "+primitiveType.getName()+" is not a primitive type");
     }
     
     /*
