@@ -8,6 +8,8 @@ Description:
 
   Fixes:
   
+  * [JACKSON-456]: Type check issues with Jackson JAX-RS provider
+   (reported by Kirill S)
   * [JACKSON-457]: Typo in Module method "getSeserializationConfig" ("bananana error"); renamed
     as "getSerializationConfig" (version with old spelling retained as deprecated for compatibility)
    (reported by Chris W)

@@ -167,5 +167,6 @@ public class TestRootType
     {
         ObjectMapper mapper = new ObjectMapper();
         assertEquals("123", mapper.typedWriter(Integer.TYPE).writeValueAsString(Integer.valueOf(123)));
+        assertEquals("456", mapper.typedWriter(Long.TYPE).writeValueAsString(Long.valueOf(456L)));
     }
 }

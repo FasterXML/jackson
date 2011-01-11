@@ -373,6 +373,8 @@ Kirill Stokoz:
   * Reported [JACKSON-383] @JsonAnySetter gets called for ignorable properties if
     FAIL_ON_UNKNOWN_PROPERTIES set to false (related to [JACKSON-313])
    [1.6.1]
+  * Reported [JACKSON-456], provided unit tests: Type check issues with Jackson JAX-RS provider
+   [1.7.1]
 
 Brian Oberman:
   * Requested [JACKSON-289] Ability to serialize char[] values as JSON Arrays

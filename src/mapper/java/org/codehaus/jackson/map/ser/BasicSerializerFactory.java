@@ -116,7 +116,7 @@ public abstract class BasicSerializerFactory
         final JsonSerializer<?> ns = new StdSerializers.NumberSerializer();
         _concrete.put(BigInteger.class.getName(), ns);
         _concrete.put(BigDecimal.class.getName(), ns);
-
+        
         /* Other discrete non-container types:
          * first, Date/Time zoo:
          */
