@@ -571,6 +571,9 @@ public class TypeFactory
 
         // Ok: Map or Collection?
         if (Map.class.isAssignableFrom(rawType)) {
+            if (args.length != 2) {
+                throw new IllegalArgumentException("Could not find 2 type parameters for class "+rawType.getName()+" (found "+args.length+")");
+            }
             JavaType keyType = _fromType(args[0], context);
             JavaType valueType = _fromType(args[1], context);
             return MapType.construct(rawType, keyType, valueType);

@@ -32,6 +32,8 @@ public class TestTypeFactory
 
     abstract static class MyList extends IntermediateList<Long> { }
     abstract static class IntermediateList<E> implements List<E> { }
+
+    @SuppressWarnings("serial")
     static class GenericList<T> extends ArrayList<T> { }
     
     interface MapInterface extends Cloneable, IntermediateInterfaceMap<String> { }
@@ -134,7 +136,7 @@ public class TestTypeFactory
         assertEquals(CollectionType.class, t.getClass());
         assertSame(String.class, ((CollectionType) t).getContentType().getRawClass());
     }
-
+    
     public void testMaps()
     {
         // Ok, first: let's test what happens when we pass 'raw' Map:
@@ -142,7 +144,13 @@ public class TestTypeFactory
         assertEquals(MapType.class, t.getClass());
         assertSame(HashMap.class, t.getRawClass());
 
-        // And then the proper way
+        // Then explicit construction
+        t = TypeFactory.mapType(TreeMap.class, String.class, Integer.class);
+        assertEquals(MapType.class, t.getClass());
+        assertSame(String.class, ((MapType) t).getKeyType().getRawClass());
+        assertSame(Integer.class, ((MapType) t).getContentType().getRawClass());
+
+        // And then with TypeReference
         t = TypeFactory.type(new TypeReference<HashMap<String,Integer>>() { });
         assertEquals(MapType.class, t.getClass());
         assertSame(HashMap.class, t.getRawClass());
@@ -150,11 +158,6 @@ public class TestTypeFactory
         assertEquals(TypeFactory.type(String.class), mt.getKeyType());
         assertEquals(TypeFactory.type(Integer.class), mt.getContentType());
 
-        // And alternate method too
-        t = TypeFactory.mapType(TreeMap.class, String.class, Integer.class);
-        assertEquals(MapType.class, t.getClass());
-        assertSame(String.class, ((MapType) t).getKeyType().getRawClass());
-        assertSame(Integer.class, ((MapType) t).getContentType().getRawClass());
     }
 
     public void testIterator()
