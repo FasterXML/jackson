@@ -515,4 +515,8 @@ Tauren Mills:
 Chris Winters:
   * Reported [JACKSON-457] Misspelled method in Module ("getSeserializationConfig")
    [1.7.1]
+
+Coda Hale:
+  * [JACKSON-462]: Buffer overflow in Utf8Generator#writeFieldName(String)
+   [1.7.1]
   

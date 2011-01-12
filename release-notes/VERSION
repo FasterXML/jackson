@@ -15,6 +15,8 @@ Description:
    (reported by Chris W)
   * [JACKSON-458]: Problems with ObjectMapper.convertValue(), TokenBuffer, SerializedString
    (reported by Larry Y)
+  * [JACKSON-462]: Buffer overflow in Utf8Generator#writeFieldName(String)
+   (reported by Coda H)
 
 ------------------------------------------------------------------------
 === History: ===

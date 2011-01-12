@@ -269,4 +269,73 @@ public class TestGeneratorMisc
             assertEquals(OUTPUT, actualValue);
         }
     }
+
+    /*
+    /**********************************************************
+    /* Tests for object writing
+    /**********************************************************
+     */
+
+    /**
+     * Unit test that tries to trigger buffer-boundary conditions
+     */
+    public void testLongerObjects() throws Exception
+    {
+        JsonFactory jf = new JsonFactory();
+        for (int i = 0; i < 2; ++i) {
+            boolean useChars = (i == 0);
+            JsonGenerator jgen;
+            ByteArrayOutputStream bout = new ByteArrayOutputStream(200);
+            if (useChars) {
+                jgen = jf.createJsonGenerator(new OutputStreamWriter(bout, "UTF-8"));
+            } else {
+                jgen = jf.createJsonGenerator(bout, JsonEncoding.UTF8);
+            }
+
+            jgen.writeStartObject();
+
+            for (int rounds = 0; rounds < 1500; ++rounds) {
+                for (int letter = 'a'; letter <= 'z'; ++letter) {
+                    for (int index = 0; index < 20; ++index) {
+                        String name;
+                        if (letter > 'f') {
+                            name = "X"+letter+index;
+                        } else if (letter > 'p') {
+                            name = ""+letter+index;
+                        } else {
+                            name = "__"+index+letter;
+                        }
+                        jgen.writeFieldName(name);
+                        jgen.writeNumber(index-1);
+                    }
+                    jgen.writeRaw('\n');
+                }
+            }
+            jgen.writeEndObject();
+            jgen.close();
+
+            byte[] json = bout.toByteArray();
+            JsonParser jp = jf.createJsonParser(json);
+            assertToken(JsonToken.START_OBJECT, jp.nextToken());
+            for (int rounds = 0; rounds < 1500; ++rounds) {
+            for (int letter = 'a'; letter <= 'z'; ++letter) {
+                for (int index = 0; index < 20; ++index) {
+                    assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+                    String name;
+                    if (letter > 'f') {
+                        name = "X"+letter+index;
+                    } else if (letter > 'p') {
+                        name = ""+letter+index;
+                    } else {
+                        name = "__"+index+letter;
+                    }
+                    assertEquals(name, jp.getCurrentName());
+                    assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+                    assertEquals(index-1, jp.getIntValue());
+                }
+            }
+            }
+            assertToken(JsonToken.END_OBJECT, jp.nextToken());
+        }
+    }
 }

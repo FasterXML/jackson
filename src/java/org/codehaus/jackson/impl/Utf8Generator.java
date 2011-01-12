@@ -276,10 +276,9 @@ public class Utf8Generator
         }
     }
 
-    protected void _writeFieldName(String name)
+    protected final void _writeFieldName(String name)
         throws IOException, JsonGenerationException
     {
-
         /* To support [JACKSON-46], we'll do this:
          * (Question: should quoting of spaces (etc) still be enabled?)
          */
@@ -287,8 +286,9 @@ public class Utf8Generator
             _writeStringSegments(name);
             return;
         }
-
-        // we know there's room for at least one more char
+        if (_outputTail >= _outputEnd) {
+            _flushBuffer();
+        }
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
         // The beef:
         final int len = name.length();
@@ -314,7 +314,7 @@ public class Utf8Generator
         _outputBuffer[_outputTail++] = BYTE_QUOTE;
     }
 
-    protected void _writeFieldName(SerializableString name)
+    protected final void _writeFieldName(SerializableString name)
         throws IOException, JsonGenerationException
     {
         byte[] raw = name.asQuotedUTF8();
