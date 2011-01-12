@@ -31,6 +31,8 @@ public class TypeFactory
 {
     public final static TypeFactory instance = new TypeFactory();
 
+    private final static JavaType[] NO_TYPES = new JavaType[0];
+    
     protected final TypeParser _parser;
     
     /*
@@ -319,6 +321,11 @@ public class TypeFactory
      */
     public static JavaType[] findParameterTypes(Class<?> clz, Class<?> expType)
     {
+        return findParameterTypes(clz, expType, new TypeBindings(clz));
+    }
+        
+    public static JavaType[] findParameterTypes(Class<?> clz, Class<?> expType, TypeBindings bindings)
+    {
         // First: find full inheritance chain
         HierarchicType subType = _findSuperTypeChain(clz, expType);
         // Caller is supposed to ensure this never happens, so:
@@ -329,29 +336,27 @@ public class TypeFactory
         HierarchicType superType = subType;
         while (superType.getSuperType() != null) {
             superType = superType.getSuperType();
+            Class<?> raw = superType.getRawClass();
+            TypeBindings newBindings = new TypeBindings(raw);
+            if (superType.isGeneric()) { // got bindings, need to resolve
+                ParameterizedType pt = superType.asGeneric();
+                Type[] actualTypes = pt.getActualTypeArguments();
+                TypeVariable<?>[] vars = raw.getTypeParameters();
+                int len = actualTypes.length;
+                for (int i = 0; i < len; ++i) {
+                    String name = vars[i].getName();
+                    JavaType type = instance._fromType(actualTypes[i], bindings);
+                    newBindings.addBinding(name, type);
+                }
+            }
+            bindings = newBindings;
         }
+
         // which ought to be generic (if not, it's raw type)
         if (!superType.isGeneric()) {
             return null;
         }
-        // Otherwise this becomes a recursive thing
-
-        // otherwise need to start unwinding
-        ParameterizedType pt = superType.asGeneric();
-        Type[] actualTypes = pt.getActualTypeArguments();
-        JavaType[] resultTypes = new JavaType[actualTypes.length];
-        // TODO: rewrite TypeBindings to also work properly with renaming, aliasing
-        TypeBindings bindings = new TypeBindings(clz);
-        for (int i = 0, len = actualTypes.length; i < len; ++i) {
-            Type t = actualTypes[i];
-            // Only type variables need immediate resolution
-            if (t instanceof TypeVariable<?>) {
-                resultTypes[i] = _resolveVariableViaSubTypes(superType.getSubType(), ((TypeVariable<?>) t).getName(), bindings);
-            } else {
-                resultTypes[i] = instance._fromType(t, bindings);
-            }
-        }
-        return resultTypes;
+        return bindings.typesAsArray();
     }
 
     /**
@@ -392,7 +397,7 @@ public class TypeFactory
          * if/when there are problems; current handling is an improvement over earlier
          * code.
          */
-        return findParameterTypes(raw, expType);
+        return findParameterTypes(raw, expType, new TypeBindings(type));
     }    
     
     /*
@@ -568,27 +573,38 @@ public class TypeFactory
          */
         Class<?> rawType = (Class<?>) type.getRawType();
         Type[] args = type.getActualTypeArguments();
+        int paramCount = (args == null) ? 0 : args.length;
+
+        JavaType[] pt;
+        
+        if (paramCount == 0) {
+            pt = NO_TYPES;
+        } else {
+            pt = new JavaType[paramCount];
+            for (int i = 0; i < paramCount; ++i) {
+                pt[i] = _fromType(args[i], context);
+            }
+        }
 
         // Ok: Map or Collection?
         if (Map.class.isAssignableFrom(rawType)) {
-            if (args.length != 2) {
-                throw new IllegalArgumentException("Could not find 2 type parameters for class "+rawType.getName()+" (found "+args.length+")");
+            JavaType subtype = _constructSimple(rawType, pt);
+            JavaType[] mapParams = findParameterTypes(subtype, Map.class);
+            if (mapParams.length != 2) {
+                throw new IllegalArgumentException("Could not find 2 type parameters for Map class "+rawType.getName()+" (found "+mapParams.length+")");
             }
-            JavaType keyType = _fromType(args[0], context);
-            JavaType valueType = _fromType(args[1], context);
-            return MapType.construct(rawType, keyType, valueType);
+            return MapType.construct(rawType, mapParams[0], mapParams[1]);
         }
         if (Collection.class.isAssignableFrom(rawType)) {
-            JavaType valueType = _fromType(args[0], context);
-            return CollectionType.construct(rawType, valueType);
+            JavaType subtype = _constructSimple(rawType, pt);
+            JavaType[] collectionParams = findParameterTypes(subtype, Collection.class);
+            if (collectionParams.length != 1) {
+                throw new IllegalArgumentException("Could not find 1 type parameter for Collection class "+rawType.getName()+" (found "+collectionParams.length+")");
+            }
+            return CollectionType.construct(rawType, collectionParams[0]);
         }
-        int len = (args == null) ? 0 : args.length;
-        if (len == 0) { // no generics
+        if (paramCount == 0) { // no generics
             return new SimpleType(rawType);
-        }
-        JavaType[] pt = new JavaType[len];
-        for (int i = 0; i < len; ++i) {
-            pt[i] = _fromType(args[i], context);
         }
         return _constructSimple(rawType, pt);
     }
@@ -763,7 +779,7 @@ public class TypeFactory
         if (raw == target) {
             return current;
         }
-        // Otherwise, keep on going down the rat hole; first implemented interaces
+        // Otherwise, keep on going down the rat hole; first implemented interfaces
         Type[] parents = raw.getGenericInterfaces();
         // as long as there are superclasses
         // and unless we have already seen the type (<T extends X<T>>)
