@@ -1,10 +1,12 @@
 package org.codehaus.jackson.map.type;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import main.BaseTest;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 
@@ -30,6 +32,7 @@ public class TestTypeFactory
 
     abstract static class MyList extends IntermediateList<Long> { }
     abstract static class IntermediateList<E> implements List<E> { }
+    static class GenericList<T> extends ArrayList<T> { }
     
     interface MapInterface extends Cloneable, IntermediateInterfaceMap<String> { }
     interface IntermediateInterfaceMap<FOO> extends Map<FOO, Integer> { }
@@ -44,6 +47,22 @@ public class TestTypeFactory
     // trick here is that V now refers to key type, not value type
     static abstract class XLongMap<V> extends XXMap<V,Long> { }
     static abstract class XXMap<K,V> implements Map<K,V> { }
+
+    static class SneakyBean {
+        public IntLongMap intMap;
+        public MyList longList;
+    }
+
+    @SuppressWarnings("serial")
+    public static class LongValuedMap<K> extends HashMap<K, Long> { }
+
+    static class StringLongMapBean {
+        public LongValuedMap<String> value;
+    }
+
+    static class StringListBean {
+        public GenericList<String> value;
+    }
     
     /*
     /**********************************************************
@@ -364,7 +383,50 @@ public class TestTypeFactory
         assertEquals(TypeFactory.type(Integer.class), mapType.getKeyType());
         assertEquals(TypeFactory.type(Long.class), mapType.getContentType());
     }    
+    
+    /**
+     * Plus sneaky types may be found via introspection as well.
+     * 
+     * @since 1.7
+     */
+    public void testSneakyFieldTypes() throws Exception
+    {
+        Field field = SneakyBean.class.getDeclaredField("intMap");
+        JavaType type = TypeFactory.type(field.getGenericType());
+        assertTrue(type instanceof MapType);
+        MapType mapType = (MapType) type;
+        assertEquals(TypeFactory.type(Integer.class), mapType.getKeyType());
+        assertEquals(TypeFactory.type(Long.class), mapType.getContentType());
 
+        field = SneakyBean.class.getDeclaredField("longList");
+        type = TypeFactory.type(field.getGenericType());
+        assertTrue(type instanceof CollectionType);
+        CollectionType collectionType = (CollectionType) type;
+        assertEquals(TypeFactory.type(Long.class), collectionType.getContentType());
+    }    
+    
+    /**
+     * Looks like type handling actually differs for properties, too.
+     * 
+     * @since 1.7
+     */
+    public void testSneakyBeamProperties() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        StringLongMapBean bean = mapper.readValue("{\"value\":{\"a\":123}}", StringLongMapBean.class);
+        assertNotNull(bean);
+        Map<String,Long> map = bean.value;
+        assertEquals(1, map.size());
+        assertEquals(Long.valueOf(123), map.get("a"));
+
+        StringListBean bean2 = mapper.readValue("{\"value\":[\"...\"]}", StringListBean.class);
+        assertNotNull(bean2);
+        List<String> list = bean2.value;
+        assertSame(GenericList.class, list.getClass());
+        assertEquals(1, list.size());
+        assertEquals("...", list.get(0));
+    }
+    
     public void testAtomicArrayRefParameters()
     {
         JavaType type = TypeFactory.type(new TypeReference<AtomicReference<long[]>>() { });
