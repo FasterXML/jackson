@@ -4,12 +4,15 @@ Release date:
   xx-Jan-2011
 
 Description:
-  Fifth patch release for 1.6.
+  Fifth and possibly last patch release for 1.6.
 
   Fixes:
 
   * [JACKSON-454] JSON Schema generator was adding bogus "items" property
     for JSON object types (only allowed for arrays)
+  * [JACKSON-461] ArrayIndexOutOfBoundsException when property is subclass of
+    Map with fewer type parameters
+   (reported by Tim W)
 
 ------------------------------------------------------------------------
 == History: ==

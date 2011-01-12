@@ -12,6 +12,8 @@ import org.codehaus.jackson.type.JavaType;
  */
 public class TypeBindings
 {
+    private final static JavaType[] NO_TYPES = new JavaType[0];
+    
     /**
      * Marker to use for (temporarily) unbound references.
      */
@@ -51,7 +53,7 @@ public class TypeBindings
         _contextType = type;
         _contextClass = type.getRawClass();
     }
-
+    
     public int getBindingCount() {
         if (_bindings == null) {
             _resolve();
@@ -78,6 +80,25 @@ public class TypeBindings
         return t;
     }
 
+    public void addBinding(String name, JavaType type)
+    {
+        if (_bindings == null) {
+            _bindings = new LinkedHashMap<String,JavaType>();
+        }
+        _bindings.put(name, type);
+    }
+
+    public JavaType[] typesAsArray()
+    {
+        if (_bindings == null) {
+            _resolve();
+        }
+        if (_bindings.size() == 0) {
+            return NO_TYPES;
+        }
+        return _bindings.values().toArray(new JavaType[_bindings.size()]);
+    }
+    
     /*
     /*******************************************************************8
     /* Internal methods
@@ -93,7 +114,7 @@ public class TypeBindings
             int count = _contextType.containedTypeCount();
             if (count > 0) {
                 if (_bindings == null) {
-                    _bindings = new HashMap<String,JavaType>();
+                    _bindings = new LinkedHashMap<String,JavaType>();
                 }
                 for (int i = 0; i < count; ++i) {
                     String name = _contextType.containedTypeName(i);
@@ -134,7 +155,7 @@ public class TypeBindings
                     TypeVariable<?> var = vars[i];
                     String name = var.getName();
                     if (_bindings == null) {
-                        _bindings = new HashMap<String,JavaType>();
+                        _bindings = new LinkedHashMap<String,JavaType>();
                     } else {
                         /* 24-Mar-2010, tatu: Better ensure that we do not overwrite something
                          *  collected earlier (since we descend towards super-classes):
@@ -160,7 +181,7 @@ public class TypeBindings
                     Type varType = var.getBounds()[0];
                     if (varType != null) {
                         if (_bindings == null) {
-                            _bindings = new HashMap<String,JavaType>();
+                            _bindings = new LinkedHashMap<String,JavaType>();
                         } else { // and no overwriting...
                             if (_bindings.containsKey(name)) continue;
                         }

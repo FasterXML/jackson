@@ -498,3 +498,8 @@ Hannu Leinonen:
   * Reported [JACKSON-431] Deserialization fails with JSON array with beans
    with @JsonCreator, unmapped properties before and after creator properties
    [1.6.4]
+
+Tim Williamson:
+  * Reported [JACKSON-461] ArrayIndexOutOfBoundsException when property is subclass of
+    Map with fewer type parameters
+   [1.6.5]
