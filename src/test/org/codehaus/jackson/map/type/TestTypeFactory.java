@@ -158,6 +158,12 @@ public class TestTypeFactory
         assertEquals(TypeFactory.type(String.class), mt.getKeyType());
         assertEquals(TypeFactory.type(Integer.class), mt.getContentType());
 
+        t = TypeFactory.type(new TypeReference<LongValuedMap<Boolean>>() { });
+        assertEquals(MapType.class, t.getClass());
+        assertSame(LongValuedMap.class, t.getRawClass());
+        mt = (MapType) t;
+        assertEquals(TypeFactory.type(Boolean.class), mt.getKeyType());
+        assertEquals(TypeFactory.type(Long.class), mt.getContentType());
     }
 
     public void testIterator()

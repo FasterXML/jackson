@@ -164,8 +164,8 @@ public class BeanSerializer
      * Method used for constructing a filtered serializer instance, using this
      * serializer as the base.
      *
-     * @deprecated Since 1.7 should let {@link BeanSerializerBuilder} be used, so that
-     *   copy-methods are not needed
+     * @deprecated Since 1.7 {@link BeanSerializerBuilder} should be used,
+     *   so that no copy-methods are not needed
      */
     @Deprecated
     public BeanSerializer withFiltered(BeanPropertyWriter[] filtered)
@@ -215,7 +215,7 @@ public class BeanSerializer
     }
 
     @Override
-    public final void serializeWithType(Object bean, JsonGenerator jgen, SerializerProvider provider,
+    public void serializeWithType(Object bean, JsonGenerator jgen, SerializerProvider provider,
             TypeSerializer typeSer)
         throws IOException, JsonGenerationException
     {
