@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.*;
@@ -83,6 +84,17 @@ public class TestCreators2
             throw new IllegalArgumentException("I don't like that name!");
         }
     }
+
+    // For [JACKSON-465]
+    static class MapBean
+    {
+        protected Map<String,Long> map;
+        
+        @JsonCreator
+        public MapBean(Map<String, Long> map) {
+            this.map = map;
+        }
+    }
     
     /*
     /**********************************************************
@@ -139,5 +151,30 @@ public class TestCreators2
             assertEquals(IllegalArgumentException.class, t.getClass());
             verifyException(e, "don't like that name");
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void testIssue465() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        final String JSON = "{\"A\":12}";
+
+        // first, test with regular Map, non empty
+        Map<String,Long> map = mapper.readValue(JSON, Map.class);
+        assertEquals(1, map.size());
+        assertEquals(Integer.valueOf(12), map.get("A"));
+        
+        MapBean bean = mapper.readValue(JSON, MapBean.class);
+        assertEquals(1, bean.map.size());
+        assertEquals(Long.valueOf(12L), bean.map.get("A"));
+
+        // and then empty ones
+        final String EMPTY_JSON = "{}";
+
+        map = mapper.readValue(EMPTY_JSON, Map.class);
+        assertEquals(0, map.size());
+        
+        bean = mapper.readValue(EMPTY_JSON, MapBean.class);
+        assertEquals(0, bean.map.size());
     }
 }

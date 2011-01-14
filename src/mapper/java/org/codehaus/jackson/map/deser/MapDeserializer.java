@@ -145,9 +145,9 @@ public class MapDeserializer
     public Map<Object,Object> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        // Ok: must point to START_OBJECT, or FIELD_NAME
+        // Ok: must point to START_OBJECT, FIELD_NAME or END_OBJECT
         JsonToken t = jp.getCurrentToken();
-        if (t != JsonToken.START_OBJECT && t != JsonToken.FIELD_NAME) {
+        if (t != JsonToken.START_OBJECT && t != JsonToken.FIELD_NAME && t != JsonToken.END_OBJECT) {
             throw ctxt.mappingException(getMapClass());
         }
         if (_propertyBasedCreator != null) {
