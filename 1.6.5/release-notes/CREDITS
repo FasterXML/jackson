@@ -503,3 +503,6 @@ Tim Williamson:
   * Reported [JACKSON-461] ArrayIndexOutOfBoundsException when property is subclass of
     Map with fewer type parameters
    [1.6.5]
+  * Reported [JACKSON-465] Deserialization with @JsonCreator that takes in
+   a Map fails
+   [1.6.5]

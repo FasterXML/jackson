@@ -13,6 +13,8 @@ Description:
   * [JACKSON-461] ArrayIndexOutOfBoundsException when property is subclass of
     Map with fewer type parameters
    (reported by Tim W)
+  * [JACKSON-465] Deserialization with @JsonCreator that takes in a Map fails
+   (reported by Tim W)
 
 ------------------------------------------------------------------------
 == History: ==
