@@ -88,7 +88,7 @@ public class TestGenericTypes extends BaseMapTest
     /**********************************************************
      */
 
-    public void testIssue1() throws Exception
+    public void testIssue468a() throws Exception
     {
         Person1 p1 = new Person1("John");
         p1.setAccount(new Key<Account>(new Account("something", 42L)));
@@ -98,7 +98,7 @@ public class TestGenericTypes extends BaseMapTest
         System.out.println(json);
     }
 
-    public void test2() throws Exception
+    public void testIssue468b() throws Exception
     {
         Person2 p2 = new Person2("John");
         List<Key<Account>> accounts = new ArrayList<Key<Account>>();
