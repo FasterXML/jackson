@@ -1,10 +1,20 @@
-Version: 1.7.0
+Version: 1.7.2
 
 Release date:
-  12-Jan-2011
+  xx-Feb-2011
 
 Description:
-  First patch release for 1.7.
+  Second patch release for 1.7.
+
+  Fixes:
+
+  (plus all fixes up to and including 1.6.5)
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.7.1 [12-Jan-2010]
 
   Fixes:
   
@@ -17,10 +27,6 @@ Description:
    (reported by Larry Y)
   * [JACKSON-462]: Buffer overflow in Utf8Generator#writeFieldName(String)
    (reported by Coda H)
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.7.0 [06-Jan-2010]
 

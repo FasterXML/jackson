@@ -88,16 +88,30 @@ public class TestGenericTypes extends BaseMapTest
     /**********************************************************
      */
 
+    @SuppressWarnings("unchecked")
     public void testIssue468a() throws Exception
     {
         Person1 p1 = new Person1("John");
         p1.setAccount(new Key<Account>(new Account("something", 42L)));
         
+        // First: ensure we can serialize (pre 1.7 this failed)
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(p1);
-        System.out.println(json);
+
+        // and then verify that results make sense
+        Map<String,Object> map = mapper.readValue(json, Map.class);
+        assertEquals("John", map.get("name"));
+        Object ob = map.get("account");
+        assertNotNull(ob);
+        Map<String,Object> acct = (Map<String,Object>) ob;
+        Object idOb = acct.get("id");
+        assertNotNull(idOb);
+        Map<String,Object> key = (Map<String,Object>) idOb;
+        assertEquals("something", key.get("name"));
+        assertEquals(Integer.valueOf(42), key.get("id"));
     }
 
+    @SuppressWarnings("unchecked")
     public void testIssue468b() throws Exception
     {
         Person2 p2 = new Person2("John");
@@ -106,10 +120,19 @@ public class TestGenericTypes extends BaseMapTest
         accounts.add(new Key<Account>(new Account("b", 43L)));
         accounts.add(new Key<Account>(new Account("c", 44L)));
         p2.setAccounts(accounts);
-        
+
+        // serialize without error:
         ObjectMapper mapper = new ObjectMapper();               
         String json = mapper.writeValueAsString(p2);
-        System.out.println(json);
+
+        // then verify output
+        Map<String,Object> map = mapper.readValue(json, Map.class);
+        assertEquals("John", map.get("name"));
+        Object ob = map.get("accounts");
+        assertNotNull(ob);
+        List<?> acctList = (List<?>) ob;
+        assertEquals(3, acctList.size());
+        // ... might want to verify more, but for now that should suffice
     }
 }
 
