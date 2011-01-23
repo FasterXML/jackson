@@ -506,3 +506,7 @@ Tim Williamson:
   * Reported [JACKSON-465] Deserialization with @JsonCreator that takes in
    a Map fails
    [1.6.5]
+
+Christian Naeger:
+  * [JACKSON-468] Method-bound type variables (public <T> T getValue()) not handled
+   [1.6.5]

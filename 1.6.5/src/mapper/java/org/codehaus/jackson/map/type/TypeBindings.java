@@ -42,17 +42,59 @@ public class TypeBindings
      * names here.
      */
     protected HashSet<String> _placeholders;
+
+    /**
+     * Sometimes it is necessary to allow hierarchic resolution of types: specifically
+     * in cases where there are local bindings (for methods, constructors). If so,
+     * we'll just use simple delegation model.
+     * 
+     * @since 1.7
+     */
+    private final TypeBindings _parentBindings;
+
+    /*
+    /**********************************************************
+    /* Construction
+    /**********************************************************
+     */
     
-    public TypeBindings(Class<?> cc) {
-        _contextClass = cc;
-        _contextType = null;
+    public TypeBindings(Class<?> cc)
+    {
+        this(null, cc, null);
     }
 
     public TypeBindings(JavaType type)
     {
-        _contextType = type;
-        _contextClass = type.getRawClass();
+        this(null, type.getRawClass(), type);
     }
+
+    /**
+     * Constructor used to create "child" instances; mostly to
+     * allow delegation from explicitly defined local overrides
+     * (local type variables for methods, constructors) to
+     * contextual (class-defined) ones.
+     * 
+     * @since 1.7
+     */
+    public TypeBindings childInstance() {
+        return new TypeBindings(this, _contextClass, _contextType);
+    }
+
+    /**
+     * @since 1.7
+     */
+    private TypeBindings(TypeBindings parent, Class<?> cc, JavaType type)
+    {
+        _parentBindings = parent;
+        _contextClass = cc;
+        _contextType = type;
+    }
+    
+    /*
+    /**********************************************************
+    /* Accesors
+    /**********************************************************
+     */
     
     public int getBindingCount() {
         if (_bindings == null) {
@@ -67,17 +109,30 @@ public class TypeBindings
             _resolve();
         }
         JavaType t = _bindings.get(name);
-        if (t == null) {
-            if (_placeholders != null && _placeholders.contains(name)) {
-                t = UNBOUND;
-            } else {
-                // Should we throw an exception or just return null?
-                throw new IllegalArgumentException("Type variable '"+name
-                        +"' can not be resolved (with context of class "+_contextClass.getName()+")");
-                //t = UNBOUND;                
-            }
+        if (t != null) {
+            return t;
         }
-        return t;
+        if (_placeholders != null && _placeholders.contains(name)) {
+            return UNBOUND;
+        }
+        // New with 1.7: check parent context
+        if (_parentBindings != null) {
+            return _parentBindings.findType(name);
+        }
+        // nothing found, so:
+
+        // Should we throw an exception or just return null?
+        String className;
+        if (_contextClass != null) {
+            className = _contextClass.getName();
+        } else if (_contextType != null) {
+            className = _contextType.toString();
+        } else {
+            className = "UNKNOWN";
+        }
+        throw new IllegalArgumentException("Type variable '"+name
+                +"' can not be resolved (with context of class "+className+")");
+        //t = UNBOUND;                
     }
 
     public void addBinding(String name, JavaType type)
@@ -100,9 +155,9 @@ public class TypeBindings
     }
     
     /*
-    /*******************************************************************8
+    /**********************************************************
     /* Internal methods
-    /*******************************************************************8
+    /**********************************************************
      */
     
     protected void _resolve()

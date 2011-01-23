@@ -15,6 +15,8 @@ Description:
    (reported by Tim W)
   * [JACKSON-465] Deserialization with @JsonCreator that takes in a Map fails
    (reported by Tim W)
+  * [JACKSON-468] Method-bound type variables (public <T> T getValue()) not handled
+    (reported by Christian N)
 
 ------------------------------------------------------------------------
 == History: ==
