@@ -1028,7 +1028,13 @@ public class SmileParser
     	throws IOException, JsonParseException
     {
     	if (_tokenIncomplete) {
-    	    _finishToken();
+    	    int tb = _typeByte;
+    	    // ensure we got a numeric type with value that is lazily parsed
+            if (((tb >> 5) & 0x7) != 1) {
+                _reportError("Current token ("+_currToken+") not numeric, can not use numeric value accessors");
+            }
+            _tokenIncomplete = false;
+            _finishNumberToken(tb);
     	}
     }
     

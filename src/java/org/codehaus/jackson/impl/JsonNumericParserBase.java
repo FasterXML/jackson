@@ -343,10 +343,6 @@ public abstract class JsonNumericParserBase
     protected void _parseNumericValue(int expType)
         throws IOException, JsonParseException
     {
-        // First things first: must be a numeric event
-        if (_currToken == null || !_currToken.isNumeric()) {
-            _reportError("Current token ("+_currToken+") not numeric, can not use numeric value accessors");
-        }
         // Int or float?
         if (_currToken == JsonToken.VALUE_NUMBER_INT) {
             char[] buf = _textBuffer.getTextBuffer();
@@ -389,7 +385,11 @@ public abstract class JsonNumericParserBase
             _parseSlowIntValue(expType, buf, offset, len);
             return;
         }
-        _parseSlowFloatValue(expType);
+        if (_currToken == JsonToken.VALUE_NUMBER_FLOAT) {
+            _parseSlowFloatValue(expType);
+            return;
+        }
+        _reportError("Current token ("+_currToken+") not numeric, can not use numeric value accessors");
     }
 
     private final void _parseSlowFloatValue(int expType)
