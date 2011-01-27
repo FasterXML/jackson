@@ -7,6 +7,18 @@ Description:
 
   Fixes:
 
+  * [JACKSON-478] Improve support for 'java.sql.Timestamp' type by allowing
+    deserializing textual representations
+    (reported by John L)
+
+------------------------------------------------------------------------
+== History: ==
+------------------------------------------------------------------------
+
+1.5.8 [21-Dec-2010]
+
+  Fixes:
+
   * [JACKSON-359] TypeIdResolver.init() was not being called properly
     (reported by Peter L)
   * [JACKSON-404] Problem with XmlAdapter, generic types, deserialization
@@ -14,10 +26,6 @@ Description:
   * [JACKSON-431] Deserialization fails with JSON array with beans with
     @JsonCreator, unmapped properties before and after creator properties
    (reported by Hannu L)
-
-------------------------------------------------------------------------
-== History: ==
-------------------------------------------------------------------------
 
 1.5.7 [03-Oct-2010]
 
