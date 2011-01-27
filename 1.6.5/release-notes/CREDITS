@@ -290,6 +290,8 @@ John Lister:
   * Reported [JACKSON-256]: incorrect combining of serialization inclusion
     values; suggested better way to do it
    [1.5.0]
+  * Reported [JACKSON-478], proposed the fix: Improve support for
+    'java.sql.Timestamp' type by allowing deserializing textual representations
 
 Gennadiy Shafranovich:
   * Reported [JACKSON-263]: BooleanNode.asToken() incorrectly returns 'true'

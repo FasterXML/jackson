@@ -1,7 +1,7 @@
 Version: 1.6.5
 
 Release date:
-  xx-Jan-2011
+  xx-Feb-2011
 
 Description:
   Fifth and possibly last patch release for 1.6.
@@ -17,6 +17,9 @@ Description:
    (reported by Tim W)
   * [JACKSON-468] Method-bound type variables (public <T> T getValue()) not handled
     (reported by Christian N)
+  * [JACKSON-478] Improve support for 'java.sql.Timestamp' type by allowing
+    deserializing textual representations
+    (reported by John L)
 
 ------------------------------------------------------------------------
 == History: ==
