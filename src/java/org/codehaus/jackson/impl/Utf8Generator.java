@@ -101,6 +101,12 @@ public class Utf8Generator
      */
     protected byte[] _entityBuffer;
 
+    /**
+     * Flag that indicates whether the output buffer is recycable (and
+     * needs to be returned to recycler once we are done) or not.
+     */
+    protected boolean _bufferRecyclable;
+
     /*
     /**********************************************************
     /* Life-cycle
@@ -114,12 +120,30 @@ public class Utf8Generator
         super(features, codec);
         _ioContext = ctxt;
         _outputStream = out;
+        _bufferRecyclable = true;
         _outputBuffer = ctxt.allocWriteEncodingBuffer();
         _outputEnd = _outputBuffer.length;
         /* To be exact, each char can take up to 6 bytes when escaped (Unicode
-         * escape with bacslash, 'u' and 4 hex digits); but to avoid fluctuation,
+         * escape with backslash, 'u' and 4 hex digits); but to avoid fluctuation,
          * we will actually round down to only do up to 1/8 number of chars
          */
+        _outputMaxContiguous = _outputEnd >> 3;
+        _charBuffer = ctxt.allocConcatBuffer();
+        _charBufferLength = _charBuffer.length;
+    }
+
+    public Utf8Generator(IOContext ctxt, int features, ObjectCodec codec,
+            OutputStream out, byte[] outputBuffer, int outputOffset, boolean bufferRecyclable)
+    {
+        
+        super(features, codec);
+        _ioContext = ctxt;
+        _outputStream = out;
+        _bufferRecyclable = bufferRecyclable;
+        _outputTail = outputOffset;
+        _outputBuffer = outputBuffer;
+        _outputEnd = _outputBuffer.length;
+        // up to 6 bytes per char (see above), rounded up to 1/8
         _outputMaxContiguous = _outputEnd >> 3;
         _charBuffer = ctxt.allocConcatBuffer();
         _charBufferLength = _charBuffer.length;
@@ -1012,7 +1036,7 @@ public class Utf8Generator
     protected void _releaseBuffers()
     {
         byte[] buf = _outputBuffer;
-        if (buf != null) {
+        if (buf != null && _bufferRecyclable) {
             _outputBuffer = null;
             _ioContext.releaseWriteEncodingBuffer(buf);
         }
