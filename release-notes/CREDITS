@@ -498,6 +498,22 @@ Hannu Leinonen:
    with @JsonCreator, unmapped properties before and after creator properties
    [1.6.4]
 
+Tim Williamson:
+  * Reported [JACKSON-461] ArrayIndexOutOfBoundsException when property is subclass of
+    Map with fewer type parameters
+   [1.6.5]
+  * Reported [JACKSON-465] Deserialization with @JsonCreator that takes in
+   a Map fails
+   [1.6.5]
+
+Christian Naeger:
+  * [JACKSON-468] Method-bound type variables (public <T> T getValue()) not handled
+   [1.6.5]
+
+Steven Schlansker:
+  * [JACKSON-473] JsonMapping$Reference not Serializable
+   [1.6.5]
+
 Ga�l Marziou:   
   * Contributed [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual
     value into JSON

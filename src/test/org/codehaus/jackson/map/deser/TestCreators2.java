@@ -95,6 +95,17 @@ public class TestCreators2
             this.map = map;
         }
     }
+
+    // For [JACKSON-470]: should be appropriately detected, reported error about
+    static class BrokenCreatorBean
+    {
+        protected String bar;
+        
+        @JsonCreator
+        public BrokenCreatorBean(@JsonProperty("bar") String bar1, @JsonProperty("bar") String bar2) {
+            bar = ""+bar1+"/"+bar2;
+        }
+    }
     
     /*
     /**********************************************************
@@ -176,5 +187,16 @@ public class TestCreators2
         
         bean = mapper.readValue(EMPTY_JSON, MapBean.class);
         assertEquals(0, bean.map.size());
+    }
+
+    public void testCreatorWithDupNames() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            mapper.readValue("{\"bar\":\"x\"}", BrokenCreatorBean.class);
+            fail("Should have caught duplicate creator parameters");
+        } catch (JsonMappingException e) {
+            verifyException(e, "duplicate creator property \"bar\"");
+        }
     }
 }
