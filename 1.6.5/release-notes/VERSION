@@ -17,6 +17,9 @@ Description:
    (reported by Tim W)
   * [JACKSON-468] Method-bound type variables (public <T> T getValue()) not handled
     (reported by Christian N)
+  * [JACKSON-470] ArrayIndexOutOfBoundsException if @JsonCreator constructor
+    has @JsonParameter parameters with same name
+   (reported by Tim W)
   * [JACKSON-473] JsonMapping$Reference not Serializable
     (reported by Steven S)
   * [JACKSON-478] Improve support for 'java.sql.Timestamp' type by allowing

@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
+import java.util.HashMap;
+
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -51,6 +53,17 @@ public class CreatorContainer
     public void addPropertyConstructor(AnnotatedConstructor ctor, SettableBeanProperty[] properties)
     {
         _propertyBasedConstructor = verifyNonDup(ctor, _propertyBasedConstructor, "property-based");
+        // [JACKSON-470] Better ensure we have no duplicate names either...
+        if (properties.length > 1) {
+            HashMap<String,Integer> names = new HashMap<String,Integer>();
+            for (int i = 0, len = properties.length; i < len; ++i) {
+                String name = properties[i].getPropertyName();
+                Integer old = names.put(name, Integer.valueOf(i));
+                if (old != null) {
+                    throw new IllegalArgumentException("Duplicate creator property \""+name+"\" (index "+old+" vs "+i+")");
+                }
+            }
+        }
         _propertyBasedConstructorProperties = properties;
     }
 
@@ -122,7 +135,7 @@ public class CreatorContainer
      */
 
     protected AnnotatedConstructor verifyNonDup(AnnotatedConstructor newOne, AnnotatedConstructor oldOne,
-                                                String type)
+            String type)
     {
         if (oldOne != null) {
             throw new IllegalArgumentException("Conflicting "+type+" constructors: already had "+oldOne+", encountered "+newOne);
