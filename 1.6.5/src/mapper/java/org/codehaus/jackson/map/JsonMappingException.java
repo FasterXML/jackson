@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map;
 
+import java.io.Serializable;
 import java.util.*;
 
 import org.codehaus.jackson.*;
@@ -35,8 +36,10 @@ public class JsonMappingException
      * lead to the problem that caused this exception to be
      * thrown.
      */
-    public static class Reference
+    public static class Reference implements Serializable
     {
+        private static final long serialVersionUID = 1L;
+
         /**
          * Object through which reference was resolved. Can be either
          * actual instance (usually the case for serialization), or
