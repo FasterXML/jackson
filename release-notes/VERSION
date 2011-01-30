@@ -10,6 +10,12 @@ Description:
 
   (plus all fixes up to and including 1.6.5)
 
+  Improvements:
+
+  * [JACKSON-474] Add ability to pass externally allocated buffer
+    for Utf8Generator
+   (suggested by David Y)
+
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
