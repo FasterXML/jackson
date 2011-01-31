@@ -20,6 +20,9 @@ Description:
   * [JACKSON-470] ArrayIndexOutOfBoundsException if @JsonCreator constructor
     has @JsonParameter parameters with same name
    (reported by Tim W)
+  * [JACKSON-472] Custom bean deserializers are not cached when using
+    JAXB annotation introspector
+   (reported by Seam P)
   * [JACKSON-473] JsonMapping$Reference not Serializable
     (reported by Steven S)
   * [JACKSON-478] Improve support for 'java.sql.Timestamp' type by allowing

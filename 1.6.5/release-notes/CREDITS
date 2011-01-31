@@ -485,6 +485,9 @@ Sean Parmelee:
   * Reported [JACKSON-436]: @XmlElementType not working correctly with Collection
     type properties
    [1.6.4]
+  * [JACKSON-472] Custom bean deserializers are not cached when using
+    JAXB annotation introspector
+   [1.6.5]
 
 Joe Jensen:
   * Reported [JACKSON-417] Deserialization of "native" types (String, Integer,
