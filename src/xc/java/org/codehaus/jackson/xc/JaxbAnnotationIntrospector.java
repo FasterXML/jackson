@@ -24,6 +24,7 @@ import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
+import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
@@ -128,11 +129,15 @@ public class JaxbAnnotationIntrospector
          */
         Class<?> cls = ann.annotationType();
         Package pkg = cls.getPackage();
-        if (pkg != null) {
-            return pkg.getName().startsWith(_jaxbPackageName);
+        String pkgName = (pkg != null) ? pkg.getName() : cls.getName();
+        if (pkgName.startsWith(_jaxbPackageName)) {
+            return true;
         }
-        // not sure if this is needed but...
-        return cls.getName().startsWith(_jaxbPackageName);
+        // as per [JACKSON-472], also need to recognize @JsonCachable
+        if (cls == JsonCachable.class) {
+            return true;
+        }
+        return false;
     }
     
     /*
@@ -144,7 +149,14 @@ public class JaxbAnnotationIntrospector
     @Override
     public Boolean findCachability(AnnotatedClass ac)
     {
-        // Nothing to indicate this in JAXB, return "don't care"
+        /* 30-Jan-2011, tatu: As per [JACKSON-472], we may want to also
+         *    check Jackson annotation here, because sometimes JAXB
+         *    introspector is used alone...
+         */
+        JsonCachable ann = ac.getAnnotation(JsonCachable.class);
+        if (ann != null) {
+            return ann.value() ? Boolean.TRUE : Boolean.FALSE;
+        }
         return null;
     }
 
