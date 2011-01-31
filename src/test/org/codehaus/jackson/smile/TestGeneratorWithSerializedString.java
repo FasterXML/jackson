@@ -1,12 +1,13 @@
-package org.codehaus.jackson.main;
+package org.codehaus.jackson.smile;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
 
-import org.codehaus.jackson.*;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.io.SerializedString;
 
-public class TestGeneratorWithSerializedString
-    extends main.BaseTest
+public class TestGeneratorWithSerializedString extends SmileTestBase
 {
     final static String NAME_WITH_QUOTES = "\"name\"";
     final static String NAME_WITH_LATIN1 = "P\u00f6ll\u00f6";
@@ -16,23 +17,13 @@ public class TestGeneratorWithSerializedString
     
     public void testSimple() throws Exception
     {
-        JsonFactory jf = new JsonFactory();
-
-        // First using char-backed generator
-        StringWriter sw = new StringWriter();
-        JsonGenerator jgen = jf.createJsonGenerator(sw);
-        _writeSimple(jgen);
-        jgen.close();
-        String json = sw.toString();
-        _verifySimple(jf.createJsonParser(json));
-
-        // then using UTF-8
+        SmileFactory sf = new SmileFactory();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        jgen = jf.createJsonGenerator(out, JsonEncoding.UTF8);
+        JsonGenerator jgen = sf.createJsonGenerator(out);
         _writeSimple(jgen);
         jgen.close();
-        byte[] jsonB = out.toByteArray();
-        _verifySimple(jf.createJsonParser(jsonB));
+        byte[] smileB = out.toByteArray();
+        _verifySimple(sf.createJsonParser(smileB));
     }
 
     /*

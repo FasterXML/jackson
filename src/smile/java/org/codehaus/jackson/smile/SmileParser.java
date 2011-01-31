@@ -88,7 +88,7 @@ public class SmileParser
      * 
      * @since 1.7
      */
-    final protected BufferRecycler _smileBufferRecycler;
+    final protected SmileBufferRecycler<String> _smileBufferRecycler;
     
     /*
     /**********************************************************
@@ -166,8 +166,8 @@ public class SmileParser
      * to a buffer recycler used to provide a low-cost
      * buffer recycling for Smile-specific buffers.
      */
-    final protected static ThreadLocal<SoftReference<BufferRecycler>> _smileRecyclerRef
-        = new ThreadLocal<SoftReference<BufferRecycler>>();
+    final protected static ThreadLocal<SoftReference<SmileBufferRecycler<String>>> _smileRecyclerRef
+        = new ThreadLocal<SoftReference<SmileBufferRecycler<String>>>();
     
     /*
     /**********************************************************
@@ -260,14 +260,14 @@ public class SmileParser
     /**
      * @since 1.7
      */
-    protected final static BufferRecycler _smileBufferRecycler()
+    protected final static SmileBufferRecycler<String> _smileBufferRecycler()
     {
-        SoftReference<BufferRecycler> ref = _smileRecyclerRef.get();
-        BufferRecycler br = (ref == null) ? null : ref.get();
+        SoftReference<SmileBufferRecycler<String>> ref = _smileRecyclerRef.get();
+        SmileBufferRecycler<String> br = (ref == null) ? null : ref.get();
 
         if (br == null) {
-            br = new BufferRecycler();
-            _smileRecyclerRef.set(new SoftReference<BufferRecycler>(br));
+            br = new SmileBufferRecycler<String>();
+            _smileRecyclerRef.set(new SoftReference<SmileBufferRecycler<String>>(br));
         }
         return br;
     }
@@ -511,11 +511,14 @@ public class SmileParser
         String[] newShared;
         if (len == 0) {
             newShared = _smileBufferRecycler.allocSeenStringValuesBuffer();
+            if (newShared == null) {
+                newShared = new String[SmileBufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH];
+            }
         } else if (len == SmileConstants.MAX_SHARED_STRING_VALUES) { // too many? Just flush...
            newShared = oldShared;
            _seenStringValueCount = 0; // could also clear, but let's not yet bother
         } else {
-            int newSize = (len == BufferRecycler.DEFAULT_NAME_BUFFER_LENGTH) ? 256 : SmileConstants.MAX_SHARED_STRING_VALUES;
+            int newSize = (len == SmileBufferRecycler.DEFAULT_NAME_BUFFER_LENGTH) ? 256 : SmileConstants.MAX_SHARED_STRING_VALUES;
             newShared = new String[newSize];
             System.arraycopy(oldShared, 0, newShared, 0, oldShared.length);
         }
@@ -811,11 +814,14 @@ public class SmileParser
         String[] newShared;
         if (len == 0) {
             newShared = _smileBufferRecycler.allocSeenNamesBuffer();
+            if (newShared == null) {
+                newShared = new String[SmileBufferRecycler.DEFAULT_NAME_BUFFER_LENGTH];                
+            }
         } else if (len == SmileConstants.MAX_SHARED_NAMES) { // too many? Just flush...
       	   newShared = oldShared;
       	   _seenNameCount = 0; // could also clear, but let's not yet bother
         } else {
-            int newSize = (len == BufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH) ? 256 : SmileConstants.MAX_SHARED_NAMES;
+            int newSize = (len == SmileBufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH) ? 256 : SmileConstants.MAX_SHARED_NAMES;
             newShared = new String[newSize];
             System.arraycopy(oldShared, 0, newShared, 0, oldShared.length);
         }
@@ -1834,57 +1840,5 @@ public class SmileParser
         _inputPtr = ptr;
         _reportInvalidOther(mask);
     }
-
-    /*
-    /**********************************************************
-    /* Helper classes
-    /**********************************************************
-     */
-
-    /**
-     * Helper container class used for thread-local recycling of buffers needed for
-     * checking name and/or string value back references
-     */
-    private final static class BufferRecycler
-    {
-        protected final static int DEFAULT_NAME_BUFFER_LENGTH = 64;
-
-        protected final static int DEFAULT_STRING_VALUE_BUFFER_LENGTH = 64;
-        
-        protected String[] _seenNamesBuffer;
-
-        protected String[] _seenStringValuesBuffer;
-
-        public BufferRecycler() { }
-
-        public String[] allocSeenNamesBuffer()
-        {
-            String[] buffer = _seenNamesBuffer;
-            if (buffer == null) {
-                buffer = new String[DEFAULT_NAME_BUFFER_LENGTH];
-            } else {
-                _seenNamesBuffer = null;
-            }
-            return buffer;
-        }
-
-        public String[] allocSeenStringValuesBuffer()
-        {
-            String[] buffer = _seenStringValuesBuffer;
-            if (buffer == null) {
-                buffer = new String[DEFAULT_STRING_VALUE_BUFFER_LENGTH];
-            } else {
-                _seenStringValuesBuffer = null;
-            }
-            return buffer;
-        }
-        
-        public void releaseSeenNamesBuffer(String[] buffer) {
-            _seenNamesBuffer = buffer;
-        }
-
-        public void releaseSeenStringValuesBuffer(String[] buffer) {
-            _seenStringValuesBuffer = buffer;
-        }
-    }
 }
+    

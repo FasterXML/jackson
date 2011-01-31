@@ -2,17 +2,14 @@ package org.codehaus.jackson.map.deser;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.sql.Timestamp;
 
 import org.codehaus.jackson.map.*;
 
 public class TestTimestampDeserialization
     extends BaseMapTest
 {
-
-	// As for TestDateDeserialization except we don't need to test date conversion routines, so
-	// just check we pick up timestamp class
+    // As for TestDateDeserialization except we don't need to test date conversion routines, so
+    // just check we pick up timestamp class
 
     public void testTimestampUtil() throws Exception
     {
@@ -28,14 +25,13 @@ public class TestTimestampDeserialization
         assertEquals("Date: expect "+value+" ("+value.getTime()+"), got "+result+" ("+result.getTime()+")", value.getTime(), result.getTime());
     }
 
-
     /*
     /**********************************************************
     /* Helper methods
     /**********************************************************
      */
 
-    String serializeTimestampAsString(java.sql.Timestamp value)
+    private String serializeTimestampAsString(java.sql.Timestamp value)
     {
         /* Then from String. This is bit tricky, since JDK does not really
          * suggest a 'standard' format. So let's try using something...

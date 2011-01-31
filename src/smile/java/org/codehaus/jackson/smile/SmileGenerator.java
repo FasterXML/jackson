@@ -181,7 +181,7 @@ public class SmileGenerator
      * 
      * @since 1.7
      */
-    final protected BufferRecycler _smileBufferRecycler;
+    final protected SmileBufferRecycler<SharedStringNode> _smileBufferRecycler;
     
     /*
     /**********************************************************
@@ -252,6 +252,12 @@ public class SmileGenerator
      */
     protected int _seenStringValueCount;
 
+    /**
+     * Flag that indicates whether the output buffer is recycable (and
+     * needs to be returned to recycler once we are done) or not.
+     */
+    protected boolean _bufferRecyclable;
+
     /*
     /**********************************************************
     /* Thread-local recycling
@@ -263,8 +269,8 @@ public class SmileGenerator
      * to a buffer recycler used to provide a low-cost
      * buffer recycling for Smile-specific buffers.
      */
-    final protected static ThreadLocal<SoftReference<BufferRecycler>> _smileRecyclerRef
-        = new ThreadLocal<SoftReference<BufferRecycler>>();
+    final protected static ThreadLocal<SoftReference<SmileBufferRecycler<SharedStringNode>>> _smileRecyclerRef
+        = new ThreadLocal<SoftReference<SmileBufferRecycler<SharedStringNode>>>();
     
     /*
     /**********************************************************
@@ -280,7 +286,50 @@ public class SmileGenerator
         _ioContext = ctxt;
         _smileBufferRecycler = _smileBufferRecycler();
         _out = out;
+        _bufferRecyclable = true;
         _outputBuffer = ctxt.allocWriteEncodingBuffer();
+        _outputEnd = _outputBuffer.length;
+        _charBuffer = ctxt.allocConcatBuffer();
+        _charBufferLength = _charBuffer.length;
+        // let's just sanity check to prevent nasty odd errors
+        if (_outputEnd < MIN_BUFFER_LENGTH) {
+            throw new IllegalStateException("Internal encoding buffer length ("+_outputEnd
+                    +") too short, must be at least "+MIN_BUFFER_LENGTH);
+        }
+        if ((smileFeatures & Feature.CHECK_SHARED_NAMES.getMask()) == 0) {
+            _seenNames = null;
+            _seenNameCount = -1;
+        } else {
+            _seenNames = _smileBufferRecycler.allocSeenNamesBuffer();
+            if (_seenNames == null) {
+                _seenNames = new SharedStringNode[SmileBufferRecycler.DEFAULT_NAME_BUFFER_LENGTH];
+            }
+            _seenNameCount = 0;
+        }
+
+        if ((smileFeatures & Feature.CHECK_SHARED_STRING_VALUES.getMask()) == 0) {
+            _seenStringValues = null;
+            _seenStringValueCount = -1;
+        } else {
+            _seenStringValues = _smileBufferRecycler.allocSeenStringValuesBuffer();
+            if (_seenStringValues == null) {
+                _seenStringValues = new SharedStringNode[SmileBufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH];
+            }
+            _seenStringValueCount = 0;
+        }
+}
+
+    public SmileGenerator(IOContext ctxt, int jsonFeatures, int smileFeatures,
+            ObjectCodec codec, OutputStream out, byte[] outputBuffer, int offset, boolean bufferRecyclable)
+    {
+        super(jsonFeatures, codec);
+        _smileFeatures = smileFeatures;
+        _ioContext = ctxt;
+        _smileBufferRecycler = _smileBufferRecycler();
+        _out = out;
+        _bufferRecyclable = bufferRecyclable;
+        _outputTail = offset;
+        _outputBuffer = outputBuffer;
         _outputEnd = _outputBuffer.length;
         _charBuffer = ctxt.allocConcatBuffer();
         _charBufferLength = _charBuffer.length;
@@ -304,7 +353,7 @@ public class SmileGenerator
             _seenStringValues = _smileBufferRecycler.allocSeenStringValuesBuffer();
             _seenStringValueCount = 0;
         }
-}
+    }
 
     /**
      * Method that can be called to explicitly write Smile document header.
@@ -328,14 +377,14 @@ public class SmileGenerator
         _writeBytes(HEADER_BYTE_1, HEADER_BYTE_2, HEADER_BYTE_3, (byte) last);
     }
 
-    protected final static BufferRecycler _smileBufferRecycler()
+    protected final static SmileBufferRecycler<SharedStringNode> _smileBufferRecycler()
     {
-        SoftReference<BufferRecycler> ref = _smileRecyclerRef.get();
-        BufferRecycler br = (ref == null) ? null : ref.get();
+        SoftReference<SmileBufferRecycler<SharedStringNode>> ref = _smileRecyclerRef.get();
+        SmileBufferRecycler<SharedStringNode> br = (ref == null) ? null : ref.get();
 
         if (br == null) {
-            br = new BufferRecycler();
-            _smileRecyclerRef.set(new SoftReference<BufferRecycler>(br));
+            br = new SmileBufferRecycler<SharedStringNode>();
+            _smileRecyclerRef.set(new SoftReference<SmileBufferRecycler<SharedStringNode>>(br));
         }
         return br;
     }
@@ -1874,7 +1923,7 @@ public class SmileGenerator
     protected void _releaseBuffers()
     {
         byte[] buf = _outputBuffer;
-        if (buf != null) {
+        if (buf != null && _bufferRecyclable) {
             _outputBuffer = null;
             _ioContext.releaseWriteEncodingBuffer(buf);
         }
@@ -1888,7 +1937,7 @@ public class SmileGenerator
          */
         {
             SharedStringNode[] nameBuf = _seenNames;
-            if (nameBuf != null && nameBuf.length == BufferRecycler.DEFAULT_NAME_BUFFER_LENGTH) {
+            if (nameBuf != null && nameBuf.length == SmileBufferRecycler.DEFAULT_NAME_BUFFER_LENGTH) {
                 _seenNames = null;
                 // Note: we must clean up stuff we've marked so far, to avoid accidental leakage
                 Arrays.fill(nameBuf, null);
@@ -1897,7 +1946,7 @@ public class SmileGenerator
         }
         {
             SharedStringNode[] valueBuf = _seenStringValues;
-            if (valueBuf != null && valueBuf.length == BufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH) {
+            if (valueBuf != null && valueBuf.length == SmileBufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH) {
                 _seenStringValues = null;
                 // Note: we must clean up stuff we've marked so far, to avoid accidental leakage
                 Arrays.fill(valueBuf, null);
@@ -2052,11 +2101,7 @@ public class SmileGenerator
     /* Helper classes
     /**********************************************************
      */
-
-    /**
-     * Helper container class used for thread-local recycling of buffers needed for
-     * checking name and/or string value back references
-     */
+/*
     private final static class BufferRecycler
     {
         protected final static int DEFAULT_NAME_BUFFER_LENGTH = 64;
@@ -2099,4 +2144,5 @@ public class SmileGenerator
             _seenStringValuesBuffer = buffer;
         }
     }
+    */
 }
