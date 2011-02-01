@@ -113,6 +113,11 @@ public class StdDeserializerProvider
     {
         JsonDeserializer<Object> deser = _findCachedDeserializer(propertyType);
         if (deser != null) {
+            // [JACKSON-385]: need to support contextualization:
+            if (deser instanceof ContextualDeserializer<?>) {
+                JsonDeserializer<?> d = ((ContextualDeserializer<?>) deser).createContextual(config, property);
+                deser = (JsonDeserializer<Object>) d;
+            }
             return deser;
         }
         // If not, need to request factory to construct (or recycle)
@@ -124,7 +129,7 @@ public class StdDeserializerProvider
              */
             deser = _handleUnknownValueDeserializer(propertyType);
         }
-        // 10-Dec-2010, tatu: As per [JACKSON-385], need to support contextualization too
+        // [JACKSON-385]: need to support contextualization:
         if (deser instanceof ContextualDeserializer<?>) {
             JsonDeserializer<?> d = ((ContextualDeserializer<?>) deser).createContextual(config, property);
             deser = (JsonDeserializer<Object>) d;

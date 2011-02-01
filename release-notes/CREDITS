@@ -479,6 +479,11 @@ Sean Parmelee:
   * Reported [JACKSON-450] JAXB annotations chosen incorrectly from interface method
     (instead of method definition in class), when serializing
    [1.7.0]
+  * Reported [JACKSON-472] Custom bean deserializers are not cached when using
+    JAXB annotation introspector
+   [1.6.5]
+  * Reported [JACKSON-476] ContextualDeserializer handling not completely working
+   [1.7.2]
 
 Joe Jensen:
   * Reported [JACKSON-417] Deserialization of "native" types (String, Integer,

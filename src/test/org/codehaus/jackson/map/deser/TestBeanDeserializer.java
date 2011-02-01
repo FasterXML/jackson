@@ -90,6 +90,47 @@ public class TestBeanDeserializer extends BaseMapTest
             return new Bean(a, b);
         }
     }
+
+    static class Issue476Bean {
+        public Issue476Type value1, value2;
+    }
+    static class Issue476Type {
+        public String name, value;
+    }
+    static class Issue476Deserializer extends BeanDeserializer
+        implements ContextualDeserializer<Object>
+    {
+        protected static int propCount;
+
+        public Issue476Deserializer(BeanDeserializer src) {
+            super(src);
+        }
+
+        public JsonDeserializer<Object> createContextual(DeserializationConfig config, BeanProperty property) throws JsonMappingException {
+            propCount++;
+            return this;
+        }        
+    }
+    public class Issue476DeserializerModifier extends BeanDeserializerModifier {
+        @Override
+        public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config, BasicBeanDescription beanDesc, JsonDeserializer<?> deserializer) {
+            if (Issue476Type.class == beanDesc.getBeanClass()) {
+                return new Issue476Deserializer((BeanDeserializer)deserializer);
+            }
+            return super.modifyDeserializer(config, beanDesc, deserializer);
+        }        
+    }
+    public class Issue476Module extends SimpleModule
+    {
+        public Issue476Module() {
+            super("Issue476Module", Version.unknownVersion());
+        }
+        
+        @Override
+        public void setupModule(SetupContext context) {
+            context.addBeanDeserializerModifier(new Issue476DeserializerModifier());
+        }        
+    }
     
     /*
     /********************************************************
@@ -116,5 +157,16 @@ public class TestBeanDeserializer extends BaseMapTest
         assertEquals("foo", bean.a);
         assertEquals("bar", bean.b);
     }
-    
+
+    public void testIssue476() throws Exception
+    {
+        final String JSON = "{\"value1\" : {\"name\" : \"fruit\", \"value\" : \"apple\"}, \"value2\" : {\"name\" : \"color\", \"value\" : \"red\"}}";
+        
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new Issue476Module());
+        mapper.readValue(JSON, Issue476Bean.class);
+
+        // there are 2 properties
+        assertEquals(2, Issue476Deserializer.propCount);
+    }
 }

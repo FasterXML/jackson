@@ -8,6 +8,9 @@ Description:
 
   Fixes:
 
+  * [JACKSON-476] ContextualDeserializer handling not completely working
+   (reported by Sean P)
+
   (plus all fixes up to and including 1.6.5)
 
   Improvements:
