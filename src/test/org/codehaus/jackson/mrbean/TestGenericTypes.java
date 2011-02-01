@@ -25,6 +25,10 @@ public class TestGenericTypes
     }
 
     // For [JACKSON-479]
+    public interface ResultWrapper<T> {
+        T getValue();
+    }
+    
     public interface Results<T> {
         Long getTotal();
         List<T> getRecords();
@@ -59,7 +63,18 @@ public class TestGenericTypes
     }
 
     // For [JACKSON-479]
-    public void testTypeReferenceNestedGenerics() throws Exception
+    public void testTypeReferenceNestedGeneric() throws Exception
+    {
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        final String JSON = "{\"value\":{\"breed\":\"Poodle\",\"name\":\"Rekku\"}}";
+
+        final ResultWrapper<Dog> result = mapper.readValue(JSON, new TypeReference<ResultWrapper<Dog>>() { });
+        assertEquals(Dog.class, result.getValue().getClass());
+    }
+
+    // For [JACKSON-479]
+    public void testTypeReferenceNestedGenericList() throws Exception
     {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());

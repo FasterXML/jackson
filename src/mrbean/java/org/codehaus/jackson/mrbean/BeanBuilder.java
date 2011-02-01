@@ -11,7 +11,8 @@ import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.type.TypeFactory;
 
 /**
- * Heavy-lifter of mr. Bean package.
+ * Heavy lifter of mr Bean package: class that keeps track of logical POJO properties,
+ * and figures out how to create an implementation class.
  * 
  * @since 1.6
  */
