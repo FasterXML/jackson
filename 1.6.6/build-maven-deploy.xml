@@ -68,10 +68,12 @@
     <artifact:install pomRefId="pom.asl.core"
      file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}.jar">
       <attach file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+      <attach file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}-javadoc.jar" type="jar" classifier="sources" />
     </artifact:install>
     <artifact:install pomRefId="pom.asl.mapper"
      file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}.jar">
       <attach file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
+      <attach file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-javadoc.jar" type="source" classifier="sources" />
     </artifact:install>
     <artifact:install pomRefId="pom.lgpl.core"
      file="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}.jar">

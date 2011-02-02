@@ -22,8 +22,10 @@
         both within and outside of OSGi containers
    -->
 
-  <!-- Jackson requires Java5 (enums, some generics) -->
-  <property name="REQ_JDK_VERSION" value="J2SE-1.5" />
+  <!-- Jackson requires Java5 (enums, some generics),
+       but OSGi requires listing of ALL applicable envs (yuck)
+   -->
+  <property name="REQ_JDK_VERSION" value="J2SE-1.5, JavaSE-1.6" />
 
   <!-- ASL-licensed: core, mapper jars -->
 

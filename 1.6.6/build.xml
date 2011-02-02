@@ -50,7 +50,7 @@
     <property name="IMPL_TITLE_SMILE" value="Jackson Binary format (aka Smile) handling functionality" />
     <property name="IMPL_TITLE_MRBEAN" value="Jackson Bean Materializer (aka Mr. Bean)" />
 
-    <property name="IMPL_VERSION" value="1.6.5" />
+    <property name="IMPL_VERSION" value="1.6.6" />
     <property name="IMPL_VENDOR" value="http://fasterxml.com" />
 
     <patternset id="dist-all-source-files">
@@ -464,6 +464,17 @@ compile.smile, compile.mrbean" />
        <jar destfile="${dir.dist}/jackson-mrbean-${IMPL_VERSION}-sources.jar"
           filesonly="true" compress="true" basedir="${dir.src.java.mrbean}"
           includes="org/codehaus/jackson/mrbean/**"
+       />
+
+       <!-- Similarly package javadocs; sub-optimal since they are built just
+            once so there's plenty of replication. So let's actually
+            only do this for core and mapper, for now:
+         -->
+       <jar destfile="${dir.dist}/jackson-core-asl-${IMPL_VERSION}-javadoc.jar"
+          filesonly="true" compress="true" basedir="${dir.javadoc}" includes="**/*"
+       />
+       <jar destfile="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-javadoc.jar"
+          filesonly="true" compress="true" basedir="${dir.javadoc}" includes="**/*"
        />
 
        <!-- Then copy javadocs -->
