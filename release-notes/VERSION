@@ -1,7 +1,7 @@
 Version: 1.7.2
 
 Release date:
-  xx-Feb-2011
+  02-Feb-2011
 
 Description:
   Second patch release for 1.7.
@@ -16,7 +16,7 @@ Description:
   Improvements:
 
   * [JACKSON-474] Add ability to pass externally allocated buffer
-    for Utf8Generator
+    for Utf8Generator, SmileGenerator
    (suggested by David Y)
 
 ------------------------------------------------------------------------
@@ -119,6 +119,31 @@ Description:
   * Related to [JACKSON-407], will wrap some previously unwrapped exceptions from
     deserializer (to have symmetric handling; serializer already wrapped); new
     features to allow disabling wrapping on serialization and/or deserialization.
+
+1.6.5 [01-Feb-2011]
+
+  Fixes:
+
+  * [JACKSON-454] JSON Schema generator was adding bogus "items" property
+    for JSON object types (only allowed for arrays)
+  * [JACKSON-461] ArrayIndexOutOfBoundsException when property is subclass of
+    Map with fewer type parameters
+   (reported by Tim W)
+  * [JACKSON-465] Deserialization with @JsonCreator that takes in a Map fails
+   (reported by Tim W)
+  * [JACKSON-468] Method-bound type variables (public <T> T getValue()) not handled
+    (reported by Christian N)
+  * [JACKSON-470] ArrayIndexOutOfBoundsException if @JsonCreator constructor
+    has @JsonParameter parameters with same name
+   (reported by Tim W)
+  * [JACKSON-472] Custom bean deserializers are not cached when using
+    JAXB annotation introspector
+   (reported by Seam P)
+  * [JACKSON-473] JsonMapping$Reference not Serializable
+    (reported by Steven S)
+  * [JACKSON-478] Improve support for 'java.sql.Timestamp' type by allowing
+    deserializing textual representations
+    (reported by John L)
 
 1.6.4 [21-Dec-2010]
 
