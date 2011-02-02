@@ -10,6 +10,8 @@ Description:
 
   * [JACKSON-476] ContextualDeserializer handling not completely working
    (reported by Sean P)
+  * [JACKSON-481] OSGi headers must include 1.5 AND 1.6
+   (reported by drozzy@gmail.com)
 
   (plus all fixes up to and including 1.6.5)
 
