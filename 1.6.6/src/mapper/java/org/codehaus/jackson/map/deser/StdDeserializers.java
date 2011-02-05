@@ -19,7 +19,9 @@ class StdDeserializers
         add(new UntypedObjectDeserializer());
 
         // Then String and String-like converters:
-        add(new StdDeserializer.StringDeserializer());
+        StdDeserializer<?> strDeser = new StdDeserializer.StringDeserializer();
+        add(strDeser, String.class);
+        add(strDeser, CharSequence.class);
         add(new StdDeserializer.ClassDeserializer());
 
         // Then primitive-wrappers (simple):
