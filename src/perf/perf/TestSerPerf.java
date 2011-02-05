@@ -2,6 +2,8 @@ package perf;
 
 import java.io.*;
 
+import de.undercouch.bson4jackson.BsonFactory;
+
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.smile.*;
@@ -88,11 +90,10 @@ public final class TestSerPerf
             int round = (i % 4);
 
             // override?
-            round = 0;
+            round = 4;
 
             long curr = System.currentTimeMillis();
             String msg;
-            boolean lf = (round == 0);
 
             switch (round) {
 
@@ -116,17 +117,18 @@ public final class TestSerPerf
                 sum += testObjectSer(smileFactory, item, REPS+REPS, result);
                 break;
 
+            case 4:
+                msg = "Serialize, BSON";
+                sum += testObjectSer(new ObjectMapper(new BsonFactory()), item, REPS, result);
+                break;
                 
             default:
                 throw new Error("Internal error");
             }
 
             curr = System.currentTimeMillis() - curr;
-            if (lf) {
-                System.out.println();
-            }
-            System.out.println("Test '"+msg+"' -> "+curr+" msecs ("
-                               +(sum & 0xFF)+").");
+//            if (round == 0) {  System.out.println(); }
+            System.out.println("Test '"+msg+"' -> "+curr+" msecs ("+(sum & 0xFF)+").");
             if ((i & 0x1F) == 0) { // GC every 64 rounds
                 System.out.println("[GC]");
                 Thread.sleep(20L);

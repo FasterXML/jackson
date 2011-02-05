@@ -44,4 +44,17 @@ public class TestStringConversions
         byte[] result = mapper.convertValue(encoded, byte[].class);
         assertArrayEquals(input, result);
     }
+    
+    /**
+     * @since 1.7.3
+     */
+    public void testBytestoCharArray() throws Exception
+    {
+        byte[] input = new byte[] { 1, 2, 3, 4, 5, 6, 7 };
+        // first, do baseline encoding
+        char[] expEncoded = mapper.convertValue(input, String.class).toCharArray();
+        // then compare
+        char[] actEncoded = mapper.convertValue(input, char[].class);
+        assertArrayEquals(expEncoded, actEncoded);
+    }
 }

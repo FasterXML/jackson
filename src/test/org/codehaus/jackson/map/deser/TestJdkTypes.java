@@ -147,5 +147,15 @@ public class TestJdkTypes
             verifyException(e, "Can not map JSON null into type double");
         }
     }
-        
+ 
+    /**
+     * Test for [JACKSON-483], allow handling of CharSequence
+     */
+    public void testCharSequence() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        CharSequence cs = mapper.readValue("\"abc\"", CharSequence.class);
+        assertEquals(String.class, cs.getClass());
+        assertEquals("abc", cs.toString());
+    }
 }

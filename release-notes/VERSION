@@ -1,10 +1,21 @@
-Version: 1.7.2
+Version: 1.7.3
 
 Release date:
-  02-Feb-2011
+  xx-Feb-2011
 
 Description:
-  Second patch release for 1.7.
+  Thirf patch release for 1.7.
+
+  Fixes:
+
+  * [JACKSON-483]: allow deserializing CharSequence (also: support
+    conversion from byte[] to char[], assuming base64 encoding)
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.7.2 [02-Feb-2011]
 
   Fixes:
 
@@ -20,10 +31,6 @@ Description:
   * [JACKSON-474] Add ability to pass externally allocated buffer
     for Utf8Generator, SmileGenerator
    (suggested by David Y)
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.7.1 [12-Jan-2010]
 

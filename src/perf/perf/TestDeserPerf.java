@@ -65,7 +65,8 @@ public final class TestDeserPerf
         final SmileFactory smileFactory = new SmileFactory();
         final ObjectMapper smileMapper = new ObjectMapper(smileFactory);
         smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
-        smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
+//        smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
+        smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, false);
 
         byte[] json = jsonMapper.writeValueAsBytes(item);
         System.out.println("Warmed up: data size is "+json.length+" bytes; "+REPS+" reps -> "
@@ -74,6 +75,13 @@ public final class TestDeserPerf
         byte[] smile = smileMapper.writeValueAsBytes(item);
         System.out.println(" smile size: "+smile.length+" bytes");
 
+        byte[] bson;
+        final ObjectMapper bsonMapper = new ObjectMapper(new de.undercouch.bson4jackson.BsonFactory());
+        {
+            bson = bsonMapper.writeValueAsBytes(item);
+            System.out.println(" BSON size: "+bson.length+" bytes");
+        }
+        
         { // verify equality
             System.out.println("Will verify state of Smile...");
             MediaItem result = smileMapper.readValue(smile, 0, smile.length, MediaItem.class);
@@ -106,7 +114,7 @@ public final class TestDeserPerf
         
         while (true) {
 //            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-            int round = 0;
+            int round = 2;
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -132,6 +140,11 @@ public final class TestDeserPerf
             case 3:
                 msg = "Deserialize, manual, Smile";
                 sum += testDeser(smileMapper.getJsonFactory(), smile, REPS * 2);
+                break;
+
+            case 4:
+                msg = "Deserialize, BSON";
+                sum += testDeser(bsonMapper, bson, REPS);
                 break;
                 
             default:

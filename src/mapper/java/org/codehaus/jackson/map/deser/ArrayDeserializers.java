@@ -180,6 +180,10 @@ public class ArrayDeserializers
                 if (ob instanceof String) {
                     return ((String) ob).toCharArray();
                 }
+                // 04-Feb-2011, tatu: byte[] can be converted; assuming base64 is wanted
+                if (ob instanceof byte[]) {
+                    return Base64Variants.getDefaultVariant().encode((byte[]) ob, false).toCharArray();
+                }
                 // not recognized, just fall through
             }
             throw ctxt.mappingException(_valueClass);
