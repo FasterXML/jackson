@@ -2,7 +2,6 @@ package org.codehaus.jackson.jaxb;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.deser.BeanDeserializer;
 import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;

@@ -75,12 +75,14 @@ public final class TestDeserPerf
         byte[] smile = smileMapper.writeValueAsBytes(item);
         System.out.println(" smile size: "+smile.length+" bytes");
 
+        /*
         byte[] bson;
         final ObjectMapper bsonMapper = new ObjectMapper(new de.undercouch.bson4jackson.BsonFactory());
         {
             bson = bsonMapper.writeValueAsBytes(item);
             System.out.println(" BSON size: "+bson.length+" bytes");
         }
+        */
         
         { // verify equality
             System.out.println("Will verify state of Smile...");
@@ -142,10 +144,12 @@ public final class TestDeserPerf
                 sum += testDeser(smileMapper.getJsonFactory(), smile, REPS * 2);
                 break;
 
+                /*
             case 4:
                 msg = "Deserialize, BSON";
                 sum += testDeser(bsonMapper, bson, REPS);
                 break;
+                */
                 
             default:
                 throw new Error("Internal error");

@@ -2,8 +2,7 @@ package org.codehaus.jackson.smile;
 
 import static org.junit.Assert.assertArrayEquals;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -79,13 +78,105 @@ public class TestGeneratorWithRawUtf8 extends SmileTestBase
         }
         assertToken(JsonToken.END_ARRAY, jp.nextToken());
     }
-    
+
+    /**
+     * Test to point out an issue with "raw" UTF-8 encoding
+     * 
+     * @author David Yu
+     */
+    public void testIssue492() throws Exception
+    {
+        doTestIssue492(false);
+        doTestIssue492(true);
+    }
+
     /*
     /**********************************************************
     /* Helper methods
     /**********************************************************
      */
     
+    private void doTestIssue492(boolean asUtf8String) throws Exception
+    {
+        SmileFactory factory = new SmileFactory();
+        
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        SmileGenerator generator = factory.createJsonGenerator(out);
+        
+        generator.writeStartObject();
+        
+        generator.writeFieldName("name");
+        
+        if(asUtf8String)
+        {
+            byte[] text = "PojoFoo".getBytes("ASCII");
+            generator.writeUTF8String(text, 0, text.length);
+        }
+        else
+        {
+            generator.writeString("PojoFoo");
+        }
+        
+        generator.writeFieldName("collection");
+        
+        generator.writeStartObject();
+        
+        generator.writeFieldName("v");
+        
+        generator.writeStartArray();
+        
+        if(asUtf8String)
+        {
+            byte[] text = "1".getBytes("ASCII");
+            generator.writeUTF8String(text, 0, text.length);
+        }
+        else
+        {
+            generator.writeString("1");
+        }
+        
+        generator.writeEndArray();
+        
+        generator.writeEndObject();
+        
+        generator.writeEndObject();
+        
+        generator.close();
+        
+        byte[] data = out.toByteArray();
+        
+        ByteArrayInputStream in = new ByteArrayInputStream(data);
+        SmileParser parser = factory.createJsonParser(in);
+        
+        assertToken(parser.nextToken(), JsonToken.START_OBJECT);
+        
+        assertToken(parser.nextToken(), JsonToken.FIELD_NAME);
+        assertEquals(parser.getCurrentName(), "name");
+        assertToken(parser.nextToken(), JsonToken.VALUE_STRING);
+        assertEquals(parser.getText(), "PojoFoo");
+        
+        assertToken(parser.nextToken(), JsonToken.FIELD_NAME);
+        assertEquals(parser.getCurrentName(), "collection");
+        assertToken(parser.nextToken(), JsonToken.START_OBJECT);
+        
+        assertToken(parser.nextToken(), JsonToken.FIELD_NAME);
+        assertEquals(parser.getCurrentName(), "v");
+        assertToken(parser.nextToken(), JsonToken.START_ARRAY);
+        
+        assertToken(parser.nextToken(), JsonToken.VALUE_STRING);
+        assertEquals(parser.getText(), "1");
+        
+        assertToken(parser.nextToken(), JsonToken.END_ARRAY);
+        assertToken(parser.nextToken(), JsonToken.END_OBJECT);
+        
+        
+        assertToken(parser.nextToken(), JsonToken.END_OBJECT);
+        parser.close();
+        // successful
+        
+        System.err.println("Success");
+    }
+        
     private List<byte[]> generateStrings(Random rnd, int totalLength, boolean includeCtrlChars)
         throws IOException
     {

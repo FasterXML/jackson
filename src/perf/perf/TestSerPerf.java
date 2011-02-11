@@ -2,7 +2,7 @@ package perf;
 
 import java.io.*;
 
-import de.undercouch.bson4jackson.BsonFactory;
+//import de.undercouch.bson4jackson.BsonFactory;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -119,7 +119,9 @@ public final class TestSerPerf
 
             case 4:
                 msg = "Serialize, BSON";
+                /*
                 sum += testObjectSer(new ObjectMapper(new BsonFactory()), item, REPS, result);
+                */
                 break;
                 
             default:
