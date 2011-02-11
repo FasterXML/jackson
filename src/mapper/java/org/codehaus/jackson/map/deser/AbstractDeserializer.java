@@ -66,15 +66,24 @@ public class AbstractDeserializer
         case VALUE_NULL: // should not get this far really but...
             return null;
 
-            // and then most common parts, wrappers...
-            /*
         case START_ARRAY:
+            /* 11-Feb-2011, tatu: Uh. Given that we know very little about the type
+             *   here, we can't be sure but it sure looks like we must have used
+             *   "As.WRAPPER_ARRAY" here. This will NOT work properly if someone
+             *   tries to use "As.WRAPPER_OBJECT"; but let's tackle one issue
+             *   at a time. See [JACKSON-485] for an example of where this fix
+             *   is needed.
+             */
+            return typeDeserializer.deserializeTypedFromAny(jp, ctxt);
+
+            /*
         case START_OBJECT:
         case FIELD_NAME:
              */
         }
 
         // should we call 'fromAny' or 'fromObject'? We should get an object, for abstract types, right?
+        // 11-Feb-2011: not necessarily; for example, when serialize Enums that implement an interface... *sigh*
         //return typeDeserializer.deserializeTypedFromAny(jp, ctxt);
 
         return typeDeserializer.deserializeTypedFromObject(jp, ctxt);

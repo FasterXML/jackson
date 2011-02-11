@@ -55,6 +55,9 @@ public class CollectionDeserializer
         _collectionType = collectionType;
         _valueDeserializer = valueDeser;
         _valueTypeDeserializer = valueTypeDeser;
+        if (ctor == null) {
+            throw new IllegalArgumentException("No default constructor found for container class "+collectionType.getRawClass().getName());
+        }
         _defaultCtor = ctor;
     }
 
