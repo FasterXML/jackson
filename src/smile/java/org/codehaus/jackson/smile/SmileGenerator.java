@@ -343,6 +343,9 @@ public class SmileGenerator
             _seenNameCount = -1;
         } else {
             _seenNames = _smileBufferRecycler.allocSeenNamesBuffer();
+            if (_seenNames == null) {
+                _seenNames = new SharedStringNode[SmileBufferRecycler.DEFAULT_NAME_BUFFER_LENGTH];
+            }
             _seenNameCount = 0;
         }
 
@@ -351,6 +354,9 @@ public class SmileGenerator
             _seenStringValueCount = -1;
         } else {
             _seenStringValues = _smileBufferRecycler.allocSeenStringValuesBuffer();
+            if (_seenStringValues == null) {
+                _seenStringValues = new SharedStringNode[SmileBufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH];
+            }
             _seenStringValueCount = 0;
         }
     }
