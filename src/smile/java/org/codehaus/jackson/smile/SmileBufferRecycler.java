@@ -22,19 +22,13 @@ public class SmileBufferRecycler<T>
 
     public T[] allocSeenNamesBuffer()
     {
+        // 11-Feb-2011, tatu: Used to alloc here; but due to generics, can't easily any more
         return _seenNamesBuffer;
-        /*
-        if (buffer == null) {
-            buffer = new String[DEFAULT_NAME_BUFFER_LENGTH];
-        } else {
-            _seenNamesBuffer = null;
-        }
-        return buffer;
-        */
     }
 
     public T[] allocSeenStringValuesBuffer()
     {
+        // 11-Feb-2011, tatu: Used to alloc here; but due to generics, can't easily any more
         return _seenStringValuesBuffer;
         /*
         if (buffer == null) {
