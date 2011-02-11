@@ -506,7 +506,7 @@ Hannu Leinonen:
 Tim Williamson:
   * Reported [JACKSON-461] ArrayIndexOutOfBoundsException when property is subclass of
     Map with fewer type parameters
-   [1.6.5]
+   [1.6.5
   * Reported [JACKSON-465] Deserialization with @JsonCreator that takes in
    a Map fails
    [1.6.5]
@@ -521,6 +521,9 @@ Christian Naeger:
 Steven Schlansker:
   * [JACKSON-473] JsonMapping$Reference not Serializable
    [1.6.5]
+
+Elliot Barlas:
+  * Reported [JACKSON-491]: Bug in NumberInput.inLongRange, causing false overflows
 
 Ga�l Marziou:   
   * Contributed [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual

@@ -147,8 +147,9 @@ public final class NumberInput
         if (len > cmpLen) return false;
 
         for (int i = 0; i < cmpLen; ++i) {
-            if (digitChars[offset+i] > cmpStr.charAt(i)) {
-                return false;
+            int diff = digitChars[offset+i] - cmpStr.charAt(i);
+            if (diff != 0) {
+                return (diff < 0);
             }
         }
         return true;
@@ -173,8 +174,9 @@ public final class NumberInput
 
         // could perhaps just use String.compareTo()?
         for (int i = 0; i < cmpLen; ++i) {
-            if (numberStr.charAt(i) > cmpStr.charAt(i)) {
-                return false;
+            int diff = numberStr.charAt(i) - cmpStr.charAt(i);
+            if (diff != 0) {
+                return (diff < 0);
             }
         }
         return true;
