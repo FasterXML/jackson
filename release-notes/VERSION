@@ -4,12 +4,14 @@ Release date:
   xx-Feb-2011
 
 Description:
-  Thirf patch release for 1.7.
+  Third patch release for 1.7.
 
   Fixes:
 
   * [JACKSON-483]: allow deserializing CharSequence (also: support
     conversion from byte[] to char[], assuming base64 encoding)
+  * [JACKSON-492]: problem encoding 1 byte length "raw" UTF8 Strings
+    (reported by David Y)
 
 ------------------------------------------------------------------------
 === History: ===

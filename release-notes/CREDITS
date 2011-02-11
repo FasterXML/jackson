@@ -541,6 +541,12 @@ Chris Winters:
    [1.7.1]
 
 Coda Hale:
-  * [JACKSON-462]: Buffer overflow in Utf8Generator#writeFieldName(String)
+  * Reported [JACKSON-462]: Buffer overflow in Utf8Generator#writeFieldName(String)
    [1.7.1]
   
+David Yu:
+  * Suggested [JACKSON-474]: Add ability to pass externally allocated buffer for Utf8Generator, SmileGenerator
+   [1.7.2]
+  * Reported [JACKSON-492], contributed unit test: problem encoding 1 byte length "raw" UTF8 Strings
+   [1.7.3]
+ 

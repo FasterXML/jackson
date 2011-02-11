@@ -160,11 +160,11 @@ public class TestGeneratorWithRawUtf8 extends SmileTestBase
         assertToken(parser.nextToken(), JsonToken.START_OBJECT);
         
         assertToken(parser.nextToken(), JsonToken.FIELD_NAME);
-        assertEquals(parser.getCurrentName(), "v");
+        assertEquals("Should have property with name 'v'", parser.getCurrentName(), "v");
         assertToken(parser.nextToken(), JsonToken.START_ARRAY);
         
         assertToken(parser.nextToken(), JsonToken.VALUE_STRING);
-        assertEquals(parser.getText(), "1");
+        assertEquals("Should get String value '1'", parser.getText(), "1");
         
         assertToken(parser.nextToken(), JsonToken.END_ARRAY);
         assertToken(parser.nextToken(), JsonToken.END_OBJECT);
@@ -172,9 +172,6 @@ public class TestGeneratorWithRawUtf8 extends SmileTestBase
         
         assertToken(parser.nextToken(), JsonToken.END_OBJECT);
         parser.close();
-        // successful
-        
-        System.err.println("Success");
     }
         
     private List<byte[]> generateStrings(Random rnd, int totalLength, boolean includeCtrlChars)

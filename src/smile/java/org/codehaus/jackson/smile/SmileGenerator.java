@@ -1043,12 +1043,20 @@ public class SmileGenerator
          */
         if (len <= MAX_SHARED_STRING_LENGTH_BYTES) { // up to 65 Unicode bytes
             // first: ensure we have enough space
-            if ((_outputTail + len) >= _outputEnd) {
+            if ((_outputTail + len) >= _outputEnd) { // bytes, plus one for type indicator
                 _flushBuffer();
             }
-            _outputBuffer[_outputTail++] = (byte) ((TOKEN_PREFIX_TINY_UNICODE - 2) + len);
-            System.arraycopy(text, offset, _outputBuffer, _outputTail, len);
-            _outputTail += len;
+            /* 11-Feb-2011, tatu: As per [JACKSON-492], mininum length for "Unicode"
+             *    String is 2; 1 byte length must be ASCII.
+             */
+            if (len == 1) {
+                _outputBuffer[_outputTail++] = TOKEN_PREFIX_TINY_ASCII; // length of 1 cancels out (len-1)
+                _outputBuffer[_outputTail++] = text[offset];
+            } else {
+                _outputBuffer[_outputTail++] = (byte) ((TOKEN_PREFIX_TINY_UNICODE - 2) + len);
+                System.arraycopy(text, offset, _outputBuffer, _outputTail, len);
+                _outputTail += len;
+            }
         } else { // "long" String
             // but might still fit within buffer?
             int maxLen = len + len + len + 2;
