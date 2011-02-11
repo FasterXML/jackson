@@ -21,7 +21,7 @@
    -->
 
   <!-- Jackson requires Java5 (enums, some generics) -->
-  <property name="REQ_JDK_VERSION" value="J2SE-1.5" />
+  <property name="REQ_JDK_VERSION" value="J2SE-1.5, JavaSE-1.6" />
 
   <!-- ASL-licensed: core, mapper jars -->
 

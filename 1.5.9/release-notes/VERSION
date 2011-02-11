@@ -1,15 +1,18 @@
-Version: 1.5.8
+Version: 1.5.9
 
-Release date: 21-Dec-2010
+Release date: xx-Feb-2011
 
 Description:
-  Eighth and probably last patch release for 1.5.
+  Ninth and last patch release for 1.5.
 
   Fixes:
 
   * [JACKSON-478] Improve support for 'java.sql.Timestamp' type by allowing
     deserializing textual representations
     (reported by John L)
+  * [JACKSON-481] Add 'JavaSE-1.6' as applicable OSGi env
+  * [JACKSON-491] Bug in NumberInput.inLongRange, causing false overflows
+    (reported by Elliot B)
 
 ------------------------------------------------------------------------
 == History: ==
