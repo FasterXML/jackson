@@ -505,20 +505,23 @@ Hannu Leinonen:
    [1.6.4]
 
 Tim Williamson:
-  * Reported [JACKSON-461] ArrayIndexOutOfBoundsException when property is subclass of
+  * Reported [JACKSON-461]: ArrayIndexOutOfBoundsException when property is subclass of
     Map with fewer type parameters
    [1.6.5]
-  * Reported [JACKSON-465] Deserialization with @JsonCreator that takes in
+  * Reported [JACKSON-465]: Deserialization with @JsonCreator that takes in
    a Map fails
    [1.6.5]
-  * Reported [JACKSON-470] ArrayIndexOutOfBoundsException if @JsonCreator
+  * Reported [JACKSON-470]: ArrayIndexOutOfBoundsException if @JsonCreator
     constructor has @JsonParameter parameters with same name
    [1.6.5]
 
 Christian Naeger:
-  * [JACKSON-468] Method-bound type variables (public <T> T getValue()) not handled
+  * Reported [JACKSON-468]: Method-bound type variables (public <T> T getValue()) not handled
    [1.6.5]
 
 Steven Schlansker:
-  * [JACKSON-473] JsonMapping$Reference not Serializable
+  * Reported [JACKSON-473]: JsonMapping$Reference not Serializable
    [1.6.5]
+
+Elliot Barlas:
+  * Reported [JACKSON-491]: Bug in NumberInput.inLongRange, causing false overflows

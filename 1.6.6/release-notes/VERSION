@@ -9,6 +9,8 @@ Description:
   Fixes:
 
   * [JACKSON-481] Add 'JavaSE-1.6' as applicable OSGi env
+  * [JACKSON-491] Bug in NumberInput.inLongRange, causing false overflows
+   (reported by Elliot B)
 
 ------------------------------------------------------------------------
 == History: ==
