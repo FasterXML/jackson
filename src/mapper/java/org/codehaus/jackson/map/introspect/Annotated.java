@@ -24,6 +24,11 @@ public abstract class Annotated
         return getAnnotation(acls) != null;
     }
 
+    /**
+     * Method that can be used to find actual JDK element that this instance
+     * represents. It is non-null, except for method/constructor parameters
+     * which do not have a JDK counterpart.
+     */
     public abstract AnnotatedElement getAnnotated();
 
     protected abstract int getModifiers();

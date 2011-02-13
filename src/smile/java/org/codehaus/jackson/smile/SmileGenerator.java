@@ -32,6 +32,8 @@ public class SmileGenerator
          * where context is enough to know that content is encoded using this format.
          * Note, however, that omitting header means that default settings for
          * shared names/string values can not be changed.
+         *<p>
+         * Default setting is true, meaning that header will be written.
          */
         WRITE_HEADER(true),
 

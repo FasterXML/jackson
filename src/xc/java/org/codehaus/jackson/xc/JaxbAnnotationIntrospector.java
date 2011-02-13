@@ -860,46 +860,64 @@ public class JaxbAnnotationIntrospector
     protected <A extends Annotation> A findAnnotation(Class<A> annotationClass, Annotated annotated,
                                                       boolean includePackage, boolean includeClass, boolean includeSuperclasses)
     {
-        A annotation = null;
         if (annotated instanceof AnnotatedMethod) {
             PropertyDescriptor pd = findPropertyDescriptor((AnnotatedMethod) annotated);
             if (pd != null) {
-                annotation = new AnnotatedProperty(pd).getAnnotation(annotationClass);
+                A annotation = new AnnotatedProperty(pd).getAnnotation(annotationClass);
+                if (annotation != null) {
+                    return annotation;
+                }
             }
         }
 
-        if (annotation == null) {
-             annotation = annotated.getAnnotated().getAnnotation(annotationClass);
-        }
-        if (annotation == null) {
-            Class memberClass;
-            AnnotatedElement annType = annotated.getAnnotated();
+        AnnotatedElement annType = annotated.getAnnotated();
+        Class memberClass = null;
+        /* 13-Feb-2011, tatu: [JACKSON-495] - need to handle AnnotatedParameter
+         *   bit differently, since there is no JDK counterpart. We can still
+         *   access annotations directly, just using different calls.
+         */
+        if (annotated instanceof AnnotatedParameter) {
+            AnnotatedParameter param = (AnnotatedParameter) annotated;
+            A annotation = param.getAnnotation(annotationClass);
+            if (annotation != null) {
+                return annotation;
+            }
+            memberClass = param.getMember().getDeclaringClass();
+        } else {
+            A annotation = annType.getAnnotation(annotationClass);
+            if (annotation != null) {
+                return annotation;
+            }
             if (annType instanceof Member) {
                 memberClass = ((Member) annType).getDeclaringClass();
                 if (includeClass) {
                     annotation = (A) memberClass.getAnnotation(annotationClass);
+                    if (annotation != null) {
+                        return annotation;
+                    }
                 }
             } else if (annType instanceof Class) {
                 memberClass = (Class) annType;
             } else {
                 throw new IllegalStateException("Unsupported annotated member: " + annotated.getClass().getName());
             }
-
-            if (annotation == null) {
-                if (includeSuperclasses) {
-                    Class superclass = memberClass.getSuperclass();
-                    while (superclass != null && !superclass.equals(Object.class) && annotation == null) {
-                        annotation = (A) superclass.getAnnotation(annotationClass);
-                        superclass = superclass.getSuperclass();
+        }
+        if (memberClass != null) {
+            if (includeSuperclasses) {
+                Class superclass = memberClass.getSuperclass();
+                while (superclass != null && superclass != Object.class) {
+                    A annotation = (A) superclass.getAnnotation(annotationClass);
+                    if (annotation != null) {
+                        return annotation;
                     }
-                }
-
-                if (annotation == null && includePackage) {
-                    annotation = memberClass.getPackage().getAnnotation(annotationClass);
+                    superclass = superclass.getSuperclass();
                 }
             }
+            if (includePackage) {
+                return memberClass.getPackage().getAnnotation(annotationClass);
+            }
         }
-        return annotation;
+        return null;
     }
 
     /**
@@ -909,7 +927,7 @@ public class JaxbAnnotationIntrospector
      * @since 1.5
      */
     protected <A extends Annotation> A findFieldAnnotation(Class<A> annotationType, Class<?> cls,
-                                                      String fieldName)
+                                                          String fieldName)
     {
         do {
             for (Field f : cls.getDeclaredFields()) {
