@@ -24,7 +24,7 @@ public class TestVersions extends main.BaseTest
      * 18-Nov-2010, tatu: Not a good to do this, but has to do, for now...
      */
     private final static int MAJOR_VERSION = 1;
-    private final static int MINOR_VERSION = 7;
+    private final static int MINOR_VERSION = 8;
     
     public void testCoreVersions()
     {

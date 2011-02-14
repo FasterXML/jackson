@@ -50,7 +50,7 @@
     <property name="IMPL_TITLE_SMILE" value="Jackson Binary format (aka Smile) handling functionality" />
     <property name="IMPL_TITLE_MRBEAN" value="Jackson Bean Materializer (aka Mr. Bean)" />
 
-    <property name="IMPL_VERSION" value="1.7.2" />
+    <property name="IMPL_VERSION" value="1.8.0" />
     <property name="IMPL_VENDOR" value="http://fasterxml.com" />
 
     <patternset id="dist-all-source-files">
