@@ -599,7 +599,13 @@ public class BeanSerializerFactory
         AnnotatedClass ac = beanDesc.getClassInfo();
         String[] propOrder = intr.findSerializationPropertyOrder(ac);
         Boolean alpha = intr.findSerializationSortAlphabetically(ac);
-        boolean sort = (alpha != null) && alpha.booleanValue();
+        boolean sort;
+        
+        if (alpha == null) {
+            sort = config.isEnabled(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY);
+        } else {
+            sort = alpha.booleanValue();
+        }
         if (sort || !creatorProps.isEmpty() || propOrder != null) {
             props = _sortBeanProperties(props, creatorProps, propOrder, sort);
         }

@@ -179,9 +179,6 @@ public class SerializationConfig
          * Feature is mostly intended for JAXB compatibility.
          *<p>
          * Default setting is false, meaning root value is not wrapped.
-         *<p>
-         *<b>NOTE</b>: Support for this feature has <b>NOT</b> been
-         * implemented -- it is reserved for future expansion.
          *
          * @since 1.7
          */
@@ -205,6 +202,20 @@ public class SerializationConfig
          * This feature will only allow using the default implementation.
          */
         INDENT_OUTPUT(false),
+
+        /**
+         * Feature that defines default property serialization order:
+         * if enabled, default ordering is alphabetic (similar to
+         * how {@link org.codehaus.jackson.annotate.JsonPropertyOrder#alphabetic()}
+         * works); if disabled, order is unspecified (based on what JDK gives
+         * us, which may be declaration order, but not guaranteed).
+         *<p>
+         * Note that this is just the default behavior, and can be overridden by
+         * explicit overrides in classes.
+         *
+         * @since 1.8
+         */
+        SORT_PROPERTIES_ALPHABETICALLY(false),
         
         /*
         /******************************************************

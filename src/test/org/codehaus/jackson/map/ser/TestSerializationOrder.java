@@ -65,6 +65,13 @@ public class TestSerializationOrder
     	@JsonProperty("b") public String xB() { return "b"; }
     	@JsonProperty("x") public String aX() { return "x"; }
     }
+
+    static class BeanFor459 {
+        public int d = 4;
+        public int c = 3;
+        public int b = 2;
+        public int a = 1;
+    }
     
     /*
     /*********************************************
@@ -102,5 +109,16 @@ public class TestSerializationOrder
         assertEquals("{\"a\":\"a\",\"b\":\"b\",\"x\":\"x\",\"z\":\"z\"}",
         		serializeAsString(new BeanFor268()));
     }
-    
+
+    /**
+     * Test for [JACKSON-459]
+     * 
+     * @since 1.8
+     */
+    public void testOrderWithFeature() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.configure(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY, true);
+        assertEquals("{\"a\":1,\"b\":2,\"c\":3,\"d\":4}", serializeAsString(m, new BeanFor459()));
+    }
 }

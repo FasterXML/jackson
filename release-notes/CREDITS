@@ -542,6 +542,9 @@ Tauren Mills:
 Chris Winters:
   * Reported [JACKSON-457] Misspelled method in Module ("getSeserializationConfig")
    [1.7.1]
+  * Suggested [JACKSON-459]: Add mapper-level configuration to set default serialization
+    order be alphabetic (by property name).
+   [1.8.0]
 
 Coda Hale:
   * Reported [JACKSON-462]: Buffer overflow in Utf8Generator#writeFieldName(String)

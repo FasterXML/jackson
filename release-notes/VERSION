@@ -1,17 +1,17 @@
-Version: 1.7.3
+Version: 1.8.0
 
 Release date:
-  xx-Feb-2011
+  xx-Mar-2011
 
 Description:
-  Third patch release for 1.7.
+
+  Another minor release...
 
   Fixes:
 
-  * [JACKSON-483]: allow deserializing CharSequence (also: support
-    conversion from byte[] to char[], assuming base64 encoding)
-  * [JACKSON-492]: problem encoding 1 byte length "raw" UTF8 Strings
-    (reported by David Y)
+  * [JACKSON-459]: Add mapper-level configuration to set default serialization
+    order be alphabetic (by property name).
+   (suggested by Chris W)
 
 ------------------------------------------------------------------------
 === History: ===
