@@ -4,6 +4,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Type;
 
+import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.map.type.TypeFactory;
+
 /**
  * Object that represents method parameters, mostly so that associated
  * annotations can be processed conveniently.
@@ -16,9 +19,9 @@ public final class AnnotatedParameter
     final AnnotationMap _annotations;
 
     /*
-    //////////////////////////////////////////////////////
-    // Life-cycle
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
      */
 
     public AnnotatedParameter(Type type,  AnnotationMap ann)
@@ -33,40 +36,43 @@ public final class AnnotatedParameter
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Annotated impl
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated impl
+    /**********************************************************
      */
 
     /// Unfortunately, there is no matching JDK type...
+    @Override
     public AnnotatedElement getAnnotated() { return null; }
 
     /// Unfortunately, there is no matching JDK type...
+    @Override
     public int getModifiers() { return 0; }
 
+    @Override
     public String getName() { return ""; }
 
+    @Override
     public <A extends Annotation> A getAnnotation(Class<A> acls)
     {
         return _annotations.get(acls);
     }
 
+    @Override
     public Type getGenericType() {
-        /* Hmmh. Could figure out real type (require it to be passed).
-         * But for now, let's assume we don't really need this method.
-         */
-        return getRawType();
+	return _type;
     }
 
+    @Override
     public Class<?> getRawType() {
-        // should never be called
-        throw new IllegalStateException();
+        JavaType t = TypeFactory.type(_type);
+        return t.getRawClass();
     }
     
     /*
-    //////////////////////////////////////////////////////
-    // Extended API
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Extended API
+    /**********************************************************
      */
 
     public Type getParameterType() { return _type; }

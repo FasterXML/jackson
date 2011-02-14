@@ -13,6 +13,9 @@ Description:
   * [JACKSON-481] Add 'JavaSE-1.6' as applicable OSGi env
   * [JACKSON-491] Bug in NumberInput.inLongRange, causing false overflows
     (reported by Elliot B)
+  * [JACKSON-495] NPE at JaxbAnnotationIntrospector, with @JsonCreator
+   annotations
+   (reported by Gili)
 
 ------------------------------------------------------------------------
 == History: ==

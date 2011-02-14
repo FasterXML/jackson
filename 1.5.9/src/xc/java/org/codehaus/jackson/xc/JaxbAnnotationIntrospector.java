@@ -830,7 +830,13 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
         }
 
         if (annotation == null) {
-             annotation = annotated.getAnnotated().getAnnotation(annotationClass);
+	    // work-around for [JACKSON-495]
+	    if (annotated instanceof AnnotatedParameter) {
+		return null;
+            }
+	    if (annotated.getAnnotated() != null) {
+                annotation = annotated.getAnnotated().getAnnotation(annotationClass);
+            }
         }
         if (annotation == null) {
             Class memberClass;
@@ -1138,6 +1144,11 @@ public class JaxbAnnotationIntrospector extends AnnotationIntrospector
     @SuppressWarnings("unchecked")
     protected XmlAdapter<Object,Object> findAdapter(Annotated am)
     {
+	// Quick patch for [JACKSON-495]
+	if (am instanceof AnnotatedParameter) {
+            return null;
+        }
+
         XmlAdapter adapter = null;
         Class potentialAdaptee;
         boolean isMember;
