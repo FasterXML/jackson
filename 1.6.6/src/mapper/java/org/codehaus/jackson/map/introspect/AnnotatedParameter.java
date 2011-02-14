@@ -4,6 +4,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Type;
 
+import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.map.type.TypeFactory;
+
 /**
  * Object that represents method parameters, mostly so that associated
  * annotations can be processed conveniently.
@@ -57,16 +60,13 @@ public final class AnnotatedParameter
 
     @Override
     public Type getGenericType() {
-        /* Hmmh. Could figure out real type (require it to be passed).
-         * But for now, let's assume we don't really need this method.
-         */
-        return getRawType();
+	return _type;
     }
 
     @Override
     public Class<?> getRawType() {
-        // should never be called
-        throw new IllegalStateException();
+        JavaType t = TypeFactory.type(_type);
+        return t.getRawClass();
     }
     
     /*

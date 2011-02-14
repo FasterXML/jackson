@@ -908,7 +908,7 @@ public class JaxbAnnotationIntrospector
             }
         }
 
-        if (annotation == null) {
+        if (annotation == null && annotated.getAnnotated() != null) {
              annotation = annotated.getAnnotated().getAnnotation(annotationClass);
         }
         if (annotation == null) {
@@ -921,11 +921,14 @@ public class JaxbAnnotationIntrospector
                 }
             } else if (annType instanceof Class) {
                 memberClass = (Class) annType;
-            } else {
-                throw new IllegalStateException("Unsupported annotated member: " + annotated.getClass().getName());
+            } else if (annotated instanceof AnnotatedParameter) {
+		// Work-around for [JACKSON-495]
+		memberClass = null;
+	    } else  {
+		throw new IllegalStateException("Unsupported annotated member: " + annotated.getClass().getName());
             }
 
-            if (annotation == null) {
+            if (annotation == null && memberClass != null) {
                 if (includeSuperclasses) {
                     Class superclass = memberClass.getSuperclass();
                     while (superclass != null && !superclass.equals(Object.class) && annotation == null) {

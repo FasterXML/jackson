@@ -525,3 +525,9 @@ Steven Schlansker:
 
 Elliot Barlas:
   * Reported [JACKSON-491]: Bug in NumberInput.inLongRange, causing false overflows
+   [1.6.6]
+
+Gili (cowwoc):
+  * Reported [JACKSON-495] NPE at JaxbAnnotationIntrospector, with @JsonCreator
+   annotations
+   [1.6.6]
