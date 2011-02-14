@@ -105,6 +105,14 @@ public class TestIntrospectorPair
         public String string;
     }
 
+    // Testing [JACKSON-495]
+    static class CreatorBean {
+        @JsonCreator
+        public CreatorBean(@JsonProperty("name") String name) {
+            ;
+        }
+    }
+    
     /*
     /**********************************************************
     /* Unit tests
@@ -289,5 +297,17 @@ public class TestIntrospectorPair
         pair = new AnnotationIntrospector.Pair(_jaxbAI, _jacksonAI);
         assertNull(pair.findRootName(AnnotatedClass.construct(NamedBean.class, pair, null)));
         assertEquals("test", pair.findRootName(AnnotatedClass.construct(NamespaceBean.class, pair, null)));
+    }
+
+    /**
+     * Test that will just use Jackson annotations, but did trigger [JACKSON-495] due to a bug
+     * in JAXB annotation introspector.
+     */
+    public void testIssue495() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getDeserializationConfig().setAnnotationIntrospector(new AnnotationIntrospector.Pair(_jacksonAI, _jaxbAI));
+        CreatorBean bean = mapper.readValue("{\"name\":\"foo\"}", CreatorBean.class);
+        assertNotNull(bean);
     }
 }
