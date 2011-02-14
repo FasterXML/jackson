@@ -1085,16 +1085,22 @@ public class JaxbAnnotationIntrospector
         }
 
         // 09-Nov-2010, tatu: Not quite sure why we are to check declaring class... but that's how code was:
-        Class<?> potentialAdaptee = ((Member) am.getAnnotated()).getDeclaringClass();
-        XmlJavaTypeAdapter adapterInfo = (XmlJavaTypeAdapter) potentialAdaptee.getAnnotation(XmlJavaTypeAdapter.class);
-        if (adapterInfo != null) { // should we try caching this?
-            XmlAdapter<Object,Object> adapter = checkAdapter(adapterInfo, memberType);
-            if (adapter != null) {
-                return adapter;
+        Member member = (Member) am.getAnnotated();
+        // [JACKSON-495]: Will be null for AnnotatedParam -- note, probably should find declaring class for it; won't for now
+        if (member != null) {
+            Class<?> potentialAdaptee = member.getDeclaringClass();
+            if (potentialAdaptee != null) {
+                XmlJavaTypeAdapter adapterInfo = (XmlJavaTypeAdapter) potentialAdaptee.getAnnotation(XmlJavaTypeAdapter.class);
+                if (adapterInfo != null) { // should we try caching this?
+                    XmlAdapter<Object,Object> adapter = checkAdapter(adapterInfo, memberType);
+                    if (adapter != null) {
+                        return adapter;
+                    }
+                }
             }
         }
 
-        adapterInfo = findAnnotation(XmlJavaTypeAdapter.class, am, true, false, false);
+        XmlJavaTypeAdapter adapterInfo = findAnnotation(XmlJavaTypeAdapter.class, am, true, false, false);
         if (adapterInfo != null) {
             XmlAdapter<Object,Object> adapter = checkAdapter(adapterInfo, memberType);
             if (adapter != null) {
