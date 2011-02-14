@@ -179,9 +179,6 @@ public class SerializationConfig
          * Feature is mostly intended for JAXB compatibility.
          *<p>
          * Default setting is false, meaning root value is not wrapped.
-         *<p>
-         *<b>NOTE</b>: Support for this feature has <b>NOT</b> been
-         * implemented -- it is reserved for future expansion.
          *
          * @since 1.7
          */
