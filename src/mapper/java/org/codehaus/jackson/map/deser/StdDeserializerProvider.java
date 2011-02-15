@@ -300,12 +300,15 @@ public class StdDeserializerProvider
         boolean isResolvable = (deser instanceof ResolvableDeserializer);
         boolean addToCache = (deser.getClass() == BeanDeserializer.class);
         if (!addToCache) {
-            AnnotationIntrospector aintr = config.getAnnotationIntrospector();
-            // note: pass 'null' to prevent mix-ins from being used
-            AnnotatedClass ac = AnnotatedClass.construct(deser.getClass(), aintr, null);
-            Boolean cacheAnn = aintr.findCachability(ac);
-            if (cacheAnn != null) {
-                addToCache = cacheAnn.booleanValue();
+            // 14-Feb-2011, tatu: As per [JACKSON-487], try fully blocking annotation access:
+            if (config.isEnabled(DeserializationConfig.Feature.USE_ANNOTATIONS)) {
+                AnnotationIntrospector aintr = config.getAnnotationIntrospector();
+                // note: pass 'null' to prevent mix-ins from being used
+                AnnotatedClass ac = AnnotatedClass.construct(deser.getClass(), aintr, null);
+                Boolean cacheAnn = aintr.findCachability(ac);
+                if (cacheAnn != null) {
+                    addToCache = cacheAnn.booleanValue();
+                }
             }
         }
         /* we will temporarily hold on to all created deserializers (to

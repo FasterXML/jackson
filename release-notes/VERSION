@@ -12,6 +12,8 @@ Description:
   * [JACKSON-459]: Add mapper-level configuration to set default serialization
     order be alphabetic (by property name).
    (suggested by Chris W)
+  * [JACKSON-487]: Block all annotation access if SerializationConfig.Feature.USE_ANNOTATIONS
+    (and ditto for DeserializationConfig) is disabled; to help with Android, missing JAXB annotations
 
 ------------------------------------------------------------------------
 === History: ===

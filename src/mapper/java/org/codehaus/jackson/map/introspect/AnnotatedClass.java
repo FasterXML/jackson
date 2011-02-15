@@ -13,6 +13,8 @@ import org.codehaus.jackson.map.util.ClassUtil;
 public final class AnnotatedClass
     extends Annotated
 {
+    private final static AnnotationMap[] NO_ANNOTATION_MAPS = new AnnotationMap[0];
+    
     /*
     /**********************************************************
     /* Configuration
@@ -398,20 +400,22 @@ public final class AnnotatedClass
         }
 
 
-        /* And then... let's remove all constructors that are
-         * deemed to be ignorable after all annotations have been
-         * properly collapsed.
+        /* And then... let's remove all constructors that are deemed
+         * ignorable after all annotations have been properly collapsed.
          */
-        if (_defaultConstructor != null) {
-            if (_annotationIntrospector.isIgnorableConstructor(_defaultConstructor)) {
-                _defaultConstructor = null;
+        // 14-Feb-2011, tatu: AnnotationIntrospector is null if annotations not enabled; if so, can skip:
+        if (_annotationIntrospector != null) {
+            if (_defaultConstructor != null) {
+                if (_annotationIntrospector.isIgnorableConstructor(_defaultConstructor)) {
+                    _defaultConstructor = null;
+                }
             }
-        }
-        if (_constructors != null) {
-            // count down to allow safe removal
-            for (int i = _constructors.size(); --i >= 0; ) {
-                if (_annotationIntrospector.isIgnorableConstructor(_constructors.get(i))) {
-                    _constructors.remove(i);
+            if (_constructors != null) {
+                // count down to allow safe removal
+                for (int i = _constructors.size(); --i >= 0; ) {
+                    if (_annotationIntrospector.isIgnorableConstructor(_constructors.get(i))) {
+                        _constructors.remove(i);
+                    }
                 }
             }
         }
@@ -441,11 +445,13 @@ public final class AnnotatedClass
                 _addFactoryMixIns(_primaryMixIn);
             }
             // anything to ignore at this point?
-            if (_creatorMethods != null) {
-                // count down to allow safe removal
-                for (int i = _creatorMethods.size(); --i >= 0; ) {
-                    if (_annotationIntrospector.isIgnorableMethod(_creatorMethods.get(i))) {
-                        _creatorMethods.remove(i);
+            if (_annotationIntrospector != null) {
+                if (_creatorMethods != null) {
+                    // count down to allow safe removal
+                    for (int i = _creatorMethods.size(); --i >= 0; ) {
+                        if (_annotationIntrospector.isIgnorableMethod(_creatorMethods.get(i))) {
+                            _creatorMethods.remove(i);
+                        }
                     }
                 }
             }
@@ -549,32 +555,35 @@ public final class AnnotatedClass
          * exposing Object#hashCode (alas, Object#getClass can NOT be
          * exposed, see [JACKSON-140])
          */
-        if (!mixins.isEmpty()) {
-            Iterator<AnnotatedMethod> it = mixins.iterator();
-            while (it.hasNext()) {
-                AnnotatedMethod mixIn = it.next();
-                try {
-                    Method m = Object.class.getDeclaredMethod(mixIn.getName(), mixIn.getParameterClasses());
-                    if (m != null) {
-                        AnnotatedMethod am = _constructMethod(m);
-                        _addMixOvers(mixIn.getAnnotated(), am, false);
-                        _memberMethods.add(am);
-                    }
-                } catch (Exception e) { }
+        // 14-Feb-2011, tatu: AnnotationIntrospector is null if annotations not enabled; if so, can skip:
+        if (_annotationIntrospector != null) {
+            if (!mixins.isEmpty()) {
+                Iterator<AnnotatedMethod> it = mixins.iterator();
+                while (it.hasNext()) {
+                    AnnotatedMethod mixIn = it.next();
+                    try {
+                        Method m = Object.class.getDeclaredMethod(mixIn.getName(), mixIn.getParameterClasses());
+                        if (m != null) {
+                            AnnotatedMethod am = _constructMethod(m);
+                            _addMixOvers(mixIn.getAnnotated(), am, false);
+                            _memberMethods.add(am);
+                        }
+                    } catch (Exception e) { }
+                }
             }
-        }
-
-        /* And last but not least: let's remove all methods that are
-         * deemed to be ignorable after all annotations have been
-         * properly collapsed.
-         */
-        Iterator<AnnotatedMethod> it = _memberMethods.iterator();
-        while (it.hasNext()) {
-            AnnotatedMethod am = it.next();
-            if (_annotationIntrospector.isIgnorableMethod(am)) {
-                it.remove();
-                if (collectIgnored) {
-                    _ignoredMethods = ArrayBuilders.addToList(_ignoredMethods, am);
+    
+            /* And last but not least: let's remove all methods that are
+             * deemed to be ignorable after all annotations have been
+             * properly collapsed.
+             */
+            Iterator<AnnotatedMethod> it = _memberMethods.iterator();
+            while (it.hasNext()) {
+                AnnotatedMethod am = it.next();
+                if (_annotationIntrospector.isIgnorableMethod(am)) {
+                    it.remove();
+                    if (collectIgnored) {
+                        _ignoredMethods = ArrayBuilders.addToList(_ignoredMethods, am);
+                    }
                 }
             }
         }
@@ -668,20 +677,19 @@ public final class AnnotatedClass
         LinkedHashMap<String,AnnotatedField> foundFields = new LinkedHashMap<String,AnnotatedField>();
         _addFields(foundFields, _class);
 
-        /* And last but not least: let's remove all fields that are
-         * deemed to be ignorable after all annotations have been
-         * properly collapsed.
+        /* And last but not least: let's remove all fields that are deemed
+         * ignorable after all annotations have been properly collapsed.
          */
-        Iterator<Map.Entry<String,AnnotatedField>> it = foundFields.entrySet().iterator();
-        while (it.hasNext()) {
-            AnnotatedField f = it.next().getValue();
-            if (_annotationIntrospector.isIgnorableField(f)) {
-                it.remove();
-                if (collectIgnored) {
-                    _ignoredFields = ArrayBuilders.addToList(_ignoredFields, f);
+        if (_annotationIntrospector != null) {
+            Iterator<Map.Entry<String,AnnotatedField>> it = foundFields.entrySet().iterator();
+            while (it.hasNext()) {
+                AnnotatedField f = it.next().getValue();
+                if (_annotationIntrospector.isIgnorableField(f)) {
+                    it.remove();
+                    if (collectIgnored) {
+                        _ignoredFields = ArrayBuilders.addToList(_ignoredFields, f);
+                    }
                 }
-            } else {
-                
             }
         }
         if (foundFields.isEmpty()) {
@@ -765,24 +773,37 @@ public final class AnnotatedClass
     {
         /* note: parameter annotations not used for regular (getter, setter)
          * methods; only for creator methods (static factory methods)
+         * -- at least not yet!
          */
+        if (_annotationIntrospector == null) { // when annotation processing is disabled
+            return new AnnotatedMethod(m, _emptyAnnotationMap(), null);
+        }
         return new AnnotatedMethod(m, _collectRelevantAnnotations(m.getDeclaredAnnotations()), null);
     }
 
     protected AnnotatedConstructor _constructConstructor(Constructor<?> ctor, boolean defaultCtor)
     {
+        if (_annotationIntrospector == null) { // when annotation processing is disabled
+            return new AnnotatedConstructor(ctor, _emptyAnnotationMap(), _emptyAnnotationMaps(ctor.getParameterTypes().length));
+        }
         return new AnnotatedConstructor(ctor, _collectRelevantAnnotations(ctor.getDeclaredAnnotations()),
                                         defaultCtor ? null :  _collectRelevantAnnotations(ctor.getParameterAnnotations()));
     }
 
     protected AnnotatedMethod _constructCreatorMethod(Method m)
     {
+        if (_annotationIntrospector == null) { // when annotation processing is disabled
+            return new AnnotatedMethod(m, _emptyAnnotationMap(), _emptyAnnotationMaps(m.getParameterTypes().length));
+        }
         return new AnnotatedMethod(m, _collectRelevantAnnotations(m.getDeclaredAnnotations()),
                                    _collectRelevantAnnotations(m.getParameterAnnotations()));
     }
 
     protected AnnotatedField _constructField(Field f)
     {
+        if (_annotationIntrospector == null) { // when annotation processing is disabled
+            return new AnnotatedField(f, _emptyAnnotationMap());
+        }
         return new AnnotatedField(f, _collectRelevantAnnotations(f.getDeclaredAnnotations()));
     }
 
@@ -809,6 +830,21 @@ public final class AnnotatedClass
         return annMap;
     }
  
+    private AnnotationMap _emptyAnnotationMap() {
+        return new AnnotationMap();
+    }
+
+    private AnnotationMap[] _emptyAnnotationMaps(int count) {
+        if (count == 0) {
+            return NO_ANNOTATION_MAPS;
+        }
+        AnnotationMap[] maps = new AnnotationMap[count];
+        for (int i = 0; i < count; ++i) {
+            maps[i] = _emptyAnnotationMap();
+        }
+        return maps;
+    }
+    
     /*
     /**********************************************************
     /* Helper methods, inclusion filtering

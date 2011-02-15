@@ -783,6 +783,18 @@ public class SerializationConfig
     public <T extends BeanDescription> T introspectDirectClassAnnotations(Class<?> cls) {
         return (T) _classIntrospector.forDirectClassAnnotations(this, cls, this);
     }
+
+    /**
+     * Method for determining whether annotation processing is enabled or not
+     * (default settings are typically that it is enabled; must explicitly disable).
+     * 
+     * @return True if annotation processing is enabled; false if not
+     * 
+     * @since 1.8
+     */
+    public boolean isAnnotationProcessingEnabled() {
+        return isEnabled(SerializationConfig.Feature.USE_ANNOTATIONS);
+    }
     
     /*
     /**********************************************************

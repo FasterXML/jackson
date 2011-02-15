@@ -197,4 +197,14 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * not from super types.
      */
     public <DESC extends BeanDescription> DESC introspectDirectClassAnnotations(Class<?> cls);
+
+    /**
+     * Specific accessor for determining whether annotation processing is enabled or not
+     * (default settings are typically that it is enabled; must explicitly disable).
+     * 
+     * @return True if annotation processing is enabled; false if not
+     * 
+     * @since 1.8
+     */
+    public boolean isAnnotationProcessingEnabled();
 }

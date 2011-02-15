@@ -142,17 +142,18 @@ public class BasicClassIntrospector
 
     @Override
     public BasicBeanDescription forDeserialization(DeserializationConfig cfg,
-                                                   JavaType type,
-                                                   MixInResolver r)
+            JavaType type, MixInResolver r)
     {
-        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), ai, r);
+        boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
+        AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
+        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
         // everything needed for deserialization, including ignored methods
         ac.resolveMemberMethods(getDeserializationMethodFilter(cfg), true);
         // include all kinds of creator methods:
         ac.resolveCreators(true);
         // yes, we need info on ignored fields as well
         ac.resolveFields(true);
+        // Note: can't pass null AnnotationIntrospector for this...
         return new BasicBeanDescription(type, ac, ai);
     }
 
@@ -160,8 +161,9 @@ public class BasicClassIntrospector
     public BasicBeanDescription forCreation(DeserializationConfig cfg,
             JavaType type, MixInResolver r)
     {
-        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), ai, r);
+        boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
+        AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
+        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
         ac.resolveCreators(true);
         return new BasicBeanDescription(type, ac, ai);
     }
@@ -170,8 +172,9 @@ public class BasicClassIntrospector
     public BasicBeanDescription forClassAnnotations(MapperConfig<?> cfg,
             Class<?> c, MixInResolver r)
     {
-        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(c, ai, r);
+        boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
+        AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
+        AnnotatedClass ac = AnnotatedClass.construct(c, (useAnnotations ? ai : null), r);
         return new BasicBeanDescription(TypeFactory.type(c), ac, ai);
     }
 
@@ -179,8 +182,9 @@ public class BasicClassIntrospector
     public BasicBeanDescription forDirectClassAnnotations(MapperConfig<?> cfg,
             Class<?> c, MixInResolver r)
     {
-        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(c, ai, r);
+        boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
+        AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
+        AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(c, (useAnnotations ? ai : null), r);
         return new BasicBeanDescription(TypeFactory.type(c), ac, ai);
     }
     
