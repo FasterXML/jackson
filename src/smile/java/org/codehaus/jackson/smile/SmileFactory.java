@@ -4,11 +4,14 @@ import java.io.*;
 import java.net.URL;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.format.InputAccessor;
+import org.codehaus.jackson.format.MatchStrength;
 import org.codehaus.jackson.io.IOContext;
 
 /**
  * Factory used for constructing {@link SmileParser} and {@link SmileGenerator}
- * instances.
+ * instances; both of which handle
+ * <a href="http://wiki.fasterxml.com/SmileFormat">Smile</a> encoded data.
  *<p>
  * Extends {@link JsonFactory} mostly so that users can actually use it in place
  * of regular non-Smile factory instances.
@@ -25,6 +28,12 @@ import org.codehaus.jackson.io.IOContext;
  */
 public class SmileFactory extends JsonFactory
 {
+    /**
+     * Name used to identify Smile format.
+     * (and returned by {@link #getFormatName()}
+     */
+    public final static String FORMAT_NAME_SMILE = "Smile";
+    
     /**
      * Bitfield (set of flags) of all parser features that are enabled
      * by default.
@@ -80,6 +89,28 @@ public class SmileFactory extends JsonFactory
         _cfgDelegateToTextual = state;
     }
 
+    /*
+    /**********************************************************
+    /* Format detection functionality (since 1.8)
+    /**********************************************************
+     */
+    
+    @Override
+    public String getFormatName()
+    {
+        return FORMAT_NAME_SMILE;
+    }
+    
+    /**
+     * Sub-classes need to override this method (as of 1.8)
+     */
+    @Override
+    public MatchStrength hasFormat(InputAccessor acc) throws IOException
+    {
+        // !!! TODO: implement properly
+        return MatchStrength.INCONCLUSIVE;
+    }
+    
     /*
     /**********************************************************
     /* Configuration, parser settings
@@ -231,19 +262,13 @@ public class SmileFactory extends JsonFactory
     {
         return createJsonGenerator(out);
     }
-    
-    /*
-    /**********************************************************
-    /* Extended public API
-    /**********************************************************
-     */
 
     /**
      * Since Smile format always uses UTF-8 internally, no encoding need
      * to be passed to this method.
      */
-    public SmileGenerator createJsonGenerator(OutputStream out)
-        throws IOException
+    @Override
+    public SmileGenerator createJsonGenerator(OutputStream out) throws IOException
     {
         // false -> we won't manage the stream unless explicitly directed to
         IOContext ctxt = _createContext(out, false);

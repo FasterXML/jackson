@@ -18,6 +18,8 @@ import java.io.*;
 import java.lang.ref.SoftReference;
 import java.net.URL;
 
+import org.codehaus.jackson.format.InputAccessor;
+import org.codehaus.jackson.format.MatchStrength;
 import org.codehaus.jackson.io.*;
 import org.codehaus.jackson.impl.ByteSourceBootstrapper;
 import org.codehaus.jackson.impl.ReaderBasedParser;
@@ -48,9 +50,14 @@ import org.codehaus.jackson.util.VersionUtil;
  *
  * @author Tatu Saloranta
  */
-public class JsonFactory
-    implements Versioned
+public class JsonFactory implements Versioned
 {
+    /**
+     * Name used to identify JSON format
+     * (and returned by {@link #getFormatName()}
+     */
+    public final static String FORMAT_NAME_JSON = "JSON";
+    
     /**
      * Bitfield (set of flags) of all parser features that are enabled
      * by default.
@@ -126,6 +133,47 @@ public class JsonFactory
 
     public JsonFactory(ObjectCodec oc) { _objectCodec = oc; }
 
+    /*
+    /**********************************************************
+    /* Format detection functionality (since 1.8)
+    /**********************************************************
+     */
+
+    /**
+     * Method that returns short textual id identifying format
+     * this factory supports.
+     *<p>
+     * Note: sub-classes should override this method; default
+     * implementation will return null for all sub-classes
+     * 
+     * @since 1.8
+     */
+    public String getFormatName()
+    {
+        /* Somewhat nasty check: since we can't make this abstract
+         * (due to backwards compatibility concerns), need to prevent
+         * format name "leakage"
+         */
+        if (getClass() == JsonFactory.class) {
+            return FORMAT_NAME_JSON;
+        }
+        return null;
+    }
+
+    public MatchStrength hasFormat(InputAccessor acc) throws IOException
+    {
+        // since we can't keep this abstract, only implement for "vanilla" instance
+        if (getClass() == JsonFactory.class) {
+            return hasJSONFormat(acc);
+        }
+        return null;
+    }
+
+    protected static MatchStrength hasJSONFormat(InputAccessor acc) throws IOException
+    {
+        return null;
+    }
+    
     /*
     /**********************************************************
     /* Versioned
@@ -318,6 +366,13 @@ public class JsonFactory
     /**********************************************************
      */
 
+    /**
+     * Method for associating a {@link ObjectCodec} (typically
+     * a {@link org.codehaus.jackson.map.ObjectMapper}) with
+     * this factory (and more importantly, parsers and generators
+     * it constructs). This is needed to use data-binding methods
+     * of {@link JsonParser} and {@link JsonGenerator} instances.
+     */
     public JsonFactory setCodec(ObjectCodec oc) {
         _objectCodec = oc;
         return this;
@@ -332,9 +387,9 @@ public class JsonFactory
      */
 
     /**
-     * Method for constructing json parser instance to parse
+     * Method for constructing JSON parser instance to parse
      * contents of specified file. Encoding is auto-detected
-     * from contents according to json specification recommended
+     * from contents according to JSON specification recommended
      * mechanism.
      *<p>
      * Underlying input stream (needed for reading contents)
@@ -350,10 +405,10 @@ public class JsonFactory
     }
 
     /**
-     * Method for constructing json parser instance to parse
+     * Method for constructing JSON parser instance to parse
      * contents of resource reference by given URL.
      * Encoding is auto-detected
-     * from contents according to json specification recommended
+     * from contents according to JSON specification recommended
      * mechanism.
      *<p>
      * Underlying input stream (needed for reading contents)
@@ -369,7 +424,7 @@ public class JsonFactory
     }
 
     /**
-     * Method for constructing json parser instance to parse
+     * Method for constructing JSON parser instance to parse
      * the contents accessed via specified input stream.
      *<p>
      * The input stream will <b>not be owned</b> by
@@ -390,7 +445,7 @@ public class JsonFactory
     }
 
     /**
-     * Method for constructing json parser instance to parse
+     * Method for constructing parser for parsing
      * the contents accessed via specified Reader.
      <p>
      * The read stream will <b>not be owned</b> by
@@ -408,18 +463,34 @@ public class JsonFactory
 	return _createJsonParser(r, _createContext(r, false));
     }
 
+    /**
+     * Method for constructing parser for parsing
+     * the contents of given byte array.
+     */
     public JsonParser createJsonParser(byte[] data)
         throws IOException, JsonParseException
     {
         return _createJsonParser(data, 0, data.length, _createContext(data, true));
     }
 
+    /**
+     * Method for constructing parser for parsing
+     * the contents of given byte array.
+     * 
+     * @param data Buffer that contains data to parse
+     * @param offset Offset of the first data byte within buffer
+     * @param len Length of contents to parse within buffer
+     */
     public JsonParser createJsonParser(byte[] data, int offset, int len)
         throws IOException, JsonParseException
     {
 	return _createJsonParser(data, offset, len, _createContext(data, true));
     }
 
+    /**
+     * Method for constructing parser for parsing
+     * contens of given String.
+     */
     public JsonParser createJsonParser(String content)
         throws IOException, JsonParseException
     {
@@ -447,6 +518,9 @@ public class JsonFactory
      * {@link org.codehaus.jackson.JsonGenerator.Feature#AUTO_CLOSE_TARGET}
      * is enabled).
      * Using application needs to close it explicitly if this is the case.
+     *<p>
+     * Note: there are formats that use fixed encoding (like most binary data formats)
+     * and that ignore passed in encoding.
      *
      * @param out OutputStream to use for writing JSON content 
      * @param enc Character encoding to use
@@ -460,13 +534,6 @@ public class JsonFactory
         if (enc == JsonEncoding.UTF8) {
             return _createUTF8JsonGenerator(out, ctxt);
         }
-        // !!! TEST
-        /*
-        if (true) {
-            ctxt.setEncoding(JsonEncoding.UTF8);
-            return _createJsonGenerator(_createWriter(out, JsonEncoding.UTF8, ctxt), ctxt);
-        }
-        */
 	return _createJsonGenerator(_createWriter(out, enc, ctxt), ctxt);
     }
 
@@ -491,7 +558,19 @@ public class JsonFactory
     }
 
     /**
-     * Method for constructing json generator for writing json content
+     * Convenience method for constructing generator that uses default
+     * encoding of the format (UTF-8 for JSON and most other data formats).
+     *<p>
+     * Note: there are formats that use fixed encoding (like most binary data formats).
+     * 
+     * @since 1.8
+     */
+    public JsonGenerator createJsonGenerator(OutputStream out) throws IOException {
+        return createJsonGenerator(out, JsonEncoding.UTF8);
+    }
+    
+    /**
+     * Method for constructing JSON generator for writing JSON content
      * to specified file, overwriting contents it might have (or creating
      * it if such file does not yet exist).
      * Encoding to use must be specified, and needs to be one of available

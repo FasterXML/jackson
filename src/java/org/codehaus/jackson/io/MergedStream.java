@@ -24,7 +24,7 @@ public final class MergedStream
     final int _end;
 
     public MergedStream(IOContext context,
-                        InputStream in, byte[] buf, int start, int end)
+            InputStream in, byte[] buf, int start, int end)
     {
         _context = context;
         _in = in;
@@ -137,7 +137,9 @@ public final class MergedStream
         byte[] buf = _buffer;
         if (buf != null) {
             _buffer = null;
-            _context.releaseReadIOBuffer(buf);
+            if (_context != null) {
+                _context.releaseReadIOBuffer(buf);
+            }
         }
     }
 }

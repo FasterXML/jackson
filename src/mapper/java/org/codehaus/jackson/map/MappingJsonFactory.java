@@ -14,7 +14,11 @@
  */
 package org.codehaus.jackson.map;
 
+import java.io.IOException;
+
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.format.InputAccessor;
+import org.codehaus.jackson.format.MatchStrength;
 
 /**
  * Sub-class of {@link JsonFactory} that will create a proper
@@ -46,4 +50,31 @@ public class MappingJsonFactory
      */
     @Override
     public final ObjectMapper getCodec() { return (ObjectMapper) _objectCodec; }
+
+    /*
+    /**********************************************************
+    /* Format detection functionality (since 1.8)
+    /**********************************************************
+     */
+    
+    /**
+     * Sub-classes need to override this method (as of 1.8)
+     */
+    @Override
+    public String getFormatName()
+    {
+        /* since non-JSON factories typically should not extend this class,
+         * let's just always return JSON as name.
+         */
+        return FORMAT_NAME_JSON;
+    }
+
+    /**
+     * Sub-classes need to override this method (as of 1.8)
+     */
+    @Override
+    public MatchStrength hasFormat(InputAccessor acc) throws IOException
+    {
+        return hasJSONFormat(acc);
+    }
 }
