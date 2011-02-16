@@ -91,7 +91,7 @@ public class DataFormatMatcher
      * parsing content which is assumed to be in detected data format.
      * If no match was found, returns null.
      */
-    public JsonParser readMatch() throws IOException {
+    public JsonParser createParserWithMatch() throws IOException {
         if (_match == null) {
             return null;
         }

@@ -3,6 +3,8 @@ package org.codehaus.jackson.impl;
 import java.io.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.format.InputAccessor;
+import org.codehaus.jackson.format.MatchStrength;
 import org.codehaus.jackson.io.*;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
@@ -16,6 +18,10 @@ import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
  */
 public final class ByteSourceBootstrapper
 {
+    final static byte UTF8_BOM_1 = (byte) 0xEF;
+    final static byte UTF8_BOM_2 = (byte) 0xBB;
+    final static byte UTF8_BOM_3 = (byte) 0xBF;
+    
     /*
     /**********************************************************
     /* Configuration
@@ -65,8 +71,9 @@ public final class ByteSourceBootstrapper
     /**********************************************************
      */
 
-    boolean _bigEndian = true;
-    int _bytesPerChar = 0; // 0 means "dunno yet"
+    protected boolean _bigEndian = true;
+
+    protected int _bytesPerChar = 0; // 0 means "dunno yet"
 
     /*
     /**********************************************************
@@ -96,6 +103,12 @@ public final class ByteSourceBootstrapper
         _bufferRecyclable = false;
     }
 
+    /*
+    /**********************************************************
+    /*  Encoding detection during bootstrapping
+    /**********************************************************
+     */
+    
     /**
      * Method that should be called after constructing an instace.
      * It will figure out encoding that content uses, to allow
@@ -158,6 +171,12 @@ public final class ByteSourceBootstrapper
         return enc;
     }
 
+    /*
+    /**********************************************************
+    /* Constructing a Reader
+    /**********************************************************
+     */
+    
     public Reader constructReader()
         throws IOException
     {
@@ -211,6 +230,145 @@ public final class ByteSourceBootstrapper
         return new ReaderBasedParser(_context, features, constructReader(), codec, rootCharSymbols.makeChild(canonicalize, intern));
     }
 
+    /*
+    /**********************************************************
+    /*  Encoding detection for data format auto-detection
+    /**********************************************************
+     */
+    /**
+     * Current implementation is not as thorough as other functionality
+     * ({@link org.codehaus.jackson.impl.ByteSourceBootstrapper}); 
+     * supports UTF-8, for example. But it should work, for now, and can
+     * be improved as necessary.
+     * 
+     * @since 1.8
+     */
+    public static MatchStrength hasJSONFormat(InputAccessor acc) throws IOException
+    {
+        // Ideally we should see "[" or "{"; but if not, we'll accept double-quote (String)
+        // in future could also consider accepting non-standard matches?
+        
+        if (!acc.hasMoreBytes()) {
+            return MatchStrength.INCONCLUSIVE;
+        }
+        byte b = acc.nextByte();
+        // Very first thing, a UTF-8 BOM?
+        if (b == UTF8_BOM_1) { // yes, looks like UTF-8 BOM
+            if (!acc.hasMoreBytes()) {
+                return MatchStrength.INCONCLUSIVE;
+            }
+            if (acc.nextByte() != UTF8_BOM_2) {
+                return MatchStrength.NO_MATCH;
+            }
+            if (!acc.hasMoreBytes()) {
+                return MatchStrength.INCONCLUSIVE;
+            }
+            if (acc.nextByte() != UTF8_BOM_3) {
+                return MatchStrength.NO_MATCH;
+            }
+            if (!acc.hasMoreBytes()) {
+                return MatchStrength.INCONCLUSIVE;
+            }
+            b = acc.nextByte();
+        }
+        // Then possible leading space
+        int ch = skipSpace(acc, b);
+        if (ch < 0) {
+            return MatchStrength.INCONCLUSIVE;
+        }
+        // First, let's see if it looks like a structured type:
+        if (ch == '{') { // JSON object?
+            // Ideally we need to find either double-quote or closing bracket
+            ch = skipSpace(acc);
+            if (ch < 0) {
+                return MatchStrength.INCONCLUSIVE;
+            }
+            if (ch == '"' || ch == '}') {
+                return MatchStrength.SOLID_MATCH;
+            }
+            // ... should we allow non-standard? Let's not yet... can add if need be
+            return MatchStrength.NO_MATCH;
+        }
+        MatchStrength strength;
+        
+        if (ch == '[') {
+            ch = skipSpace(acc);
+            if (ch < 0) {
+                return MatchStrength.INCONCLUSIVE;
+            }
+            // closing brackets is easy; but for now, let's also accept opening...
+            if (ch == ']' || ch == '[') {
+                return MatchStrength.FULL_MATCH;
+            }
+            strength = MatchStrength.FULL_MATCH;
+        } else {
+            // plain old value is not very convincing...
+            strength = MatchStrength.WEAK_MATCH;
+        }
+
+        if (ch == '"') { // string value
+            return strength;
+        }
+        if (ch <= '9' && ch >= '0') { // number
+            return strength;
+        }
+        if (ch == '-') { // negative number
+            ch = skipSpace(acc);
+            if (ch < 0) {
+                return MatchStrength.INCONCLUSIVE;
+            }
+            return (ch <= '9' && ch >= '0') ? strength : MatchStrength.NO_MATCH;
+        }
+        // or one of literals
+        if (ch == 'n') { // null
+            return tryMatch(acc, "ull", strength);
+        }
+        if (ch == 't') { // true
+            return tryMatch(acc, "rue", strength);
+        }
+        if (ch == 'f') { // false
+            return tryMatch(acc, "alse", strength);
+        }
+        return MatchStrength.NO_MATCH;
+    }
+
+    private final static MatchStrength tryMatch(InputAccessor acc, String matchStr, MatchStrength fullMatchStrength)
+        throws IOException
+    {
+        for (int i = 0, len = matchStr.length(); i < len; ++i) {
+            if (!acc.hasMoreBytes()) {
+                return MatchStrength.INCONCLUSIVE;
+            }
+            if (acc.nextByte() != matchStr.charAt(i)) {
+                return MatchStrength.NO_MATCH;
+            }
+        }
+        return fullMatchStrength;
+    }
+    
+    private final static int skipSpace(InputAccessor acc) throws IOException
+    {
+        if (!acc.hasMoreBytes()) {
+            return -1;
+        }
+        return skipSpace(acc, acc.nextByte());
+    }
+    
+    private final static int skipSpace(InputAccessor acc, byte b) throws IOException
+    {
+        while (true) {
+            int ch = (int) b & 0xFF;
+            if (!(ch == ' ' || ch == '\r' || ch == '\n' || ch == '\t')) {
+                return ch;
+            }
+            if (!acc.hasMoreBytes()) {
+                return -1;
+            }
+            b = acc.nextByte();
+            ch = (int) b & 0xFF;
+        }
+    }
+    
     /*
     /**********************************************************
     /* Internal methods, parsing

@@ -169,10 +169,10 @@ public class JsonFactory implements Versioned
         return null;
     }
 
-    protected static MatchStrength hasJSONFormat(InputAccessor acc) throws IOException
+    protected MatchStrength hasJSONFormat(InputAccessor acc) throws IOException
     {
-        return null;
-    }
+        return ByteSourceBootstrapper.hasJSONFormat(acc);
+    }    
     
     /*
     /**********************************************************
