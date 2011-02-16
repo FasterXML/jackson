@@ -83,7 +83,6 @@ public class TestBeanConversions
     {
         ObjectWrapper a = new ObjectWrapper("foo");
         ObjectWrapper b = new ObjectWrapper(a);
-        ObjectMapper mapper = new ObjectMapper();
         ObjectWrapper b2 = mapper.convertValue(b, ObjectWrapper.class);
         ObjectWrapper a2 = mapper.convertValue(b2.getData(), ObjectWrapper.class);
         assertEquals("foo", a2.getData());

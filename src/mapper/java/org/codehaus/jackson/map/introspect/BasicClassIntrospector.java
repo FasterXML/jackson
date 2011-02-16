@@ -13,6 +13,7 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
+@SuppressWarnings("hiding")
 public class BasicClassIntrospector
     extends ClassIntrospector<BasicBeanDescription>
 {

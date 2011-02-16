@@ -92,7 +92,8 @@ public class DataFormatDetector
      * Method that will return a detector instance that allows detectors to
      * read up to specified number of bytes when determining format match strength.
      */
-    public DataFormatDetector withMaxInputLookahead(int lookaheadBytes) {
+    public DataFormatDetector withMaxInputLookahead(int lookaheadBytes)
+    {
         if (lookaheadBytes == _maxInputLookahead) {
             return this;
         }
@@ -125,30 +126,29 @@ public class DataFormatDetector
      */
     public DataFormatMatcher findFormat(InputStream in) throws IOException
     {
-        int minimalLevel = _minimalMatch.ordinal();
-        JsonFactory matched = null;
-        InputAccessor.Std acc = new InputAccessor.Std(in, _maxInputLookahead);
+        JsonFactory bestMatch = null;
+        MatchStrength bestMatchStrength = null;
+        InputAccessor.Std acc = new InputAccessor.Std(in, new byte[_maxInputLookahead]);
         
         for (JsonFactory f : _detectors) {
             MatchStrength strength = f.hasFormat(acc);
             // if not better than what we have so far (including minimal level limit), skip
-            if (strength == null || strength.ordinal() < minimalLevel) {
+            if (strength == null || strength.ordinal() < _minimalMatch.ordinal()) {
                 continue;
             }
-            matched = f;
-            // good enough match that we are done?
+            // also, needs to better match than before
+            if (bestMatch != null) {
+                if (bestMatchStrength.ordinal() >= strength.ordinal()) {
+                    continue;
+                }
+            }
+            // finally: if it's good enough match, we are done
+            bestMatch = f;
+            bestMatchStrength = strength;
             if (strength.ordinal() >= _optimalMatch.ordinal()) {
                 break;
             }
-            // if not, keep on looking, just raise minimal that we want:
-            minimalLevel = strength.ordinal()+1;
         }
-        return null;
+        return acc.createMatcher(bestMatch, bestMatchStrength);
     }
-    
-    /*
-    /**********************************************************
-    /* Internal methods
-    /**********************************************************
-     */
 }
