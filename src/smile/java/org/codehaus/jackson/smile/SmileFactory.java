@@ -107,8 +107,7 @@ public class SmileFactory extends JsonFactory
     @Override
     public MatchStrength hasFormat(InputAccessor acc) throws IOException
     {
-        // !!! TODO: implement properly
-        return MatchStrength.INCONCLUSIVE;
+        return SmileParserBootstrapper.hasSmileFormat(acc);
     }
     
     /*

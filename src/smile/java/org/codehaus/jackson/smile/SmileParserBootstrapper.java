@@ -6,6 +6,8 @@ import org.codehaus.jackson.JsonLocation;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.ObjectCodec;
+import org.codehaus.jackson.format.InputAccessor;
+import org.codehaus.jackson.format.MatchStrength;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 
@@ -127,6 +129,23 @@ public class SmileParserBootstrapper
         return p;
     }
 
+    /*
+    /**********************************************************
+    /*  Encoding detection for data format auto-detection
+    /**********************************************************
+     */
+
+    /**
+     * Helper
+     * 
+     * @since 1.8
+     */
+    public static MatchStrength hasSmileFormat(InputAccessor acc) throws IOException
+    {
+        // !!! TODO
+        return MatchStrength.INCONCLUSIVE;
+    }
+    
     /*
     /**********************************************************
     /* Internal methods, raw input access
