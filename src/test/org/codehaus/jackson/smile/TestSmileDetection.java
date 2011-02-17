@@ -9,6 +9,7 @@ import org.codehaus.jackson.format.MatchStrength;
 
 public class TestSmileDetection extends SmileTestBase
 {
+    
     public void testSimpleObjectWithHeader() throws IOException
     {
         SmileFactory f = new SmileFactory();
@@ -95,7 +96,11 @@ public class TestSmileDetection extends SmileTestBase
         jp.close();
     }
 
-    // // // Then invalid cases
+    /*
+    /**********************************************************
+    /* Simple negative tests
+    /**********************************************************
+     */
     
     /*
      * Also let's ensure no match is found if data doesn't support it...
@@ -104,12 +109,40 @@ public class TestSmileDetection extends SmileTestBase
      */
     public void testSimpleInvalid() throws Exception
     {
-        DataFormatDetector detector = new DataFormatDetector(new JsonFactory());
-        byte FD = (byte) 0xDF;
+        DataFormatDetector detector = new DataFormatDetector(new SmileFactory());
+        byte FD = (byte) 0xFD;
         byte[] DOC = new byte[] { FD, FD, FD, FD };
         DataFormatMatcher matcher = detector.findFormat(new ByteArrayInputStream(DOC));
         assertFalse(matcher.hasMatch());
         assertEquals(MatchStrength.INCONCLUSIVE, matcher.getMatchStrength());
         assertNull(matcher.createParserWithMatch());
     }
+
+    /*
+    /**********************************************************
+    /* Fallback tests to ensure Smile is found even against JSON
+    /**********************************************************
+     */
+
+    public void testSmileVsJson() throws IOException
+    {
+        SmileFactory f = new SmileFactory();
+        f.disable(SmileParser.Feature.REQUIRE_HEADER);
+        DataFormatDetector detector = new DataFormatDetector(new JsonFactory(), f);
+        // to make it bit trickier, leave out header
+        byte[] doc = _smileDoc("[ \"abc\" ]", false);
+        DataFormatMatcher matcher = detector.findFormat(doc);
+        assertTrue(matcher.hasMatch());
+        assertEquals("Smile", matcher.getMatchedFormatName());
+        assertSame(f, matcher.getMatch());
+        // without header, just solid
+        assertEquals(MatchStrength.SOLID_MATCH, matcher.getMatchStrength());
+        JsonParser jp = matcher.createParserWithMatch();
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        assertNull(jp.nextToken());
+        jp.close();
+    }
+
 }

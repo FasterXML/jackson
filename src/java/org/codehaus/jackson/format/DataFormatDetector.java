@@ -152,6 +152,7 @@ public class DataFormatDetector
         JsonFactory bestMatch = null;
         MatchStrength bestMatchStrength = null;
         for (JsonFactory f : _detectors) {
+            acc.reset();
             MatchStrength strength = f.hasFormat(acc);
             // if not better than what we have so far (including minimal level limit), skip
             if (strength == null || strength.ordinal() < _minimalMatch.ordinal()) {

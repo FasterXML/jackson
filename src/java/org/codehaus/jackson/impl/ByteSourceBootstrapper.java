@@ -235,6 +235,7 @@ public final class ByteSourceBootstrapper
     /*  Encoding detection for data format auto-detection
     /**********************************************************
      */
+
     /**
      * Current implementation is not as thorough as other functionality
      * ({@link org.codehaus.jackson.impl.ByteSourceBootstrapper}); 
