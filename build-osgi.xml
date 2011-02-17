@@ -43,6 +43,7 @@
          exportpackage="
 org.codehaus.jackson;version=${IMPL_VERSION},
 org.codehaus.jackson.annotate;version=${IMPL_VERSION},
+org.codehaus.jackson.format;version=${IMPL_VERSION},
 org.codehaus.jackson.impl;version=${IMPL_VERSION},
 org.codehaus.jackson.io;version=${IMPL_VERSION},
 org.codehaus.jackson.sym;version=${IMPL_VERSION},
@@ -77,14 +78,15 @@ org.codehaus.jackson.util;version=${IMPL_VERSION}
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
          filename="jackson-mapper-asl-${IMPL_VERSION}"
          importPackage="
-org.codehaus.jackson;version='${IMPL_VERSION}'
-,org.codehaus.jackson.annotate;version='${IMPL_VERSION}'
-,org.codehaus.jackson.impl;version='${IMPL_VERSION}'
-,org.codehaus.jackson.io;version='${IMPL_VERSION}'
-,org.codehaus.jackson.type;version='${IMPL_VERSION}'
-,org.codehaus.jackson.util;version='${IMPL_VERSION}'
-,org.xml.sax,org.w3c.dom
-,javax.xml.datatype, javax.xml.namespace, javax.xml.parsers
+org.codehaus.jackson;version='${IMPL_VERSION}',
+org.codehaus.jackson.annotate;version='${IMPL_VERSION}',
+org.codehaus.jackson.format;version='${IMPL_VERSION}',
+org.codehaus.jackson.impl;version='${IMPL_VERSION}',
+org.codehaus.jackson.io;version='${IMPL_VERSION}',
+org.codehaus.jackson.type;version='${IMPL_VERSION}',
+org.codehaus.jackson.util;version='${IMPL_VERSION}',
+org.xml.sax,org.w3c.dom,
+javax.xml.datatype, javax.xml.namespace, javax.xml.parsers
 "
          dynamicImportPackage="
 org.joda.time, org.joda.time.format,
@@ -135,13 +137,14 @@ org.codehaus.jackson.map.ext
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
          filename="jackson-core-lgpl-${IMPL_VERSION}"
          exportpackage='
-org.codehaus.jackson;version=${IMPL_VERSION}
-,org.codehaus.jackson.annotate;version=${IMPL_VERSION}
-,org.codehaus.jackson.impl;version=${IMPL_VERSION}
-,org.codehaus.jackson.io;version=${IMPL_VERSION}
-,org.codehaus.jackson.sym;version=${IMPL_VERSION}
-,org.codehaus.jackson.type;version=${IMPL_VERSION}
-,org.codehaus.jackson.util;version=${IMPL_VERSION}
+org.codehaus.jackson;version=${IMPL_VERSION},
+org.codehaus.jackson.annotate;version=${IMPL_VERSION},
+org.codehaus.jackson.format;version=${IMPL_VERSION},
+org.codehaus.jackson.impl;version=${IMPL_VERSION},
+org.codehaus.jackson.io;version=${IMPL_VERSION},
+org.codehaus.jackson.sym;version=${IMPL_VERSION},
+org.codehaus.jackson.type;version=${IMPL_VERSION},
+oorg.codehaus.jackson.util;version=${IMPL_VERSION}
 '
          privatePackage=""
          includeResource="META-INF=release-notes/lgpl"
@@ -173,14 +176,15 @@ org.codehaus.jackson;version=${IMPL_VERSION}
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
          filename="jackson-mapper-lgpl-${IMPL_VERSION}"
          importPackage="
-org.codehaus.jackson;version='${IMPL_VERSION}'
-,org.codehaus.jackson.annotate;version='${IMPL_VERSION}'
-,org.codehaus.jackson.impl;version='${IMPL_VERSION}'
-,org.codehaus.jackson.io;version='${IMPL_VERSION}'
-,org.codehaus.jackson.type;version='${IMPL_VERSION}'
-,org.codehaus.jackson.util;version='${IMPL_VERSION}'
-,org.xml.sax, org.w3c.dom
-,javax.xml.datatype, javax.xml.namespace, javax.xml.parsers
+org.codehaus.jackson;version='${IMPL_VERSION}',
+org.codehaus.jackson.annotate;version='${IMPL_VERSION}',
+org.codehaus.jackson.format;version='${IMPL_VERSION}',
+org.codehaus.jackson.impl;version='${IMPL_VERSION}',
+org.codehaus.jackson.io;version='${IMPL_VERSION}',
+org.codehaus.jackson.type;version='${IMPL_VERSION}',
+org.codehaus.jackson.util;version='${IMPL_VERSION}',
+org.xml.sax, org.w3c.dom,
+javax.xml.datatype, javax.xml.namespace, javax.xml.parsers
 "
          dynamicImportPackage="
 org.joda.time, org.joda.time.format,
@@ -369,11 +373,12 @@ org.codehaus.jackson.xc;version='${IMPL_VERSION}'
          bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
          filename="jackson-smile-${IMPL_VERSION}"
          importPackage="
-,org.codehaus.jackson;version='${IMPL_VERSION}'
-,org.codehaus.jackson.impl;version='${IMPL_VERSION}'
-,org.codehaus.jackson.io;version='${IMPL_VERSION}'
-,org.codehaus.jackson.sym;version='${IMPL_VERSION}'
-,org.codehaus.jackson.util;version='${IMPL_VERSION}'
+org.codehaus.jackson;version='${IMPL_VERSION}',
+org.codehaus.jackson.format;version='${IMPL_VERSION}',
+org.codehaus.jackson.impl;version='${IMPL_VERSION}',
+org.codehaus.jackson.io;version='${IMPL_VERSION}',
+org.codehaus.jackson.sym;version='${IMPL_VERSION}',
+org.codehaus.jackson.util;version='${IMPL_VERSION}'
 "
          exportpackage="
 org.codehaus.jackson.smile;version=${IMPL_VERSION}"
