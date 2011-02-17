@@ -11,6 +11,8 @@ import org.codehaus.jackson.format.MatchStrength;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.sym.BytesToNameCanonicalizer;
 
+import static org.codehaus.jackson.smile.SmileConstants.*;
+
 /**
  * Simple bootstrapper version used with Smile format parser.
  */
@@ -142,8 +144,104 @@ public class SmileParserBootstrapper
      */
     public static MatchStrength hasSmileFormat(InputAccessor acc) throws IOException
     {
-        // !!! TODO
-        return MatchStrength.INCONCLUSIVE;
+        // Ok: ideally we start with the header -- if so, we are golden
+        if (!acc.hasMoreBytes()) {
+            return MatchStrength.INCONCLUSIVE;
+        }
+        // We always need at least two bytes to determine, so
+        byte b1 = acc.nextByte();
+        if (!acc.hasMoreBytes()) {
+            return MatchStrength.INCONCLUSIVE;
+        }
+        byte b2 = acc.nextByte();
+        
+        // First: do we see 3 "magic bytes"? If so, we are golden
+        if (b1 == SmileConstants.HEADER_BYTE_1) { // yeah, looks like marker
+            if (b2 != SmileConstants.HEADER_BYTE_2) {
+                return MatchStrength.NO_MATCH;
+            }
+            if (!acc.hasMoreBytes()) {
+                return MatchStrength.INCONCLUSIVE;
+            }
+            return (acc.nextByte() == SmileConstants.HEADER_BYTE_3) ?
+                    MatchStrength.FULL_MATCH : MatchStrength.NO_MATCH;
+        }
+        // Otherwise: ideally either Object or Array:
+        if (b1 == SmileConstants.TOKEN_LITERAL_START_OBJECT) {
+            /* Object is bit easier, because now we need to get new name; i.e. can
+             * rule out name back-refs
+             */
+            if (b2 == SmileConstants.TOKEN_KEY_LONG_STRING) {
+                return MatchStrength.SOLID_MATCH;
+            }
+            int ch = (int) b2 & 0xFF;
+            if (ch >= 0x80 && ch < 0xF8) {
+                return MatchStrength.SOLID_MATCH;
+            }
+            return MatchStrength.NO_MATCH;
+        }
+        // Array bit trickier
+        if (b1 == SmileConstants.TOKEN_LITERAL_START_ARRAY) {
+            if (!acc.hasMoreBytes()) {
+                return MatchStrength.INCONCLUSIVE;
+            }
+            /* For arrays, we will actually accept much wider range of values (including
+             * things that could otherwise collide)
+             */
+            if (likelySmileValue(b2) || possibleSmileValue(b2, true)) {
+                return MatchStrength.SOLID_MATCH;
+            }
+            return MatchStrength.NO_MATCH;
+        }
+        // Scalar values are pretty weak, albeit possible; require more certain match, consider it weak:
+        if (likelySmileValue(b1) || possibleSmileValue(b2, false)) {
+            return MatchStrength.SOLID_MATCH;
+        }
+        return MatchStrength.NO_MATCH;
+    }
+
+    private static boolean likelySmileValue(byte b)
+    {
+        int ch = (int) b & 0xFF;
+        if (ch >= 0xE0) { // good range for known values
+            switch (ch) {
+            case TOKEN_MISC_LONG_TEXT_ASCII: // 0xE0
+            case TOKEN_MISC_LONG_TEXT_UNICODE: // 0xE4
+            case TOKEN_MISC_BINARY_7BIT: // 0xE8
+            case TOKEN_LITERAL_START_ARRAY: // 0xF8
+            case TOKEN_LITERAL_START_OBJECT: // 0xFA
+                return true;
+            }
+            // Others will not work (end object/array; reserved; shared strings)
+            return false;
+        }
+        // ASCII ctrl char range is pretty good match too
+        if (ch >= 0x80 && ch <= 0x9F) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param lenient Whether to consider more speculative matches or not
+     *   (typically true when there is context like start-array)
+     */
+    private static boolean possibleSmileValue(byte b, boolean lenient)
+    {
+        int ch = (int) b & 0xFF;
+        // note: we know that likely matches have been handled already, so...
+        if (ch >= 0x80) {
+            return (ch <= 0xE0);
+        }
+        if (lenient) {
+            if (ch >= 0x40) { // tiny/short ASCII
+                return true;
+            }
+            if (ch >- 0x20) { // various constants
+                return (ch < 0x2C); // many reserved bytes that can't be seen
+            }
+        }
+        return false;
     }
     
     /*

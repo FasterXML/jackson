@@ -16,6 +16,8 @@ public class TestJsonFormatDetection extends main.BaseTest
         assertTrue(matcher.hasMatch());
         assertEquals("JSON", matcher.getMatchedFormatName());
         assertSame(jsonF, matcher.getMatch());
+        // no "certain" match with JSON, but solid:
+        assertEquals(MatchStrength.SOLID_MATCH, matcher.getMatchStrength());
         // and thus:
         JsonParser jp = matcher.createParserWithMatch();
         assertToken(JsonToken.START_ARRAY, jp.nextToken());
@@ -36,6 +38,8 @@ public class TestJsonFormatDetection extends main.BaseTest
         assertTrue(matcher.hasMatch());
         assertEquals("JSON", matcher.getMatchedFormatName());
         assertSame(jsonF, matcher.getMatch());
+        // no "certain" match with JSON, but solid:
+        assertEquals(MatchStrength.SOLID_MATCH, matcher.getMatchStrength());
         // and thus:
         JsonParser jp = matcher.createParserWithMatch();
         assertToken(JsonToken.START_OBJECT, jp.nextToken());
@@ -43,6 +47,28 @@ public class TestJsonFormatDetection extends main.BaseTest
         assertEquals("field", jp.getCurrentName());
         assertToken(JsonToken.VALUE_TRUE, jp.nextToken());
         assertToken(JsonToken.END_OBJECT, jp.nextToken());
+        assertNull(jp.nextToken());
+        jp.close();
+    }
+
+    /**
+     * While JSON String is not a strong match alone, it should
+     * be detected unless some better match is available
+     */
+    public void testSimpleValidString() throws Exception
+    {
+        JsonFactory jsonF = new JsonFactory();
+        DataFormatDetector detector = new DataFormatDetector(jsonF);
+        final String JSON = "\"JSON!\"";
+        DataFormatMatcher matcher = detector.findFormat(new ByteArrayInputStream(JSON.getBytes("UTF-8")));
+        // should have match
+        assertTrue(matcher.hasMatch());
+        assertEquals("JSON", matcher.getMatchedFormatName());
+        assertSame(jsonF, matcher.getMatch());
+        assertEquals(MatchStrength.WEAK_MATCH, matcher.getMatchStrength());
+        JsonParser jp = matcher.createParserWithMatch();
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("JSON!", jp.getText());
         assertNull(jp.nextToken());
         jp.close();
     }

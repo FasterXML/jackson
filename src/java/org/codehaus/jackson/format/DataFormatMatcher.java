@@ -95,6 +95,9 @@ public class DataFormatMatcher
         if (_match == null) {
             return null;
         }
+        if (_originalStream == null) {
+            return _match.createJsonParser(_bufferedData, 0, _bufferedLength);
+        }
         return _match.createJsonParser(getDataStream());
     }
     
@@ -106,6 +109,9 @@ public class DataFormatMatcher
      * as remaining contents of the underlying stream.
      */
     public InputStream getDataStream() {
+        if (_originalStream == null) {
+            return new ByteArrayInputStream(_bufferedData, 0, _bufferedLength);
+        }
         return new MergedStream(null, _originalStream, _bufferedData, 0, _bufferedLength);
     }
 }

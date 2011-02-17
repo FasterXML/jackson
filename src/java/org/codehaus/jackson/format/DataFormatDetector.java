@@ -126,10 +126,31 @@ public class DataFormatDetector
      */
     public DataFormatMatcher findFormat(InputStream in) throws IOException
     {
+        return _findFormat(new InputAccessor.Std(in, new byte[_maxInputLookahead]));
+    }
+
+    /**
+     * Method to call to find format that given content (full document)
+     * has, as per configuration of this detector instance.
+     * 
+     * @return Matcher object which contains result; never null, even in cases
+     *    where no match (with specified minimal match strength) is found.
+     */
+    public DataFormatMatcher findFormat(byte[] fullInputData) throws IOException
+    {
+        return _findFormat(new InputAccessor.Std(fullInputData));
+    }
+    
+    /*
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
+     */
+
+    private DataFormatMatcher _findFormat(InputAccessor.Std acc) throws IOException
+    {
         JsonFactory bestMatch = null;
         MatchStrength bestMatchStrength = null;
-        InputAccessor.Std acc = new InputAccessor.Std(in, new byte[_maxInputLookahead]);
-        
         for (JsonFactory f : _detectors) {
             MatchStrength strength = f.hasFormat(acc);
             // if not better than what we have so far (including minimal level limit), skip

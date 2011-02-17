@@ -58,12 +58,29 @@ public interface InputAccessor
          */
         protected int _ptr;
         
+        /**
+         * Constructor used when content to check is available via
+         * input stream and must be read.
+         */
         public Std(InputStream in, byte[] buffer)
         {
             _in = in;
             _buffer = buffer;
+            _bufferedAmount = 0;
         }
 
+        /**
+         * Constructor used when the full input (or at least enough leading bytes
+         * of full input) is available.
+         */
+        public Std(byte[] inputDocument)
+        {
+            _in = null;
+            _buffer = inputDocument;
+            // we have it all:
+            _bufferedAmount = inputDocument.length;
+        }
+        
         @Override
         public boolean hasMoreBytes() throws IOException
         {

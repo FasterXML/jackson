@@ -298,9 +298,9 @@ public final class ByteSourceBootstrapper
             }
             // closing brackets is easy; but for now, let's also accept opening...
             if (ch == ']' || ch == '[') {
-                return MatchStrength.FULL_MATCH;
+                return MatchStrength.SOLID_MATCH;
             }
-            strength = MatchStrength.FULL_MATCH;
+            return MatchStrength.SOLID_MATCH;
         } else {
             // plain old value is not very convincing...
             strength = MatchStrength.WEAK_MATCH;
