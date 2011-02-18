@@ -49,6 +49,9 @@ public abstract class JsonParser
      * Enumeration that defines all togglable features for parsers.
      */
     public enum Feature {
+        
+        // // // Low-level I/O handling features:
+        
         /**
          * Feature that determines whether parser will automatically
          * close underlying input source that is NOT owned by the
@@ -63,6 +66,8 @@ public abstract class JsonParser
          */
         AUTO_CLOSE_SOURCE(true),
             
+        // // // Support for non-standard data format constructs
+
         /**
          * Feature that determines whether parser will allow use
          * of Java/C++ style comments (both '/'+'*' and
@@ -146,6 +151,43 @@ public abstract class JsonParser
         ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER(false),
 
         /**
+         * Feature that determines whether parser will allow
+         * JSON integral numbers to start with additional (ignorable) 
+         * zeroes (like: 000001). If enabled, no exception is thrown, and extra
+         * nulls are silently ignored (and not included in textual representation
+         * exposed via {@link JsonParser#getText}).
+         *<p>
+         * Since JSON specification does not allow leading zeroes,
+         * this is a non-standard feature, and as such disabled by default.
+         *<p>
+         * This feature can be changed for parser instances.
+         *
+         * @since 1.8
+         */
+        ALLOW_NUMERIC_LEADING_ZEROS(false),
+        
+        // 14-Sep-2009, Tatu: This would be [JACKSON-142] implementation:
+        /*
+         * Feature that allows parser to recognize set of
+         * "Not-a-Number" (NaN) tokens as legal floating number
+         * values (similar to how many other data formats and
+         * programming language source code allows it).
+         * Specific subset contains values that
+         * <a href="http://www.w3.org/TR/xmlschema-2/">XML Schema</a>
+         * (see section 3.2.4.1, Lexical Representation)
+         * allows (tokens are quoted contents, not including quotes):
+         *<ul>
+         *  <li>"INF" (for positive infinity)
+         *  <li>"-INF" (for negative infinity)
+         *  <li>"NaN" (for other not-a-numbers, like result of division by zero)
+         *</ul>
+
+         ALLOW_NON_NUMERIC_NUMBERS(false),
+         */
+        
+        // // // Controlling canonicalization (interning etc)
+        
+        /**
          * Feature that determines whether JSON object field names are
          * to be canonicalized using {@link String#intern} or not:
          * if enabled, all field names will be intern()ed (and caller
@@ -172,24 +214,6 @@ public abstract class JsonParser
          */
         CANONICALIZE_FIELD_NAMES(true),
 
-            // 14-Sep-2009, Tatu: This would be [JACKSON-142] implementation:
-        /*
-         * Feature that allows parser to recognize set of
-         * "Not-a-Number" (NaN) tokens as legal floating number
-         * values (similar to how many other data formats and
-         * programming language source code allows it).
-         * Specific subset contains values that
-         * <a href="http://www.w3.org/TR/xmlschema-2/">XML Schema</a>
-         * (see section 3.2.4.1, Lexical Representation)
-         * allows (tokens are quoted contents, not including quotes):
-         *<ul>
-         *  <li>"INF" (for positive infinity)
-         *  <li>"-INF" (for negative infinity)
-         *  <li>"NaN" (for other not-a-numbers, like result of division by zero)
-         *</ul>
-
-         ,ALLOW_NON_NUMERIC_NUMBERS(false),
-         */
 
             ;
 

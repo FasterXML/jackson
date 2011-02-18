@@ -1,4 +1,4 @@
-package org.codehaus.jackson.main;
+package org.codehaus.jackson.impl;
 
 import main.BaseTest;
 

@@ -1,4 +1,4 @@
-package org.codehaus.jackson.main;
+package org.codehaus.jackson.impl;
 
 import org.codehaus.jackson.*;
 
@@ -43,6 +43,13 @@ public class TestParserNonStandard
     {
         _testNonStandarBackslashQuoting(false);
         _testNonStandarBackslashQuoting(true);
+    }
+
+    // Test for [JACKSON-358]
+    public void testLeadingZeroes() throws Exception
+    {
+        _testLeadingZeroes(false);
+        _testLeadingZeroes(true);
     }
     
     /*
@@ -256,4 +263,40 @@ public class TestParserNonStandard
         assertEquals("'", jp.getText());
     }
 
+    private void _testLeadingZeroes(boolean useStream) throws Exception
+    {
+        // first: verify that we get an exception
+        JsonFactory f = new JsonFactory();
+        assertFalse(f.isEnabled(JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS));
+        String JSON = "00003";
+        JsonParser jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")                
+                : createParserUsingReader(f, JSON);
+        try {      
+            jp.nextToken();
+            jp.getText();
+            fail("Should have thrown an exception for doc <"+JSON+">");
+        } catch (JsonParseException e) {
+            verifyException(e, "invalid numeric value");
+        }
+        
+        // and then verify it's ok when enabled
+        f.configure(JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, true);
+        assertTrue(f.isEnabled(JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS));
+        jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")                
+                : createParserUsingReader(f, JSON);
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertEquals(3, jp.getIntValue());
+        assertEquals("3", jp.getText());
+        jp.close();
+    
+        // Plus, also: verify that leading zero magnitude is ok:
+        JSON = "0"+Integer.MAX_VALUE;
+        jp = useStream ? createParserUsingStream(f, JSON, "UTF-8") : createParserUsingReader(f, JSON);
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertEquals(Integer.MAX_VALUE, jp.getIntValue());
+        Number nr = jp.getNumberValue();
+        assertSame(Integer.class, nr.getClass());
+        jp.close();
+    }
+    
 }
