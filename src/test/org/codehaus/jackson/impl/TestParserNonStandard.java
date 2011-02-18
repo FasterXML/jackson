@@ -46,10 +46,12 @@ public class TestParserNonStandard
     }
 
     // Test for [JACKSON-358]
-    public void testLeadingZeroes() throws Exception
-    {
-        _testLeadingZeroes(false);
+    public void testLeadingZeroesUTF8() throws Exception {
         _testLeadingZeroes(true);
+    }
+
+    public void testLeadingZeroesReader() throws Exception {
+        _testLeadingZeroes(false);
     }
     
     /*
@@ -293,6 +295,7 @@ public class TestParserNonStandard
         JSON = "0"+Integer.MAX_VALUE;
         jp = useStream ? createParserUsingStream(f, JSON, "UTF-8") : createParserUsingReader(f, JSON);
         assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+        assertEquals(String.valueOf(Integer.MAX_VALUE), jp.getText());
         assertEquals(Integer.MAX_VALUE, jp.getIntValue());
         Number nr = jp.getNumberValue();
         assertSame(Integer.class, nr.getClass());

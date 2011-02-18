@@ -157,7 +157,7 @@ public class TestNumericValues
         throws Exception
     {
         final String[] INPUTS = new String[] {
-            "1234.00", "2.1101567E-16", "1.0e5", "2.5e+5", "9e4", "-12e-3"
+            "1234.00", "2.1101567E-16", "1.0e5", "2.5e+5", "9e4", "-12e-3", "0.25"
         };
         for (int input = 0; input < 2; ++input) {
             for (int i = 0; i < INPUTS.length; ++i) {

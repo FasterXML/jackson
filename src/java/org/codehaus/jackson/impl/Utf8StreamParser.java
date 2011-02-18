@@ -16,8 +16,6 @@ public final class Utf8StreamParser
 {
     final static byte BYTE_LF = (byte) '\n';
 
-    private final static byte BYTE_0 = (byte) 0;
-
     private final static int[] sInputCodesUtf8 = CharTypes.getInputCodeUtf8();
 
     private final static int[] sInputCodesLatin1 = CharTypes.getInputCodeLatin1();
@@ -499,7 +497,7 @@ public final class Utf8StreamParser
 
         // One special case: if first char is 0, must not be followed by a digit
         if (c == INT_0) {
-            _verifyNoLeadingZeroes();
+            c = _verifyNoLeadingZeroes();
         }
         
         // Ok: we can first just add digit we saw first:
@@ -576,16 +574,37 @@ public final class Utf8StreamParser
      * Method called when we have seen one zero, and want to ensure
      * it is not followed by another
      */
-    private final void _verifyNoLeadingZeroes()
+    private final int _verifyNoLeadingZeroes()
         throws IOException, JsonParseException
     {
         // Ok to have plain "0"
         if (_inputPtr >= _inputEnd && !loadMore()) {
-            return;
+            return INT_0;
         }
-        if (_inputBuffer[_inputPtr] == BYTE_0) {
+        int ch = _inputBuffer[_inputPtr] & 0xFF;
+        // if not followed by a number (probably '.'); return zero as is, to be included
+        if (ch < INT_0 || ch > INT_9) {
+            return INT_0;
+        }
+        // [JACKSON-358]: we may want to allow them, after all...
+        if (!isEnabled(Feature.ALLOW_NUMERIC_LEADING_ZEROS)) {
             reportInvalidNumber("Leading zeroes not allowed");
         }
+        // if so, just need to skip either all zeroes (if followed by number); or all but one (if non-number)
+        ++_inputPtr; // Leading zero to be skipped
+        if (ch == INT_0) {
+            while (_inputPtr < _inputEnd || loadMore()) {
+                ch = _inputBuffer[_inputPtr] & 0xFF;
+                if (ch < INT_0 || ch > INT_9) { // followed by non-number; retain one zero
+                    return INT_0;
+                }
+                ++_inputPtr; // skip previous zeroes
+                if (ch != INT_0) { // followed by other number; return 
+                    break;
+                }
+            }
+        }
+        return ch;
     }
     
     private final JsonToken _parseFloatText(char[] outBuf, int outPtr, int c,
