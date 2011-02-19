@@ -47,11 +47,13 @@ public class TestParserNonStandard
 
     // Test for [JACKSON-358]
     public void testLeadingZeroesUTF8() throws Exception {
-        _testLeadingZeroes(true);
+        _testLeadingZeroes(true, false);
+        _testLeadingZeroes(true, true);
     }
 
     public void testLeadingZeroesReader() throws Exception {
-        _testLeadingZeroes(false);
+        _testLeadingZeroes(false, false);
+        _testLeadingZeroes(false, true);
     }
     
     /*
@@ -265,12 +267,15 @@ public class TestParserNonStandard
         assertEquals("'", jp.getText());
     }
 
-    private void _testLeadingZeroes(boolean useStream) throws Exception
+    private void _testLeadingZeroes(boolean useStream, boolean appendSpace) throws Exception
     {
         // first: verify that we get an exception
         JsonFactory f = new JsonFactory();
         assertFalse(f.isEnabled(JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS));
         String JSON = "00003";
+        if (appendSpace) {
+            JSON += " ";
+        }
         JsonParser jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")                
                 : createParserUsingReader(f, JSON);
         try {      
@@ -293,6 +298,9 @@ public class TestParserNonStandard
     
         // Plus, also: verify that leading zero magnitude is ok:
         JSON = "0"+Integer.MAX_VALUE;
+        if (appendSpace) {
+            JSON += " ";
+        }
         jp = useStream ? createParserUsingStream(f, JSON, "UTF-8") : createParserUsingReader(f, JSON);
         assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
         assertEquals(String.valueOf(Integer.MAX_VALUE), jp.getText());

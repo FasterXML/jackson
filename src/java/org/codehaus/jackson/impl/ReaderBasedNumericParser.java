@@ -78,7 +78,11 @@ public abstract class ReaderBasedNumericParser
                  * a numeric value)
                  */
             }
-
+            // One special case, leading zero(es):
+            if (ch == INT_0) {
+                break dummy_loop;
+            }
+            
             /* First, let's see if the whole number is contained within
              * the input buffer unsplit. This should be the common case;
              * and to simplify processing, we will just reparse contents
@@ -98,12 +102,7 @@ public abstract class ReaderBasedNumericParser
                 if (ch < INT_0 || ch > INT_9) {
                     break int_loop;
                 }
-                // The only check: no leading zeroes
-                if (++intLen == 2) { // To ensure no leading zeroes
-                    if (_inputBuffer[ptr-2] == '0') {
-                        reportInvalidNumber("Leading zeroes not allowed");
-                    }
-                }
+                ++intLen;
             }
 
             int fractLen = 0;
@@ -128,7 +127,7 @@ public abstract class ReaderBasedNumericParser
             }
 
             int expLen = 0;
-            if (ch == INT_e || ch == INT_E) { // and/or expontent
+            if (ch == INT_e || ch == INT_E) { // and/or exponent
                 if (ptr >= inputLen) {
                     break dummy_loop;
                 }
@@ -183,13 +182,23 @@ public abstract class ReaderBasedNumericParser
             outBuf[outPtr++] = '-';
         }
 
-        char c;
+        // This is the place to do leading-zero check(s) too:
         int intLen = 0;
+        char c = (_inputPtr < _inputEnd) ? _inputBuffer[_inputPtr++] : getNextChar("No digit following minus sign");
+        if (c == '0') {
+            c = _verifyNoLeadingZeroes();
+        }
         boolean eof = false;
 
         // Ok, first the obligatory integer part:
         int_loop:
-        while (true) {
+        while (c >= '0' && c <= '9') {
+            ++intLen;
+            if (outPtr >= outBuf.length) {
+                outBuf = _textBuffer.finishCurrentSegment();
+                outPtr = 0;
+            }
+            outBuf[outPtr++] = c;
             if (_inputPtr >= _inputEnd && !loadMore()) {
                 // EOF is legal for main level int values
                 c = CHAR_NULL;
@@ -197,21 +206,6 @@ public abstract class ReaderBasedNumericParser
                 break int_loop;
             }
             c = _inputBuffer[_inputPtr++];
-            if (c < INT_0 || c > INT_9) {
-                break int_loop;
-            }
-            ++intLen;
-            // Quickie check: no leading zeroes allowed
-            if (intLen == 2) {
-                if (outBuf[outPtr-1] == '0') {
-                    reportInvalidNumber("Leading zeroes not allowed");
-                }
-            }
-            if (outPtr >= outBuf.length) {
-                outBuf = _textBuffer.finishCurrentSegment();
-                outPtr = 0;
-            }
-            outBuf[outPtr++] = c;
         }
         // Also, integer part is not optional
         if (intLen == 0) {
@@ -293,9 +287,43 @@ public abstract class ReaderBasedNumericParser
             --_inputPtr;
         }
         _textBuffer.setCurrentLength(outPtr);
-
         // And there we have it!
         return reset(negative, intLen, fractLen, expLen);
     }
 
+    /**
+     * Method called when we have seen one zero, and want to ensure
+     * it is not followed by another
+     */
+    private final char _verifyNoLeadingZeroes()
+        throws IOException, JsonParseException
+    {
+        // Ok to have plain "0"
+        if (_inputPtr >= _inputEnd && !loadMore()) {
+            return '0';
+        }
+        char ch = _inputBuffer[_inputPtr];
+        // if not followed by a number (probably '.'); return zero as is, to be included
+        if (ch < '0' || ch > '9') {
+            return '0';
+        }
+        if (!isEnabled(Feature.ALLOW_NUMERIC_LEADING_ZEROS)) {
+            reportInvalidNumber("Leading zeroes not allowed");
+        }
+        // if so, just need to skip either all zeroes (if followed by number); or all but one (if non-number)
+        ++_inputPtr; // Leading zero to be skipped
+        if (ch == INT_0) {
+            while (_inputPtr < _inputEnd || loadMore()) {
+                ch = _inputBuffer[_inputPtr];
+                if (ch < '0' || ch > '9') { // followed by non-number; retain one zero
+                    return '0';
+                }
+                ++_inputPtr; // skip previous zero
+                if (ch != '0') { // followed by other number; return 
+                    break;
+                }
+            }
+        }
+        return ch;
+    }
 }

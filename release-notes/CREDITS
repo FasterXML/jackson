@@ -555,4 +555,8 @@ David Yu:
    [1.7.2]
   * Reported [JACKSON-492], contributed unit test: problem encoding 1 byte length "raw" UTF8 Strings
    [1.7.3]
+
+Bryce McKinlay:
+  * Suggested [JACKSON-358]: Allow parsing numbers with leading zeroes
+   [1.8.0]
  
