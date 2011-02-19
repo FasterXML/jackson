@@ -524,6 +524,16 @@ Steven Schlansker:
 
 Elliot Barlas:
   * Reported [JACKSON-491]: Bug in NumberInput.inLongRange, causing false overflows
+   [1.6.6]
+
+Gili (cowwoc):
+  * Reported [JACKSON-495] NPE at JaxbAnnotationIntrospector, with @JsonCreator
+   annotations
+   [1.6.6]
+
+Jax Law:
+  * Reported [JACKSON-499]  Problems serializing HashMap.keySet(), values()
+   [1.6.7]
 
 Ga�l Marziou:   
   * Contributed [JACKSON-351]: Add @JsonRawValue that allows injecting literal textual

@@ -119,9 +119,25 @@ public class TypeBindings
         if (_parentBindings != null) {
             return _parentBindings.findType(name);
         }
-        // nothing found, so:
-
+        // nothing found, so...
         // Should we throw an exception or just return null?
+        
+        /* [JACKSON-499] 18-Feb-2011, tatu: There are some tricky type bindings within
+         *   java.util, such as HashMap$KeySet; so let's punt the problem
+         *   (honestly not sure what to do -- they are unbound for good, I think)
+         */
+        if (_contextClass != null) {
+            Class<?> enclosing = _contextClass.getEnclosingClass();
+            if (enclosing != null) {
+                Package pkg = enclosing.getPackage();
+                if (pkg != null) {
+                    if (pkg.getName().equals("java.util")) {
+                        return UNBOUND;
+                    }
+                }
+            }
+        }
+        
         String className;
         if (_contextClass != null) {
             className = _contextClass.getName();
