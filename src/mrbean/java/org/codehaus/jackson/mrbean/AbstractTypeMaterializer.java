@@ -160,24 +160,16 @@ public class AbstractTypeMaterializer
     @Override
     public JavaType resolveAbstractType(DeserializationConfig config, JavaType type)
     {
-        Class<?> impl = materializeClass(type.getRawClass());
-        
-        // !!! TEST
-/*        
-        for (Class<?> c : new Class<?>[] { type.getRawClass(), impl } ) {
-            System.out.println("Class "+c.getName()+":");
-            for (java.lang.reflect.Field f : c.getDeclaredFields()) {
-                System.out.println("  field '"+f+"', of type "+TypeFactory.type(f.getGenericType(), c));                
-            }
-            for (java.lang.reflect.Method m : c.getDeclaredMethods()) {
-                java.lang.reflect.Type rt = m.getGenericReturnType();
-                System.out.println("  method '"+m+"', returns "+TypeFactory.type(rt, c));
-                for (java.lang.reflect.Type t : m.getGenericParameterTypes()) {
-                   System.out.println("   param: "+TypeFactory.type(t, c));
-                }
-            }
+        /* 19-Feb-2011, tatu: Future plans include calling of this method for all kinds
+         *    of abstract types; and specifically this will include Map and Collection
+         *    types. This is different from Jackson 1.6 and 1.7 which only call method
+         *    for POJO types. As precaution let's filter out Map and Collecion types.
+         */
+        // We won't be handling any container types (Collections, Maps and arrays)
+        if (type.isContainerType()) {
+            return null;
         }
-*/        
+        Class<?> impl = materializeClass(type.getRawClass());
         return TypeFactory.type(impl);
     }
     
