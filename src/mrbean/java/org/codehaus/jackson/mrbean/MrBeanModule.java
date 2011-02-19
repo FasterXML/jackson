@@ -36,7 +36,7 @@ public class MrBeanModule extends Module
     @Override
     public void setupModule(SetupContext context)
     {
-        // All we really need to for now is to register materializer
+        // All we really need to for now is to register materializer:
         context.addAbstractTypeResolver(_materializer);
     }
 

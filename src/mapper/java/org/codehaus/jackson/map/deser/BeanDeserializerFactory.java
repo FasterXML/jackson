@@ -376,12 +376,12 @@ public class BeanDeserializerFactory
             /* One check however: if type information is indicated, we usually do not
              * want materialization...
              */
-            /* [JACKSON-502] (1.8): And now it is possible to have multiple resolvers too,
-             *   as they are registered via module interface.
-             */
-            for (AbstractTypeResolver resolver : _factoryConfig.abstractTypeResolvers()) {
-                AnnotationIntrospector intr = config.getAnnotationIntrospector();
-                if (intr.findTypeResolver(beanDesc.getClassInfo(), type) == null) {
+            AnnotationIntrospector intr = config.getAnnotationIntrospector();
+            if (intr.findTypeResolver(beanDesc.getClassInfo(), type) == null) {
+                /* [JACKSON-502] (1.8): And now it is possible to have multiple resolvers too,
+                 *   as they are registered via module interface.
+                 */
+                for (AbstractTypeResolver resolver : _factoryConfig.abstractTypeResolvers()) {
                     JavaType concrete = resolver.resolveAbstractType(config, type);
                     if (concrete != null) {
                         /* important: introspect actual implementation (abstract class or
@@ -391,7 +391,18 @@ public class BeanDeserializerFactory
                         return buildBeanDeserializer(config, concrete, beanDesc, property);
                     }
                 }
+                // Also; as a fallback,  we support (until 2.0) old extension point too
+                @SuppressWarnings("deprecation")
+                AbstractTypeResolver resolver = config.getAbstractTypeResolver();
+                if (resolver != null) {
+                    JavaType concrete = resolver.resolveAbstractType(config, type);
+                    if (concrete != null) {
+                        beanDesc = config.introspect(concrete);
+                        return buildBeanDeserializer(config, concrete, beanDesc, property);
+                    }
+                }
             }
+            
             // otherwise we assume there must be extra type information coming
             return new AbstractDeserializer(type);
         }

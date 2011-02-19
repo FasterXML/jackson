@@ -630,6 +630,21 @@ public class ObjectMapper
             }
         });
     }
+
+    /**
+     * Fluent-style alternative to {@link #registerModule}; functionally equivalent to:
+     *<pre>
+     *  mapper.registerModule(module);
+     *  return mapper;
+     *</pre>
+     * 
+     * @since 1.8
+     */
+    public ObjectMapper withModule(Module module)
+    {
+        registerModule(module);
+        return this;
+    }
     
     /*
     /**********************************************************
@@ -638,9 +653,8 @@ public class ObjectMapper
      */
 
     /**
-     * Method that returns
-     * the shared default {@link SerializationConfig} object
-     * that defines configuration settings for serialization.
+     * Method that returns the shared default {@link SerializationConfig}
+     * object that defines configuration settings for serialization.
      * Returned object is "live" meaning that changes will be used
      * for future serialization operations for this mapper when using
      * mapper's default configuration

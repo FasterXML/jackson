@@ -16,7 +16,8 @@ Description:
     for basic JSON, Smile (and as many modules as possible).
 
   Improvements:
-  
+
+  * [JACKSON-502]: Convert mr Bean functionality to be basic Module (to simplify registration)
   * [JACKSON-503]: Allow registering AbstractTypeResolvers via Module API
 
   Fixes:

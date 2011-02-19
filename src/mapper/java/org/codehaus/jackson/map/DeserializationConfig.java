@@ -818,6 +818,7 @@ public class DeserializationConfig
      * types (either by mapping or materializing new classes).
      * 
      * @deprecated Since 1.8 resolvers should be registered using Module interface
+     *    Will be remove from Jackson 2.0
      * 
      * @since 1.6
      */
@@ -827,9 +828,13 @@ public class DeserializationConfig
     }
     
     /**
+     * Method for specifying {@link AbstractTypeResolver} to use for resolving
+     * references to abstract types into concrete types (if possible).
+     * 
      * @since 1.6
      * 
-     * @deprecated Since 1.8 resolvers should be registered using Module interface
+     * @deprecated Since 1.8 resolvers should be registered using Module interface.
+     *    Will be remove from Jackson 2.0
      */
     @Deprecated
     public void setAbstractTypeResolver(AbstractTypeResolver atr) {

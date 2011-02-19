@@ -14,7 +14,6 @@ import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.Serializers;
-import org.codehaus.jackson.map.Module.SetupContext;
 import org.codehaus.jackson.map.module.SimpleModule;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.xc.DomElementJsonDeserializer;
