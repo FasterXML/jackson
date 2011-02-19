@@ -277,13 +277,11 @@ public class DeserializationConfig
          * Feature that was planned to be enabled to handle "wrapped" values
          * (see {@link SerializationConfig.Feature#WRAP_ROOT_VALUE}
          * for details).
-         * <b>NOTE</b>: Not yet implemented (unliked its counterpart for serialization
+         * <b>NOTE</b>: Not implemented (unlike its counterpart for serialization
          * which was implemented in 1.7)
-         *
-         * @since 1.3
          * 
-         * @deprecated Still not implemented; plus, incorrectly named: should be
-         *    "UNWRAP_ROOT_VALUE" to be of use. May be added with that name.
+         * @deprecated Never implemented; plus, incorrectly named: should be
+         *    "UNWRAP_ROOT_VALUE" to be of use. Feature such named may be added in future.
          */
         @Deprecated
         WRAP_ROOT_VALUE(false)
