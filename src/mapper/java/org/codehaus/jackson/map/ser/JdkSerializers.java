@@ -198,7 +198,7 @@ public class JdkSerializers
     /* Other serializers
     /**********************************************************
      */
-
+    
     /*
     public final static class LocaleSerializer
         extends ScalarSerializerBase<Locale>
