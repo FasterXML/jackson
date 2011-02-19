@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.*;
+import java.net.*;
 import java.util.Currency;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -157,5 +158,18 @@ public class TestJdkTypes
         CharSequence cs = mapper.readValue("\"abc\"", CharSequence.class);
         assertEquals(String.class, cs.getClass());
         assertEquals("abc", cs.toString());
+    }
+    
+    // [JACKSON-484]
+    public void testInetAddress() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        InetAddress address = mapper.readValue(quote("127.0.0.1"), InetAddress.class);
+        assertEquals("127.0.0.1", address.getHostAddress());
+
+        // should we try resolving host names? That requires connectivity... 
+        final String HOST = "www.ning.com";
+        address = mapper.readValue(quote(HOST), InetAddress.class);
+        assertEquals(HOST, address.getHostName());
     }
 }

@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.ser;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.util.*;
 
 import org.codehaus.jackson.JsonGenerator;
@@ -15,6 +16,7 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.ser.impl.IndexedStringListSerializer;
+import org.codehaus.jackson.map.ser.impl.InetAddressSerializer;
 import org.codehaus.jackson.map.ser.impl.ObjectArraySerializer;
 import org.codehaus.jackson.map.ser.impl.StringCollectionSerializer;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -331,6 +333,11 @@ public abstract class BasicSerializerFactory
                 return buildCollectionSerializer(config, type, beanDesc, property);
             }
         } else {
+            // One unfortunate special case, as per [JACKSON-484]
+            if (InetAddress.class.isAssignableFrom(type.getRawClass())) {
+                return InetAddressSerializer.instance;
+            }
+            
             // Then check for optional/external serializers [JACKSON-386]
             ser = optionalHandlers.findSerializer(config, type, beanDesc, property);
         }

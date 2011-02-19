@@ -1,12 +1,15 @@
 Version: 1.7.3
 
 Release date:
-  xx-Xxx-2011
+  xx-Mar-2011
 
 Description:
   Fourth patch release for 1.7.
 
   Fixes:
+
+  * [JACKSON-484]: improve serialization of InetAddress
+   (reported by Brian H)
 
 ------------------------------------------------------------------------
 === History: ===

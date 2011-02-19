@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -49,5 +50,13 @@ public class TestJdkTypes
         assertEquals(quote("en"), mapper.writeValueAsString(new Locale("en")));
         assertEquals(quote("es_ES"), mapper.writeValueAsString(new Locale("es", "ES")));
         assertEquals(quote("fi_FI_savo"), mapper.writeValueAsString(new Locale("FI", "fi", "savo")));
+    }
+
+    // [JACKSON-484]
+    public void testInetAddress() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(quote("127.0.0.1"), mapper.writeValueAsString(InetAddress.getByName("127.0.0.1")));
+        assertEquals(quote("ning.com"), mapper.writeValueAsString(InetAddress.getByName("ning.com")));
     }
 }
