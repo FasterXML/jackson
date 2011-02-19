@@ -33,7 +33,7 @@ public class TestAbstractClasses
     public void testSimpleInteface() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        mapper.registerModule(new MrBeanModule());
         Bean bean = mapper.readValue("{ \"x\" : \"abc\", \"y\" : 13 }", Bean.class);
         assertNotNull(bean);
         assertEquals("abc", bean.getX());

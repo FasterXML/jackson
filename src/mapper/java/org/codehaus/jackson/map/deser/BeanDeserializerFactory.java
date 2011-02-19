@@ -42,7 +42,8 @@ public class BeanDeserializerFactory
     public static class ConfigImpl extends Config
     {
         protected final static BeanDeserializerModifier[] NO_MODIFIERS = new BeanDeserializerModifier[0];
-
+        protected final static AbstractTypeResolver[] NO_ABSTRACT_TYPE_RESOLVERS = new AbstractTypeResolver[0];
+        
         /**
          * List of providers for additional deserializers, checked before considering default
          * basic or bean deserialializers.
@@ -56,13 +57,22 @@ public class BeanDeserializerFactory
          * are configured and constructed.
          */
         protected final BeanDeserializerModifier[] _modifiers;
+
+        /**
+         * List of objects that may be able to resolve abstract types to
+         * concrete types. Used by functionality like "mr Bean" to materialize
+         * types as needed.
+         * 
+         * @since 1.8
+         */
+        protected final AbstractTypeResolver[] _abstractTypeResolvers;
         
         /**
          * Constructor for creating basic configuration with no additional
          * handlers.
          */
         public ConfigImpl() {
-            this(null, null);
+            this(null, null, null);
         }
 
         /**
@@ -70,11 +80,13 @@ public class BeanDeserializerFactory
          * set of additional deserializer providers.
          */
         protected ConfigImpl(Deserializers[] allAdditionalDeserializers,
-                BeanDeserializerModifier[] modifiers)
+                BeanDeserializerModifier[] modifiers,
+                AbstractTypeResolver[] atr)
         {
             _additionalDeserializers = (allAdditionalDeserializers == null) ?
                     NO_DESERIALIZERS : allAdditionalDeserializers;
             _modifiers = (modifiers == null) ? NO_MODIFIERS : modifiers;
+            _abstractTypeResolvers = (atr == null) ? NO_ABSTRACT_TYPE_RESOLVERS : atr;
         }
 
         @Override
@@ -84,7 +96,7 @@ public class BeanDeserializerFactory
                 throw new IllegalArgumentException("Can not pass null Deserializers");
             }
             Deserializers[] all = ArrayBuilders.insertInList(_additionalDeserializers, additional);
-            return new ConfigImpl(all, _modifiers);
+            return new ConfigImpl(all, _modifiers, _abstractTypeResolvers);
         }
 
         @Override
@@ -94,14 +106,27 @@ public class BeanDeserializerFactory
                 throw new IllegalArgumentException("Can not pass null modifier");
             }
             BeanDeserializerModifier[] all = ArrayBuilders.insertInList(_modifiers, modifier);
-            return new ConfigImpl(_additionalDeserializers, all);
+            return new ConfigImpl(_additionalDeserializers, all, _abstractTypeResolvers);
         }
 
+        @Override
+        public Config withAbstractTypeResolver(AbstractTypeResolver resolver)
+        {
+            if (resolver == null) {
+                throw new IllegalArgumentException("Can not pass null modifier");
+            }
+            AbstractTypeResolver[] all = ArrayBuilders.insertInList(_abstractTypeResolvers, resolver);
+            return new ConfigImpl(_additionalDeserializers, _modifiers, all);
+        }
+        
         @Override
         public boolean hasDeserializers() { return _additionalDeserializers.length > 0; }
 
         @Override
         public boolean hasDeserializerModifiers() { return _modifiers.length > 0; }
+
+        @Override
+        public boolean hasAbstractTypeResolvers() { return _abstractTypeResolvers.length > 0; }
         
         @Override
         public Iterable<Deserializers> deserializers() {
@@ -111,6 +136,11 @@ public class BeanDeserializerFactory
         @Override
         public Iterable<BeanDeserializerModifier> deserializerModifiers() {
             return ArrayBuilders.arrayAsIterable(_modifiers);
+        }
+
+        @Override
+        public Iterable<AbstractTypeResolver> abstractTypeResolvers() {
+            return ArrayBuilders.arrayAsIterable(_abstractTypeResolvers);
         }
     }
     
@@ -346,11 +376,13 @@ public class BeanDeserializerFactory
             /* One check however: if type information is indicated, we usually do not
              * want materialization...
              */
-            AbstractTypeResolver res = config.getAbstractTypeResolver();
-            if (res != null) {
+            /* [JACKSON-502] (1.8): And now it is possible to have multiple resolvers too,
+             *   as they are registered via module interface.
+             */
+            for (AbstractTypeResolver resolver : _factoryConfig.abstractTypeResolvers()) {
                 AnnotationIntrospector intr = config.getAnnotationIntrospector();
                 if (intr.findTypeResolver(beanDesc.getClassInfo(), type) == null) {
-                    JavaType concrete = res.resolveAbstractType(config, type);
+                    JavaType concrete = resolver.resolveAbstractType(config, type);
                     if (concrete != null) {
                         /* important: introspect actual implementation (abstract class or
                          * interface doesn't have constructors, for one)

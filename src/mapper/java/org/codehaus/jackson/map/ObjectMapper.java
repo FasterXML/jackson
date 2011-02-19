@@ -583,11 +583,6 @@ public class ObjectMapper
             public SerializationConfig getSerializationConfig() {
                 return mapper.getSerializationConfig();
             }
-
-            @Override
-            public SerializationConfig getSeserializationConfig() {
-                return getSerializationConfig();
-            }
             
             // // // Methods for registering handlers
             
@@ -604,6 +599,11 @@ public class ObjectMapper
             @Override
             public void addBeanDeserializerModifier(BeanDeserializerModifier modifier) {
                 mapper._deserializerProvider = mapper._deserializerProvider.withDeserializerModifier(modifier);
+            }
+
+            @Override
+            public void addAbstractTypeResolver(AbstractTypeResolver resolver) {
+                mapper._deserializerProvider = mapper._deserializerProvider.withAbstractTypeResolver(resolver);
             }
             
             @Override

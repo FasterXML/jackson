@@ -90,13 +90,6 @@ public abstract class Module
          * @since 1.7.1 (1.7.0 unfortunately had a typo in method name!)
          */
         public SerializationConfig getSerializationConfig();
-
-        /**
-         * @deprecated Typo in method name included in 1.7.0; with 1.7.1 and
-         *    above, please use correctly named {@link #getSerializationConfig()}.
-         */
-        @Deprecated
-        public SerializationConfig getSeserializationConfig();
         
         /*
         /**********************************************************
@@ -137,6 +130,17 @@ public abstract class Module
          * @param mod Modifier to register
          */
         public void addBeanSerializerModifier(BeanSerializerModifier mod);
+
+        /**
+         * Method that module can use to register additional
+         * {@link AbstractTypeResolver} instance, to handle resolution of
+         * abstract to concrete types (either by defaulting, or by materializing).
+         * 
+         * @param resolver Resolver to add.
+         * 
+         * @since 1.8
+         */
+        public void addAbstractTypeResolver(AbstractTypeResolver resolver);
         
         /**
          * Method for registering specified {@link AnnotationIntrospector} as the highest

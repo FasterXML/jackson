@@ -63,18 +63,39 @@ public abstract class DeserializerFactory
         /**
          * Fluent/factory method used to construct a configuration object that
          * has same configuration as this instance plus one additional
-         * deserialiazer modifier. Added modified has highest priority (that is, it
+         * deserialiazer modifier. Added modifier has the highest priority (that is, it
          * gets called before any already registered modifier).
          */
         public abstract Config withDeserializerModifier(BeanDeserializerModifier modifier);
+
+        /**
+         * Fluent/factory method used to construct a configuration object that
+         * has same configuration as this instance plus one additional
+         * abstract type resolver.
+         * Added resolver has the highest priority (that is, it
+         * gets called before any already registered resolver).
+         * 
+         * @since 1.8
+         */
+        public abstract Config withAbstractTypeResolver(AbstractTypeResolver resolver);
         
         public abstract Iterable<Deserializers> deserializers();
 
         public abstract Iterable<BeanDeserializerModifier> deserializerModifiers();
 
+        /**
+         * @since 1.8
+         */
+        public abstract Iterable<AbstractTypeResolver> abstractTypeResolvers();
+        
         public abstract boolean hasDeserializers();
 
         public abstract boolean hasDeserializerModifiers();
+
+        /**
+         * @since 1.8
+         */
+        public abstract boolean hasAbstractTypeResolvers();
     }
 
     /*
@@ -120,6 +141,16 @@ public abstract class DeserializerFactory
      */
     public final DeserializerFactory withDeserializerModifier(BeanDeserializerModifier modifier) {
         return withConfig(getConfig().withDeserializerModifier(modifier));
+    }
+
+    /**
+     * Convenience method for creating a new factory instance with additional
+     * {@link AbstractTypeResolver}.
+     * 
+     * @since 1.7
+     */
+    public final DeserializerFactory withAbstractTypeResolver(AbstractTypeResolver resolver) {
+        return withConfig(getConfig().withAbstractTypeResolver(resolver));
     }
     
     /*

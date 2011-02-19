@@ -1,12 +1,5 @@
 package org.codehaus.jackson.jaxb;
 
-import main.BaseTest;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.deser.CustomDeserializerFactory;
-import org.codehaus.jackson.map.deser.StdDeserializerProvider;
-import org.codehaus.jackson.map.ser.CustomSerializerFactory;
-import org.codehaus.jackson.xc.DomElementJsonDeserializer;
-import org.codehaus.jackson.xc.DomElementJsonSerializer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -14,20 +7,72 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 
+import org.codehaus.jackson.Version;
+import org.codehaus.jackson.map.BeanDescription;
+import org.codehaus.jackson.map.BeanProperty;
+import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.Serializers;
+import org.codehaus.jackson.map.Module.SetupContext;
+import org.codehaus.jackson.map.module.SimpleModule;
+import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.xc.DomElementJsonDeserializer;
+import org.codehaus.jackson.xc.DomElementJsonSerializer;
+
 /**
  * @author Ryan Heaton
  */
-public class TestDomElementSerialization extends BaseTest
+public class TestDomElementSerialization extends BaseJaxbTest
 {
+    /*
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
+     */
+
+    private final static class DomModule extends SimpleModule
+    {
+        public DomModule()
+        {
+            super("DomModule", Version.unknownVersion());
+            addDeserializer(Element.class, new DomElementJsonDeserializer());
+            /* 19-Feb-2011, tatu: Note: since SimpleModule does not support "generic"
+             *   serializers, need to add bit more code here.
+             */
+            //testModule.addSerializer(new DomElementJsonSerializer());
+        }
+
+        @Override
+        public void setupModule(SetupContext context)
+        {
+            super.setupModule(context);
+            context.addSerializers(new DomSerializers());
+        }
+    }
+    
+    private final static class DomSerializers implements Serializers
+    {
+        public JsonSerializer<?> findSerializer(SerializationConfig config,
+                JavaType type, BeanDescription beanDesc, BeanProperty property)
+        {
+            if (Element.class.isAssignableFrom(type.getRawClass())) {
+                return new DomElementJsonSerializer();
+            }
+            return null;
+        }
+    }
+
+    /*
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
+     */
+    
     public void testBasicDomElementSerializationDeserialization() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        CustomSerializerFactory sf = new CustomSerializerFactory();
-        sf.addGenericMapping(Element.class, new DomElementJsonSerializer());
-        CustomDeserializerFactory df = new CustomDeserializerFactory();
-        df.addSpecificMapping(Element.class, new DomElementJsonDeserializer());
-        mapper.setSerializerFactory(sf);
-        mapper.setDeserializerProvider(new StdDeserializerProvider(df));
+        mapper.registerModule(new DomModule());
 
         StringBuilder builder = new StringBuilder()
                 .append("<document xmlns=\"urn:hello\" att1=\"value1\" att2=\"value2\">")
@@ -39,7 +84,6 @@ public class TestDomElementSerialization extends BaseTest
         Document document = bf.newDocumentBuilder().parse(new ByteArrayInputStream(builder.toString().getBytes("utf-8")));
         StringWriter jsonElement = new StringWriter();
         mapper.writeValue(jsonElement, document.getDocumentElement());
-//        System.out.println(jsonElement.toString());
 
         Element el = mapper.readValue(jsonElement.toString(), Element.class);
         assertEquals(3, el.getAttributes().getLength());

@@ -10,6 +10,7 @@ import static org.junit.Assert.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.module.SimpleModule;
 import org.codehaus.jackson.type.TypeReference;
 
 /**
@@ -518,9 +519,9 @@ public class TestArrayDeserialization
     public void testCustomDeserializers() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        CustomDeserializerFactory dsf = new CustomDeserializerFactory();
-        mapper.setDeserializerProvider(new StdDeserializerProvider(dsf));
-        dsf.addSpecificMapping(NonDeserializable[].class, new CustomNonDeserArrayDeserializer());
+        SimpleModule testModule = new SimpleModule("test", Version.unknownVersion());
+        testModule.addDeserializer(NonDeserializable[].class, new CustomNonDeserArrayDeserializer());
+        mapper.registerModule(testModule);
         
         NonDeserializable[] result = mapper.readValue("[\"a\"]", NonDeserializable[].class);
         assertNotNull(result);

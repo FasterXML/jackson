@@ -33,7 +33,14 @@ import org.codehaus.jackson.map.type.*;
  * {@link DeserializerProvider} (most commonly
  * {@link StdDeserializerProvider}) with custom deserializer factory,
  * and setting {@link ObjectMapper} to use it.
+ * 
+ * @deprecated Starting with 1.7, functionality of this class has been
+ *    implemented both in base {@link SerializerFactory} (see methods
+ *    like {@link SerializerFactory#withAdditionalSerializers(Serializers)})
+ *    and through new Module API. As such, this class is not the best way
+ *    to add custom functionality, and will likely be removed from 2.0 release
  */
+@Deprecated
 public class CustomDeserializerFactory
     extends BeanDeserializerFactory
 {

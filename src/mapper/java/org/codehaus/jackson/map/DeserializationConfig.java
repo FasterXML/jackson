@@ -448,10 +448,10 @@ public class DeserializationConfig
     }
 
     protected DeserializationConfig(DeserializationConfig src,
-                                    HashMap<ClassKey,Class<?>> mixins,
-                                    TypeResolverBuilder<?> typer,
-                                    VisibilityChecker<?> vc,
-                                    SubtypeResolver subtypeResolver)
+            HashMap<ClassKey,Class<?>> mixins,
+            TypeResolverBuilder<?> typer,
+            VisibilityChecker<?> vc,
+            SubtypeResolver subtypeResolver)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -817,15 +817,21 @@ public class DeserializationConfig
      * (no default) used for resolving abstract types into concrete
      * types (either by mapping or materializing new classes).
      * 
+     * @deprecated Since 1.8 resolvers should be registered using Module interface
+     * 
      * @since 1.6
      */
+    @Deprecated
     public AbstractTypeResolver getAbstractTypeResolver() {
         return _abstractTypeResolver;
     }
     
     /**
      * @since 1.6
+     * 
+     * @deprecated Since 1.8 resolvers should be registered using Module interface
      */
+    @Deprecated
     public void setAbstractTypeResolver(AbstractTypeResolver atr) {
         _abstractTypeResolver = atr;
     }

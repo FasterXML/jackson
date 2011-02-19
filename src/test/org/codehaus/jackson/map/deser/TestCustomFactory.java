@@ -94,6 +94,7 @@ public class TestCustomFactory
     /**********************************************************
      */
     
+    @SuppressWarnings("deprecation")
     public void testDateOverride() throws Exception
     {
         Date expResult = new Date(3L);

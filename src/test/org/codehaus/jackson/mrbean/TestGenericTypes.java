@@ -4,7 +4,6 @@ import java.util.*;
 
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.mrbean.AbstractTypeMaterializer;
 import org.codehaus.jackson.type.TypeReference;
 
 public class TestGenericTypes
@@ -51,7 +50,7 @@ public class TestGenericTypes
     public void testSimpleInteface() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        mapper.registerModule(new MrBeanModule());
         ListBean bean = mapper.readValue("{\"leaves\":[{\"value\":\"foo\"}] }", ListBean.class);
         assertNotNull(bean);
         List<LeafBean> leaves = bean.getLeaves();
@@ -66,7 +65,7 @@ public class TestGenericTypes
     public void testTypeReferenceNestedGeneric() throws Exception
     {
         final ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        mapper.registerModule(new MrBeanModule());
         final String JSON = "{\"value\":{\"breed\":\"Poodle\",\"name\":\"Rekku\"}}";
 
         final ResultWrapper<Dog> result = mapper.readValue(JSON, new TypeReference<ResultWrapper<Dog>>() { });
@@ -77,7 +76,7 @@ public class TestGenericTypes
     public void testTypeReferenceNestedGenericList() throws Exception
     {
         final ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        mapper.registerModule(new MrBeanModule());
 
         final String JSON = "{\"records\":[{\"breed\":\"Mountain Cur\",\"name\":\"Fido\"}],\n"
             +"\"total\":1}";

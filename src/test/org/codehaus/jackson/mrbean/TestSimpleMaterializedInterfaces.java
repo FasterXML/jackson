@@ -111,7 +111,7 @@ public class TestSimpleMaterializedInterfaces
     public void testSimpleInteface() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        mapper.registerModule(new MrBeanModule());
         Bean bean = mapper.readValue("{\"a\":\"value\",\"x\":123 }", Bean.class);
         assertNotNull(bean);
         assertEquals("value", bean.getA());
@@ -124,7 +124,7 @@ public class TestSimpleMaterializedInterfaces
     public void testBeanHolder() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        mapper.registerModule(new MrBeanModule());
         BeanHolder holder = mapper.readValue("{\"bean\":{\"a\":\"b\",\"x\":-4 }}", BeanHolder.class);
         assertNotNull(holder);
         Bean bean = holder.getBean();
@@ -136,7 +136,7 @@ public class TestSimpleMaterializedInterfaces
     public void testArrayInterface() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        mapper.registerModule(new MrBeanModule());
         ArrayBean bean = mapper.readValue("{\"values\":[1,2,3], \"words\": [ \"cool\", \"beans\" ] }",
                 ArrayBean.class);
         assertNotNull(bean);
@@ -147,7 +147,7 @@ public class TestSimpleMaterializedInterfaces
     public void testSubInterface() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAbstractTypeResolver(new AbstractTypeMaterializer());
+        mapper.registerModule(new MrBeanModule());
         BeanWithY bean = mapper.readValue("{\"a\":\"b\",\"x\":1, \"y\":2 }", BeanWithY.class);
         assertNotNull(bean);
         assertEquals("b", bean.getA());
@@ -171,7 +171,7 @@ public class TestSimpleMaterializedInterfaces
         AbstractTypeMaterializer mat = new AbstractTypeMaterializer();
         // ensure that we will only get deferred error methods
         mat.disable(AbstractTypeMaterializer.Feature.FAIL_ON_UNMATERIALIZED_METHOD);
-        mapper.getDeserializationConfig().setAbstractTypeResolver(mat);
+        mapper.registerModule(new MrBeanModule(mat));
         PartialBean bean = mapper.readValue("{\"ok\":true}", PartialBean.class);
         assertNotNull(bean);
         assertTrue(bean.isOk());

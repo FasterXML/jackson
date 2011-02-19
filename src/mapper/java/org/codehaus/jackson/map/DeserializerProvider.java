@@ -26,6 +26,11 @@ public abstract class DeserializerProvider
      * @since 1.7
      */
     public abstract DeserializerProvider withDeserializerModifier(BeanDeserializerModifier modifier);
+
+    /**
+     * @since 1.8
+     */
+    public abstract DeserializerProvider withAbstractTypeResolver(AbstractTypeResolver resolver);
     
     /*
     /**********************************************************

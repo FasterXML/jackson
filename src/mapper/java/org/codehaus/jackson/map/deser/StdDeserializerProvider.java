@@ -98,6 +98,12 @@ public class StdDeserializerProvider
         _factory = _factory.withDeserializerModifier(modifier);
         return this;
     }
+
+    @Override
+    public DeserializerProvider withAbstractTypeResolver(AbstractTypeResolver resolver) {
+        _factory = _factory.withAbstractTypeResolver(resolver);
+        return this;
+    }
     
     /*
     /**********************************************************
