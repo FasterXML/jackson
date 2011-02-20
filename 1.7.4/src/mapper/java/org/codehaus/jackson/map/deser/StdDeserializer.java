@@ -432,7 +432,7 @@ public abstract class StdDeserializer<T>
                 break;
             }
             try {
-                return Double.parseDouble(text);
+                return parseDouble(text);
             } catch (IllegalArgumentException iae) { }
             throw ctxt.weirdStringException(_valueClass, "not a valid Double value");
         }
@@ -476,7 +476,7 @@ public abstract class StdDeserializer<T>
                 break;
             }
             try {
-                return Double.parseDouble(text);
+                return parseDouble(text);
             } catch (IllegalArgumentException iae) { }
             throw ctxt.weirdStringException(_valueClass, "not a valid double value");
         }
@@ -512,6 +512,22 @@ public abstract class StdDeserializer<T>
         }
     }
 
+    /**
+     * Helper method for encapsulating calls to low-level double value parsing; single place
+     * just because we need a work-around that must be applied to all calls.
+     *<p>
+     * Note: copied from <code>org.codehaus.jackson.io.NumberUtil</code> (to avoid dependency to
+     * version 1.8; except for String constants, but that gets compiled in bytecode here)
+     */
+    protected final static double parseDouble(String numStr) throws NumberFormatException
+    {
+        // [JACKSON-486]: avoid some nasty float representations... but should it be MIN_NORMAL or MIN_VALUE?
+        if (NumberInput.NASTY_SMALL_DOUBLE.equals(numStr)) {
+            return Double.MIN_NORMAL;
+        }
+        return Double.parseDouble(numStr);
+    }
+    
     /*
     /****************************************************
     /* Helper methods for sub-classes, resolving dependencies
