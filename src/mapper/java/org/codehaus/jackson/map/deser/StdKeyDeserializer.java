@@ -5,6 +5,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
 import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.io.NumberInput;
 import org.codehaus.jackson.map.*;
 
 /**
@@ -57,7 +58,7 @@ public abstract class StdKeyDeserializer
 
     protected double _parseDouble(String key) throws IllegalArgumentException
     {
-        return Double.parseDouble(key);
+        return NumberInput.parseDouble(key);
     }
 
     /*

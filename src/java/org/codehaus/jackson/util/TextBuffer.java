@@ -3,6 +3,8 @@ package org.codehaus.jackson.util;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
+import org.codehaus.jackson.io.NumberInput;
+
 /**
  * TextBuffer is a class similar to {@link StringBuffer}, with
  * following differences:
@@ -373,7 +375,7 @@ public final class TextBuffer
     public double contentsAsDouble()
         throws NumberFormatException
     {
-        return Double.parseDouble(contentsAsString());
+        return NumberInput.parseDouble(contentsAsString());
     }
 
     /*

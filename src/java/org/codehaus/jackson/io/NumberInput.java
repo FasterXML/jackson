@@ -3,6 +3,12 @@ package org.codehaus.jackson.io;
 public final class NumberInput
 {
     /**
+     * Textual representation of a double constant that can cause nasty problems
+     * with JDK (see http://www.exploringbinary.com/java-hangs-when-converting-2-2250738585072012e-308).
+     */
+    public final static String NASTY_SMALL_DOUBLE = "2.2250738585072012e-308";
+
+    /**
      * Constants needed for parsing longs from basic int parsing methods
      */
     final static long L_BILLION = 1000000000;
@@ -211,9 +217,10 @@ public final class NumberInput
             // if other symbols, parse as Double, coerce
             if (c > '9' || c < '0') {
                 try {
-                    double d = Double.parseDouble(input);
-                    return (int) d;
-                } catch (NumberFormatException e) { }
+                    return (int) parseDouble(input);
+                } catch (NumberFormatException e) {
+                    return defaultValue;
+                }
             }
         }
         try {
@@ -251,9 +258,10 @@ public final class NumberInput
             // if other symbols, parse as Double, coerce
             if (c > '9' || c < '0') {
                 try {
-                    double d = Double.parseDouble(input);
-                    return (long) d;
-                } catch (NumberFormatException e) { }
+                    return (long) parseDouble(input);
+                } catch (NumberFormatException e) {
+                    return defaultValue;
+                }
             }
         }
         try {
@@ -276,8 +284,20 @@ public final class NumberInput
             return defaultValue;
         }
         try {
-            return Double.parseDouble(input);
+            return parseDouble(input);
         } catch (NumberFormatException e) { }
         return defaultValue;
+    }
+    
+    /**
+     * @since 1.8
+     */
+    public final static double parseDouble(String numStr) throws NumberFormatException
+    {
+        // [JACKSON-486]: avoid some nasty float representations... but should it be MIN_NORMAL or MIN_VALUE?
+        if (NASTY_SMALL_DOUBLE.equals(numStr)) {
+            return Double.MIN_NORMAL;
+        }
+        return Double.parseDouble(numStr);
     }
 }
