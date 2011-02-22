@@ -9,7 +9,6 @@ package org.codehaus.jackson;
  * limitations (to read in JSON encoded using an encoding not
  * listed as allowed), they can use {@link java.io.Reader} /
  * {@link java.io.Writer} instances as input
- * source (or output target).
  */
 public enum JsonEncoding {
     UTF8("UTF-8", false), // N/A for big-endian, really
@@ -19,14 +18,14 @@ public enum JsonEncoding {
         UTF32_LE("UTF-32LE", false)
         ;
     
-    final String mJavaName;
+    protected final String _javaName;
 
-    final boolean mBigEndian;
+    protected final boolean _bigEndian;
     
     JsonEncoding(String javaName, boolean bigEndian)
     {
-        mJavaName = javaName;
-        mBigEndian = bigEndian;
+        _javaName = javaName;
+        _bigEndian = bigEndian;
     }
 
     /**
@@ -34,7 +33,7 @@ public enum JsonEncoding {
      *
      * @return Matching encoding name that JDK will support.
      */
-    public String getJavaName() { return mJavaName; }
+    public String getJavaName() { return _javaName; }
 
     /**
      * Whether encoding is big-endian (if encoding supports such
@@ -44,5 +43,5 @@ public enum JsonEncoding {
      * @return True for big-endian encodings; false for little-endian
      *   (or if not applicable)
      */
-    public boolean isBigEndian() { return mBigEndian; }
+    public boolean isBigEndian() { return _bigEndian; }
 }

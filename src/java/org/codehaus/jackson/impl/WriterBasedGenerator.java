@@ -19,6 +19,12 @@ public final class WriterBasedGenerator
 
     final protected static char[] HEX_CHARS = CharTypes.copyHexChars();
 
+    /**
+     * This is the default set of escape codes, over 7-bit ASCII range
+     * (first 128 character codes), used for single-byte UTF-8 characters.
+     */
+    private final static int[] sOutputEscapes = CharTypes.getOutputEscapes();
+    
     /*
     /**********************************************************
     /* Configuration
@@ -28,6 +34,20 @@ public final class WriterBasedGenerator
     final protected IOContext _ioContext;
 
     final protected Writer _writer;
+
+    /*
+    /**********************************************************
+    /* Configuration, escaping
+    /**********************************************************
+     */
+
+    /**
+     * Currently active set of output escade code definitions (whether
+     * and how to escape or not) for 7-bit ASCII range (first 128
+     * character codes). Defined separately to make potentially
+     * customizable
+     */
+    protected int[] _outputEscapes = sOutputEscapes;
     
     /*
     /**********************************************************
@@ -218,7 +238,7 @@ public final class WriterBasedGenerator
         }
 
         /* To support [JACKSON-46], we'll do this:
-         * (Quostion: should quoting of spaces (etc) still be enabled?)
+         * (Question: should quoting of spaces (etc) still be enabled?)
          */
         if (!isEnabled(Feature.QUOTE_FIELD_NAMES)) {
             _writeString(name);
@@ -891,7 +911,7 @@ public final class WriterBasedGenerator
 
         // And then we'll need to verify need for escaping etc:
         int end = _outputTail + len;
-        final int[] escCodes = CharTypes.getOutputEscapes();
+        final int[] escCodes = _outputEscapes;
         final int escLen = escCodes.length;
 
         output_loop:
@@ -971,7 +991,7 @@ public final class WriterBasedGenerator
     private final void _writeSegment(int end)
         throws IOException, JsonGenerationException
     {
-        final int[] escCodes = CharTypes.getOutputEscapes();
+        final int[] escCodes = _outputEscapes;
         final int escLen = escCodes.length;
 
         int ptr = 0;
@@ -1032,7 +1052,7 @@ public final class WriterBasedGenerator
          * to copy them, or write through
          */
         len += offset; // -> len marks the end from now on
-        final int[] escCodes = CharTypes.getOutputEscapes();
+        final int[] escCodes = _outputEscapes;
         final int escLen = escCodes.length;
         while (offset < len) {
             int start = offset;

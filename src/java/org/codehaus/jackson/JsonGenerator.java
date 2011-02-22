@@ -116,7 +116,18 @@ public abstract class JsonGenerator
          * 
          * @since 1.7
          */
-        FLUSH_PASSED_TO_STREAM(true)
+        FLUSH_PASSED_TO_STREAM(true),
+        
+        /**
+         * Feature that specifies that all characters beyond 7-bit ASCII
+         * range (i.e. code points of 128 and above) need to be output
+         * using format-specific escapes (for JSON, backslash escapes),
+         * if format uses escaping mechanisms (which is generally true
+         * for textual formats but not for binary formats).
+         * 
+         * @since 1.8
+         */
+        ESCAPE_NON_ASCII(false)
         
             ;
 
@@ -240,22 +251,22 @@ public abstract class JsonGenerator
 
     /** @deprecated Use {@link #enable} instead
      */
-    @SuppressWarnings("dep-ann")
+    @Deprecated
     public void enableFeature(Feature f) { enable(f); }
 
     /** @deprecated Use {@link #disable} instead
      */
-    @SuppressWarnings("dep-ann")
+    @Deprecated
     public void disableFeature(Feature f) { disable(f); }
 
     /** @deprecated Use {@link #configure} instead
      */
-    @SuppressWarnings("dep-ann")
+    @Deprecated
     public void setFeature(Feature f, boolean state) { configure(f, state); }
 
     /** @deprecated Use {@link #isEnabled} instead
      */
-    @SuppressWarnings("dep-ann")
+    @Deprecated
     public boolean isFeatureEnabled(Feature f) { return isEnabled(f); }
 
     /*
@@ -289,6 +300,49 @@ public abstract class JsonGenerator
      */
     public abstract JsonGenerator useDefaultPrettyPrinter();
 
+    /**
+     * Method that can be called to request that generator escapes
+     * all character codes above specified code point (if positive value);
+     * or, to not escape any characters except for ones that must be
+     * escaped for the data format (if -1).
+     * To force escaping of all non-ASCII characters, for example,
+     * this method would be called with value of 127.
+     *<p>
+     * Note that generators are NOT required to support setting of value
+     * higher than 127, because there are other ways to affect quoting
+     * (or lack thereof) of character codes between 0 and 127.
+     * Not all generators support concept of escaping, either; if so,
+     * calling this method will have no effect.
+     *<p>
+     * Default implementation does nothing; sub-classes need to redefine
+     * it according to rules of supported data format.
+     * 
+     * @param charCode Either -1 to indicate that no additional escaping
+     *   is to be done; or highest code point not to escape (meaning higher
+     *   ones will be), if positive value.
+     * 
+     * @since 1.8
+     */
+    public JsonGenerator setHighestNonEscapedChar(int charCode) {
+        return this;
+    }
+
+    /**
+     * Accessor method for testing what is the highest unescaped character
+     * configured for this generator. This may be either positive value
+     * (when escaping configuration has been set and is in effect), or
+     * -1 to indicate that no additional escaping is in effect.
+     * Some generators may not support additional escaping: for example,
+     * generators for binary formats that do not use escaping should return
+     * -1.
+     * 
+     * @return Currently active limitation for highest non-escaped character,
+     *   if defined; or -1 to indicate no additional escaping is performed.
+     */
+    public int getMaximumNonEscapedChar() {
+        return -1;
+    }
+    
     /*
     /**********************************************************
     /* Public API, write methods, structural

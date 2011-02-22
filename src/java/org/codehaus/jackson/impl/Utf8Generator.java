@@ -42,17 +42,47 @@ public class Utf8Generator
     private final static byte[] TRUE_BYTES = { 't', 'r', 'u', 'e' };
     private final static byte[] FALSE_BYTES = { 'f', 'a', 'l', 's', 'e' };
 
+    /**
+     * This is the default set of escape codes, over 7-bit ASCII range
+     * (first 128 character codes), used for single-byte UTF-8 characters.
+     */
     private final static int[] sOutputEscapes = CharTypes.getOutputEscapes();
     
     /*
     /**********************************************************
-    /* Configuration
+    /* Configuration, basic I/O
     /**********************************************************
      */
 
     final protected IOContext _ioContext;
 
+    /**
+     * Underlying output stream used for writing JSON content.
+     */
     final protected OutputStream _outputStream;
+
+    /*
+    /**********************************************************
+    /* Configuration, escaping
+    /**********************************************************
+     */
+
+    /**
+     * Currently active set of output escape code definitions (whether
+     * and how to escape or not) for 7-bit ASCII range (first 128
+     * character codes). Defined separately to make potentially
+     * customizable
+     */
+    protected int[] _outputEscapes = sOutputEscapes;
+
+    /**
+     * Value between 128 (0x80) and 65535 (0xFFFF) that indicates highest
+     * Unicode code point that will not need escaping; or 0 to indicate
+     * that all characters can be represented without escaping.
+     * Typically used to force escaping of some portion of character set;
+     * for example to always escape non-ASCII characters (if value was 127)
+     */
+    protected int _maximumNonEscapedChar;
     
     /*
     /**********************************************************
@@ -106,7 +136,7 @@ public class Utf8Generator
      * needs to be returned to recycler once we are done) or not.
      */
     protected boolean _bufferRecyclable;
-
+    
     /*
     /**********************************************************
     /* Life-cycle
@@ -1146,7 +1176,7 @@ public class Utf8Generator
 
         int outputPtr = _outputTail;
         final byte[] outputBuffer = _outputBuffer;
-        final int[] escCodes = sOutputEscapes;
+        final int[] escCodes = _outputEscapes;
 
         while (offset < len) {
             int ch = cbuf[offset];
@@ -1177,7 +1207,7 @@ public class Utf8Generator
         int outputPtr = _outputTail;
 
         final byte[] outputBuffer = _outputBuffer;
-        final int[] escCodes = sOutputEscapes;
+        final int[] escCodes = _outputEscapes;
         
         while (offset < end) {
             int ch = cbuf[offset++];
@@ -1226,7 +1256,7 @@ public class Utf8Generator
         throws IOException, JsonGenerationException
     {
         // fast loop to see if escaping is needed; don't copy, just look
-        final int[] escCodes = sOutputEscapes;
+        final int[] escCodes = _outputEscapes;
 
         for (int ptr = offset, end = offset + len; ptr < end; ) {
             int ch = utf8[ptr++] & 0xFF;
@@ -1256,17 +1286,17 @@ public class Utf8Generator
         }
         
         final byte[] outputBuffer = _outputBuffer;
-        final int[] escCodes = sOutputEscapes;
+        final int[] escCodes = _outputEscapes;
         len += offset; // so 'len' becomes 'end'
         
         while (offset < len) {
             byte b = utf8[offset++];
             int ch = b & 0xFF;
-            if (escCodes[ch] == 0) {
+            int escape = escCodes[ch];
+            if (escape == 0) {
                 outputBuffer[outputPtr++] = b;
                 continue;
             }
-            int escape = sOutputEscapes[ch];
             if (escape > 0) { // 2-char escape, fine
                 outputBuffer[outputPtr++] = BYTE_BACKSLASH;
                 outputBuffer[outputPtr++] = (byte) escape;
