@@ -53,9 +53,11 @@ public class StdSubtypeResolver extends SubtypeResolver
         // but if annotations found, may need to resolve subtypes:
         Collection<NamedType> st = ai.findSubtypes(property);
         // If no explicit definitions, base itself might have name
-        if (st == null || st.isEmpty()) {
-            return null;
+        if (st == null) {
+            st = new ArrayList<NamedType>();
         }
+        // ensure that base type is included as starting point
+        st.add(new NamedType(property.getRawType(), null));
         return _collectAndResolve(property, config, ai, st);
     }
 
@@ -99,7 +101,7 @@ public class StdSubtypeResolver extends SubtypeResolver
         // Hmmh. Can't iterate over collection and modify it, so:
         HashSet<NamedType> seen = new HashSet<NamedType>(subtypeList);          
         ArrayList<NamedType> subtypes = new ArrayList<NamedType>(subtypeList);
-
+        
         // collect all subtypes iteratively
         for (int i = 0; i < subtypes.size(); ++i) {
             NamedType type = subtypes.get(i);

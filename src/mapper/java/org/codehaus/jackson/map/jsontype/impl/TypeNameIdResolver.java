@@ -34,7 +34,6 @@ public class TypeNameIdResolver
     {
         // sanity check
         if (forSer == forDeser) throw new IllegalArgumentException();
-        
         HashMap<String, String> typeToId = null;
         HashMap<String, JavaType> idToType = null;
 
