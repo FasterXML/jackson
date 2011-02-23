@@ -97,8 +97,10 @@ public class TestTypedDeserialization
         public Date date;
     }
         
-    static class Issue506NumberBean {
+    static class Issue506NumberBean
+    {
         @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type3")
+        @JsonSubTypes({ @Type(Long.class), @Type(Integer.class) })
         public Number number;
     }
     
@@ -229,7 +231,6 @@ public class TestTypedDeserialization
     }
     
     // [JACKSON-506], wrt Number
-    /*
     public void testIssue506WithNumber() throws Exception
     {
         Issue506NumberBean input = new Issue506NumberBean();
@@ -238,12 +239,9 @@ public class TestTypedDeserialization
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(input);
 
-        System.err.println("JSON = "+json);
-
         Issue506NumberBean output = mapper.readValue(json, Issue506NumberBean.class);
         assertEquals(input.number, output.number);
     }
-    */
 }
 
 

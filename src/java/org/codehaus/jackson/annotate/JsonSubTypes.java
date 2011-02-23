@@ -10,9 +10,9 @@ import java.lang.annotation.Target;
  * polymorphic types, and to associate logical names used within JSON content
  * (which is more portable than using physical Java class names).
  * 
- * @since 1.5
+ * @since 1.5 (but available to fields, methods and constructor params only since 1.8)
  */
-@Target({ElementType.TYPE})
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotation
 public @interface JsonSubTypes {
