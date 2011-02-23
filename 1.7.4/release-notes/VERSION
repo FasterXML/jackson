@@ -10,6 +10,9 @@ Description:
 
   * [JACKSON-484]: improve serialization of InetAddress
    (reported by Brian H)
+  * [JACKSON-506]: problems with type handling for java.util.Date
+    when using @JsonTypeInfo on field/method
+   (repoted by Kirill S)
 
 ------------------------------------------------------------------------
 === History: ===

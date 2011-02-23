@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.jsontype;
 import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.annotate.JsonSubTypes.Type;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
@@ -90,6 +91,16 @@ public class TestTypedDeserialization
 
     @JsonTypeInfo(use=Id.CLASS, include=As.WRAPPER_ARRAY)
     interface TypeWithArray { }
+
+    static class Issue506DateBean {
+        @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type2")
+        public Date date;
+    }
+        
+    static class Issue506NumberBean {
+        @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type3")
+        public Number number;
+    }
     
     /*
     /**********************************************************
@@ -203,6 +214,36 @@ public class TestTypedDeserialization
         assertEquals(DummyImpl.class, result.getClass());
         assertEquals(3, ((DummyImpl) result).x);
     }
+
+    // [JACKSON-506], wrt Date
+    public void testIssue506WithDate() throws Exception
+    {
+        Issue506DateBean input = new Issue506DateBean();
+        input.date = new Date(1234L);
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(input);
+
+        Issue506DateBean output = mapper.readValue(json, Issue506DateBean.class);
+        assertEquals(input.date, output.date);
+    }
+    
+    // [JACKSON-506], wrt Number
+    /*
+    public void testIssue506WithNumber() throws Exception
+    {
+        Issue506NumberBean input = new Issue506NumberBean();
+        input.number = Long.valueOf(4567L);
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(input);
+
+        System.err.println("JSON = "+json);
+
+        Issue506NumberBean output = mapper.readValue(json, Issue506NumberBean.class);
+        assertEquals(input.number, output.number);
+    }
+    */
 }
 
 
