@@ -101,7 +101,12 @@ public class ObjectArraySerializer
                 Class<?> cc = elem.getClass();
                 JsonSerializer<Object> serializer = serializers.serializerFor(cc);
                 if (serializer == null) {
-                    serializer = _findAndAddDynamic(serializers, cc, provider);
+                    // To fix [JACKSON-508]
+                    if (_elementType.hasGenericTypes()) {
+                        serializer = _findAndAddDynamic(serializers, _elementType.forcedNarrowBy(cc), provider);
+                    } else {
+                        serializer = _findAndAddDynamic(serializers, cc, provider);
+                    }
                 }
                 serializer.serialize(elem, jgen, provider);
             }
@@ -245,4 +250,19 @@ public class ObjectArraySerializer
         }
         return result.serializer;
     }
+
+    /**
+     * @since 1.8
+     */
+    protected final JsonSerializer<Object> _findAndAddDynamic(PropertySerializerMap map,
+            JavaType type, SerializerProvider provider) throws JsonMappingException
+    {
+        PropertySerializerMap.SerializerAndMapResult result = map.findAndAddSerializer(type, provider, _property);
+        // did we get a new map of serializers? If so, start using it
+        if (map != result.map) {
+            _dynamicSerializers = result.map;
+        }
+        return result.serializer;
+    }
+
 }

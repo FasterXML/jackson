@@ -17,16 +17,21 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.type.TypeReference;
 
 public class TestTypedContainerSerialization
 	extends BaseMapTest
 {
-	private final static ObjectMapper mapper = new ObjectMapper();
+    /*
+    /**********************************************************
+    /* Helper types
+    /**********************************************************
+     */
 
-	@JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "object-type")
-	@JsonSubTypes( { @Type(value = Dog.class, name = "doggy"),
-			@Type(value = Cat.class, name = "kitty") })
-	static abstract class Animal {
+    @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "object-type")
+    @JsonSubTypes( { @Type(value = Dog.class, name = "doggy"),
+        @Type(value = Cat.class, name = "kitty") })
+    static abstract class Animal {
 	    public String name;
 
 	    protected Animal(String n) {
@@ -97,8 +102,20 @@ public class TestTypedContainerSerialization
 
 	}
 
-	public void testIssue265() throws Exception
-	{
+    @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@class")
+    static class Issue508A { }
+    static class Issue508B extends Issue508A { }
+
+    private final static ObjectMapper mapper = new ObjectMapper();
+
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+	
+    public void testIssue265() throws Exception
+    {
 		Dog dog = new Dog("medor");
 		dog.setBoneCount(3);
 		Container1 c1 = new Container1();
@@ -111,10 +128,10 @@ public class TestTypedContainerSerialization
 		String s2 = mapper.writeValueAsString(c2);
 		Assert.assertTrue("polymorphic type info is kept (2)", s2
 				.indexOf("\"object-type\":\"doggy\"") >= 0);
-	}
+    }
 
-        public void testIssue329() throws Exception
-        {
+    public void testIssue329() throws Exception
+    {
             ArrayList<Animal> animals = new ArrayList<Animal>();
             animals.add(new Dog("Spot"));
             JavaType rootType = TypeFactory.parametricType(Iterator.class, Animal.class);
@@ -122,5 +139,24 @@ public class TestTypedContainerSerialization
             if (json.indexOf("\"object-type\":\"doggy\"") < 0) {
                 fail("No polymorphic type retained, should be; JSON = '"+json+"'");
             }
-        }
+    }
+
+    public void testIssue508() throws Exception
+    {
+            List<List<Issue508A>> l = new ArrayList<List<Issue508A>>();
+            List<Issue508A> l2 = new ArrayList<Issue508A>();
+            l2.add(new Issue508A());
+            l.add(l2);
+            TypeReference<?> typeRef = new TypeReference<List<List<Issue508A>>>() {};
+            String json = mapper.typedWriter(typeRef).writeValueAsString(l);
+
+            List<?> output = mapper.readValue(json, typeRef);
+            assertEquals(1, output.size());
+            Object ob = output.get(0);
+            assertTrue(ob instanceof List<?>);
+            List<?> list2 = (List<?>) ob;
+            assertEquals(1, list2.size());
+            ob = list2.get(0);
+            assertSame(Issue508A.class, ob.getClass());
+    }
 }
