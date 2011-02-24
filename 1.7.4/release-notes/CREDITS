@@ -566,4 +566,7 @@ David Yu:
    [1.7.2]
   * Reported [JACKSON-492], contributed unit test: problem encoding 1 byte length "raw" UTF8 Strings
    [1.7.3]
- 
+
+Christopher Berner: 
+  * [JACKSON-508] Type information lost when serializing List<List<X>>
+   [1.7.4]

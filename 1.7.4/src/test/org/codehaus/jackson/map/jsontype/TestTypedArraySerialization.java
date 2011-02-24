@@ -68,7 +68,7 @@ public class TestTypedArraySerialization
             beans.add(new Bean());
         }
     }
-    
+
     /*
     /**********************************************************
     /* Unit tests, Lists
