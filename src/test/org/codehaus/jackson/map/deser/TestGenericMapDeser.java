@@ -6,6 +6,7 @@ import java.util.*;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.type.TypeFactory;
 
 @SuppressWarnings("serial")
 public class TestGenericMapDeser
@@ -54,6 +55,21 @@ public class TestGenericMapDeser
     static class StringWrapperValueMap<KEY> extends HashMap<KEY,StringWrapper> { }
 
     static class StringStringWrapperMap extends StringWrapperValueMap<String> { }
+
+    static class KeyTypeCtor  {
+        protected String value;
+        public KeyTypeCtor(String v) { value = v; }
+    }
+
+    static class KeyTypeFactory  {
+        protected String value;
+        private KeyTypeFactory(String v, boolean foo) { value = v; }
+
+        @JsonCreator
+        public static KeyTypeFactory create(String str) {
+            return new KeyTypeFactory(str, true);
+        }
+    }
     
     /*
     /**********************************************************
@@ -117,4 +133,37 @@ public class TestGenericMapDeser
         assertEquals("a", ((StringWrapper) en.getKey()).str);
         assertEquals(Boolean.TRUE, ((BooleanWrapper) en.getValue()).b);
     }
+
+    /*
+    /**********************************************************
+    /* Test methods for ensuring @JsonCreator works for keys
+    /**********************************************************
+     */
+
+    public void testKeyViaCtor() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<KeyTypeCtor,Integer> map = mapper.readValue("{\"a\":123}",
+                TypeFactory.mapType(HashMap.class, KeyTypeCtor.class, Integer.class));
+        assertEquals(1, map.size());
+        Map.Entry<?,?> entry = map.entrySet().iterator().next();
+        assertEquals(Integer.valueOf(123), entry.getValue());
+        Object key = entry.getKey();
+        assertEquals(KeyTypeCtor.class, key.getClass());
+        assertEquals("a", ((KeyTypeCtor) key).value);
+    }
+
+    public void testKeyViaFactory() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<KeyTypeCtor,Integer> map = mapper.readValue("{\"a\":123}",
+                TypeFactory.mapType(HashMap.class, KeyTypeFactory.class, Integer.class));
+        assertEquals(1, map.size());
+        Map.Entry<?,?> entry = map.entrySet().iterator().next();
+        assertEquals(Integer.valueOf(123), entry.getValue());
+        Object key = entry.getKey();
+        assertEquals(KeyTypeFactory.class, key.getClass());
+        assertEquals("a", ((KeyTypeFactory) key).value);
+    }
+
 }
