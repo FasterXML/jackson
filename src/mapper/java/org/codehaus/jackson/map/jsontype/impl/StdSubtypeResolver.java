@@ -8,6 +8,9 @@ import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 
+/**
+ * @since 1.5
+ */
 public class StdSubtypeResolver extends SubtypeResolver
 {
     protected LinkedHashSet<NamedType> _registeredSubtypes;

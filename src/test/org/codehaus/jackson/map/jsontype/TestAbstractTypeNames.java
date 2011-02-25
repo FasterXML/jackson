@@ -83,19 +83,32 @@ public class TestAbstractTypeNames  extends BaseMapTest
     /**********************************************************
      */
 
+    // Testing [JACKSON-498], partial fix
     public void testEmptyCollection() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-        User friend = new DefaultUser("Joe Hildebrandt", null);
-        User coworker = new DefaultEmployee("Richard Nasr",null,"MDA");
         List<User>friends = new ArrayList<User>();
-        friends.add(friend);
-        friends.add(coworker);
+        friends.add(new DefaultUser("Joe Hildebrandt", null));
+        friends.add(new DefaultEmployee("Richard Nasr",null,"MDA"));
+
         User user = new DefaultEmployee("John Vanspronssen", friends, "MDA");
         String json = mapper.writeValueAsString(user);
 
+        /* 24-Feb-2011, tatu: For now let's simply require registration of
+         *   concrete subtypes; can't think of a way to avoid that for now
+         */
+        mapper = new ObjectMapper();
+        mapper.registerSubtypes(DefaultEmployee.class);
+        mapper.registerSubtypes(DefaultUser.class);
+        
         User result = mapper.readValue(json, User.class);
         assertNotNull(result);
+        assertEquals(DefaultEmployee.class, result.getClass());
+
+        friends = result.getFriends();
+        assertEquals(2, friends.size());
+        assertEquals(DefaultUser.class, friends.get(0).getClass());
+        assertEquals(DefaultEmployee.class, friends.get(1).getClass());
     }    
 }

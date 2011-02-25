@@ -27,6 +27,8 @@ Description:
    (suggested by Chris W)
   * [JACKSON-487]: Block all annotation access if SerializationConfig.Feature.USE_ANNOTATIONS
     (and ditto for DeserializationConfig) is disabled; to help with Android, missing JAXB annotations
+  * [JACKSON-498]: Fix issues with type names, abstract types, collections
+    (reported by John V)
   * [JACKSON-509] @JsonSubTypes was not allowed for fields/methods/ctor-parameters (although
     @JsonTypeInfo was, starting with 1.7)
 

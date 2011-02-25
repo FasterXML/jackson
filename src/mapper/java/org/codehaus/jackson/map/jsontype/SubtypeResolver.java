@@ -10,6 +10,8 @@ import org.codehaus.jackson.map.introspect.AnnotatedMember;
 /**
  * Helper object used for handling registration on resolving of supertypes
  * to subtypes.
+ * 
+ * @since 1.5
  */
 public abstract class SubtypeResolver
 {
