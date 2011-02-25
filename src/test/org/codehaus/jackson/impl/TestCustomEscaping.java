@@ -11,12 +11,16 @@ public class TestCustomEscaping  extends main.BaseTest
      * of non-ASCII characters.
      * Related to [JACKSON-102]
      */
-    public void testEscapeNonAscii() throws Exception
+    public void testNonAsciiEscapeWithReader() throws Exception
     {
         _testEscapeNonAscii(false); // reader
-        _testEscapeNonAscii(true); // stream (utf-8)
     }
 
+    public void testNonAsciiEscapeWithUTF8Stream() throws Exception
+    {
+        _testEscapeNonAscii(true); // stream (utf-8)
+    }
+    
     /*
     /********************************************************
     /* Secondary test methods

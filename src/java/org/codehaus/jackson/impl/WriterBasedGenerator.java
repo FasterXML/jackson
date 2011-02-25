@@ -18,12 +18,6 @@ public final class WriterBasedGenerator
     final protected static int SHORT_WRITE = 32;
 
     final protected static char[] HEX_CHARS = CharTypes.copyHexChars();
-
-    /**
-     * This is the default set of escape codes, over 7-bit ASCII range
-     * (first 128 character codes), used for single-byte UTF-8 characters.
-     */
-    private final static int[] sOutputEscapes = CharTypes.getOutputEscapes();
     
     /*
     /**********************************************************
@@ -34,20 +28,6 @@ public final class WriterBasedGenerator
     final protected IOContext _ioContext;
 
     final protected Writer _writer;
-
-    /*
-    /**********************************************************
-    /* Configuration, escaping
-    /**********************************************************
-     */
-
-    /**
-     * Currently active set of output escade code definitions (whether
-     * and how to escape or not) for 7-bit ASCII range (first 128
-     * character codes). Defined separately to make potentially
-     * customizable
-     */
-    protected int[] _outputEscapes = sOutputEscapes;
     
     /*
     /**********************************************************
@@ -91,7 +71,7 @@ public final class WriterBasedGenerator
      */
 
     public WriterBasedGenerator(IOContext ctxt, int features, ObjectCodec codec,
-                                Writer w)
+            Writer w)
     {
         super(features, codec);
         _ioContext = ctxt;
@@ -271,7 +251,7 @@ public final class WriterBasedGenerator
             _outputBuffer[_outputTail++] = ',';
         }
         /* To support [JACKSON-46], we'll do this:
-         * (Quostion: should quoting of spaces (etc) still be enabled?)
+         * (Question: should quoting of spaces (etc) still be enabled?)
          */
         final char[] quoted = name.asQuotedChars();
         if (!isEnabled(Feature.QUOTE_FIELD_NAMES)) {
@@ -884,7 +864,7 @@ public final class WriterBasedGenerator
 
     /*
     /**********************************************************
-    /* Internal methods, low-level writing
+    /* Internal methods, low-level writing; text, default
     /**********************************************************
      */
 
@@ -896,7 +876,7 @@ public final class WriterBasedGenerator
          * (like if someone wants to include multi-megabyte base64
          * encoded stuff or such)
          */
-        int len = text.length();
+        final int len = text.length();
         if (len > _outputEnd) { // Let's reserve space for entity at begin/end
             _writeLongString(text);
             return;
@@ -909,6 +889,16 @@ public final class WriterBasedGenerator
         }
         text.getChars(0, len, _outputBuffer, _outputTail);
 
+        if (_maximumNonEscapedChar != 0) {
+            _writeStringASCII(len, _maximumNonEscapedChar);
+        } else {
+            _writeString2(len);
+        }
+    }
+    
+    private void _writeString2(final int len)
+        throws IOException, JsonGenerationException
+    {
         // And then we'll need to verify need for escaping etc:
         int end = _outputTail + len;
         final int[] escCodes = _outputEscapes;
@@ -975,7 +965,11 @@ public final class WriterBasedGenerator
             int segmentLen = ((offset + max) > textLen)
                 ? (textLen - offset) : max;
             text.getChars(offset, offset+segmentLen, _outputBuffer, 0);
-            _writeSegment(segmentLen);
+            if (_maximumNonEscapedChar != 0) {
+                _writeSegmentASCII(segmentLen, _maximumNonEscapedChar);
+            } else {
+                _writeSegment(segmentLen);
+            }
             offset += segmentLen;
         } while (offset < textLen);
     }
@@ -993,7 +987,7 @@ public final class WriterBasedGenerator
     {
         final int[] escCodes = _outputEscapes;
         final int escLen = escCodes.length;
-
+    
         int ptr = 0;
 
         output_loop:
@@ -1039,14 +1033,19 @@ public final class WriterBasedGenerator
             }
         }
     }
-
+    
     /**
      * This method called when the string content is already in
      * a char buffer, and need not be copied for processing.
      */
-    private void _writeString(char[] text, int offset, int len)
+    private final void _writeString(char[] text, int offset, int len)
         throws IOException, JsonGenerationException
     {
+        if (_maximumNonEscapedChar != 0) {
+            _writeStringASCII(text, offset, len, _maximumNonEscapedChar);
+            return;
+        }
+        
         /* Let's just find longest spans of non-escapable
          * content, and for each see if it makes sense
          * to copy them, or write through
@@ -1098,6 +1097,179 @@ public final class WriterBasedGenerator
         }
     }
 
+    /*
+    /**********************************************************
+    /* Internal methods, low-level writing; text, ASCII (etc)
+    /**********************************************************
+     */
+
+    /* Same as "_writeString2()", except needs additional escaping
+     * for subset of characters
+     */
+    private void _writeStringASCII(final int len, final int maxNonEscaped)
+        throws IOException, JsonGenerationException
+    {
+        // And then we'll need to verify need for escaping etc:
+        int end = _outputTail + len;
+        final int[] escCodes = _outputEscapes;
+        final int escLimit = Math.min(escCodes.length, _maximumNonEscapedChar+1);
+        int escCode = 0;
+        
+        output_loop:
+        while (_outputTail < end) {
+            // Fast loop for chars not needing escaping
+            escape_loop:
+            while (true) {
+                char c = _outputBuffer[_outputTail];
+                if (c < escLimit) {
+                    escCode = escCodes[c];
+                    if (escCode != 0) {
+                        break escape_loop;
+                    }
+                } else if (c > maxNonEscaped) {
+                    escCode = -(c + 1);
+                    break escape_loop;
+                }
+                if (++_outputTail >= end) {
+                    break output_loop;
+                }
+            }
+            int flushLen = (_outputTail - _outputHead);
+            if (flushLen > 0) {
+                _writer.write(_outputBuffer, _outputHead, flushLen);
+            }
+            {
+                ++_outputTail;
+                int needLen = (escCode < 0) ? 6 : 2;
+                // If not, need to call separate method (note: buffer is empty now)
+                if (needLen > _outputTail) {
+                    _outputHead = _outputTail;
+                    _writeSingleEscape(escCode);
+                } else {
+                    // But if it fits, can just prepend to buffer
+                    int ptr = _outputTail - needLen;
+                    _outputHead = ptr;
+                    _appendSingleEscape(escCode, _outputBuffer, ptr);
+                }
+            }
+        }
+    }
+
+    private final void _writeSegmentASCII(int end, final int maxNonEscaped)
+        throws IOException, JsonGenerationException
+    {
+        final int[] escCodes = _outputEscapes;
+        final int escLimit = Math.min(escCodes.length, _maximumNonEscapedChar+1);
+    
+        int ptr = 0;
+        int escCode = 0;
+    
+        output_loop:
+        while (ptr < end) {
+            // Fast loop for chars not needing escaping
+            int start = ptr;
+            while (true) {
+                char c = _outputBuffer[ptr];
+                if (c < escLimit) {
+                    escCode = escCodes[c];
+                    if (escCode != 0) {
+                        break;
+                    }
+                } else if (c > maxNonEscaped) {
+                    escCode = -(c + 1);
+                    break;
+                }
+                if (++ptr >= end) {
+                    break;
+                }
+            }
+            int flushLen = (ptr - start);
+            if (flushLen > 0) {
+                _writer.write(_outputBuffer, start, flushLen);
+                if (ptr >= end) {
+                    break output_loop;
+                }
+            }
+            {
+                ++ptr;
+                int needLen = (escCode < 0) ? 6 : 2;
+                // If not, need to call separate method (note: buffer is empty now)
+                if (needLen > _outputTail) {
+                    _writeSingleEscape(escCode);
+                } else {
+                    // But if it fits, can just prepend to buffer
+                    ptr -= needLen;
+                    _appendSingleEscape(escCode, _outputBuffer, ptr);
+                }
+            }
+        }
+    }
+
+    private final void _writeStringASCII(char[] text, int offset, int len,
+            final int maxNonEscaped)
+        throws IOException, JsonGenerationException
+    {
+        len += offset; // -> len marks the end from now on
+        final int[] escCodes = _outputEscapes;
+        final int escLimit = Math.min(escCodes.length, _maximumNonEscapedChar+1);
+
+        int escCode = 0;
+        
+        while (offset < len) {
+            int start = offset;
+
+            while (true) {
+                char c = text[offset];
+                if (c < escLimit) {
+                    escCode = escCodes[c];
+                    if (escCode != 0) {
+                        break;
+                    }
+                } else if (c > maxNonEscaped) {
+                    escCode = -(c + 1);
+                    break;
+                }
+                if (++offset >= len) {
+                    break;
+                }
+            }
+
+            // Short span? Better just copy it to buffer first:
+            int newAmount = offset - start;
+            if (newAmount < SHORT_WRITE) {
+                // Note: let's reserve room for escaped char (up to 6 chars)
+                if ((_outputTail + newAmount) > _outputEnd) {
+                    _flushBuffer();
+                }
+                if (newAmount > 0) {
+                    System.arraycopy(text, start, _outputBuffer, _outputTail, newAmount);
+                    _outputTail += newAmount;
+                }
+            } else { // Nope: better just write through
+                _flushBuffer();
+                _writer.write(text, start, newAmount);
+            }
+            // Was this the end?
+            if (offset >= len) { // yup
+                break;
+            }
+            // Nope, need to escape the char.
+            ++offset;
+            int needLen = (escCode < 0) ? 6 : 2;
+            if ((_outputTail + needLen) > _outputEnd) {
+                _flushBuffer();
+            }
+            _appendSingleEscape(escCode, _outputBuffer, _outputTail);
+            _outputTail += needLen;
+        }
+    }
+    
+    /*
+    /**********************************************************
+    /* Internal methods, low-level writing; binary
+    /**********************************************************
+     */
+    
     protected void _writeBinary(Base64Variant b64variant, byte[] input, int inputPtr, final int inputEnd)
         throws IOException, JsonGenerationException
     {
@@ -1139,6 +1311,12 @@ public final class WriterBasedGenerator
         }
     }
 
+    /*
+    /**********************************************************
+    /* Internal methods, low-level writing, other
+    /**********************************************************
+     */
+    
     private final void _writeNull() throws IOException
     {
         if ((_outputTail + 4) >= _outputEnd) {

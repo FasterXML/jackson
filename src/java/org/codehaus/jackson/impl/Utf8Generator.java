@@ -42,12 +42,6 @@ public class Utf8Generator
     private final static byte[] TRUE_BYTES = { 't', 'r', 'u', 'e' };
     private final static byte[] FALSE_BYTES = { 'f', 'a', 'l', 's', 'e' };
 
-    /**
-     * This is the default set of escape codes, over 7-bit ASCII range
-     * (first 128 character codes), used for single-byte UTF-8 characters.
-     */
-    private final static int[] sOutputEscapes = CharTypes.getOutputEscapes();
-    
     /*
     /**********************************************************
     /* Configuration, basic I/O
@@ -60,29 +54,6 @@ public class Utf8Generator
      * Underlying output stream used for writing JSON content.
      */
     final protected OutputStream _outputStream;
-
-    /*
-    /**********************************************************
-    /* Configuration, escaping
-    /**********************************************************
-     */
-
-    /**
-     * Currently active set of output escape code definitions (whether
-     * and how to escape or not) for 7-bit ASCII range (first 128
-     * character codes). Defined separately to make potentially
-     * customizable
-     */
-    protected int[] _outputEscapes = sOutputEscapes;
-
-    /**
-     * Value between 128 (0x80) and 65535 (0xFFFF) that indicates highest
-     * Unicode code point that will not need escaping; or 0 to indicate
-     * that all characters can be represented without escaping.
-     * Typically used to force escaping of some portion of character set;
-     * for example to always escape non-ASCII characters (if value was 127)
-     */
-    protected int _maximumNonEscapedChar;
     
     /*
     /**********************************************************

@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.util.CharTypes;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 import org.codehaus.jackson.util.VersionUtil;
 
@@ -19,6 +20,12 @@ import org.codehaus.jackson.util.VersionUtil;
 public abstract class JsonGeneratorBase
     extends JsonGenerator
 {
+    /**
+     * This is the default set of escape codes, over 7-bit ASCII range
+     * (first 128 character codes), used for single-byte UTF-8 characters.
+     */
+    protected final static int[] sOutputEscapes = CharTypes.getOutputEscapes();
+
     /*
     /**********************************************************
     /* Configuration
@@ -41,6 +48,29 @@ public abstract class JsonGeneratorBase
      */
     protected boolean _cfgNumbersAsStrings;
 
+    /*
+    /**********************************************************
+    /* Configuration, output escaping
+    /**********************************************************
+     */
+
+    /**
+     * Currently active set of output escape code definitions (whether
+     * and how to escape or not) for 7-bit ASCII range (first 128
+     * character codes). Defined separately to make potentially
+     * customizable
+     */
+    protected int[] _outputEscapes = sOutputEscapes;
+
+    /**
+     * Value between 128 (0x80) and 65535 (0xFFFF) that indicates highest
+     * Unicode code point that will not need escaping; or 0 to indicate
+     * that all characters can be represented without escaping.
+     * Typically used to force escaping of some portion of character set;
+     * for example to always escape non-ASCII characters (if value was 127)
+     */
+    protected int _maximumNonEscapedChar;
+    
     /*
     /**********************************************************
     /* State
@@ -73,6 +103,8 @@ public abstract class JsonGeneratorBase
         _writeContext = JsonWriteContext.createRootContext();
         _objectCodec = codec;
         _cfgNumbersAsStrings = isEnabled(Feature.WRITE_NUMBERS_AS_STRINGS);
+        // By default we use this feature to determine additional quoting
+        _maximumNonEscapedChar = isEnabled(Feature.ESCAPE_NON_ASCII) ? 127 : 0;
     }
 
     @Override
@@ -91,6 +123,10 @@ public abstract class JsonGeneratorBase
         _features |= f.getMask();
         if (f == Feature.WRITE_NUMBERS_AS_STRINGS) {
             _cfgNumbersAsStrings = true;
+        } else if (f == Feature.ESCAPE_NON_ASCII) {
+            if (_maximumNonEscapedChar == 0) {
+                _maximumNonEscapedChar = 127;
+            }
         }
         return this;
     }
@@ -100,6 +136,10 @@ public abstract class JsonGeneratorBase
         _features &= ~f.getMask();
         if (f == Feature.WRITE_NUMBERS_AS_STRINGS) {
             _cfgNumbersAsStrings = false;
+        } else if (f == Feature.ESCAPE_NON_ASCII) {
+            if (_maximumNonEscapedChar == 127) {
+                _maximumNonEscapedChar = 0;
+            }
         }
         return this;
     }
@@ -163,7 +203,6 @@ public abstract class JsonGeneratorBase
      */
     @Deprecated
     protected void _writeStartArray() throws IOException, JsonGenerationException {
-        // no-op, to be overridden
     }
 
     @Override
@@ -186,7 +225,6 @@ public abstract class JsonGeneratorBase
      */
     @Deprecated
     protected void _writeEndArray() throws IOException, JsonGenerationException {
-        // no-op, to be overridden
     }
 
     @Override
@@ -207,7 +245,6 @@ public abstract class JsonGeneratorBase
      */
     @Deprecated
     protected void _writeStartObject() throws IOException, JsonGenerationException {
-        // no-op, to be overridden
     }
 
     @Override
@@ -230,7 +267,6 @@ public abstract class JsonGeneratorBase
      */
     @Deprecated
     protected void _writeEndObject() throws IOException, JsonGenerationException {
-        // no-op, to be overridden
     }
     
     /*
