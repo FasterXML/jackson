@@ -1,5 +1,8 @@
 package org.codehaus.jackson.map.ser;
 
+import java.util.*;
+
+import org.codehaus.jackson.annotate.JsonAnyGetter;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonFilter;
 import org.codehaus.jackson.map.ser.impl.*;
@@ -22,6 +25,22 @@ public class TestFiltering extends BaseMapTest
     static class Bean {
         public String a = "a";
         public String b = "b";
+    }
+
+    @JsonFilter("anyFilter")
+    public static class AnyBean
+    {
+        private Map<String, String> properties = new HashMap<String, String>();
+        {
+          properties.put("a", "1");
+          properties.put("b", "2");
+        }
+
+        @JsonAnyGetter
+        public Map<String, String> anyProperties()
+        {
+          return properties;
+        }
     }
     
     /*
@@ -64,5 +83,14 @@ public class TestFiltering extends BaseMapTest
         ObjectMapper mapper = new ObjectMapper();
         FilterProvider prov = new SimpleFilterProvider().setDefaultFilter(SimpleBeanPropertyFilter.filterOutAllExcept("b"));
         assertEquals("{\"b\":\"b\"}", mapper.filteredWriter(prov).writeValueAsString(new Bean()));
+    }
+
+    // should also work for @JsonAnyGetter, as per [JACKSON-516]
+    public void testAnyGetterFiltering() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        FilterProvider prov = new SimpleFilterProvider().addFilter("anyFilter",
+                SimpleBeanPropertyFilter.filterOutAllExcept("b"));
+        assertEquals("{\"a\":\"1\"}", mapper.filteredWriter(prov).writeValueAsString(new AnyBean()));
     }
 }
