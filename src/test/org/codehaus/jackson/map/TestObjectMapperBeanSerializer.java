@@ -136,8 +136,7 @@ public class TestObjectMapperBeanSerializer
     private static class FixtureObjectBase
     {
         public static final String       VALUE_STRING = "foobar";
-        public static final EFixtureEnum VALUE_ENUM   =
-EFixtureEnum.THIS_IS_AN_ENUM_VALUE_2;
+        public static final EFixtureEnum VALUE_ENUM   = EFixtureEnum.THIS_IS_AN_ENUM_VALUE_2;
         public static final int          VALUE_INT    = Integer.MIN_VALUE;
         public static final long         VALUE_LONG   = Long.MIN_VALUE;
         public static final BigInteger   VALUE_BIGINT = new BigInteger((new Long(Long.MAX_VALUE)).toString());

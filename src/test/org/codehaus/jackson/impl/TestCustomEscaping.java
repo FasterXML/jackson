@@ -30,7 +30,8 @@ public class TestCustomEscaping  extends main.BaseTest
     private void _testEscapeNonAscii(boolean useStream) throws Exception
     {
         JsonFactory f = new JsonFactory();
-        final String VALUE = "char: [\u00A0]";
+        final String VALUE = "chars: [\u00A0]/[\u1234]";
+        final String KEY = "fun:\u0088:\u3456";
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         JsonGenerator jgen;
 
@@ -48,7 +49,7 @@ public class TestCustomEscaping  extends main.BaseTest
         
         assertEquals("["+quote(VALUE)+"]", json);
 
-        // And then with forced ASCII
+        // And then with forced ASCII; first, values
 
         bytes = new ByteArrayOutputStream();
         if (useStream) {
@@ -62,6 +63,23 @@ public class TestCustomEscaping  extends main.BaseTest
         jgen.writeEndArray();
         jgen.close();
         json = bytes.toString("UTF-8");
-        assertEquals("["+quote("char: [\\u00A0]")+"]", json);
+        assertEquals("["+quote("chars: [\\u00A0]/[\\u1234]")+"]", json);
+
+        // and then keys
+        bytes = new ByteArrayOutputStream();
+        if (useStream) {
+            jgen = f.createJsonGenerator(bytes, JsonEncoding.UTF8);
+        } else {
+            jgen = f.createJsonGenerator(new OutputStreamWriter(bytes, "UTF-8"));
+        }
+        jgen.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
+        jgen.writeStartObject();
+        jgen.writeFieldName(KEY);
+        jgen.writeBoolean(true);
+        jgen.writeEndObject();
+        jgen.close();
+        json = bytes.toString("UTF-8");
+        assertEquals("{"+quote("fun:\\u0088:\\u3456")+":true}", json);
+    
     }
 }

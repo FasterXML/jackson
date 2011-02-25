@@ -364,7 +364,7 @@ public class TestJsonParser
         final String VALUE = sb.toString();
 
         JsonFactory jf = new JsonFactory();
-
+        
         // Let's use real generator to get json done right
         StringWriter sw = new StringWriter(LEN + (LEN >> 2));
         JsonGenerator jg = jf.createJsonGenerator(sw);
@@ -373,7 +373,7 @@ public class TestJsonParser
         jg.writeString(VALUE);
         jg.writeEndObject();
         jg.close();
-
+        
         final String DOC = sw.toString();
 
         for (int type = 0; type < 3; ++type) {
@@ -394,7 +394,7 @@ public class TestJsonParser
             assertToken(JsonToken.FIELD_NAME, jp.nextToken());
             assertEquals("doc", jp.getCurrentName());
             assertToken(JsonToken.VALUE_STRING, jp.nextToken());
-
+            
             String act = getAndVerifyText(jp);
             if (act.length() != VALUE.length()) {
                 fail("Expected length "+VALUE.length()+", got "+act.length());

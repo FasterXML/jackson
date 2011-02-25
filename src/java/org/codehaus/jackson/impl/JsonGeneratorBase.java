@@ -47,29 +47,6 @@ public abstract class JsonGeneratorBase
      * {@link org.codehaus.jackson.JsonGenerator.Feature#WRITE_NUMBERS_AS_STRINGS}).
      */
     protected boolean _cfgNumbersAsStrings;
-
-    /*
-    /**********************************************************
-    /* Configuration, output escaping
-    /**********************************************************
-     */
-
-    /**
-     * Currently active set of output escape code definitions (whether
-     * and how to escape or not) for 7-bit ASCII range (first 128
-     * character codes). Defined separately to make potentially
-     * customizable
-     */
-    protected int[] _outputEscapes = sOutputEscapes;
-
-    /**
-     * Value between 128 (0x80) and 65535 (0xFFFF) that indicates highest
-     * Unicode code point that will not need escaping; or 0 to indicate
-     * that all characters can be represented without escaping.
-     * Typically used to force escaping of some portion of character set;
-     * for example to always escape non-ASCII characters (if value was 127)
-     */
-    protected int _maximumNonEscapedChar;
     
     /*
     /**********************************************************
@@ -103,8 +80,6 @@ public abstract class JsonGeneratorBase
         _writeContext = JsonWriteContext.createRootContext();
         _objectCodec = codec;
         _cfgNumbersAsStrings = isEnabled(Feature.WRITE_NUMBERS_AS_STRINGS);
-        // By default we use this feature to determine additional quoting
-        _maximumNonEscapedChar = isEnabled(Feature.ESCAPE_NON_ASCII) ? 127 : 0;
     }
 
     @Override
@@ -124,9 +99,7 @@ public abstract class JsonGeneratorBase
         if (f == Feature.WRITE_NUMBERS_AS_STRINGS) {
             _cfgNumbersAsStrings = true;
         } else if (f == Feature.ESCAPE_NON_ASCII) {
-            if (_maximumNonEscapedChar == 0) {
-                _maximumNonEscapedChar = 127;
-            }
+            setHighestNonEscapedChar(127);
         }
         return this;
     }
@@ -137,9 +110,7 @@ public abstract class JsonGeneratorBase
         if (f == Feature.WRITE_NUMBERS_AS_STRINGS) {
             _cfgNumbersAsStrings = false;
         } else if (f == Feature.ESCAPE_NON_ASCII) {
-            if (_maximumNonEscapedChar == 127) {
-                _maximumNonEscapedChar = 0;
-            }
+            setHighestNonEscapedChar(0);
         }
         return this;
     }
@@ -152,11 +123,10 @@ public abstract class JsonGeneratorBase
     }
 
     @Override
-    public JsonGenerator useDefaultPrettyPrinter()
-    {
+    public JsonGenerator useDefaultPrettyPrinter() {
         return setPrettyPrinter(new DefaultPrettyPrinter());
     }
-
+    
     @Override
     public JsonGenerator setCodec(ObjectCodec oc) {
         _objectCodec = oc;

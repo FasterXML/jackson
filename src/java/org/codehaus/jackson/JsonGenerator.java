@@ -330,16 +330,16 @@ public abstract class JsonGenerator
      * Accessor method for testing what is the highest unescaped character
      * configured for this generator. This may be either positive value
      * (when escaping configuration has been set and is in effect), or
-     * -1 to indicate that no additional escaping is in effect.
+     * 0 to indicate that no additional escaping is in effect.
      * Some generators may not support additional escaping: for example,
-     * generators for binary formats that do not use escaping should return
-     * -1.
+     * generators for binary formats that do not use escaping should
+     * simply return 0.
      * 
      * @return Currently active limitation for highest non-escaped character,
      *   if defined; or -1 to indicate no additional escaping is performed.
      */
-    public int getMaximumNonEscapedChar() {
-        return -1;
+    public int getHighestEscapedChar() {
+        return 0;
     }
     
     /*

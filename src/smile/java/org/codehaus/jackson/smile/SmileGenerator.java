@@ -399,7 +399,7 @@ public class SmileGenerator
     
     /*
     /**********************************************************
-    /* Overridden methods
+    /* Overridden methods, configuration
     /**********************************************************
      */
 
@@ -422,6 +422,12 @@ public class SmileGenerator
         return this;
     }
 
+    /*
+    /**********************************************************
+    /* Overridden methods, write methods
+    /**********************************************************
+     */
+    
     /* And then methods overridden to make final, streamline some
      * aspects...
      */

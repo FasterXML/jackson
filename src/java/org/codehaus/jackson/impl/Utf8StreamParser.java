@@ -18,6 +18,10 @@ public final class Utf8StreamParser
 
     private final static int[] sInputCodesUtf8 = CharTypes.getInputCodeUtf8();
 
+    /**
+     * Latin1 encoding is not supported, but we do use 8-bit subset for
+     * pre-processing task, to simplify first pass, keep it fast.
+     */
     private final static int[] sInputCodesLatin1 = CharTypes.getInputCodeLatin1();
     
     /*
@@ -27,7 +31,9 @@ public final class Utf8StreamParser
      */
 
     /**
-     * Codec used for data binding when (if) requested.
+     * Codec used for data binding when (if) requested; typically full
+     * <code>ObjectMapper</code>, but that abstract is not part of core
+     * package.
      */
     protected ObjectCodec _objectCodec;
 
@@ -75,7 +81,7 @@ public final class Utf8StreamParser
         _symbols = sym;
         // 12-Mar-2010, tatus: Sanity check, related to [JACKSON-259]:
         if (!JsonParser.Feature.CANONICALIZE_FIELD_NAMES.enabledIn(features)) {
-            // should never construct non-canonical utf8/byte parser (instead, use Reader)
+            // should never construct non-canonical UTF-8/byte parser (instead, use Reader)
             _throwInternal();
         }
     }
@@ -809,7 +815,7 @@ public final class Utf8StreamParser
     protected Name parseLongFieldName(int q)
         throws IOException, JsonParseException
     {
-        // As explained above, will ignore utf-8 encoding at this point
+        // As explained above, will ignore UTF-8 encoding at this point
         final int[] codes = sInputCodesLatin1;
         int qlen = 2;
 

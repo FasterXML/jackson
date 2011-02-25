@@ -121,6 +121,8 @@ Oleksandr Alesinskyy:
    [0.9.9-7]
 
 Christoph Strebin:
+  * Requested [JACKSON-102], ability to force escaping of non-ASCII characters
+   [1.8.0]
   * Requested [JACKSON-105], proposed a way to implement it:
     Allow suppressing output of "default values"; which
     means value of a property when bean is constructed using the default

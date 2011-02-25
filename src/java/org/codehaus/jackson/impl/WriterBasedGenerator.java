@@ -31,6 +31,31 @@ public final class WriterBasedGenerator
     
     /*
     /**********************************************************
+    /* Configuration, output escaping
+    /**********************************************************
+     */
+
+    /**
+     * Currently active set of output escape code definitions (whether
+     * and how to escape or not) for 7-bit ASCII range (first 128
+     * character codes). Defined separately to make potentially
+     * customizable
+     */
+    protected int[] _outputEscapes = sOutputEscapes;
+
+    /**
+     * Value between 128 (0x80) and 65535 (0xFFFF) that indicates highest
+     * Unicode code point that will not need escaping; or 0 to indicate
+     * that all characters can be represented without escaping.
+     * Typically used to force escaping of some portion of character set;
+     * for example to always escape non-ASCII characters (if value was 127).
+     *<p>
+     * NOTE: not all sub-classes make use of this setting.
+     */
+    protected int _maximumNonEscapedChar;
+    
+    /*
+    /**********************************************************
     /* Output buffering
     /**********************************************************
      */
@@ -59,7 +84,7 @@ public final class WriterBasedGenerator
     protected int _outputEnd;
 
     /**
-     * 6-char temporary buffer allocated if needed, for constructing
+     * Short (14 char) temporary buffer allocated if needed, for constructing
      * escape sequences
      */
     protected char[] _entityBuffer;
@@ -78,8 +103,29 @@ public final class WriterBasedGenerator
         _writer = w;
         _outputBuffer = ctxt.allocConcatBuffer();
         _outputEnd = _outputBuffer.length;
+
+        if (isEnabled(Feature.ESCAPE_NON_ASCII)) {
+            setHighestNonEscapedChar(127);
+        }
     }
+ 
+    /*
+    /**********************************************************
+    /* Overridden configuration methods
+    /**********************************************************
+     */
     
+    @Override
+    public JsonGenerator setHighestNonEscapedChar(int charCode) {
+        _maximumNonEscapedChar = (charCode < 0) ? 0 : charCode;
+        return this;
+    }
+
+    @Override
+    public int getHighestEscapedChar() {
+        return _maximumNonEscapedChar;
+    }
+
     /*
     /**********************************************************
     /* Overridden methods
@@ -1099,7 +1145,9 @@ public final class WriterBasedGenerator
 
     /*
     /**********************************************************
-    /* Internal methods, low-level writing; text, ASCII (etc)
+    /* Internal methods, low-level writing, text segment
+    /* with additional escaping (ASCII or such)
+    /* (since 1.8; see [JACKSON-102])
     /**********************************************************
      */
 
@@ -1340,19 +1388,34 @@ public final class WriterBasedGenerator
     {
         char[] buf = _entityBuffer;
         if (buf == null) {
-            buf = new char[6];
+            buf = new char[14];
+            // first 2 chars, non-numeric escapes (like \n)
             buf[0] = '\\';
-            buf[2] = '0';
-            buf[3] = '0';
+            // next 6; 8-bit escapes (control chars mostly)
+            buf[2] = '\\';
+            buf[3] = 'u';
+            buf[4] = '0';
+            buf[5] = '0';
+            // last 6, beyond 8 bits
+            buf[8] = '\\';
+            buf[9] = 'u';
         }
 
-        if (escCode < 0) { // control char, value -(char + 1)
+        if (escCode < 0) { // escaped; control char or non-ASCII (optional); value -(char + 1)
             int value = -(escCode + 1);
-            buf[1] = 'u';
-            // We know it's a control char, so only the last 2 chars are non-0
-            buf[4] = HEX_CHARS[value >> 4];
-            buf[5] = HEX_CHARS[value & 0xF];
-            _writer.write(buf, 0, 6);
+            if (value > 0xFF) { // beyond 8 bytes
+                int hi = (value >> 8) & 0xFF;
+                int lo = value & 0xFF;
+                buf[10] = HEX_CHARS[hi >> 4];
+                buf[11] = HEX_CHARS[hi & 0xF];
+                buf[12] = HEX_CHARS[lo >> 4];
+                buf[13] = HEX_CHARS[lo & 0xF];
+                _writer.write(buf, 8, 6);
+            } else { // We know it's a control char, so only the last 2 chars are non-0
+                buf[6] = HEX_CHARS[value >> 4];
+                buf[7] = HEX_CHARS[value & 0xF];
+                _writer.write(buf, 2, 6);
+            }
         } else {
             buf[1] = (char) escCode;
             _writer.write(buf, 0, 2);
@@ -1366,8 +1429,15 @@ public final class WriterBasedGenerator
             buf[ptr] = '\\';
             buf[++ptr] = 'u';
             // We know it's a control char, so only the last 2 chars are non-0
-            buf[++ptr] = '0';
-            buf[++ptr] = '0';
+            if (value > 0xFF) { // beyond 8 bytes
+                int hi = (value >> 8) & 0xFF;
+                buf[++ptr] = HEX_CHARS[hi >> 4];
+                buf[++ptr] = HEX_CHARS[hi & 0xF];
+                value &= 0xFF;
+            } else {
+                buf[++ptr] = '0';
+                buf[++ptr] = '0';
+            }
             buf[++ptr] = HEX_CHARS[value >> 4];
             buf[++ptr] = HEX_CHARS[value & 0xF];
         } else {
