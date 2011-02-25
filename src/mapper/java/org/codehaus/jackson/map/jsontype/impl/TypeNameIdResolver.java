@@ -63,12 +63,11 @@ public class TypeNameIdResolver
                     typeToId.put(cls.getName(), id);
                 }
                 if (forDeser) {
-                    // In case of name collisions, let's make sure first one wins:
-                    JavaType prev = idToType.get(id);
                     /* 24-Feb-2011, tatu: [JACKSON-498] One more problem; sometimes
                      *   we have same name for multiple types; if so, use most specific
                      *   one.
                      */
+                    JavaType prev = idToType.get(id);
                     if (prev != null) { // Can only override if more specific
                         if (cls.isAssignableFrom(prev.getRawClass())) { // nope, more generic (or same)
                             continue;
