@@ -90,6 +90,7 @@ public class TestDefaultForMaps
         subtypes.add(new NamedType(MapHolder.class, "mapHolder"));
         subtypes.add(new NamedType(ArrayList.class, "AList"));
         subtypes.add(new NamedType(HashMap.class, "HMap"));
-        return TypeNameIdResolver.construct(TypeFactory.type(Object.class), subtypes, forSerialization, !forSerialization);
+        return TypeNameIdResolver.construct(null,
+                TypeFactory.type(Object.class), subtypes, forSerialization, !forSerialization);
     }
 }

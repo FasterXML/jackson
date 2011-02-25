@@ -259,7 +259,7 @@ public abstract class BasicSerializerFactory
         } else {
             subtypes = config.getSubtypeResolver().collectAndResolveSubtypes(ac, config, ai);
         }
-        return (b == null) ? null : b.buildTypeSerializer(baseType, subtypes, property);
+        return (b == null) ? null : b.buildTypeSerializer(config, baseType, subtypes, property);
     }
 
     

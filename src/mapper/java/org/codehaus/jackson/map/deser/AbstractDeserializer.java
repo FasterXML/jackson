@@ -94,6 +94,6 @@ public class AbstractDeserializer
             throws IOException, JsonProcessingException
     {
         // no can do:
-        throw ctxt.instantiationException(_baseType.getClass(), "abstract types can only be instantiated with additional type information");
+        throw ctxt.instantiationException(_baseType.getRawClass(), "abstract types can only be instantiated with additional type information");
     }
 }

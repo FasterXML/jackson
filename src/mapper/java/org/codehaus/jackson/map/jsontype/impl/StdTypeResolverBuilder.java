@@ -3,9 +3,7 @@ package org.codehaus.jackson.map.jsontype.impl;
 import java.util.Collection;
 
 import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.codehaus.jackson.map.BeanProperty;
-import org.codehaus.jackson.map.TypeDeserializer;
-import org.codehaus.jackson.map.TypeSerializer;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
@@ -54,10 +52,10 @@ public class StdTypeResolverBuilder
     }
     
     @Override
-    public TypeSerializer buildTypeSerializer(JavaType baseType, Collection<NamedType> subtypes,
-            BeanProperty property)
+    public TypeSerializer buildTypeSerializer(SerializationConfig config,
+            JavaType baseType, Collection<NamedType> subtypes, BeanProperty property)
     {
-        TypeIdResolver idRes = idResolver(baseType, subtypes, true, false);
+        TypeIdResolver idRes = idResolver(config, baseType, subtypes, true, false);
         switch (_includeAs) {
         case WRAPPER_ARRAY:
             return new AsArrayTypeSerializer(idRes, property);
@@ -69,10 +67,10 @@ public class StdTypeResolverBuilder
         throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
     }
     
-    public TypeDeserializer buildTypeDeserializer(JavaType baseType, Collection<NamedType> subtypes,
-            BeanProperty property)
+    public TypeDeserializer buildTypeDeserializer(DeserializationConfig config,
+            JavaType baseType, Collection<NamedType> subtypes, BeanProperty property)
     {
-        TypeIdResolver idRes = idResolver(baseType, subtypes, false, true);
+        TypeIdResolver idRes = idResolver(config, baseType, subtypes, false, true);
         
         // First, method for converting type info to type id:
         switch (_includeAs) {
@@ -133,7 +131,8 @@ public class StdTypeResolverBuilder
      * type id resolver, or construct a standard resolver
      * given configuration.
      */
-    protected TypeIdResolver idResolver(JavaType baseType, Collection<NamedType> subtypes,
+    protected TypeIdResolver idResolver(MapperConfig<?> config,
+            JavaType baseType, Collection<NamedType> subtypes,
             boolean forSer, boolean forDeser)
     {
         // Custom id resolver?
@@ -149,7 +148,7 @@ public class StdTypeResolverBuilder
         case MINIMAL_CLASS:
             return new MinimalClassNameIdResolver(baseType);
         case NAME:
-            return TypeNameIdResolver.construct(baseType, subtypes, forSer, forDeser);
+            return TypeNameIdResolver.construct(config, baseType, subtypes, forSer, forDeser);
 
         case CUSTOM: // need custom resolver...
         case NONE: // hmmh. should never get this far with 'none'

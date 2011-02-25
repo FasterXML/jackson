@@ -5,6 +5,8 @@ import java.util.Collection;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.map.BeanProperty;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.type.JavaType;
@@ -42,8 +44,8 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
      * @param baseType Base type that constructed resolver will
      *    handle; super type of all types it will be used for.
      */
-    public TypeSerializer buildTypeSerializer(JavaType baseType, Collection<NamedType> subtypes,
-            BeanProperty property);
+    public TypeSerializer buildTypeSerializer(SerializationConfig config,
+            JavaType baseType, Collection<NamedType> subtypes, BeanProperty property);
 
     /**
      * Method for building type deserializer based on current configuration
@@ -53,8 +55,8 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
      *    handle; super type of all types it will be used for.
      * @param subtypes Known subtypes of the base type.
      */
-    public TypeDeserializer buildTypeDeserializer(JavaType baseType,
-            Collection<NamedType> subtypes, BeanProperty property);
+    public TypeDeserializer buildTypeDeserializer( DeserializationConfig config,
+            JavaType baseType, Collection<NamedType> subtypes, BeanProperty property);
     
     /*
     /**********************************************************

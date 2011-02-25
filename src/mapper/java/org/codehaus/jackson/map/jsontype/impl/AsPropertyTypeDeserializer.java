@@ -63,7 +63,8 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
             String name = jp.getCurrentName();
             jp.nextToken(); // to point to the value
             if (_typePropertyName.equals(name)) { // gotcha!
-                JsonDeserializer<Object> deser = _findDeserializer(ctxt, jp.getText());
+                String typeId = jp.getText();
+                JsonDeserializer<Object> deser = _findDeserializer(ctxt, typeId);
                 // deserializer should take care of closing END_OBJECT as well
                if (tb != null) {
                     jp = JsonParserSequence.createFlattened(tb.asParser(jp), jp);

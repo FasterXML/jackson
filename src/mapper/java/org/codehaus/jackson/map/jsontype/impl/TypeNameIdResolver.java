@@ -3,6 +3,9 @@ package org.codehaus.jackson.map.jsontype.impl;
 import java.util.*;
 
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.map.MapperConfig;
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
@@ -10,6 +13,11 @@ import org.codehaus.jackson.type.JavaType;
 public class TypeNameIdResolver
     extends TypeIdResolverBase
 {
+    /**
+     * @since 1.8
+     */
+    protected final MapperConfig<?> _config;
+    
     /**
      * Mappings from class name to type id, used for serialization
      */
@@ -20,16 +28,17 @@ public class TypeNameIdResolver
      */
     protected final HashMap<String, JavaType> _idToType;
     
-    protected TypeNameIdResolver(JavaType baseType,
-            HashMap<String, String> typeToId,
-            HashMap<String, JavaType> idToType)
+    protected TypeNameIdResolver(MapperConfig<?> config, JavaType baseType,
+            HashMap<String, String> typeToId, HashMap<String, JavaType> idToType)
     {
         super(baseType);
+        _config = config;
         _typeToId = typeToId;
         _idToType = idToType;
     }
  
-    public static TypeNameIdResolver construct(JavaType baseType,
+    public static TypeNameIdResolver construct(MapperConfig<?> config,
+            JavaType baseType,
             Collection<NamedType> subtypes, boolean forSer, boolean forDeser)
     {
         // sanity check
@@ -61,7 +70,7 @@ public class TypeNameIdResolver
                 }
             }
         }
-        return new TypeNameIdResolver(baseType, typeToId, idToType);
+        return new TypeNameIdResolver(config, baseType, typeToId, idToType);
     }
 
     public JsonTypeInfo.Id getMechanism() { return JsonTypeInfo.Id.NAME; }
@@ -69,11 +78,23 @@ public class TypeNameIdResolver
     public String idFromValue(Object value)
     {
         Class<?> cls = value.getClass();
-        String name = _typeToId.get(cls.getName());
-        // can either throw an exception, or use default name...
-        if (name == null) {
-            // let's choose default?
-            name = _defaultTypeId(cls);
+        final String key = cls.getName();
+        String name;
+        synchronized (_typeToId) {
+            name = _typeToId.get(key);
+            if (name == null) {
+                // 24-Feb-2011, tatu: As per [JACKSON-498], may need to dynamically look up name
+                // can either throw an exception, or use default name...
+                if (_config.isAnnotationProcessingEnabled()) {
+                    BasicBeanDescription beanDesc = _config.introspectClassAnnotations(cls);
+                    name = _config.getAnnotationIntrospector().findTypeName(beanDesc.getClassInfo());
+                }
+                if (name == null) {
+                    // And if still not found, let's choose default?
+                    name = _defaultTypeId(cls);
+                }
+                _typeToId.put(key, name);
+            }
         }
         return name;
     }
