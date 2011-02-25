@@ -69,7 +69,8 @@ public class TestGenericTypes
         final String JSON = "{\"value\":{\"breed\":\"Poodle\",\"name\":\"Rekku\"}}";
 
         final ResultWrapper<Dog> result = mapper.readValue(JSON, new TypeReference<ResultWrapper<Dog>>() { });
-        assertEquals(Dog.class, result.getValue().getClass());
+        Object ob = result.getValue();
+        assertEquals(Dog.class, ob.getClass());
     }
 
     // For [JACKSON-479]
