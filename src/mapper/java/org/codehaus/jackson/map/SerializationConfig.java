@@ -644,7 +644,7 @@ public class SerializationConfig
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-        return new SerializationConfig(this, mixins, typer, vc, subtypeResolver, null);
+        return new SerializationConfig(this, mixins, typer, vc, subtypeResolver, _filterProvider);
     }
 
     //@Override

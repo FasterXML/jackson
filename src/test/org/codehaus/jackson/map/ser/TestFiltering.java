@@ -55,6 +55,11 @@ public class TestFiltering extends BaseMapTest
         FilterProvider prov = new SimpleFilterProvider().addFilter("RootFilter",
                 SimpleBeanPropertyFilter.filterOutAllExcept("a"));
         assertEquals("{\"a\":\"a\"}", mapper.filteredWriter(prov).writeValueAsString(new Bean()));
+
+        // [JACKSON-504]: also verify it works via mapper
+        mapper = new ObjectMapper();
+        mapper.setFilters(prov);
+        assertEquals("{\"a\":\"a\"}", mapper.writeValueAsString(new Bean()));
     }
 
     public void testSimpleExclusionFilter() throws Exception
