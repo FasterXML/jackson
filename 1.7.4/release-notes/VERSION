@@ -12,8 +12,11 @@ Description:
    (reported by Brian H)
   * [JACKSON-506]: problems with type handling for java.util.Date
     when using @JsonTypeInfo on field/method
-   (repoted by Kirill S)
-  * [JACKSON-508] Type information lost when serializing List<List<X>>
+   (reported by Kirill S)
+  * [JACKSON-504]: FilterProvider registration directly via SerializationConfig
+    was not working
+   (reported by Kirill S)
+  * [JACKSON-508]: Type information lost when serializing List<List<X>>
    (reported by Christopher B)
 
 ------------------------------------------------------------------------

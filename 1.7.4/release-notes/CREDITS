@@ -375,6 +375,9 @@ Kirill Stokoz:
    [1.6.1]
   * Reported [JACKSON-456], provided unit tests: Type check issues with Jackson JAX-RS provider
    [1.7.1]
+  * Reported [JACKSON-504]: FilterProvider registration directly via
+    SerializationConfig was not working
+   [1.7.4]
   * Reported [506]: problems with type handling for java.util.Date
     when using @JsonTypeInfo on field/method
    [1.7.4]
