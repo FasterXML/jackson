@@ -90,7 +90,7 @@ public abstract class DeserializerProvider
      *   finding any serializer
      */
     public abstract KeyDeserializer findKeyDeserializer(DeserializationConfig config,
-            JavaType type, BeanProperty property)
+            JavaType keyType, BeanProperty property)
         throws JsonMappingException;
 
     /**
@@ -129,8 +129,6 @@ public abstract class DeserializerProvider
      *   
      * @deprecated As of version 1.7, use version that exposes context class
      *    and property, instead of just types
-     *    
-     * @since 1.5
      */
     @Deprecated
     public final JsonDeserializer<Object> findTypedValueDeserializer(DeserializationConfig config,
@@ -147,14 +145,12 @@ public abstract class DeserializerProvider
      *   
      * @deprecated As of version 1.7, use version that exposes context class
      *    and property, instead of just types
-     *    
-     * @since 1.5
      */
     @Deprecated
-    public final KeyDeserializer findKeyDeserializer(DeserializationConfig config, JavaType type)
+    public final KeyDeserializer findKeyDeserializer(DeserializationConfig config, JavaType keyType)
         throws JsonMappingException
     {
-        return findKeyDeserializer(config, type, null);
+        return findKeyDeserializer(config, keyType, null);
     }
 
     /*

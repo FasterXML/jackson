@@ -297,7 +297,7 @@ public abstract class BasicDeserializerFactory
         // Ok: need a key deserializer (null indicates 'default' here)
         KeyDeserializer keyDes = (KeyDeserializer) keyType.getValueHandler();
         if (keyDes == null) {
-            keyDes = (TYPE_STRING.equals(keyType)) ? null : p.findKeyDeserializer(config, keyType, property);
+            keyDes = p.findKeyDeserializer(config, keyType, property);
         }
         // Then optional type info (1.5); either attached to type, or resolve separately:
         TypeDeserializer contentTypeDeser = contentType.getTypeHandler();
