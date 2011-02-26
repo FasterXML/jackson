@@ -587,8 +587,23 @@ public class ObjectMapper
             // // // Methods for registering handlers
             
             @Override
+            public void addDeserializers(Deserializers d) {
+                mapper._deserializerProvider = mapper._deserializerProvider.withAdditionalDeserializers(d);
+            }
+
+            @Override
+            public void addKeyDeserializers(KeyDeserializers d) {
+                mapper._deserializerProvider = mapper._deserializerProvider.withAdditionalKeyDeserializers(d);
+            }
+            
+            @Override
             public void addSerializers(Serializers s) {
                 mapper._serializerFactory = mapper._serializerFactory.withAdditionalSerializers(s);
+            }
+
+            @Override
+            public void addKeySerializers(Serializers s) {
+                mapper._serializerFactory = mapper._serializerFactory.withAdditionalKeySerializers(s);
             }
 
             @Override
@@ -605,12 +620,7 @@ public class ObjectMapper
             public void addAbstractTypeResolver(AbstractTypeResolver resolver) {
                 mapper._deserializerProvider = mapper._deserializerProvider.withAbstractTypeResolver(resolver);
             }
-            
-            @Override
-            public void addDeserializers(Deserializers d) {
-                mapper._deserializerProvider = mapper._deserializerProvider.withAdditionalDeserializers(d);
-            }
-
+                        
             @Override
             public void insertAnnotationIntrospector(AnnotationIntrospector ai) {
                 mapper._deserializationConfig.insertAnnotationIntrospector(ai);

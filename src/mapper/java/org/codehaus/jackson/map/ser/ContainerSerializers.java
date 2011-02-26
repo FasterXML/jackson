@@ -287,6 +287,7 @@ public final class ContainerSerializers
                             } else {
                                 serializer = _findAndAddDynamic(serializers, cc, provider);
                             }
+                            serializers = _dynamicSerializers;
                         }
                         serializer.serialize(elem, jgen, provider);
                     }
@@ -348,6 +349,7 @@ public final class ContainerSerializers
                             } else {
                                 serializer = _findAndAddDynamic(serializers, cc, provider);
                             }
+                            serializers = _dynamicSerializers;
                         }
                         serializer.serializeWithType(elem, jgen, provider, typeSer);
                     }
@@ -412,6 +414,7 @@ public final class ContainerSerializers
                             } else {
                                 serializer = _findAndAddDynamic(serializers, cc, provider);
                             }
+                            serializers = _dynamicSerializers;
                         }
                         if (typeSer == null) {
                             serializer.serialize(elem, jgen, provider);

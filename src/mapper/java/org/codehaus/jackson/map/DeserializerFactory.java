@@ -62,6 +62,14 @@ public abstract class DeserializerFactory
 
         /**
          * Fluent/factory method used to construct a configuration object that
+         * has same key deserializer providers as this instance, plus one specified
+         * as argument. Additional provider will be added before existing ones,
+         * meaning it has priority over existing definitions.
+         */
+        public abstract Config withAdditionalKeyDeserializers(KeyDeserializers additional);
+        
+        /**
+         * Fluent/factory method used to construct a configuration object that
          * has same configuration as this instance plus one additional
          * deserialiazer modifier. Added modifier has the highest priority (that is, it
          * gets called before any already registered modifier).
@@ -133,6 +141,16 @@ public abstract class DeserializerFactory
         return withConfig(getConfig().withAdditionalDeserializers(additional));
     }
 
+    /**
+     * Convenience method for creating a new factory instance with additional
+     * {@link KeyDeserializers}.
+     * 
+     * @since 1.8
+     */
+    public final DeserializerFactory withAdditionalKeyDeserializers(KeyDeserializers additional) {
+        return withConfig(getConfig().withAdditionalKeyDeserializers(additional));
+    }
+    
     /**
      * Convenience method for creating a new factory instance with additional
      * {@link BeanDeserializerModifier}.

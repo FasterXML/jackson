@@ -4,7 +4,6 @@ import java.util.*;
 
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.MapperConfig;
-import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.type.TypeFactory;

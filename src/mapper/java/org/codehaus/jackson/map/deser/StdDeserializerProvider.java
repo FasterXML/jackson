@@ -94,6 +94,12 @@ public class StdDeserializerProvider
     }
 
     @Override
+    public DeserializerProvider withAdditionalKeyDeserializers(KeyDeserializers d) {
+        _factory = _factory.withAdditionalKeyDeserializers(d);
+        return this;
+    }
+    
+    @Override
     public DeserializerProvider withDeserializerModifier(BeanDeserializerModifier modifier) {
         _factory = _factory.withDeserializerModifier(modifier);
         return this;

@@ -30,6 +30,11 @@ public abstract class SerializerFactory
         public abstract Config withAdditionalSerializers(Serializers additional);
 
         /**
+         * @since 1.8
+         */
+        public abstract Config withAdditionalKeySerializers(Serializers additional);
+        
+        /**
          * Method for creating a new instance with additional bean serializer modifier.
          */
         public abstract Config withSerializerModifier(BeanSerializerModifier modifier);
@@ -81,6 +86,13 @@ public abstract class SerializerFactory
         return withConfig(getConfig().withAdditionalSerializers(additional));
     }
 
+    /**
+     * @since 1.8
+     */
+    public final SerializerFactory withAdditionalKeySerializers(Serializers additional) {
+        return withConfig(getConfig().withAdditionalKeySerializers(additional));
+    }
+    
     /**
      * Convenience method for creating a new factory instance with additional bean
      * serializer modifier; equivalent to calling

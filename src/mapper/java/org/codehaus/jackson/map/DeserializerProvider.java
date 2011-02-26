@@ -23,6 +23,11 @@ public abstract class DeserializerProvider
     public abstract DeserializerProvider withAdditionalDeserializers(Deserializers d);
 
     /**
+     * @since 1.8
+     */
+    public abstract DeserializerProvider withAdditionalKeyDeserializers(KeyDeserializers d);
+    
+    /**
      * @since 1.7
      */
     public abstract DeserializerProvider withDeserializerModifier(BeanDeserializerModifier modifier);

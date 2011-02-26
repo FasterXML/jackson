@@ -41,17 +41,26 @@ public class BeanDeserializerFactory
      */
     public static class ConfigImpl extends Config
     {
+        protected final static KeyDeserializers[] NO_KEY_DESERIALIZERS = new KeyDeserializers[0];
         protected final static BeanDeserializerModifier[] NO_MODIFIERS = new BeanDeserializerModifier[0];
         protected final static AbstractTypeResolver[] NO_ABSTRACT_TYPE_RESOLVERS = new AbstractTypeResolver[0];
         
         /**
          * List of providers for additional deserializers, checked before considering default
-         * basic or bean deserialializers.
+         * basic or bean deserializers.
          * 
          * @since 1.7
          */
         protected final Deserializers[] _additionalDeserializers;
 
+        /**
+         * List of providers for additional key deserializers, checked before considering
+         * standard key deserializers.
+         * 
+         * @since 1.7
+         */
+        protected final KeyDeserializers[] _additionalKeyDeserializers;
+        
         /**
          * List of modifiers that can change the way {@link BeanDeserializer} instances
          * are configured and constructed.
@@ -72,7 +81,7 @@ public class BeanDeserializerFactory
          * handlers.
          */
         public ConfigImpl() {
-            this(null, null, null);
+            this(null, null, null, null);
         }
 
         /**
@@ -80,11 +89,14 @@ public class BeanDeserializerFactory
          * set of additional deserializer providers.
          */
         protected ConfigImpl(Deserializers[] allAdditionalDeserializers,
+                KeyDeserializers[] allAdditionalKeyDeserializers,
                 BeanDeserializerModifier[] modifiers,
                 AbstractTypeResolver[] atr)
         {
             _additionalDeserializers = (allAdditionalDeserializers == null) ?
                     NO_DESERIALIZERS : allAdditionalDeserializers;
+            _additionalKeyDeserializers = (allAdditionalKeyDeserializers == null) ?
+                    NO_KEY_DESERIALIZERS : allAdditionalKeyDeserializers;
             _modifiers = (modifiers == null) ? NO_MODIFIERS : modifiers;
             _abstractTypeResolvers = (atr == null) ? NO_ABSTRACT_TYPE_RESOLVERS : atr;
         }
@@ -96,9 +108,19 @@ public class BeanDeserializerFactory
                 throw new IllegalArgumentException("Can not pass null Deserializers");
             }
             Deserializers[] all = ArrayBuilders.insertInList(_additionalDeserializers, additional);
-            return new ConfigImpl(all, _modifiers, _abstractTypeResolvers);
+            return new ConfigImpl(all, _additionalKeyDeserializers, _modifiers, _abstractTypeResolvers);
         }
 
+        @Override
+        public Config withAdditionalKeyDeserializers(KeyDeserializers additional)
+        {
+            if (additional == null) {
+                throw new IllegalArgumentException("Can not pass null KeyDeserializers");
+            }
+            KeyDeserializers[] all = ArrayBuilders.insertInList(_additionalKeyDeserializers, additional);
+            return new ConfigImpl(_additionalDeserializers, all, _modifiers, _abstractTypeResolvers);
+        }
+        
         @Override
         public Config withDeserializerModifier(BeanDeserializerModifier modifier)
         {
@@ -106,7 +128,7 @@ public class BeanDeserializerFactory
                 throw new IllegalArgumentException("Can not pass null modifier");
             }
             BeanDeserializerModifier[] all = ArrayBuilders.insertInList(_modifiers, modifier);
-            return new ConfigImpl(_additionalDeserializers, all, _abstractTypeResolvers);
+            return new ConfigImpl(_additionalDeserializers, _additionalKeyDeserializers, all, _abstractTypeResolvers);
         }
 
         @Override
@@ -116,7 +138,7 @@ public class BeanDeserializerFactory
                 throw new IllegalArgumentException("Can not pass null modifier");
             }
             AbstractTypeResolver[] all = ArrayBuilders.insertInList(_abstractTypeResolvers, resolver);
-            return new ConfigImpl(_additionalDeserializers, _modifiers, all);
+            return new ConfigImpl(_additionalDeserializers, _additionalKeyDeserializers, _modifiers, all);
         }
         
         @Override

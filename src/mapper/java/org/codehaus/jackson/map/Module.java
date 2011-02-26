@@ -105,6 +105,15 @@ public abstract class Module
          *   by module (null returned for non-supported types)
          */
         public void addDeserializers(Deserializers d);
+
+        /**
+         * Method that module can use to register additional deserializers to use for
+         * handling Map key values (which are separate from value deserializers because
+         * they are always serialized from String values)
+         *
+         * @since 1.8
+         */
+        public void addKeyDeserializers(KeyDeserializers s);
         
         /**
          * Method that module can use to register additional serializers to use for
@@ -115,6 +124,15 @@ public abstract class Module
          */
         public void addSerializers(Serializers s);
 
+        /**
+         * Method that module can use to register additional serializers to use for
+         * handling Map key values (which are separate from value serializers because
+         * they must write <code>JsonToken.FIELD_NAME</code> instead of String value).
+         *
+         * @since 1.8
+         */
+        public void addKeySerializers(Serializers s);
+        
         /**
          * Method that module can use to register additional modifier objects to
          * customize configuration and construction of bean deserializers.

@@ -11,7 +11,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 
 /**
  * Specialized serializer that can be used as the generic key
- * serializer, when serializing {@link java.util.Map}s to Json
+ * serializer, when serializing {@link java.util.Map}s to JSON
  * Objects.
  */
 public final class StdKeySerializer
@@ -25,8 +25,7 @@ public final class StdKeySerializer
     public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
-        String keyStr = (value.getClass() == String.class) ?
-            ((String) value) : value.toString();
+        String keyStr = (value.getClass() == String.class) ? ((String) value) : value.toString();
         jgen.writeFieldName(keyStr);
     }
 
