@@ -17,7 +17,7 @@ public class TestSerializerProvider
         StdSerializerProvider prov = new StdSerializerProvider().createInstance(config, f);
 
         // Should have working default key and null key serializers
-        assertNotNull(prov.getKeySerializer(null, null));
+        assertNotNull(prov.findKeySerializer(null, null));
         assertNotNull(prov.getNullKeySerializer());
         // as well as 'unknown type' one (throws exception)
         assertNotNull(prov.getUnknownTypeSerializer(getClass()));

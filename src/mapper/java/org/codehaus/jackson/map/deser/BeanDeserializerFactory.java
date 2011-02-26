@@ -145,6 +145,9 @@ public class BeanDeserializerFactory
         public boolean hasDeserializers() { return _additionalDeserializers.length > 0; }
 
         @Override
+        public boolean hasKeyDeserializers() { return _additionalKeyDeserializers.length > 0; }
+        
+        @Override
         public boolean hasDeserializerModifiers() { return _modifiers.length > 0; }
 
         @Override
@@ -155,6 +158,11 @@ public class BeanDeserializerFactory
             return ArrayBuilders.arrayAsIterable(_additionalDeserializers);
         }
 
+        @Override
+        public Iterable<KeyDeserializers> keyDeserializers() {
+            return ArrayBuilders.arrayAsIterable(_additionalKeyDeserializers);
+        }
+        
         @Override
         public Iterable<BeanDeserializerModifier> deserializerModifiers() {
             return ArrayBuilders.arrayAsIterable(_modifiers);

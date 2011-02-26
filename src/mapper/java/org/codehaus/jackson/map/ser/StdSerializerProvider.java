@@ -99,6 +99,9 @@ public class StdSerializerProvider
 
     final protected SerializerFactory _serializerFactory;
 
+    /**
+     * Cache for doing type-to-value-serializer lookups.
+     */
     final protected SerializerCache _serializerCache;
 
     final protected RootNameLookup _rootNames;
@@ -219,6 +222,39 @@ public class StdSerializerProvider
 
     /*
     /**********************************************************
+    /* Configuration methods
+    /**********************************************************
+     */
+
+    @Override
+    public void setDefaultKeySerializer(JsonSerializer<Object> ks)
+    {
+        if (ks == null) {
+            throw new IllegalArgumentException("Can not pass null JsonSerializer");
+        }
+        _keySerializer = ks;
+    }
+
+    @Override
+    public void setNullValueSerializer(JsonSerializer<Object> nvs)
+    {
+        if (nvs == null) {
+            throw new IllegalArgumentException("Can not pass null JsonSerializer");
+        }
+        _nullValueSerializer = nvs;
+    }
+
+    @Override
+    public void setNullKeySerializer(JsonSerializer<Object> nks)
+    {
+        if (nks == null) {
+            throw new IllegalArgumentException("Can not pass null JsonSerializer");
+        }
+        _nullKeySerializer = nks;
+    }
+    
+    /*
+    /**********************************************************
     /* Methods to be called by ObjectMapper
     /**********************************************************
      */
@@ -299,36 +335,6 @@ public class StdSerializerProvider
         return createInstance(config, jsf)._findExplicitUntypedSerializer(cls, null) != null;
     }
     
-    /*
-    /**********************************************************
-    /* Configuration methods
-    /**********************************************************
-     */
-
-    public void setKeySerializer(JsonSerializer<Object> ks)
-    {
-        if (ks == null) {
-            throw new IllegalArgumentException("Can not pass null JsonSerializer");
-        }
-        _keySerializer = ks;
-    }
-
-    public void setNullValueSerializer(JsonSerializer<Object> nvs)
-    {
-        if (nvs == null) {
-            throw new IllegalArgumentException("Can not pass null JsonSerializer");
-        }
-        _nullValueSerializer = nvs;
-    }
-
-    public void setNullKeySerializer(JsonSerializer<Object> nks)
-    {
-        if (nks == null) {
-            throw new IllegalArgumentException("Can not pass null JsonSerializer");
-        }
-        _nullKeySerializer = nks;
-    }
-
     @Override
     public int cachedSerializersCount() {
         return _serializerCache.size();
@@ -490,10 +496,24 @@ public class StdSerializerProvider
     /**********************************************************
      */
 
+    @SuppressWarnings("unchecked")
     @Override
-    public JsonSerializer<Object> getKeySerializer(JavaType valueType, BeanProperty property)
+    public JsonSerializer<Object> findKeySerializer(JavaType keyType, BeanProperty property)
+        throws JsonMappingException
     {
-        return _keySerializer;
+        JsonSerializer<Object> ser = _serializerFactory.createKeySerializer(_config, keyType, property);
+
+        // First things first: maybe there are registerd custom implementations
+        // if not, use default one:
+        if (ser == null) {
+            ser = _keySerializer;
+        }
+        // 25-Feb-2011, tatu: As per [JACKSON-519], need to ensure contextuality works here, too
+        if (ser instanceof ContextualSerializer<?>) {
+            ContextualSerializer<?> contextual = (ContextualSerializer<?>) ser;
+            ser = (JsonSerializer<Object>)contextual.createContextual(_config, property);
+        }
+        return ser;
     }
 
     @Override

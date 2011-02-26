@@ -41,9 +41,13 @@ public abstract class SerializerFactory
         
         public abstract boolean hasSerializers();
 
+        public abstract boolean hasKeySerializers();
+
         public abstract boolean hasSerializerModifiers();
         
         public abstract Iterable<Serializers> serializers();
+
+        public abstract Iterable<Serializers> keySerializers();
         
         public abstract Iterable<BeanSerializerModifier> serializerModifiers();
     }
@@ -130,6 +134,23 @@ public abstract class SerializerFactory
      * @since 1.7
      */
     public abstract TypeSerializer createTypeSerializer(SerializationConfig config, JavaType baseType,
+            BeanProperty property);
+
+    /**
+     * Method called to create serializer to use for serializing JSON property names (which must
+     * be output as <code>JsonToken.FIELD_NAME</code>) for Map that has specified declared
+     * key type, and is for specified property (or, if property is null, as root value)
+     * 
+     * @param config Serialization configuration in use
+     * @param baseType Declared type for Map keys
+     * @param property Property that contains Map being serialized; null when serializing root Map value.
+     * 
+     * @return Serializer to use, if factory knows it; null if not (in which case default serializer
+     *   is to be used)
+     *   
+     * @since 1.8
+     */
+    public abstract JsonSerializer<Object> createKeySerializer(SerializationConfig config, JavaType baseType,
             BeanProperty property);
     
     /*

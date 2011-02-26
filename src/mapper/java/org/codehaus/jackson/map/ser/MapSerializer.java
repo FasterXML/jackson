@@ -381,7 +381,11 @@ public class MapSerializer
         /* 10-Dec-2010, tatu: Let's also fetch key serializer; and always assume we'll
          *   do that just by using static type information
          */
-        _keySerializer = provider.getKeySerializer(_keyType, _property);
+        /* 25-Feb-2011, tatu: May need to reconsider this static checking (since it
+         *   differs from value handling)... but for now, it's ok to ensure contextual
+         *   aspects are handled; this is done by provider.
+         */
+        _keySerializer = provider.findKeySerializer(_keyType, _property);
     }
 
     /*

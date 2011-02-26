@@ -7,6 +7,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.module.SimpleModule;
+import org.codehaus.jackson.map.type.TypeFactory;
 
 /**
  * Tests to ensure that we can do contextual key serializers and
@@ -39,7 +40,7 @@ public class TestContextualKeyTypes extends BaseMapTest
             if (_prefix != null) {
                 value = _prefix + value;
             }
-            jgen.writeString(value);
+            jgen.writeFieldName(value);
         }
     
         @Override
@@ -48,7 +49,7 @@ public class TestContextualKeyTypes extends BaseMapTest
         {
             return new ContextualKeySerializer(_prefix+":");
         }
-}
+    }
     
     /*
     /**********************************************************
@@ -56,7 +57,7 @@ public class TestContextualKeyTypes extends BaseMapTest
     /**********************************************************
      */
 
-    public void testSimpleKeys() throws Exception
+    public void testSimpleKeySer() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         SimpleModule module = new SimpleModule("test", Version.unknownVersion());
@@ -64,7 +65,9 @@ public class TestContextualKeyTypes extends BaseMapTest
         mapper.registerModule(module);
         Map<String,Object> input = new HashMap<String,Object>();
         input.put("a", Integer.valueOf(3));
-        assertEquals("{\"prefix:a\":3}", mapper.writeValueAsString(input));
+        String json = mapper.typedWriter(TypeFactory.mapType(HashMap.class, String.class, Object.class))
+            .writeValueAsString(input);
+        assertEquals("{\"prefix:a\":3}", json);
     }
     
     /*
@@ -72,4 +75,19 @@ public class TestContextualKeyTypes extends BaseMapTest
     /* Unit tests, deserialization
     /**********************************************************
      */
+
+    /*
+    public void testSimpleKeyDeser() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addKeySerializer(String.class, new ContextualKeySerializer("prefix"));
+        mapper.registerModule(module);
+        Map<String,Object> input = new HashMap<String,Object>();
+        input.put("a", Integer.valueOf(3));
+        String json = mapper.typedWriter(TypeFactory.mapType(HashMap.class, String.class, Object.class))
+            .writeValueAsString(input);
+        assertEquals("{\"prefix:a\":3}", json);
+    }
+*/
 }

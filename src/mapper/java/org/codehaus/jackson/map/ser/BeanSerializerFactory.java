@@ -152,6 +152,9 @@ public class BeanSerializerFactory
         public boolean hasSerializers() { return _additionalSerializers.length > 0; }
 
         @Override
+        public boolean hasKeySerializers() { return _additionalKeySerializers.length > 0; }
+        
+        @Override
         public boolean hasSerializerModifiers() { return _modifiers.length > 0; }
         
         @Override
@@ -159,6 +162,11 @@ public class BeanSerializerFactory
             return ArrayBuilders.arrayAsIterable(_additionalSerializers);
         }
 
+        @Override
+        public Iterable<Serializers> keySerializers() {
+            return ArrayBuilders.arrayAsIterable(_additionalKeySerializers);
+        }
+        
         @Override
         public Iterable<BeanSerializerModifier> serializerModifiers() {
             return ArrayBuilders.arrayAsIterable(_modifiers);
@@ -242,8 +250,14 @@ public class BeanSerializerFactory
         BasicBeanDescription beanDesc = config.introspect(type);
         JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo(), property);
         if (ser == null) {
-            // 22-Nov-2010, tatu: Ok: additional module-provided serializers to consider?
-            ser = _findFirstSerializer(_factoryConfig.serializers(), config, type, beanDesc, property);
+            // First: do we have module-provided serializers to consider?
+            for (Serializers serializers : _factoryConfig.serializers()) {
+                ser = serializers.findSerializer(config, type, beanDesc, property);
+                if (ser != null) {
+                    break;
+                }
+            }
+            // If not, let's check default set of serializers
             if (ser == null) {
                 // First, fast lookup for exact type:
                 ser = super.findSerializerByLookup(type, config, beanDesc, property);
@@ -270,21 +284,28 @@ public class BeanSerializerFactory
         return (JsonSerializer<Object>) ser;
     }
 
-    /**
-     * Helper method used to try to find serializer from set of registered
-     * {@link Serializers} instances (provided by registered Modules),
-     * and return first one found, if any.
-     */
-    private static JsonSerializer<?> _findFirstSerializer(Iterable<Serializers> sers, SerializationConfig config,
-            JavaType type, BeanDescription beanDesc, BeanProperty property)
+    @Override
+    @SuppressWarnings("unchecked")
+    public JsonSerializer<Object> createKeySerializer(SerializationConfig config, JavaType type,
+            BeanProperty property)
     {
-        for (Serializers ser : sers) {
-            JsonSerializer<?> js = ser.findSerializer(config, type, beanDesc, property);
-            if (js != null) {
-                return js;
+        // Minor optimization: to avoid constructing beanDesc, bail out if none registered
+        if (!_factoryConfig.hasKeySerializers()) {
+            return null;
+        }
+        
+        // We should not need any member method info; at most class annotations for Map type
+        BasicBeanDescription beanDesc = config.introspectClassAnnotations(type.getRawClass());
+        JsonSerializer<?> ser = null;
+        
+        // Only thing we have here are module-provided key serializers:
+        for (Serializers serializers : _factoryConfig.keySerializers()) {
+            ser = serializers.findSerializer(config, type, beanDesc, property);
+            if (ser != null) {
+                break;
             }
         }
-        return null;
+        return (JsonSerializer<Object>) ser;
     }
     
     /*

@@ -89,6 +89,11 @@ public abstract class DeserializerFactory
         
         public abstract Iterable<Deserializers> deserializers();
 
+        /**
+         * @since 1.8
+         */
+        public abstract Iterable<KeyDeserializers> keyDeserializers();
+        
         public abstract Iterable<BeanDeserializerModifier> deserializerModifiers();
 
         /**
@@ -98,6 +103,11 @@ public abstract class DeserializerFactory
         
         public abstract boolean hasDeserializers();
 
+        /**
+         * @since 1.8
+         */
+        public abstract boolean hasKeyDeserializers();
+        
         public abstract boolean hasDeserializerModifiers();
 
         /**
