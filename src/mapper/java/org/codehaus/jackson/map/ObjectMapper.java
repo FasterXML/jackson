@@ -512,6 +512,22 @@ public class ObjectMapper
     public void setSubtypeResolver(SubtypeResolver r) {
         _subtypeResolver = r;
     }
+
+    /**
+     * Convenience method that is equivalent to:
+     *<pre>
+     *  mapper.setFilters(mapper.getSerializationConfig().withFilters(filterProvider));
+     *</pre>
+     *<p>
+     * Note that usually it is better to use method {@link #filteredWriter}; however, sometimes
+     * this method is more convenient. For example, some frameworks only allow configuring
+     * of ObjectMapper instances and not ObjectWriters.
+     * 
+     * @since 1.8
+     */
+    public void setFilters(FilterProvider filterProvider) {
+        _serializationConfig = _serializationConfig.withFilters(filterProvider);
+    }
     
     /**
      * Method for registering specified class as a subtype, so that
