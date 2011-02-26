@@ -250,6 +250,23 @@ public class BeanDeserializerFactory
      */
 
     @Override
+    public KeyDeserializer createKeyDeserializer(DeserializationConfig config, JavaType type,
+            BeanProperty property)
+        throws JsonMappingException
+    {
+        if (_factoryConfig.hasKeyDeserializers()) {
+            BasicBeanDescription beanDesc = config.introspectClassAnnotations(type.getRawClass());
+            for (KeyDeserializers d  : _factoryConfig.keyDeserializers()) {
+                KeyDeserializer deser = d.findKeyDeserializer(type, config, beanDesc, property);
+                if (deser != null) {
+                    return deser;
+                }
+            }
+        }
+        return null;
+    }
+    
+    @Override
     protected JsonDeserializer<?> _findCustomArrayDeserializer(ArrayType type, DeserializationConfig config,
             DeserializerProvider provider,
             BeanProperty property,

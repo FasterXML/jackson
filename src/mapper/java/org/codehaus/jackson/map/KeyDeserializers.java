@@ -16,7 +16,6 @@ import org.codehaus.jackson.type.JavaType;
 public interface KeyDeserializers
 {
     public KeyDeserializer findKeyDeserializer(JavaType type, DeserializationConfig config,
-            DeserializerProvider provider, BeanDescription beanDesc,
-            BeanProperty property)
+            BeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException;
 }

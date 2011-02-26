@@ -161,35 +161,44 @@ public class StdDeserializerProvider
         }
         return deser;
     }
-    
-    
+
     @Override
     public KeyDeserializer findKeyDeserializer(DeserializationConfig config,
             JavaType type, BeanProperty property)
         throws JsonMappingException
     {
-        // No serializer needed if it's plain old String, or Object/untyped
-        Class<?> raw = type.getRawClass();
-        if (raw == String.class || raw == Object.class) {
-            return null;
+        // 1.8: check if there are custom key deserializers...
+        KeyDeserializer kd = _factory.createKeyDeserializer(config, type, property);
+        if (kd == null) {
+            // No serializer needed if it's plain old String, or Object/untyped
+            Class<?> raw = type.getRawClass();
+            if (raw == String.class || raw == Object.class) {
+                return null;
+            }
+            // Most other keys are of limited number of static types
+            KeyDeserializer kdes = _keyDeserializers.get(type);
+            if (kdes != null) {
+                return kdes;
+            }
+            // And then other one-offs; first, Enum:
+            if (type.isEnumType()) {
+                return StdKeyDeserializers.constructEnumKeyDeserializer(config, type);
+            }
+            // One more thing: can we find ctor(String) or valueOf(String)?
+            kdes = StdKeyDeserializers.findStringBasedKeyDeserializer(config, type);
+            if (kdes != null) {
+                return kdes;
+            }
+            if (kd == null) {
+                // otherwise, will probably fail:
+                return _handleUnknownKeyDeserializer(type);
+            }
         }
-        // Most other keys are of limited number of static types
-        KeyDeserializer kdes = _keyDeserializers.get(type);
-        if (kdes != null) {
-            return kdes;
+        // One more thing: contextuality:
+        if (kd instanceof ContextualKeyDeserializer) {
+            kd = ((ContextualKeyDeserializer) kd).createContextual(config, property);
         }
-        // And then other one-offs; first, Enum:
-        if (type.isEnumType()) {
-            return StdKeyDeserializers.constructEnumKeyDeserializer(config, type);
-        }
-        // One more thing: can we find ctor(String) or valueOf(String)?
-        kdes = StdKeyDeserializers.findStringBasedKeyDeserializer(config, type);
-        if (kdes != null) {
-            return kdes;
-        }
-
-        // otherwise, will probably fail:
-        return _handleUnknownKeyDeserializer(type);
+        return kd;
     }
 
     /**

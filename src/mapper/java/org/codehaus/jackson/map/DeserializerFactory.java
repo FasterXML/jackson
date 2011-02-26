@@ -239,6 +239,24 @@ public abstract class DeserializerFactory
         throws JsonMappingException;
 
     /**
+     * Method called to find if factory knows how to create a key deserializer
+     * for specified type; currently this means checking if a module has registered
+     * possible deserializers.
+     * 
+     * @return Key deserializer to use for specified type, if one found; null if not
+     *   (and default key deserializer should be used)
+     * 
+     * @since 1.8
+     */
+    public KeyDeserializer createKeyDeserializer(DeserializationConfig config, JavaType type,
+            BeanProperty property)
+        throws JsonMappingException
+    {
+        // Default implementation returns null for backwards compatibility reasons
+        return null;
+    }
+    
+    /**
      * Method called to find and create a type information deserializer for given base type,
      * if one is needed. If not needed (no polymorphic handling configured for type),
      * should return null.
@@ -259,7 +277,7 @@ public abstract class DeserializerFactory
         // Default implementation returns null for backwards compatibility reasons
         return null;
     }
-
+    
     /*
     /********************************************************
     /* Older deprecated versions of creator methods
