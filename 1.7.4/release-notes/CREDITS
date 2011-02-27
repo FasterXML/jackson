@@ -381,6 +381,8 @@ Kirill Stokoz:
   * Reported [506]: problems with type handling for java.util.Date
     when using @JsonTypeInfo on field/method
    [1.7.4]
+  * Reported [JACKSON-518]: Problems with JAX-RS, type variables
+   [1.7.4]
 
 Brian Oberman:
   * Requested [JACKSON-289] Ability to serialize char[] values as JSON Arrays

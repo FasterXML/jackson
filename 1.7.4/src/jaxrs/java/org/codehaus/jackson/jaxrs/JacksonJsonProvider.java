@@ -509,6 +509,13 @@ public class JacksonJsonProvider
                  * trying to come up with more complete solution.
                  */
                 rootType = TypeFactory.type(genericType);
+                /* 26-Feb-2011, tatu: To help with [JACKSON-518], we better recognize cases where
+                 *    type degenerates back into "Object.class" (as is the case with plain TypeVariable,
+                 *    for example), and not use that.
+                 */
+                if (rootType.getRawClass() == Object.class) {
+                    rootType = null;
+                }
             }
         }
         // [JACKSON-245] Allow automatic JSONP wrapping

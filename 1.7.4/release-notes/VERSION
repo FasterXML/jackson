@@ -18,6 +18,8 @@ Description:
    (reported by Kirill S)
   * [JACKSON-508]: Type information lost when serializing List<List<X>>
    (reported by Christopher B)
+  * [JACKSON-518] Problems with	JAX-RS,	type variables	
+   (reported by	  Kirill S)
 
 ------------------------------------------------------------------------
 === History: ===
