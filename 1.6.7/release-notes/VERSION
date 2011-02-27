@@ -10,6 +10,8 @@ Description:
 
   * [JACKSON-499] Problems serializing HashMap.keySet(), values()
    (reported by Jax L)
+  * [JACKSON-518] Problems with JAX-RS, type variables
+   (reported by Kirill S)
 
 ------------------------------------------------------------------------
 == History: ==
