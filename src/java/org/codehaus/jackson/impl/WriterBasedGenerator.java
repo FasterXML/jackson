@@ -18,6 +18,12 @@ public final class WriterBasedGenerator
     final protected static int SHORT_WRITE = 32;
 
     final protected static char[] HEX_CHARS = CharTypes.copyHexChars();
+
+    /**
+     * This is the default set of escape codes, over 7-bit ASCII range
+     * (first 128 character codes), used for single-byte UTF-8 characters.
+     */
+    protected final static int[] sOutputEscapes = CharTypes.get7BitOutputEscapes();
     
     /*
     /**********************************************************
@@ -73,7 +79,7 @@ public final class WriterBasedGenerator
 
     /**
      * Pointer to the position right beyond the last character to output
-     * (end marker; may be past the buffer)
+     * (end marker; may point to position right beyond the end of the buffer)
      */
     protected int _outputTail = 0;
 
@@ -1383,8 +1389,7 @@ public final class WriterBasedGenerator
      * @param escCode Character code for escape sequence (\C); or -1
      *   to indicate a generic (\\uXXXX) sequence.
      */
-    private void _writeSingleEscape(int escCode)
-        throws IOException
+    private final void _writeSingleEscape(int escCode) throws IOException
     {
         char[] buf = _entityBuffer;
         if (buf == null) {
@@ -1422,7 +1427,7 @@ public final class WriterBasedGenerator
         }
     }
 
-    private void _appendSingleEscape(int escCode, char[] buf, int ptr)
+    private final void _appendSingleEscape(int escCode, char[] buf, int ptr)
     {
         if (escCode < 0) { // control char, value -(char + 1)
             int value = -(escCode + 1);

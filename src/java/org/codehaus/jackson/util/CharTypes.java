@@ -126,12 +126,12 @@ public final class CharTypes
     }
 
     /**
-     * Lookup table used for determining which output characters
-     * need to be quoted.
+     * Lookup table used for determining which output characters in 
+     * 7-bit ASCII range need to be quoted.
      */
-    final static int[] sOutputEscapes;
+    final static int[] sOutputEscapes128;
     static {
-        int[] table = new int[256];
+        int[] table = new int[128];
         // Control chars need generic escape sequence
         for (int i = 0; i < 32; ++i) {
             table[i] = -(i + 1);
@@ -147,7 +147,7 @@ public final class CharTypes
         table[0x0C] = 'f';
         table[0x0A] = 'n';
         table[0x0D] = 'r';
-        sOutputEscapes = table;
+        sOutputEscapes128 = table;
     }
 
     /**
@@ -174,7 +174,15 @@ public final class CharTypes
     public final static int[] getInputCodeUtf8JsNames() { return sInputCodesUtf8JsNames; }
 
     public final static int[] getInputCodeComment() { return sInputCodesComment; }
-    public final static int[] getOutputEscapes() { return sOutputEscapes; }
+    
+    /**
+     * Accessor for getting a read-only encoding table for first 128 Unicode
+     * code points (single-byte UTF-8 characters).
+     * Value of 0 means "no escaping"; other positive values that value is character
+     * to use after backslash; and negative values that generic (backslash - u)
+     * escaping is to be used.
+     */
+    public final static int[] get7BitOutputEscapes() { return sOutputEscapes128; }
 
     public static int charToHex(int ch)
     {
@@ -183,7 +191,7 @@ public final class CharTypes
 
     public static void appendQuoted(StringBuilder sb, String content)
     {
-        final int[] escCodes = sOutputEscapes;
+        final int[] escCodes = sOutputEscapes128;
         int escLen = escCodes.length;
         for (int i = 0, len = content.length(); i < len; ++i) {
             char c = content.charAt(i);

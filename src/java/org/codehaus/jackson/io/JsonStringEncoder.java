@@ -105,7 +105,7 @@ public final class JsonStringEncoder
             _textBuffer = textBuffer = new TextBuffer(null);
         }
         char[] outputBuffer = textBuffer.emptyAndGetCurrentSegment();
-        final int[] escCodes = CharTypes.getOutputEscapes();
+        final int[] escCodes = CharTypes.get7BitOutputEscapes();
         final int escCodeCount = escCodes.length;
         int inPtr = 0;
         final int inputLen = input.length();
@@ -168,7 +168,7 @@ public final class JsonStringEncoder
         
         main_loop:
         while (inputPtr < inputEnd) {
-            final int[] escCodes = CharTypes.getOutputEscapes();
+            final int[] escCodes = CharTypes.get7BitOutputEscapes();
 
             inner_loop: // ascii and escapes
             while (true) {

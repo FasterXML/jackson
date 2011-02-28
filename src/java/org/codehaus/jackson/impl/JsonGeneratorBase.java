@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.util.CharTypes;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 import org.codehaus.jackson.util.VersionUtil;
 
@@ -20,12 +19,6 @@ import org.codehaus.jackson.util.VersionUtil;
 public abstract class JsonGeneratorBase
     extends JsonGenerator
 {
-    /**
-     * This is the default set of escape codes, over 7-bit ASCII range
-     * (first 128 character codes), used for single-byte UTF-8 characters.
-     */
-    protected final static int[] sOutputEscapes = CharTypes.getOutputEscapes();
-
     /*
     /**********************************************************
     /* Configuration

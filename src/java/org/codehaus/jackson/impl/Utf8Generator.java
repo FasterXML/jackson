@@ -42,6 +42,12 @@ public class Utf8Generator
     private final static byte[] TRUE_BYTES = { 't', 'r', 'u', 'e' };
     private final static byte[] FALSE_BYTES = { 'f', 'a', 'l', 's', 'e' };
 
+    /**
+     * This is the default set of escape codes, over 7-bit ASCII range
+     * (first 128 character codes), used for single-byte UTF-8 characters.
+     */
+    protected final static int[] sOutputEscapes = CharTypes.get7BitOutputEscapes();
+    
     /*
     /**********************************************************
     /* Configuration, basic I/O
@@ -1264,7 +1270,7 @@ public class Utf8Generator
                      outputBuffer[outputPtr++] = (byte) escape;
                  } else {
                      // ctrl-char, 6-byte escape...
-                     outputPtr = _writeEscapedControlChar(escape, outputPtr);
+                     outputPtr = _writeGenericEscape(ch, outputPtr);
                 }
                 continue;
             }
@@ -1319,12 +1325,12 @@ public class Utf8Generator
                      outputBuffer[outputPtr++] = (byte) escape;
                  } else {
                      // ctrl-char, 6-byte escape...
-                     outputPtr = _writeEscapedControlChar(escape, outputPtr);
+                     outputPtr = _writeGenericEscape(ch, outputPtr);
                  }
                  continue;
             }
             if (ch > maxUnescaped) { // [JACKSON-102] Allow forced escaping if non-ASCII (etc) chars:
-                outputPtr = _writeEscapedControlChar(-(ch + 1), outputPtr);
+                outputPtr = _writeGenericEscape(ch, outputPtr);
                 continue;
             }
             if (ch <= 0x7FF) { // fine, just needs 2 byte output
@@ -1366,8 +1372,9 @@ public class Utf8Generator
         final int[] escCodes = _outputEscapes;
 
         for (int ptr = offset, end = offset + len; ptr < end; ) {
-            int ch = utf8[ptr++] & 0xFF;
-            if (escCodes[ch] != 0) {
+            // 28-Feb-2011, tatu: escape codes just cover 7-bit range, so:
+            int ch = utf8[ptr++];
+            if ((ch >= 0) && escCodes[ch] != 0) {
                 _writeUTF8Segment2(utf8, offset, len);
                 return;
             }
@@ -1398,18 +1405,18 @@ public class Utf8Generator
         
         while (offset < len) {
             byte b = utf8[offset++];
-            int ch = b & 0xFF;
-            int escape = escCodes[ch];
-            if (escape == 0) {
+            int ch = b;
+            if (ch < 0 || escCodes[ch] == 0) {
                 outputBuffer[outputPtr++] = b;
                 continue;
             }
+            int escape = escCodes[ch];
             if (escape > 0) { // 2-char escape, fine
                 outputBuffer[outputPtr++] = BYTE_BACKSLASH;
                 outputBuffer[outputPtr++] = (byte) escape;
             } else {
                 // ctrl-char, 6-byte escape...
-                outputPtr = _writeEscapedControlChar(escape, outputPtr);
+                outputPtr = _writeGenericEscape(ch, outputPtr);
             }
         }
         _outputTail = outputPtr;
@@ -1558,28 +1565,28 @@ public class Utf8Generator
     }
         
     /**
-     * @param escCode Character code for escape sequence (\C); or -1
-     *   to indicate a generic (\\uXXXX) sequence.
+     * Method called to write a generic Unicode escape for given character.
+     * 
+     * @param charToEscape Character to escape using escape sequence (\\uXXXX)
      */
-    private int _writeEscapedControlChar(int escCode, int outputPtr)
+    private int _writeGenericEscape(int charToEscape, int outputPtr)
         throws IOException
     {
         final byte[] bbuf = _outputBuffer;
         bbuf[outputPtr++] = BYTE_BACKSLASH;
-        int value = -(escCode + 1);
         bbuf[outputPtr++] = BYTE_u;
-        if (value > 0xFF) {
-            int hi = (value >> 8) & 0xFF;
+        if (charToEscape > 0xFF) {
+            int hi = (charToEscape >> 8) & 0xFF;
             bbuf[outputPtr++] = HEX_CHARS[hi >> 4];
             bbuf[outputPtr++] = HEX_CHARS[hi & 0xF];
-            value &= 0xFF;
+            charToEscape &= 0xFF;
         } else {
             bbuf[outputPtr++] = BYTE_0;
             bbuf[outputPtr++] = BYTE_0;
         }
         // We know it's a control char, so only the last 2 chars are non-0
-        bbuf[outputPtr++] = HEX_CHARS[value >> 4];
-        bbuf[outputPtr++] = HEX_CHARS[value & 0xF];
+        bbuf[outputPtr++] = HEX_CHARS[charToEscape >> 4];
+        bbuf[outputPtr++] = HEX_CHARS[charToEscape & 0xF];
         return outputPtr;
     }
 
