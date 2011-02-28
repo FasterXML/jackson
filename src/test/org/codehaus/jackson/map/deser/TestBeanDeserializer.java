@@ -169,4 +169,21 @@ public class TestBeanDeserializer extends BaseMapTest
         // there are 2 properties
         assertEquals(2, Issue476Deserializer.propCount);
     }
+
+    public void testPOJOFromEmptyString() throws Exception
+    {
+        // first, verify default settings which do not accept empty String:
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            mapper.readValue(quote(""), Bean.class);
+            fail("Should not accept Empty String for POJO");
+        } catch (JsonProcessingException e) {
+            verifyException(e, "from JSON String");
+        }
+
+        // should be ok to enable dynamically:
+        mapper.configure(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+        Bean result = mapper.readValue(quote(""), Bean.class);
+        assertNull(result);
+    }
 }

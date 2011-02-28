@@ -51,5 +51,4 @@ public interface SerializableString
      *</pre>
      */
     public byte[] asQuotedUTF8();
-    
 }

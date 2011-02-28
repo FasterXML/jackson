@@ -284,7 +284,25 @@ public class DeserializationConfig
          *    "UNWRAP_ROOT_VALUE" to be of use. Feature such named may be added in future.
          */
         @Deprecated
-        WRAP_ROOT_VALUE(false)
+        WRAP_ROOT_VALUE(false),
+
+        /*
+        /******************************************************
+         *  Other features
+        /******************************************************
+         */
+        
+        /**
+         * Feature that can be enabled to allow JSON empty String
+         * value ("") to be bound to POJOs as null.
+         * If disabled, standard POJOs can only be bound from JSON null or
+         * JSON Object (standard meaning that no custom deserializers or
+         * constructors are defined; both of which can add support for other
+         * kinds of JSON values); if enable, empty JSON String can be taken
+         * to be equivalent of JSON null.
+         */
+        ACCEPT_EMPTY_STRING_AS_NULL_OBJECT(false)
+        
         ;
 
         final boolean _defaultState;

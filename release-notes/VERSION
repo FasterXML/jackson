@@ -15,12 +15,14 @@ Description:
   New features:
   
   * [JACKSON-102], ability to force escaping of non-ASCII characters; using
-    JsonGenerator.Feature.ESCAPE_NON_ASCII and JsonGenerator.setHighestNonEscapedChar.
+    JsonGenerator.Feature.ESCAPE_NON_ASCII and JsonGenerator.setHighestNonEscapedChar
+  * [JACKSON-204]: Add DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT
+    to allow binding empty JSON String as null for POJOs
   * [JACKSON-358]: Add JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, to allow
     optional (and non-standard) support for numbers like 00006
     (suggested by Bryce M)
   * [JACKSON-494]: Add support for format auto-detection (via JsonFactory); add support
-    for basic JSON, Smile (and as many modules as possible).
+    for basic JSON, Smile (and as many modules as possible)
   * [JACKSON-513]: Add methods for registering key serializers, deserializers, via Module API
 
   Improvements:

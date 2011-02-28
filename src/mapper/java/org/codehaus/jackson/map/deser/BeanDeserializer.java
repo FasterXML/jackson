@@ -527,6 +527,12 @@ public class BeanDeserializer
     	if (_delegatingCreator != null) {
     	    return _delegatingCreator.deserialize(jp, ctxt);
     	}
+    	// [JACKSON-204]: allow "" as null equivalent for POJOs...
+    	if (ctxt.isEnabled(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)) {
+    	    if (jp.getTextLength() == 0) {
+    	        return null;
+    	    }
+    	}
         throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found to deserialize from JSON String");
     }
 
