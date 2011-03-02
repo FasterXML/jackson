@@ -1,12 +1,10 @@
 package org.codehaus.jackson.map.ser.impl;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.net.InetAddress;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.ser.ScalarSerializerBase;
 
@@ -38,10 +36,5 @@ public class InetAddressSerializer
             }
         }
         jgen.writeString(str);
-    }
-
-    @Override
-    public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
-        return createSchemaNode("string", true);
     }
 }
