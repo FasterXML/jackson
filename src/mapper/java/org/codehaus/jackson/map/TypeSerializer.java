@@ -95,8 +95,8 @@ public abstract class TypeSerializer
     /**
      * Method called after value has been serialized, to close any scopes opened
      * by earlier matching call to {@link #writeTypePrefixForScalar}.
-     * It needs to write closing END_OBJECT marker, and any other decoration
-     * that needs to be matched.
+     * Actual action to take may depend on various factors, but has to match with
+     * action {@link #writeTypePrefixForScalar} did (close array or object; or do nothing).
      */
     public abstract void writeTypeSuffixForScalar(Object value, JsonGenerator jgen)
         throws IOException, JsonProcessingException;
@@ -110,6 +110,54 @@ public abstract class TypeSerializer
     public abstract void writeTypeSuffixForObject(Object value, JsonGenerator jgen)
         throws IOException, JsonProcessingException;
 
+    /**
+     * Method called after value has been serialized, to close any scopes opened
+     * by earlier matching call to {@link #writeTypeSuffixForScalar}.
+     * It needs to write closing END_ARRAY marker, and any other decoration
+     * that needs to be matched.
+     */
     public abstract void writeTypeSuffixForArray(Object value, JsonGenerator jgen)
         throws IOException, JsonProcessingException;
+
+    /**
+     * Alternative version of the prefix-for-scalar method, which is given
+     * actual type to use (instead of using exact type of the value); typically
+     * a super type of actual value type
+     * 
+     * @since 1.8
+     */
+    public void writeTypePrefixForScalar(Object value, JsonGenerator jgen,
+            Class<?> type)
+        throws IOException, JsonProcessingException
+    {
+        writeTypePrefixForScalar(value, jgen);
+    }
+
+    /**
+     * Alternative version of the prefix-for-object method, which is given
+     * actual type to use (instead of using exact type of the value); typically
+     * a super type of actual value type
+     * 
+     * @since 1.8
+     */
+    public void writeTypePrefixForObject(Object value, JsonGenerator jgen,
+            Class<?> type)
+        throws IOException, JsonProcessingException
+    {
+        writeTypePrefixForObject(value, jgen);
+    }
+
+    /**
+     * Alternative version of the prefix-for-array method, which is given
+     * actual type to use (instead of using exact type of the value); typically
+     * a super type of actual value type
+     * 
+     * @since 1.8
+     */
+    public void writeTypePrefixForArray(Object value, JsonGenerator jgen,
+            Class<?> type)
+        throws IOException, JsonProcessingException
+    {
+        writeTypePrefixForArray(value, jgen);
+    }
 }

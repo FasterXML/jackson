@@ -24,6 +24,8 @@ Description:
   * [JACKSON-494]: Add support for format auto-detection (via JsonFactory); add support
     for basic JSON, Smile (and as many modules as possible)
   * [JACKSON-513]: Add methods for registering key serializers, deserializers, via Module API
+  * [JACKSON-523]: Allow passing actual type for TypeSerializer to use, to force specific
+    super type to be used (instead of a concrete sub type)
 
   Improvements:
 

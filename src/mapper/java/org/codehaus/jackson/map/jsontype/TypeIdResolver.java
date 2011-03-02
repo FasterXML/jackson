@@ -11,7 +11,6 @@ import org.codehaus.jackson.type.JavaType;
  * between type and matching id; id is stored in JSON and needed for
  * creating instances of proper subtypes when deserializing values.
  * 
- * @author tatu
  * @since 1.5
  */
 public interface TypeIdResolver
@@ -45,6 +44,16 @@ public interface TypeIdResolver
      */
     public String idFromValue(Object value);
 
+    /**
+     * Alternative method used for determining type from combination of
+     * value and type, using suggested type (that serializer provides)
+     * and possibly value of that type. Most common implementation will
+     * use suggested type as is.
+     * 
+     * @since 1.8
+     */
+    public String idFromValueAndType(Object value, Class<?> suggestedType);
+    
     /**
      * Method called to resolve type from given type identifier.
      */

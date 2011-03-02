@@ -44,6 +44,11 @@ public class TestCustomTypeIdResolver extends BaseMapTest
         }
 
         @Override
+        public String idFromValueAndType(Object value, Class<?> type) {
+            return idFromValue(value);
+        }
+        
+        @Override
         public void init(JavaType baseType) {
             if (initTypes != null) {
                 initTypes.add(baseType);

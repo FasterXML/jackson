@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.ser.ScalarSerializerBase;
 
 /**
@@ -36,5 +37,16 @@ public class InetAddressSerializer
             }
         }
         jgen.writeString(str);
+    }
+
+    @Override
+    public void serializeWithType(InetAddress value, JsonGenerator jgen, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonGenerationException
+    {
+        // Better ensure we don't use specific sub-classes...
+        typeSer.writeTypePrefixForScalar(value, jgen, InetAddress.class);
+        serialize(value, jgen, provider);
+        typeSer.writeTypeSuffixForScalar(value, jgen);
     }
 }

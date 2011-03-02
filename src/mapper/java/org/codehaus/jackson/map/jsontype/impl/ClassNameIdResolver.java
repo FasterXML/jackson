@@ -20,10 +20,52 @@ public class ClassNameIdResolver
         // not used with class name - based resolvers
     }
     
+    @Override
     public String idFromValue(Object value)
     {
-        Class<?> cls = value.getClass();
+        return _idFrom(value, value.getClass());
+    }
 
+    @Override
+    public String idFromValueAndType(Object value, Class<?> type)
+    {
+        return _idFrom(value, type);
+    }
+
+    public JavaType typeFromId(String id)
+    {
+        /* 30-Jan-2010, tatu: Most ids are basic class names; so let's first
+         *    check if any generics info is added; and only then ask factory
+         *    to do translation when necessary
+         */
+        if (id.indexOf('<') > 0) {
+            JavaType t = TypeFactory.fromCanonical(id);
+            // note: may want to try combining with specialization (esp for EnumMap)
+            return t;
+        }
+        try {
+            /* [JACKSON-350]: Default Class.forName() won't work too well; context class loader
+             *    seems like slightly better choice
+             */
+//          Class<?> cls = Class.forName(id);
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            Class<?> cls = Class.forName(id, true, loader);
+            return TypeFactory.specialize(_baseType, cls);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException("Invalid type id '"+id+"' (for id type 'Id.class'): no such class found");
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid type id '"+id+"' (for id type 'Id.class'): "+e.getMessage(), e);
+        }
+    }
+
+    /*
+    /**********************************************************
+    /* Internal methods
+    /**********************************************************
+     */
+    
+    protected final String _idFrom(Object value, Class<?> cls)
+    {
         // [JACKSON-380] Need to ensure that "enum subtypes" work too
         if (Enum.class.isAssignableFrom(cls)) {
             if (!cls.isEnum()) { // means that it's sub-class of base enum, so:
@@ -32,7 +74,7 @@ public class ClassNameIdResolver
         }
         String str = cls.getName();
         if (str.startsWith("java.util")) {
-            /* 25-Jan-2009, tatus: There are some internal classes that
+            /* 25-Jan-2009, tatu: There are some internal classes that
              *   we can not access as is. We need better mechanism; for
              *   now this has to do...
              */
@@ -62,31 +104,5 @@ public class ClassNameIdResolver
             }
         }
         return str;
-    }
-
-    public JavaType typeFromId(String id)
-    {
-        /* 30-Jan-2010, tatu: Most ids are basic class names; so let's first
-         *    check if any generics info is added; and only then ask factory
-         *    to do translation when necessary
-         */
-        if (id.indexOf('<') > 0) {
-            JavaType t = TypeFactory.fromCanonical(id);
-            // note: may want to try combining with specialization (esp for EnumMap)
-            return t;
-        }
-        try {
-            /* [JACKSON-350]: Default Class.forName() won't work too well; context class loader
-             *    seems like slightly better choice
-             */
-//          Class<?> cls = Class.forName(id);
-            ClassLoader loader = Thread.currentThread().getContextClassLoader();
-            Class<?> cls = Class.forName(id, true, loader);
-            return TypeFactory.specialize(_baseType, cls);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("Invalid type id '"+id+"' (for id type 'Id.class'): no such class found");
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid type id '"+id+"' (for id type 'Id.class'): "+e.getMessage(), e);
-        }
     }
 }

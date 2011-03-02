@@ -6,6 +6,7 @@ import java.util.TimeZone;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.ser.ScalarSerializerBase;
 
 /**
@@ -23,5 +24,16 @@ public class TimeZoneSerializer
         throws IOException, JsonGenerationException
     {
         jgen.writeString(value.getID());
+    }
+
+    @Override
+    public void serializeWithType(TimeZone value, JsonGenerator jgen, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonGenerationException
+    {
+        // Better ensure we don't use specific sub-classes:
+        typeSer.writeTypePrefixForScalar(value, jgen, TimeZone.class);
+        serialize(value, jgen, provider);
+        typeSer.writeTypeSuffixForScalar(value, jgen);
     }
 }

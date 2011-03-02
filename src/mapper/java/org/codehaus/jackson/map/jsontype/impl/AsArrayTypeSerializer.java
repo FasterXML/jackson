@@ -36,6 +36,16 @@ public class AsArrayTypeSerializer
     }
 
     @Override
+    public void writeTypePrefixForObject(Object value, JsonGenerator jgen,
+            Class<?> type)
+        throws IOException, JsonProcessingException
+    {
+        jgen.writeStartArray();
+        jgen.writeString(_idResolver.idFromValueAndType(value, type));
+        jgen.writeStartObject();
+    }
+    
+    @Override
     public void writeTypePrefixForArray(Object value, JsonGenerator jgen)
         throws IOException, JsonProcessingException
     {
@@ -45,6 +55,16 @@ public class AsArrayTypeSerializer
     }
 
     @Override
+    public void writeTypePrefixForArray(Object value, JsonGenerator jgen,
+            Class<?> type)
+        throws IOException, JsonProcessingException
+    {
+        jgen.writeStartArray();
+        jgen.writeString(_idResolver.idFromValueAndType(value, type));
+        jgen.writeStartArray();
+    }
+    
+    @Override
     public void writeTypePrefixForScalar(Object value, JsonGenerator jgen)
             throws IOException, JsonProcessingException
     {
@@ -53,6 +73,16 @@ public class AsArrayTypeSerializer
         jgen.writeString(_idResolver.idFromValue(value));
     }
 
+    @Override
+    public void writeTypePrefixForScalar(Object value, JsonGenerator jgen,
+            Class<?> type)
+        throws IOException, JsonProcessingException
+    {
+        // only need the wrapper array
+        jgen.writeStartArray();
+        jgen.writeString(_idResolver.idFromValueAndType(value, type));
+    }
+    
     @Override
     public void writeTypeSuffixForObject(Object value, JsonGenerator jgen)
             throws IOException, JsonProcessingException

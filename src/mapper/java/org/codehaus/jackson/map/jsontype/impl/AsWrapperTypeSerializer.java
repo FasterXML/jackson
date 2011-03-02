@@ -41,6 +41,17 @@ public class AsWrapperTypeSerializer
     }
 
     @Override
+    public void writeTypePrefixForObject(Object value, JsonGenerator jgen,
+            Class<?> type)
+        throws IOException, JsonProcessingException
+    {
+        // wrapper
+        jgen.writeStartObject();
+        // and then JSON Object start caller wants
+        jgen.writeObjectFieldStart(_idResolver.idFromValueAndType(value, type));
+    }
+    
+    @Override
     public void writeTypePrefixForArray(Object value, JsonGenerator jgen)
         throws IOException, JsonProcessingException
     {
@@ -49,14 +60,35 @@ public class AsWrapperTypeSerializer
         // and then JSON Array start caller wants
         jgen.writeArrayFieldStart(_idResolver.idFromValue(value));
     }
+
+    @Override
+    public void writeTypePrefixForArray(Object value, JsonGenerator jgen,
+            Class<?> type)
+        throws IOException, JsonProcessingException
+    {
+        // can still wrap ok
+        jgen.writeStartObject();
+        // and then JSON Array start caller wants
+        jgen.writeArrayFieldStart(_idResolver.idFromValueAndType(value, type));
+    }
     
     @Override
     public void writeTypePrefixForScalar(Object value, JsonGenerator jgen)
-            throws IOException, JsonProcessingException
+        throws IOException, JsonProcessingException
     {
         // can still wrap ok
         jgen.writeStartObject();
         jgen.writeFieldName(_idResolver.idFromValue(value));
+    }
+
+    @Override
+    public void writeTypePrefixForScalar(Object value, JsonGenerator jgen,
+            Class<?> type)
+        throws IOException, JsonProcessingException
+    {
+        // can still wrap ok
+        jgen.writeStartObject();
+        jgen.writeFieldName(_idResolver.idFromValueAndType(value, type));
     }
     
     @Override

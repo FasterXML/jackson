@@ -80,7 +80,8 @@ public class TypeNameIdResolver
     }
 
     public JsonTypeInfo.Id getMechanism() { return JsonTypeInfo.Id.NAME; }
-    
+
+    //@Override
     public String idFromValue(Object value)
     {
         Class<?> cls = value.getClass();
@@ -105,6 +106,12 @@ public class TypeNameIdResolver
         return name;
     }
 
+    //@Override
+    public String idFromValueAndType(Object value, Class<?> type)
+    {
+        return idFromValue(value);
+    }
+    
     public JavaType typeFromId(String id)
         throws IllegalArgumentException
     {
