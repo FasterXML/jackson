@@ -42,6 +42,10 @@ public class TestDefaultForLists
         }
     }
 
+    static class ObjectListBean {
+        public List<Object> values;
+    }
+    
     /*
     /**********************************************************
     /* Unit tests
@@ -85,4 +89,23 @@ public class TestDefaultForLists
         assertEquals(Integer.valueOf(2), output.nums.get(1));
         assertEquals(Double.valueOf(3.0), output.nums.get(2));
     }
+
+    public void testDateTypes() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.enableDefaultTyping();
+        ObjectListBean input = new ObjectListBean();
+        List<Object> inputList = new ArrayList<Object>();
+        inputList.add(TimeZone.getTimeZone("EST"));
+        inputList.add(Locale.CHINESE);
+        input.values = inputList;
+        String json = m.writeValueAsString(input);
+
+        ObjectListBean output = m.readValue(json, ObjectListBean.class);
+        List<Object> outputList = output.values;
+        assertEquals(2, outputList.size());
+        assertTrue(outputList.get(0) instanceof TimeZone);
+        assertTrue(outputList.get(1) instanceof Locale);
+    }
+
 }
