@@ -55,6 +55,11 @@ public class TestTypeFactory
         public MyList longList;
     }
 
+    static class SneakyBean2 {
+        // self-reference; should be resolved as "Comparable<Object>"
+        public <T extends Comparable<T>> T getFoobar() { return null; }
+    }
+    
     @SuppressWarnings("serial")
     public static class LongValuedMap<K> extends HashMap<K, Long> { }
 
@@ -445,5 +450,11 @@ public class TestTypeFactory
         assertEquals(TypeFactory.type(long[].class), params[0]);
     }
 
+    public void testSneakySelfRefs() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(new SneakyBean2());
+        assertEquals("{\"foobar\":null}", json);
+    }
 }
 

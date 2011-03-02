@@ -153,7 +153,8 @@ public class TypeBindings
 
     public void addBinding(String name, JavaType type)
     {
-        if (_bindings == null) {
+        // note: emptyMap() is unmodifiable, hence second check is needed:
+        if (_bindings == null || _bindings.size() == 0) {
             _bindings = new LinkedHashMap<String,JavaType>();
         }
         _bindings.put(name, type);

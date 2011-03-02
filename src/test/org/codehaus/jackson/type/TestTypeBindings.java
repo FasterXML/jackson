@@ -15,7 +15,7 @@ public class TestTypeBindings
 {    
     static class AbstractType<A,B> {
     }
-
+    
     static class LongStringType extends AbstractType<Long,String> { }
 
     public void testAbstract() throws Exception
