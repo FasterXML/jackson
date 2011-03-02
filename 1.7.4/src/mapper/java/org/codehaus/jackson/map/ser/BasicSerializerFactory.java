@@ -19,6 +19,7 @@ import org.codehaus.jackson.map.ser.impl.IndexedStringListSerializer;
 import org.codehaus.jackson.map.ser.impl.InetAddressSerializer;
 import org.codehaus.jackson.map.ser.impl.ObjectArraySerializer;
 import org.codehaus.jackson.map.ser.impl.StringCollectionSerializer;
+import org.codehaus.jackson.map.ser.impl.TimeZoneSerializer;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.EnumValues;
@@ -333,9 +334,14 @@ public abstract class BasicSerializerFactory
                 return buildCollectionSerializer(config, type, beanDesc, property);
             }
         } else {
+            Class<?> raw = type.getRawClass();
             // One unfortunate special case, as per [JACKSON-484]
-            if (InetAddress.class.isAssignableFrom(type.getRawClass())) {
+            if (InetAddress.class.isAssignableFrom(raw)) {
                 return InetAddressSerializer.instance;
+            }
+            // ... and another one, [JACKSON-522], for TimeZone
+            if (TimeZone.class.isAssignableFrom(raw)) {
+                return TimeZoneSerializer.instance;
             }
             
             // Then check for optional/external serializers [JACKSON-386]

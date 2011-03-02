@@ -57,7 +57,6 @@ public class EnumSerializer
     
     @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        throws JsonMappingException
     {
         ObjectNode objectNode = createSchemaNode("string", true);
         if (typeHint != null) {
