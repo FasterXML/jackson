@@ -236,6 +236,13 @@ public class TestDateDeserialization
             assertEquals(0, c.get(Calendar.MILLISECOND));
         }
     }
+
+    public void testTimeZone() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        TimeZone result = mapper.readValue(quote("PST"), TimeZone.class);
+        assertEquals("PST", result.getID());
+    }
     
     /*
     /**********************************************************

@@ -93,7 +93,6 @@ public class StdSerializers
     
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
         {
             /*(ryan) it may not, in fact, be optional, but there's no way
              * to tell whether we're referencing a boolean or java.lang.Boolean.
@@ -159,7 +158,6 @@ public class StdSerializers
     
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
         {
             return createSchemaNode("integer", true);
         }
@@ -187,7 +185,6 @@ public class StdSerializers
     
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
         {
             return createSchemaNode("integer", true);
         }
@@ -364,7 +361,6 @@ public class StdSerializers
 
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-                throws JsonMappingException
         {
             //todo: (ryan) add a format for the date in the schema?
             return createSchemaNode(provider.isEnabled(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS)

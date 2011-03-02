@@ -187,7 +187,6 @@ public class JdkSerializers
 
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-            throws JsonMappingException
         {
             return createSchemaNode("string", true);
         }

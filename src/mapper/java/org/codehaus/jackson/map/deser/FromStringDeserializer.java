@@ -34,7 +34,9 @@ public abstract class FromStringDeserializer<T>
         all.add(new PatternDeserializer());
         // since 1.7:
         all.add(new LocaleDeserializer());
+        // 1.8:
         all.add(new InetAddressDeserializer());
+        all.add(new TimeZoneDeserializer());
 
         return all;
     }
@@ -221,6 +223,24 @@ public abstract class FromStringDeserializer<T>
             throws IOException
         {
             return InetAddress.getByName(value);
+        }
+    }
+
+    /**
+     * As per [JACKSON-522], also need special handling for InetAddress...
+     * 
+     * @since 1.7.4
+     */
+    protected static class TimeZoneDeserializer
+        extends FromStringDeserializer<TimeZone>
+    {
+        public TimeZoneDeserializer() { super(TimeZone.class); }
+
+        @Override
+        protected TimeZone _deserialize(String value, DeserializationContext ctxt)
+            throws IOException
+        {
+            return TimeZone.getTimeZone(value);
         }
     }
 }

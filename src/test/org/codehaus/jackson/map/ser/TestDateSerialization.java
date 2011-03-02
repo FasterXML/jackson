@@ -52,5 +52,13 @@ public class TestDateSerialization
         java.sql.Date date = new java.sql.Date(99, Calendar.APRIL, 1);
         assertEquals(quote("1999-04-01"), serializeAsString(mapper, date));
     }
+
+    public void testTimeZone() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        TimeZone input = TimeZone.getTimeZone("PST");
+        String json = mapper.writeValueAsString(input);
+        assertEquals(quote("PST"), json);
+    }
 }
 
