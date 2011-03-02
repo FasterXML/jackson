@@ -45,6 +45,12 @@ Description:
   * [JACKSON-509] @JsonSubTypes was not allowed for fields/methods/ctor-parameters (although
     @JsonTypeInfo was, starting with 1.7)
 
+  Potential backwards compatibility issues (compared to 1.7.x):
+
+  * [JACKSON-523]: Added method "idFromValueAndType()" in TypeIdResolver interface,
+    which is needed to properly handle types such as InetAddress, TimeZone -- unfortunately
+    this would break custom TypeIdResolver instances.
+
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
