@@ -601,11 +601,7 @@ public class SmileGenerator
         if (_seenNameCount >= 0) {
             int ix = _findSeenName(name);
             if (ix >= 0) {
-                if (ix < 64) {
-                    _writeByte((byte) (TOKEN_PREFIX_KEY_SHARED_SHORT + ix));
-                } else {
-                    _writeBytes(((byte) (TOKEN_PREFIX_KEY_SHARED_LONG + (ix >> 8))), (byte) ix);
-                }
+                _writeSharedNameReference(ix);
                 return;
             }
         }
@@ -699,11 +695,7 @@ public class SmileGenerator
         if (_seenNameCount >= 0) {
             int ix = _findSeenName(name.getValue());
             if (ix >= 0) {
-                if (ix < 64) {
-                    _writeByte((byte) (TOKEN_PREFIX_KEY_SHARED_SHORT + ix));
-                } else {
-                    _writeBytes(((byte) (TOKEN_PREFIX_KEY_SHARED_LONG + (ix >> 8))), (byte) ix);
-                } 
+                _writeSharedNameReference(ix);
                 return;
             }
         }
@@ -761,11 +753,7 @@ public class SmileGenerator
         if (_seenNameCount >= 0) {
             int ix = _findSeenName(name.getValue());
             if (ix >= 0) {
-                if (ix < 64) {
-                    _writeByte((byte) (TOKEN_PREFIX_KEY_SHARED_SHORT + ix));
-                } else {
-                    _writeBytes(((byte) (TOKEN_PREFIX_KEY_SHARED_LONG + (ix >> 8))), (byte) ix);
-                } 
+                _writeSharedNameReference(ix);
                 return;
             }
         }
@@ -818,6 +806,21 @@ public class SmileGenerator
         }
     }
 
+    private final void _writeSharedNameReference(int ix)
+        throws IOException,JsonGenerationException
+    {
+        // 03-Mar-2011, tatu: Related to [JACKSON-525], let's add a sanity check here
+        if (ix >= _seenNameCount) {
+            throw new IllegalArgumentException("Internal error: trying to write shared name with index "+ix
+                    +"; but have only seen "+_seenNameCount+" so far!");
+        }
+        if (ix < 64) {
+            _writeByte((byte) (TOKEN_PREFIX_KEY_SHARED_SHORT + ix));
+        } else {
+            _writeBytes(((byte) (TOKEN_PREFIX_KEY_SHARED_LONG + (ix >> 8))), (byte) ix);
+        } 
+    }    
+    
     /*
     /**********************************************************
     /* Output method implementations, textual
@@ -842,11 +845,7 @@ public class SmileGenerator
         if (_seenStringValueCount >= 0) {
             int ix = _findSeenStringValue(text);
             if (ix >= 0) {
-                if (ix < 31) { // add 1, as byte 0 is omitted
-                    _writeByte((byte) (TOKEN_PREFIX_SHARED_STRING_SHORT + 1 + ix));
-                } else {
-                    _writeBytes(((byte) (TOKEN_MISC_SHARED_STRING_LONG + (ix >> 8))), (byte) ix);
-                }
+                _writeSharedStringValueReference(ix);
                 return;
             }
         }
@@ -877,8 +876,23 @@ public class SmileGenerator
             // and we will need String end marker byte
             _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
         }
-    }    
+    }
 
+    private final void _writeSharedStringValueReference(int ix)
+        throws IOException,JsonGenerationException
+    {
+        // 03-Mar-2011, tatu: Related to [JACKSON-525], let's add a sanity check here
+        if (ix >= _seenStringValueCount) {
+            throw new IllegalArgumentException("Internal error: trying to write shared String value with index "+ix
+                    +"; but have only seen "+_seenStringValueCount+" so far!");
+        }
+        if (ix < 31) { // add 1, as byte 0 is omitted
+            _writeByte((byte) (TOKEN_PREFIX_SHARED_STRING_SHORT + 1 + ix));
+        } else {
+            _writeBytes(((byte) (TOKEN_MISC_SHARED_STRING_LONG + (ix >> 8))), (byte) ix);
+        }
+    }    
+    
     /**
      * Helper method called to handle cases where String value to write is known
      * to be long enough not to be shareable.
@@ -993,11 +1007,7 @@ public class SmileGenerator
         if (len <= MAX_SHARED_STRING_LENGTH_BYTES && _seenStringValueCount >= 0) {
             int ix = _findSeenStringValue(str);
             if (ix >= 0) {
-                if (ix < 31) { // add 1, as byte 0 is omitted
-                    _writeByte((byte) (TOKEN_PREFIX_SHARED_STRING_SHORT + 1 + ix));
-                } else {
-                    _writeBytes(((byte) (TOKEN_MISC_SHARED_STRING_LONG + (ix >> 8))), (byte) ix);
-                }
+                _writeSharedStringValueReference(ix);
                 return;
             }
         }
@@ -1961,8 +1971,6 @@ public class SmileGenerator
             SharedStringNode[] nameBuf = _seenNames;
             if (nameBuf != null && nameBuf.length == SmileBufferRecycler.DEFAULT_NAME_BUFFER_LENGTH) {
                 _seenNames = null;
-                // Note: we must clean up stuff we've marked so far, to avoid accidental leakage
-                Arrays.fill(nameBuf, null);
                 _smileBufferRecycler.releaseSeenNamesBuffer(nameBuf);
             }
         }
@@ -1970,8 +1978,6 @@ public class SmileGenerator
             SharedStringNode[] valueBuf = _seenStringValues;
             if (valueBuf != null && valueBuf.length == SmileBufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH) {
                 _seenStringValues = null;
-                // Note: we must clean up stuff we've marked so far, to avoid accidental leakage
-                Arrays.fill(valueBuf, null);
                 _smileBufferRecycler.releaseSeenStringValuesBuffer(valueBuf);
             }
         }
