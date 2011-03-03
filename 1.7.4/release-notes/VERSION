@@ -21,6 +21,8 @@ Description:
   * [JACKSON-518]: Problems with JAX-RS, type variables	
    (reported by	  Kirill S)
   * [JACKSON-522]: java.util.TimeZone was not correctly handled
+  * [JACKSON-525]: Problem with SmileGenerator, shared-names buffer recycling
+   (reported by Shay B)
 
 ------------------------------------------------------------------------
 === History: ===

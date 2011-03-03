@@ -175,6 +175,9 @@ Shay Banon:
    [1.3.0]
   * Reported [JACKSON-376] writing binary data as object field value with Smile fails
    [1.6.1]
+  * Reported [JACKSON-525]: Problem with SmileGenerator, recycling of shared-names
+    buffer
+   [1.7.4]
 
 Brian McCallister:
   * Suggested [JACKSON-173]: Add "JsonParser.Feature.ALLOW_SINGLE_QUOTES"

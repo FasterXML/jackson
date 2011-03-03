@@ -1,5 +1,7 @@
 package org.codehaus.jackson.smile;
 
+import java.util.Arrays;
+
 /**
  * Simple helper class used for implementing simple reuse system for Smile-specific
  * buffers that are used.
@@ -23,21 +25,26 @@ public class SmileBufferRecycler<T>
     public T[] allocSeenNamesBuffer()
     {
         // 11-Feb-2011, tatu: Used to alloc here; but due to generics, can't easily any more
-        return _seenNamesBuffer;
+        T[] result = _seenNamesBuffer;
+        if (result != null) {
+            // let's ensure we don't retain it here, unless returned
+            _seenNamesBuffer = null;
+            // and also clean up recycled buffer
+            Arrays.fill(result, null);
+        }
+        return result;
     }
 
     public T[] allocSeenStringValuesBuffer()
     {
         // 11-Feb-2011, tatu: Used to alloc here; but due to generics, can't easily any more
-        return _seenStringValuesBuffer;
-        /*
-        if (buffer == null) {
-            buffer = new String[DEFAULT_STRING_VALUE_BUFFER_LENGTH];
-        } else {
+        T[] result = _seenStringValuesBuffer;
+        if (result != null) {
             _seenStringValuesBuffer = null;
+            // and also clean up recycled buffer
+            Arrays.fill(result, null);
         }
-        return buffer;
-        */
+        return result;
     }
     
     public void releaseSeenNamesBuffer(T[] buffer) {
