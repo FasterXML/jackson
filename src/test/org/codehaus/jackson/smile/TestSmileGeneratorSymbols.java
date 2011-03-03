@@ -2,8 +2,7 @@ package org.codehaus.jackson.smile;
 
 import java.io.ByteArrayOutputStream;
 
-public class TestSmileGeneratorSymbols
-	extends SmileTestBase
+public class TestSmileGeneratorSymbols extends SmileTestBase
 {
 	/**
 	 * Simple test to verify that second reference will not output new String, but
