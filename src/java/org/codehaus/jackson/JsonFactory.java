@@ -115,10 +115,31 @@ public class JsonFactory implements Versioned
      */
     protected ObjectCodec _objectCodec;
 
+    /**
+     * Currently enabled parser features.
+     */
     protected int _parserFeatures = DEFAULT_PARSER_FEATURE_FLAGS;
 
+    /**
+     * Currently enabled generator features.
+     */
     protected int _generatorFeatures = DEFAULT_GENERATOR_FEATURE_FLAGS;
 
+    /**
+     * Definition of custom character escapes to use for generators created
+     * by this factory, if any. If null, standard data format specific
+     * escapes are used.
+     * 
+     * @since 1.8
+     */
+    protected CharacterEscapes _characterEscapes;
+    
+    /*
+    /**********************************************************
+    /* Construction
+    /**********************************************************
+     */
+    
     /**
      * Default constructor used to create factory instances.
      * Creation of a factory instance is a light-weight operation,
@@ -360,6 +381,27 @@ public class JsonFactory implements Versioned
         return isEnabled(f);
     }
 
+    /**
+     * Method for accessing custom escapes factory uses for {@link JsonGenerator}s
+     * it creates.
+     * 
+     * @since 1.8
+     */
+    public CharacterEscapes getCharacterEscapes() {
+        return _characterEscapes;
+    }
+
+    /**
+     * Method for defining custom escapes factory uses for {@link JsonGenerator}s
+     * it creates.
+     * 
+     * @since 1.8
+     */
+    public JsonFactory setCharacterEscapes(CharacterEscapes esc) {
+        _characterEscapes = esc;
+        return this;
+    }
+    
     /*
     /**********************************************************
     /* Configuration, other
@@ -651,7 +693,11 @@ public class JsonFactory implements Versioned
     protected JsonGenerator _createJsonGenerator(Writer out, IOContext ctxt)
         throws IOException
     {
-        return new WriterBasedGenerator(ctxt, _generatorFeatures, _objectCodec, out);
+        WriterBasedGenerator gen = new WriterBasedGenerator(ctxt, _generatorFeatures, _objectCodec, out);
+        if (_characterEscapes != null) {
+            gen.setCharacterEscapes(_characterEscapes);
+        }
+        return gen;
     }
 
     /**
@@ -662,7 +708,11 @@ public class JsonFactory implements Versioned
     protected JsonGenerator _createUTF8JsonGenerator(OutputStream out, IOContext ctxt)
         throws IOException
     {
-        return new Utf8Generator(ctxt, _generatorFeatures, _objectCodec, out);
+        Utf8Generator gen = new Utf8Generator(ctxt, _generatorFeatures, _objectCodec, out);
+        if (_characterEscapes != null) {
+            gen.setCharacterEscapes(_characterEscapes);
+        }
+        return gen;
     }
     
     /**

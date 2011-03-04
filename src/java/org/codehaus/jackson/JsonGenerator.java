@@ -18,6 +18,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import org.codehaus.jackson.io.CharacterEscapes;
 import org.codehaus.jackson.io.SerializedString;
 
 /**
@@ -160,7 +161,11 @@ public abstract class JsonGenerator
         public int getMask() { return _mask; }
     }
 
-    // // // Configuration:
+    /*
+    /**********************************************************
+    /* Configuration
+    /**********************************************************
+     */
 
     /**
      * Object that handles pretty-printing (usually additional
@@ -169,6 +174,12 @@ public abstract class JsonGenerator
      */
     protected PrettyPrinter _cfgPrettyPrinter;
 
+    /*
+    /**********************************************************
+    /* Construction
+    /**********************************************************
+     */
+    
     protected JsonGenerator() { }
 
     /**
@@ -341,7 +352,26 @@ public abstract class JsonGenerator
     public int getHighestEscapedChar() {
         return 0;
     }
-    
+    /**
+     * Method for accessing custom escapes factory uses for {@link JsonGenerator}s
+     * it creates.
+     * 
+     * @since 1.8
+     */
+    public CharacterEscapes getCharacterEscapes() {
+        return null;
+    }
+
+    /**
+     * Method for defining custom escapes factory uses for {@link JsonGenerator}s
+     * it creates.
+     * 
+     * @since 1.8
+     */
+    public JsonGenerator setCharacterEscapes(CharacterEscapes esc) {
+        return this;
+    }
+
     /*
     /**********************************************************
     /* Public API, write methods, structural

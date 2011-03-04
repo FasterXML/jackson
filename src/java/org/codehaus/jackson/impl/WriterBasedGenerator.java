@@ -59,6 +59,15 @@ public final class WriterBasedGenerator
      * NOTE: not all sub-classes make use of this setting.
      */
     protected int _maximumNonEscapedChar;
+
+    /**
+     * Definition of custom character escapes to use for generators created
+     * by this factory, if any. If null, standard data format specific
+     * escapes are used.
+     * 
+     * @since 1.8
+     */
+    protected CharacterEscapes _characterEscapes;
     
     /*
     /**********************************************************
@@ -132,6 +141,29 @@ public final class WriterBasedGenerator
         return _maximumNonEscapedChar;
     }
 
+    @Override
+    public JsonGenerator setCharacterEscapes(CharacterEscapes esc)
+    {
+        _characterEscapes = esc;
+        if (esc == null) { // revert to standard escapes
+            _outputEscapes = sOutputEscapes;
+        } else {
+            _outputEscapes = esc.getEscapeCodesForAscii();
+        }
+        return this;
+    }
+
+    /**
+     * Method for accessing custom escapes factory uses for {@link JsonGenerator}s
+     * it creates.
+     * 
+     * @since 1.8
+     */
+    @Override
+    public CharacterEscapes getCharacterEscapes() {
+        return _characterEscapes;
+    }
+    
     /*
     /**********************************************************
     /* Overridden methods
@@ -981,21 +1013,8 @@ public final class WriterBasedGenerator
             /* In any case, tail will be the new start, so hopefully
              * we have room now.
              */
-            {
-                int escCode = escCodes[_outputBuffer[_outputTail]];
-                ++_outputTail;
-                int needLen = (escCode < 0) ? 6 : 2;
-                // If not, need to call separate method (note: buffer is empty now)
-                if (needLen > _outputTail) {
-                    _outputHead = _outputTail;
-                    _writeSingleEscape(escCode);
-                } else {
-                    // But if it fits, can just prepend to buffer
-                    int ptr = _outputTail - needLen;
-                    _outputHead = ptr;
-                    _appendSingleEscape(escCode, _outputBuffer, ptr);
-                }
-            }
+            char c = _outputBuffer[_outputTail++];
+            _writeCharacterEscape(c, escCodes[c]);
         }
     }
 
@@ -1385,6 +1404,12 @@ public final class WriterBasedGenerator
         _outputTail = ptr+1;
     }
         
+    /*
+    /**********************************************************
+    /* Internal methods, low-level writing, escapes
+    /**********************************************************
+     */
+
     /**
      * @param escCode Character code for escape sequence (\C); or -1
      *   to indicate a generic (\\uXXXX) sequence.
@@ -1451,6 +1476,99 @@ public final class WriterBasedGenerator
         }
     }
 
+    private final void _writeCharacterEscape(char ch, int escCode)
+        throws IOException, JsonGenerationException
+    {
+        if (escCode >= 0) { // \\N (2 char)
+            if (_outputTail >= 2) { // fits, just prepend
+                int ptr = _outputTail - 2;
+                _outputHead = ptr;
+                _outputBuffer[ptr++] = '\\';
+                _outputBuffer[ptr] = (char) escCode;
+                return;
+            }
+            // won't fit, write
+            char[] buf = _entityBuffer;
+            if (buf == null) {
+                buf = _allocateEntityBuffer();
+            }
+            _outputHead = _outputTail;
+            buf[1] = ch;
+            _writer.write(buf, 0, 2);
+            return;
+        }
+        if (escCode != CharacterEscapes.ESCAPE_CUSTOM) { // std, \\uXXXX
+            if (_outputTail >= 6) { // fits, prepend to buffer
+                char[] buf = _outputBuffer;
+                int ptr = _outputTail - 6;
+                _outputHead = ptr;
+                buf[ptr] = '\\';
+                buf[++ptr] = 'u';
+                // We know it's a control char, so only the last 2 chars are non-0
+                if (ch > 0xFF) { // beyond 8 bytes
+                    int hi = (ch >> 8) & 0xFF;
+                    buf[++ptr] = HEX_CHARS[hi >> 4];
+                    buf[++ptr] = HEX_CHARS[hi & 0xF];
+                    ch &= 0xFF;
+                } else {
+                    buf[++ptr] = '0';
+                    buf[++ptr] = '0';
+                }
+                buf[++ptr] = HEX_CHARS[ch >> 4];
+                buf[++ptr] = HEX_CHARS[ch & 0xF];
+                return;
+            }
+            // won't fit, flush and write
+            char[] buf = _entityBuffer;
+            if (buf == null) {
+                buf = _allocateEntityBuffer();
+            }
+            _outputHead = _outputTail;
+            if (ch > 0xFF) { // beyond 8 bytes
+                int hi = (ch >> 8) & 0xFF;
+                int lo = ch & 0xFF;
+                buf[10] = HEX_CHARS[hi >> 4];
+                buf[11] = HEX_CHARS[hi & 0xF];
+                buf[12] = HEX_CHARS[lo >> 4];
+                buf[13] = HEX_CHARS[lo & 0xF];
+                _writer.write(buf, 8, 6);
+            } else { // We know it's a control char, so only the last 2 chars are non-0
+                buf[6] = HEX_CHARS[ch >> 4];
+                buf[7] = HEX_CHARS[ch & 0xF];
+                _writer.write(buf, 2, 6);
+            }
+            return;
+        }
+        String escape = _characterEscapes.getEscapeSequence(ch).getValue();
+        int len = escape.length();
+        if (_outputTail >= len) { // fits in, prepend
+            int ptr = _outputTail - len;
+            _outputHead = ptr;
+            escape.getChars(0, len, _outputBuffer, ptr);
+            return;
+        }
+        // won't fit, write separately
+        _outputHead = _outputTail;
+        _writer.write(escape);
+    }
+
+    private char[] _allocateEntityBuffer()
+    {
+        char[] buf = new char[14];
+        // first 2 chars, non-numeric escapes (like \n)
+        buf[0] = '\\';
+        // next 6; 8-bit escapes (control chars mostly)
+        buf[2] = '\\';
+        buf[3] = 'u';
+        buf[4] = '0';
+        buf[5] = '0';
+        // last 6, beyond 8 bits
+        buf[8] = '\\';
+        buf[9] = 'u';
+        _entityBuffer = buf;
+        return buf;
+    }
+    
     protected final void _flushBuffer() throws IOException
     {
         int len = _outputTail - _outputHead;

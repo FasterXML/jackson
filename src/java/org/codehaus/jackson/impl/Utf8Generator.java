@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.io.CharacterEscapes;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.io.NumberOutput;
 import org.codehaus.jackson.io.SerializedString;
@@ -85,6 +86,15 @@ public class Utf8Generator
      * NOTE: not all sub-classes make use of this setting.
      */
     protected int _maximumNonEscapedChar;
+
+    /**
+     * Definition of custom character escapes to use for generators created
+     * by this factory, if any. If null, standard data format specific
+     * escapes are used.
+     * 
+     * @since 1.8
+     */
+    protected CharacterEscapes _characterEscapes;
     
     /*
     /**********************************************************
@@ -188,7 +198,6 @@ public class Utf8Generator
         if (isEnabled(Feature.ESCAPE_NON_ASCII)) {
             setHighestNonEscapedChar(127);
         }
-        setHighestNonEscapedChar(127);
     }
 
     /*
@@ -206,6 +215,29 @@ public class Utf8Generator
     @Override
     public int getHighestEscapedChar() {
         return _maximumNonEscapedChar;
+    }
+
+    @Override
+    public JsonGenerator setCharacterEscapes(CharacterEscapes esc)
+    {
+        _characterEscapes = esc;
+        if (esc == null) { // revert to standard escapes
+            _outputEscapes = sOutputEscapes;
+        } else {
+            _outputEscapes = esc.getEscapeCodesForAscii();
+        }
+        return this;
+    }
+
+    /**
+     * Method for accessing custom escapes factory uses for {@link JsonGenerator}s
+     * it creates.
+     * 
+     * @since 1.8
+     */
+    @Override
+    public CharacterEscapes getCharacterEscapes() {
+        return _characterEscapes;
     }
     
     /*
