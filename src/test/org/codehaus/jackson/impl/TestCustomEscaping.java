@@ -169,6 +169,6 @@ public class TestCustomEscaping  extends main.BaseTest
         jgen.writeEndObject();
         jgen.close();
         String json = bytes.toString("UTF-8");
-        assertEquals("["+quote(STR_OUT)+":"+quote(STR_OUT)+"]", json);
+        assertEquals("{"+quote(STR_OUT)+":"+quote(STR_OUT)+"}", json);
     }
 }

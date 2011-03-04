@@ -194,7 +194,7 @@ public final class JsonStringEncoder
             if (ch <= 0x7F) { // needs quoting
                 int escape = escCodes[ch];
                 // ctrl-char, 6-byte escape...
-                outputPtr = _appendByteEscape(escape, byteBuilder, outputPtr);
+                outputPtr = _appendByteEscape(ch, escape, byteBuilder, outputPtr);
                 outputBuffer = byteBuilder.getCurrentSegment();
                 continue main_loop;
             } else if (ch <= 0x7FF) { // fine, just needs 2 byte output
@@ -355,19 +355,24 @@ public final class JsonStringEncoder
         return 2;
     }
 
-    private int _appendByteEscape(int escCode, ByteArrayBuilder byteBuilder, int ptr)
+    private int _appendByteEscape(int ch, int escCode, ByteArrayBuilder byteBuilder, int ptr)
     {
         byteBuilder.setCurrentSegmentLength(ptr);
         byteBuilder.append(INT_BACKSLASH);
-        if (escCode < 0) { // control char, value -(char + 1)
-            int value = -(escCode + 1);
+        if (escCode < 0) { // standard escape
             byteBuilder.append(INT_U);
-            byteBuilder.append(INT_0);
-            byteBuilder.append(INT_0);
-            // We know it's a control char, so only the last 2 chars are non-0
-            byteBuilder.append(HEX_BYTES[value >> 4]);
-            byteBuilder.append(HEX_BYTES[value & 0xF]);
-        } else {
+            if (ch > 0xFF) {
+                int hi = (ch >> 8);
+                byteBuilder.append(HEX_BYTES[hi >> 4]);
+                byteBuilder.append(HEX_BYTES[hi & 0xF]);
+                ch &= 0xFF;
+            } else {
+                byteBuilder.append(INT_0);
+                byteBuilder.append(INT_0);
+            }
+            byteBuilder.append(HEX_BYTES[ch >> 4]);
+            byteBuilder.append(HEX_BYTES[ch & 0xF]);
+        } else { // 2-char simple escape
             byteBuilder.append((byte) escCode);
         }
         return byteBuilder.getCurrentSegmentLength();

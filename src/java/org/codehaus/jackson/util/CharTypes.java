@@ -2,6 +2,8 @@ package org.codehaus.jackson.util;
 
 import java.util.Arrays;
 
+import org.codehaus.jackson.io.CharacterEscapes;
+
 public final class CharTypes
 {
     private final static char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
@@ -134,7 +136,8 @@ public final class CharTypes
         int[] table = new int[128];
         // Control chars need generic escape sequence
         for (int i = 0; i < 32; ++i) {
-            table[i] = -(i + 1);
+            // 04-Mar-2011, tatu: Used to use "-(i + 1)", replaced with constants
+            table[i] = CharacterEscapes.ESCAPE_STANDARD;
         }
         /* Others (and some within that range too) have explicit shorter
          * sequences
@@ -151,7 +154,7 @@ public final class CharTypes
     }
 
     /**
-     * Lookup table for the first 128 Unicode characters (7-bit ascii)
+     * Lookup table for the first 128 Unicode characters (7-bit ASCII)
      * range. For actual hex digits, contains corresponding value;
      * for others -1.
      */
