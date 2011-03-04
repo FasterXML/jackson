@@ -1044,6 +1044,7 @@ public final class WriterBasedGenerator
             offset += segmentLen;
         } while (offset < textLen);
     }
+
     /**
      * Method called to output textual context which has been copied
      * to the output buffer prior to call. If any escaping is needed,
@@ -1060,11 +1061,11 @@ public final class WriterBasedGenerator
         final int escLen = escCodes.length;
     
         int ptr = 0;
+        int start = ptr;
 
         output_loop:
         while (ptr < end) {
             // Fast loop for chars not needing escaping
-            int start = ptr;
             while (true) {
                 char c = _outputBuffer[ptr];
                 if (c < escLen && escCodes[c] != 0) {
@@ -1094,12 +1095,13 @@ public final class WriterBasedGenerator
                 ++ptr;
                 int needLen = (escCode < 0) ? 6 : 2;
                 // If not, need to call separate method (note: buffer is empty now)
-                if (needLen > _outputTail) {
+                if (needLen > ptr || ptr == end) {
                     _writeSingleEscape(escCode);
+                    start = ptr;
                 } else {
                     // But if it fits, can just prepend to buffer
-                    ptr -= needLen;
-                    _appendSingleEscape(escCode, _outputBuffer, ptr);
+                    start = ptr - needLen;
+                    _appendSingleEscape(escCode, _outputBuffer, start);
                 }
             }
         }
@@ -1225,11 +1227,11 @@ public final class WriterBasedGenerator
     
         int ptr = 0;
         int escCode = 0;
+        int start = ptr;
     
         output_loop:
         while (ptr < end) {
             // Fast loop for chars not needing escaping
-            int start = ptr;
             while (true) {
                 char c = _outputBuffer[ptr];
                 if (c < escLimit) {
@@ -1256,12 +1258,13 @@ public final class WriterBasedGenerator
                 ++ptr;
                 int needLen = (escCode < 0) ? 6 : 2;
                 // If not, need to call separate method (note: buffer is empty now)
-                if (needLen > _outputTail) {
+                if (needLen > ptr || (ptr == end)) {
                     _writeSingleEscape(escCode);
+                    start = ptr;
                 } else {
                     // But if it fits, can just prepend to buffer
-                    ptr -= needLen;
-                    _appendSingleEscape(escCode, _outputBuffer, ptr);
+                    start = ptr - needLen;
+                    _appendSingleEscape(escCode, _outputBuffer, start);
                 }
             }
         }
