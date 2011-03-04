@@ -37,7 +37,8 @@ public class TestJsonStringEncoder
             // ok, except need to remove surrounding quotes
             encoded = encoded.substring(1, encoded.length() - 1);
             byte[] expected = encoded.getBytes("UTF-8");
-            assertArrayEquals(expected, encoder.quoteAsUTF8(str));
+            byte[] actual = encoder.quoteAsUTF8(str);
+            assertArrayEquals(expected, actual);
         }
     }
 

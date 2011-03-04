@@ -1066,8 +1066,9 @@ public final class WriterBasedGenerator
         output_loop:
         while (ptr < end) {
             // Fast loop for chars not needing escaping
+            char c;
             while (true) {
-                char c = _outputBuffer[ptr];
+                c = _outputBuffer[ptr];
                 if (c < escLen && escCodes[c] != 0) {
                     break;
                 }
@@ -1087,23 +1088,9 @@ public final class WriterBasedGenerator
                     break output_loop;
                 }
             }
-            /* In any case, tail will be the new start, so hopefully
-             * we have room now.
-             */
-            {
-                int escCode = escCodes[_outputBuffer[ptr]];
-                ++ptr;
-                int needLen = (escCode < 0) ? 6 : 2;
-                // If not, need to call separate method (note: buffer is empty now)
-                if (needLen > ptr || ptr == end) {
-                    _writeSingleEscape(escCode);
-                    start = ptr;
-                } else {
-                    // But if it fits, can just prepend to buffer
-                    start = ptr - needLen;
-                    _appendSingleEscape(escCode, _outputBuffer, start);
-                }
-            }
+            ++ptr;
+            // So; either try to prepend (most likely), or write directly:
+            start = _prependOrWriteCharacterEscape(_outputBuffer, ptr, end, c, escCodes[c]);
         }
     }
     
@@ -1232,8 +1219,9 @@ public final class WriterBasedGenerator
         output_loop:
         while (ptr < end) {
             // Fast loop for chars not needing escaping
+            char c;
             while (true) {
-                char c = _outputBuffer[ptr];
+                c = _outputBuffer[ptr];
                 if (c < escLimit) {
                     escCode = escCodes[c];
                     if (escCode != 0) {
@@ -1254,19 +1242,8 @@ public final class WriterBasedGenerator
                     break output_loop;
                 }
             }
-            {
-                ++ptr;
-                int needLen = (escCode < 0) ? 6 : 2;
-                // If not, need to call separate method (note: buffer is empty now)
-                if (needLen > ptr || (ptr == end)) {
-                    _writeSingleEscape(escCode);
-                    start = ptr;
-                } else {
-                    // But if it fits, can just prepend to buffer
-                    start = ptr - needLen;
-                    _appendSingleEscape(escCode, _outputBuffer, start);
-                }
-            }
+            ++ptr;
+            start = _prependOrWriteCharacterEscape(_outputBuffer, ptr, end, c, escCodes[c]);
         }
     }
 
@@ -1488,7 +1465,7 @@ public final class WriterBasedGenerator
                 buf = _allocateEntityBuffer();
             }
             _outputHead = _outputTail;
-            buf[1] = ch;
+            buf[1] = (char) escCode;
             _writer.write(buf, 0, 2);
             return;
         }
@@ -1547,6 +1524,84 @@ public final class WriterBasedGenerator
         _writer.write(escape);
     }
 
+    /**
+     * Method called to try to either prepend character escape at front of
+     * given buffer; or if not possible, to write it out directly.
+     * 
+     * @return Pointer to start of prepended entity (if prepended); or 'ptr'
+     *   if not.
+     */
+    private final int _prependOrWriteCharacterEscape(char[] buffer, int ptr, int end,
+            char ch, int escCode)
+        throws IOException, JsonGenerationException
+    {
+        if (escCode >= 0) { // \\N (2 char)
+            if (ptr > 1 && ptr < end) { // fits, just prepend
+                ptr -= 2;
+                buffer[ptr] = '\\';
+                buffer[ptr+1] = (char) escCode;
+            } else { // won't fit, write
+                char[] ent = _entityBuffer;
+                if (ent == null) {
+                    ent = _allocateEntityBuffer();
+                }
+                ent[1] = (char) escCode;
+                _writer.write(ent, 0, 2);
+            }
+            return ptr;
+        }
+        if (escCode != CharacterEscapes.ESCAPE_CUSTOM) { // std, \\uXXXX
+            if (ptr > 5 && ptr < end) { // fits, prepend to buffer
+                ptr -= 6;
+                buffer[ptr++] = '\\';
+                buffer[ptr++] = 'u';
+                // We know it's a control char, so only the last 2 chars are non-0
+                if (ch > 0xFF) { // beyond 8 bytes
+                    int hi = (ch >> 8) & 0xFF;
+                    buffer[ptr++] = HEX_CHARS[hi >> 4];
+                    buffer[ptr++] = HEX_CHARS[hi & 0xF];
+                    ch &= 0xFF;
+                } else {
+                    buffer[ptr++] = '0';
+                    buffer[ptr++] = '0';
+                }
+                buffer[ptr++] = HEX_CHARS[ch >> 4];
+                buffer[ptr] = HEX_CHARS[ch & 0xF];
+                ptr -= 5;
+            } else {
+                // won't fit, flush and write
+                char[] ent = _entityBuffer;
+                if (ent == null) {
+                    ent = _allocateEntityBuffer();
+                }
+                _outputHead = _outputTail;
+                if (ch > 0xFF) { // beyond 8 bytes
+                    int hi = (ch >> 8) & 0xFF;
+                    int lo = ch & 0xFF;
+                    ent[10] = HEX_CHARS[hi >> 4];
+                    ent[11] = HEX_CHARS[hi & 0xF];
+                    ent[12] = HEX_CHARS[lo >> 4];
+                    ent[13] = HEX_CHARS[lo & 0xF];
+                    _writer.write(ent, 8, 6);
+                } else { // We know it's a control char, so only the last 2 chars are non-0
+                    ent[6] = HEX_CHARS[ch >> 4];
+                    ent[7] = HEX_CHARS[ch & 0xF];
+                    _writer.write(ent, 2, 6);
+                }
+            }
+            return ptr;
+        }
+        String escape = _characterEscapes.getEscapeSequence(ch).getValue();
+        int len = escape.length();
+        if (ptr >= len && ptr < end) { // fits in, prepend
+            ptr -= len;
+            escape.getChars(0, len, buffer, ptr);
+        } else { // won't fit, write separately
+            _writer.write(escape);
+        }
+        return ptr;
+    }
+    
     private char[] _allocateEntityBuffer()
     {
         char[] buf = new char[14];
