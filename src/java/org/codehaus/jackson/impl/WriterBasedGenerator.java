@@ -1186,6 +1186,7 @@ public final class WriterBasedGenerator
         int end = _outputTail + len;
         final int[] escCodes = _outputEscapes;
         final int escLimit = Math.min(escCodes.length, _maximumNonEscapedChar+1);
+        char c;
         int escCode = 0;
         
         output_loop:
@@ -1193,14 +1194,14 @@ public final class WriterBasedGenerator
             // Fast loop for chars not needing escaping
             escape_loop:
             while (true) {
-                char c = _outputBuffer[_outputTail];
+                c = _outputBuffer[_outputTail];
                 if (c < escLimit) {
                     escCode = escCodes[c];
                     if (escCode != 0) {
                         break escape_loop;
                     }
                 } else if (c > maxNonEscaped) {
-                    escCode = -(c + 1);
+                    escCode = CharacterEscapes.ESCAPE_STANDARD;
                     break escape_loop;
                 }
                 if (++_outputTail >= end) {
@@ -1211,20 +1212,8 @@ public final class WriterBasedGenerator
             if (flushLen > 0) {
                 _writer.write(_outputBuffer, _outputHead, flushLen);
             }
-            {
-                ++_outputTail;
-                int needLen = (escCode < 0) ? 6 : 2;
-                // If not, need to call separate method (note: buffer is empty now)
-                if (needLen > _outputTail) {
-                    _outputHead = _outputTail;
-                    _writeSingleEscape(escCode);
-                } else {
-                    // But if it fits, can just prepend to buffer
-                    int ptr = _outputTail - needLen;
-                    _outputHead = ptr;
-                    _appendSingleEscape(escCode, _outputBuffer, ptr);
-                }
-            }
+            ++_outputTail;
+            _writeCharacterEscape(c, escCode);
         }
     }
 
@@ -1476,6 +1465,9 @@ public final class WriterBasedGenerator
         }
     }
 
+    /**
+     * Method called to write an escaped version of given character.
+     */
     private final void _writeCharacterEscape(char ch, int escCode)
         throws IOException, JsonGenerationException
     {
