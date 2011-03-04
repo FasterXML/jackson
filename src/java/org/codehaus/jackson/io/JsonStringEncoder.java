@@ -374,7 +374,7 @@ public final class JsonStringEncoder
     }
     
     /**
-     * Method called to calculate UTF codepoint, from a surrogate pair.
+     * Method called to calculate UTF code point, from a surrogate pair.
      */
     private int _convertSurrogate(int firstPart, int secondPart)
     {

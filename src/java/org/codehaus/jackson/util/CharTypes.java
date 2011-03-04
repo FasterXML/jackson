@@ -67,7 +67,7 @@ public final class CharTypes
     /**
      * To support non-default (and -standard) unquoted field names mode,
      * need to have alternate checking.
-     * Basically this is list of 8-bit ascii characters that are legal
+     * Basically this is list of 8-bit ASCII characters that are legal
      * as part of Javascript identifier
      *
      * @since 1.2
@@ -95,7 +95,7 @@ public final class CharTypes
     }
 
     /**
-     * This table is similar to Latin1, except that it marks all "high-bit"
+     * This table is similar to Latin-1, except that it marks all "high-bit"
      * code as ok. They will be validated at a later point, when decoding
      * name
      */
