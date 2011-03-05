@@ -14,8 +14,11 @@ Description:
 
   New features:
   
-  * [JACKSON-102], ability to force escaping of non-ASCII characters; using
+  * [JACKSON-102]: Ability to force escaping of non-ASCII characters; using
     JsonGenerator.Feature.ESCAPE_NON_ASCII and JsonGenerator.setHighestNonEscapedChar
+  * [JACKSON-106]: Add 'org.codehaus.jackson.io.CharacterEscapes' which can be registered
+    with JsonFactory, JsonGenerator, to add fully customized character escaping handling
+    (suggested by Scott A)
   * [JACKSON-204]: Add DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT
     to allow binding empty JSON String as null for POJOs
   * [JACKSON-358]: Add JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, to allow

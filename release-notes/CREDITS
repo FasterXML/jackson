@@ -92,6 +92,10 @@ Scott Anderson:
     [0.9.9]
   * Requested [JACKSON-84]: Add JsonGenerator.writeRawValue method(s).
     [0.9.9-3]
+  * Requested [JACKSON-106]: Add 'org.codehaus.jackson.io.CharacterEscapes' which can
+    be registered with JsonFactory, JsonGenerator, to add fully customized character
+    escaping handling
+    [1.8.0]
 
 Kevin Grained:
   * Reported [JACKSON-58] (and suggested a fix): NPE with String[]

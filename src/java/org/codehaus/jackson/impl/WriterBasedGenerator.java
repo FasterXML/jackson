@@ -68,7 +68,15 @@ public final class WriterBasedGenerator
      * @since 1.8
      */
     protected CharacterEscapes _characterEscapes;
-    
+
+    /**
+     * When custom escapes are used, this member variable can be used to
+     * store escape to use
+     * 
+     * @since 1.8
+     */
+    protected SerializableString _currentEscape;
+
     /*
     /**********************************************************
     /* Output buffering
@@ -973,13 +981,15 @@ public final class WriterBasedGenerator
         }
         text.getChars(0, len, _outputBuffer, _outputTail);
 
-        if (_maximumNonEscapedChar != 0) {
+        if (_characterEscapes != null) {
+            _writeStringCustom(len);
+        } else if (_maximumNonEscapedChar != 0) {
             _writeStringASCII(len, _maximumNonEscapedChar);
         } else {
             _writeString2(len);
         }
     }
-    
+
     private void _writeString2(final int len)
         throws IOException, JsonGenerationException
     {
@@ -1036,7 +1046,9 @@ public final class WriterBasedGenerator
             int segmentLen = ((offset + max) > textLen)
                 ? (textLen - offset) : max;
             text.getChars(offset, offset+segmentLen, _outputBuffer, 0);
-            if (_maximumNonEscapedChar != 0) {
+            if (_characterEscapes != null) {
+                _writeSegmentCustom(segmentLen);
+            } else if (_maximumNonEscapedChar != 0) {
                 _writeSegmentASCII(segmentLen, _maximumNonEscapedChar);
             } else {
                 _writeSegment(segmentLen);
@@ -1101,6 +1113,10 @@ public final class WriterBasedGenerator
     private final void _writeString(char[] text, int offset, int len)
         throws IOException, JsonGenerationException
     {
+        if (_characterEscapes != null) {
+            _writeStringCustom(text, offset, len);
+            return;
+        }
         if (_maximumNonEscapedChar != 0) {
             _writeStringASCII(text, offset, len, _maximumNonEscapedChar);
             return;
@@ -1169,11 +1185,11 @@ public final class WriterBasedGenerator
         int end = _outputTail + len;
         final int[] escCodes = _outputEscapes;
         final int escLimit = Math.min(escCodes.length, _maximumNonEscapedChar+1);
-        char c;
         int escCode = 0;
         
         output_loop:
         while (_outputTail < end) {
+            char c;
             // Fast loop for chars not needing escaping
             escape_loop:
             while (true) {
@@ -1222,7 +1238,7 @@ public final class WriterBasedGenerator
                         break;
                     }
                 } else if (c > maxNonEscaped) {
-                    escCode = -(c + 1);
+                    escCode = CharacterEscapes.ESCAPE_STANDARD;
                     break;
                 }
                 if (++ptr >= end) {
@@ -1247,7 +1263,7 @@ public final class WriterBasedGenerator
     {
         len += offset; // -> len marks the end from now on
         final int[] escCodes = _outputEscapes;
-        final int escLimit = Math.min(escCodes.length, _maximumNonEscapedChar+1);
+        final int escLimit = Math.min(escCodes.length, maxNonEscaped+1);
 
         int escCode = 0;
         
@@ -1263,7 +1279,7 @@ public final class WriterBasedGenerator
                         break;
                     }
                 } else if (c > maxNonEscaped) {
-                    escCode = -(c + 1);
+                    escCode = CharacterEscapes.ESCAPE_STANDARD;
                     break;
                 }
                 if (++offset >= len) {
@@ -1271,6 +1287,171 @@ public final class WriterBasedGenerator
                 }
             }
 
+            // Short span? Better just copy it to buffer first:
+            int newAmount = offset - start;
+            if (newAmount < SHORT_WRITE) {
+                // Note: let's reserve room for escaped char (up to 6 chars)
+                if ((_outputTail + newAmount) > _outputEnd) {
+                    _flushBuffer();
+                }
+                if (newAmount > 0) {
+                    System.arraycopy(text, start, _outputBuffer, _outputTail, newAmount);
+                    _outputTail += newAmount;
+                }
+            } else { // Nope: better just write through
+                _flushBuffer();
+                _writer.write(text, start, newAmount);
+            }
+            // Was this the end?
+            if (offset >= len) { // yup
+                break;
+            }
+            // Nope, need to escape the char.
+            ++offset;
+            _appendCharacterEscape(c, escCode);
+        }
+    }
+
+    /*
+    /**********************************************************
+    /* Internal methods, low-level writing, text segment
+    /* with custom escaping (possibly coupling with ASCII limits)
+    /* (since 1.8; see [JACKSON-106])
+    /**********************************************************
+     */
+
+    /* Same as "_writeString2()", except needs additional escaping
+     * for subset of characters
+     */
+    private void _writeStringCustom(final int len)
+        throws IOException, JsonGenerationException
+    {
+        // And then we'll need to verify need for escaping etc:
+        int end = _outputTail + len;
+        final int[] escCodes = _outputEscapes;
+        final int maxNonEscaped = (_maximumNonEscapedChar < 1) ? 0xFFFF : _maximumNonEscapedChar;
+        final int escLimit = Math.min(escCodes.length, maxNonEscaped+1);
+        int escCode = 0;
+        final CharacterEscapes customEscapes = _characterEscapes;
+
+        output_loop:
+        while (_outputTail < end) {
+            char c;
+            // Fast loop for chars not needing escaping
+            escape_loop:
+            while (true) {
+                c = _outputBuffer[_outputTail];
+                if (c < escLimit) {
+                    escCode = escCodes[c];
+                    if (escCode != 0) {
+                        break escape_loop;
+                    }
+                } else if (c > maxNonEscaped) {
+                    escCode = CharacterEscapes.ESCAPE_STANDARD;
+                    break escape_loop;
+                } else {
+                    if ((_currentEscape = customEscapes.getEscapeSequence(c)) != null) {
+                        escCode = CharacterEscapes.ESCAPE_CUSTOM;
+                        break escape_loop;
+                    }
+                }
+                if (++_outputTail >= end) {
+                    break output_loop;
+                }
+            }
+            int flushLen = (_outputTail - _outputHead);
+            if (flushLen > 0) {
+                _writer.write(_outputBuffer, _outputHead, flushLen);
+            }
+            ++_outputTail;
+            _prependOrWriteCharacterEscape(c, escCode);
+        }
+    }
+
+    private final void _writeSegmentCustom(int end)
+        throws IOException, JsonGenerationException
+    {
+        final int[] escCodes = _outputEscapes;
+        final int maxNonEscaped = (_maximumNonEscapedChar < 1) ? 0xFFFF : _maximumNonEscapedChar;
+        final int escLimit = Math.min(escCodes.length, _maximumNonEscapedChar+1);
+        final CharacterEscapes customEscapes = _characterEscapes;
+    
+        int ptr = 0;
+        int escCode = 0;
+        int start = ptr;
+    
+        output_loop:
+        while (ptr < end) {
+            // Fast loop for chars not needing escaping
+            char c;
+            while (true) {
+                c = _outputBuffer[ptr];
+                if (c < escLimit) {
+                    escCode = escCodes[c];
+                    if (escCode != 0) {
+                        break;
+                    }
+                } else if (c > maxNonEscaped) {
+                    escCode = CharacterEscapes.ESCAPE_STANDARD;
+                    break;
+                } else {
+                    if ((_currentEscape = customEscapes.getEscapeSequence(c)) != null) {
+                        escCode = CharacterEscapes.ESCAPE_CUSTOM;
+                        break;
+                    }
+                }
+                if (++ptr >= end) {
+                    break;
+                }
+            }
+            int flushLen = (ptr - start);
+            if (flushLen > 0) {
+                _writer.write(_outputBuffer, start, flushLen);
+                if (ptr >= end) {
+                    break output_loop;
+                }
+            }
+            ++ptr;
+            start = _prependOrWriteCharacterEscape(_outputBuffer, ptr, end, c, escCodes[c]);
+        }
+    }
+
+    private final void _writeStringCustom(char[] text, int offset, int len)
+        throws IOException, JsonGenerationException
+    {
+        len += offset; // -> len marks the end from now on
+        final int[] escCodes = _outputEscapes;
+        final int maxNonEscaped = (_maximumNonEscapedChar < 1) ? 0xFFFF : _maximumNonEscapedChar;
+        final int escLimit = Math.min(escCodes.length, maxNonEscaped+1);
+        final CharacterEscapes customEscapes = _characterEscapes;
+
+        int escCode = 0;
+        
+        while (offset < len) {
+            int start = offset;
+            char c;
+            
+            while (true) {
+                c = text[offset];
+                if (c < escLimit) {
+                    escCode = escCodes[c];
+                    if (escCode != 0) {
+                        break;
+                    }
+                } else if (c > maxNonEscaped) {
+                    escCode = CharacterEscapes.ESCAPE_STANDARD;
+                    break;
+                } else {
+                    if ((_currentEscape = customEscapes.getEscapeSequence(c)) != null) {
+                        escCode = CharacterEscapes.ESCAPE_CUSTOM;
+                        break;
+                    }
+                }
+                if (++offset >= len) {
+                    break;
+                }
+            }
+    
             // Short span? Better just copy it to buffer first:
             int newAmount = offset - start;
             if (newAmount < SHORT_WRITE) {
@@ -1437,7 +1618,14 @@ public final class WriterBasedGenerator
             }
             return;
         }
-        String escape = _characterEscapes.getEscapeSequence(ch).getValue();
+        String escape;
+
+        if (_currentEscape == null) {
+            escape = _characterEscapes.getEscapeSequence(ch).getValue();
+        } else {
+            escape = _currentEscape.getValue();
+            _currentEscape = null;
+        }
         int len = escape.length();
         if (_outputTail >= len) { // fits in, prepend
             int ptr = _outputTail - len;
@@ -1517,7 +1705,13 @@ public final class WriterBasedGenerator
             }
             return ptr;
         }
-        String escape = _characterEscapes.getEscapeSequence(ch).getValue();
+        String escape;
+        if (_currentEscape == null) {
+            escape = _characterEscapes.getEscapeSequence(ch).getValue();
+        } else {
+            escape = _currentEscape.getValue();
+            _currentEscape = null;
+        }
         int len = escape.length();
         if (ptr >= len && ptr < end) { // fits in, prepend
             ptr -= len;
@@ -1566,7 +1760,13 @@ public final class WriterBasedGenerator
             _outputTail = ptr;
             return;
         }
-        String escape = _characterEscapes.getEscapeSequence(ch).getValue();
+        String escape;
+        if (_currentEscape == null) {
+            escape = _characterEscapes.getEscapeSequence(ch).getValue();
+        } else {
+            escape = _currentEscape.getValue();
+            _currentEscape = null;
+        }
         int len = escape.length();
         if ((_outputTail + len) > _outputEnd) {
             _flushBuffer();
