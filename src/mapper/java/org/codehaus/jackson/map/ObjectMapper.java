@@ -238,13 +238,12 @@ public class ObjectMapper
     protected SubtypeResolver _subtypeResolver;
 
     /**
-     * Custom class loader (or at least one different from loader that loaded
-     * Jackson classes) may be needed on some platforms or containers; if so,
-     * it is to be defined here.
-     * 
-     * @since 1.6
+     * Custom naming strategy (used instead of default Java Bean
+     * strategy) if any.
+     *
+     * @since 1.8
      */
-    protected ClassLoader _valueClassLoader;
+    protected PropertyNamingStrategy _propertyNamingStrategy;
     
     /*
     /**********************************************************
@@ -399,9 +398,11 @@ public class ObjectMapper
         // visibility checker; usually default
         _visibilityChecker = STD_VISIBILITY_CHECKER;
         _serializationConfig = (sconfig != null) ? sconfig :
-            new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker, null);
+            new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker,
+                    null, null);
         _deserializationConfig = (dconfig != null) ? dconfig :
-            new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker, null);
+            new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker,
+                    null, null);
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
@@ -507,12 +508,30 @@ public class ObjectMapper
     }
 
     /**
+     * Method for setting custom subtype resolver to use.
+     * 
      * @since 1.6
      */
     public void setSubtypeResolver(SubtypeResolver r) {
         _subtypeResolver = r;
     }
 
+    /**
+     * @since 1.8
+     */
+    public PropertyNamingStrategy getPropertyNamingStrategy() {
+        return _propertyNamingStrategy;
+    }
+    
+    /**
+     * Method for setting custom property naming strategy to use.
+     * 
+     * @since 1.8
+     */
+    public void setPropertyNamingStrategy(PropertyNamingStrategy s) {
+        _propertyNamingStrategy = s;
+    }
+    
     /**
      * Convenience method that is equivalent to:
      *<pre>
@@ -703,7 +722,8 @@ public class ObjectMapper
      * (like date format being used, see {@link SerializationConfig#setDateFormat}).
      */
     public SerializationConfig copySerializationConfig() {
-        return _serializationConfig.createUnshared(_defaultTyper, _visibilityChecker, _subtypeResolver);
+        return _serializationConfig.createUnshared(_defaultTyper,
+                _visibilityChecker, _subtypeResolver, _propertyNamingStrategy);
     }
 
     /**
@@ -756,7 +776,7 @@ public class ObjectMapper
      */
     public DeserializationConfig copyDeserializationConfig() {
         return _deserializationConfig.createUnshared(_defaultTyper,
-                _visibilityChecker, _subtypeResolver);
+                _visibilityChecker, _subtypeResolver, _propertyNamingStrategy);
     }
 
     /**
@@ -1744,7 +1764,7 @@ public class ObjectMapper
      * @since 1.6
      */
     public ObjectWriter writer() {
-        return new ObjectWriter(this, /*view*/null, /*type*/ null, /*PrettyPrinter*/null);
+        return new ObjectWriter(this, copySerializationConfig());
     }
     
     /**
@@ -1754,8 +1774,7 @@ public class ObjectMapper
      * @since 1.5
      */
     public ObjectWriter viewWriter(Class<?> serializationView) {
-        return new ObjectWriter(this, serializationView,
-                /*type*/ null, /*PrettyPrinter*/null);
+        return new ObjectWriter(this, copySerializationConfig().withView(serializationView));
     }
 
     /**
@@ -1768,7 +1787,7 @@ public class ObjectMapper
      */
     public ObjectWriter typedWriter(Class<?> rootType) {
         JavaType t = (rootType == null) ? null : TypeFactory.type(rootType);
-        return new ObjectWriter(this, null, t, /*PrettyPrinter*/null);
+        return new ObjectWriter(this, copySerializationConfig(), t, /*PrettyPrinter*/null);
     }
 
     /**
@@ -1779,7 +1798,7 @@ public class ObjectMapper
      * @since 1.5
      */
     public ObjectWriter typedWriter(JavaType rootType) {
-        return new ObjectWriter(this, null, rootType, /*PrettyPrinter*/null);
+        return new ObjectWriter(this, copySerializationConfig(), rootType, /*PrettyPrinter*/null);
     }
 
     /**
@@ -1791,7 +1810,7 @@ public class ObjectMapper
      */
     public ObjectWriter typedWriter(TypeReference<?> rootType) {
         JavaType t = (rootType == null) ? null : TypeFactory.type(rootType);
-        return new ObjectWriter(this, null, t, /*PrettyPrinter*/null);
+        return new ObjectWriter(this, copySerializationConfig(), t, /*PrettyPrinter*/null);
     }
     
     /**
@@ -1805,7 +1824,7 @@ public class ObjectMapper
         if (pp == null) { // need to use a marker to indicate explicit disabling of pp
             pp = ObjectWriter.NULL_PRETTY_PRINTER;
         }
-        return new ObjectWriter(this, null, /*root type*/ null, pp);
+        return new ObjectWriter(this, copySerializationConfig(), /*root type*/ null, pp);
     }
 
     /**
@@ -1815,11 +1834,13 @@ public class ObjectMapper
      * @since 1.5
      */
     public ObjectWriter defaultPrettyPrintingWriter() {
-        return new ObjectWriter(this, null, /*root type*/ null, _defaultPrettyPrinter());
+        return new ObjectWriter(this, copySerializationConfig(),
+                /*root type*/ null, _defaultPrettyPrinter());
     }
     
     public ObjectWriter filteredWriter(FilterProvider filterProvider) {
-        return new ObjectWriter(this, filterProvider);
+        return new ObjectWriter(this,
+                copySerializationConfig().withFilters(filterProvider));
     }
     
     /*
@@ -1836,7 +1857,7 @@ public class ObjectMapper
      * @since 1.6
      */
     public ObjectReader reader() {
-        return new ObjectReader(this, null, null);
+        return new ObjectReader(this, copyDeserializationConfig());
     }
     
     /**
@@ -1854,7 +1875,7 @@ public class ObjectMapper
     public ObjectReader updatingReader(Object valueToUpdate)
     {
         JavaType t = TypeFactory.type(valueToUpdate.getClass());
-        return new ObjectReader(this, t, valueToUpdate);
+        return new ObjectReader(this, copyDeserializationConfig(), t, valueToUpdate);
     }
 
     /**
@@ -1865,7 +1886,7 @@ public class ObjectMapper
      */
     public ObjectReader reader(JavaType type)
     {
-        return new ObjectReader(this, type, null);
+        return new ObjectReader(this, copyDeserializationConfig(), type, null);
     }
 
     /**
@@ -1898,7 +1919,7 @@ public class ObjectMapper
      */
     public ObjectReader reader(JsonNodeFactory f)
     {        
-        return new ObjectReader(this, null, null).withNodeFactory(f);
+        return new ObjectReader(this, copyDeserializationConfig()).withNodeFactory(f);
     }
     
     /*

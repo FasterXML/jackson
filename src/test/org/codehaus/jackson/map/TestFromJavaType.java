@@ -13,7 +13,7 @@ import org.codehaus.jackson.*;
  * @author Tatu Saloranta
  */
 public class TestFromJavaType
-    extends main.BaseTest
+    extends BaseMapTest
 {
     public void testFromArray()
         throws Exception

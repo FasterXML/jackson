@@ -39,7 +39,7 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * between multiple operations but only used for a single one.
      */
     public T createUnshared(TypeResolverBuilder<?> typer, VisibilityChecker<?> vc,
-            SubtypeResolver subtypeResolver);
+            SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy);
 
     // // // Configuration
 
@@ -183,6 +183,18 @@ public interface MapperConfig<T extends MapperConfig<T>>
      */
     public void setSubtypeResolver(SubtypeResolver r);
 
+    /**
+     * @since 1.8
+     */
+    public PropertyNamingStrategy getPropertyNamingStrategy() ;
+    
+    /**
+     * Method for setting custom property naming strategy to use.
+     * 
+     * @since 1.8
+     */
+    public void setPropertyNamingStrategy(PropertyNamingStrategy s);
+    
     /**
      * Accessor for getting bean description that only contains class
      * annotations: useful if no getter/setter/creator information is needed.

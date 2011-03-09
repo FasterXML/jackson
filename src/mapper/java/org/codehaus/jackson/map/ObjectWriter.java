@@ -4,9 +4,6 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.SegmentedStringWriter;
-import org.codehaus.jackson.map.introspect.VisibilityChecker;
-import org.codehaus.jackson.map.jsontype.SubtypeResolver;
-import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
@@ -19,7 +16,6 @@ import org.codehaus.jackson.util.VersionUtil;
 /**
  * Builder object that can be used for per-serialization configuration of
  * serialization parameters, such as JSON View and root type to use.
- * Uses "fluent" (aka builder) pattern so that instances are immutable
  * (and thus fully thread-safe with no external synchronization);
  * new instances are constructed for different configurations.
  * Instances are initially constructed by {@link ObjectMapper} and can be
@@ -57,30 +53,11 @@ public class ObjectWriter
      */
     protected final JsonFactory _jsonFactory;
     
-    // Support for polymorphic types:
-    protected final TypeResolverBuilder<?> _defaultTyper;
-
-    // Configurable visibility limits
-    protected final VisibilityChecker<?> _visibilityChecker;
-
-    /**
-     * Registered concrete subtypes that can be used instead of (or
-     * in addition to) ones declared using annotations.
-     * 
-     * @since 1.6
-     */
-    protected final SubtypeResolver _subtypeResolver;
-    
     /*
     /**********************************************************
     /* Configuration that can be changed during building
     /**********************************************************
-     */   
-    
-    /**
-     * View to use for serialization
      */
-    protected final Class<?> _serializationView;
 
     /**
      * Specified root serialization type to use; can be same
@@ -104,23 +81,15 @@ public class ObjectWriter
     /**
      * Constructor used by {@link ObjectMapper} for initial instantiation
      */
-    protected ObjectWriter(ObjectMapper mapper, 
-            Class<?> view, JavaType rootType, PrettyPrinter pp)
+    protected ObjectWriter(ObjectMapper mapper, SerializationConfig config,
+            JavaType rootType, PrettyPrinter pp)
     {
-        _defaultTyper = mapper._defaultTyper;
-        _visibilityChecker = mapper._visibilityChecker;
-        _subtypeResolver = mapper._subtypeResolver;
-        // must make a copy at this point, to prevent further changes from trickling down
-        _config = mapper._serializationConfig.createUnshared(_defaultTyper, _visibilityChecker,
-                _subtypeResolver, null);
-        _config.setSerializationView(view);
+        _config = config;
 
         _provider = mapper._serializerProvider;
         _serializerFactory = mapper._serializerFactory;
-
         _jsonFactory = mapper._jsonFactory;
-        
-        _serializationView = view;
+
         _rootType = rootType;
         _prettyPrinter = pp;
     }
@@ -131,18 +100,14 @@ public class ObjectWriter
      * 
      * @since 1.7
      */
-    protected ObjectWriter(ObjectMapper mapper, FilterProvider filterProvider)
+    protected ObjectWriter(ObjectMapper mapper, SerializationConfig config)
     {
-        _defaultTyper = mapper._defaultTyper;
-        _visibilityChecker = mapper._visibilityChecker;
-        _subtypeResolver = mapper._subtypeResolver;
-        // must make a copy at this point, to prevent further changes from trickling down
-        _config = mapper._serializationConfig.createUnshared(_defaultTyper, _visibilityChecker,
-                _subtypeResolver, filterProvider);
+        _config = config;
+
         _provider = mapper._serializerProvider;
         _serializerFactory = mapper._serializerFactory;
         _jsonFactory = mapper._jsonFactory;
-        _serializationView = null;
+
         _rootType = null;
         _prettyPrinter = null;
     }
@@ -151,18 +116,14 @@ public class ObjectWriter
      * Copy constructor used for building variations.
      */
     protected ObjectWriter(ObjectWriter base, SerializationConfig config,
-            Class<?> view, JavaType rootType, PrettyPrinter pp)
+            JavaType rootType, PrettyPrinter pp)
     {
         _config = config;
+
         _provider = base._provider;
         _serializerFactory = base._serializerFactory;
-
         _jsonFactory = base._jsonFactory;
-        _defaultTyper = base._defaultTyper;
-        _visibilityChecker = base._visibilityChecker;
-        _subtypeResolver = base._subtypeResolver;
         
-        _serializationView = view;
         _rootType = rootType;
         _prettyPrinter = pp;
     }
@@ -178,13 +139,8 @@ public class ObjectWriter
 
         _provider = base._provider;
         _serializerFactory = base._serializerFactory;
-
         _jsonFactory = base._jsonFactory;
-        _defaultTyper = base._defaultTyper;
-        _visibilityChecker = base._visibilityChecker;
-        _subtypeResolver = base._subtypeResolver;
         
-        _serializationView = base._serializationView;
         _rootType = base._rootType;
         _prettyPrinter = base._prettyPrinter;
         
@@ -213,12 +169,8 @@ public class ObjectWriter
      */
     public ObjectWriter withView(Class<?> view)
     {
-        if (view == _serializationView) return this;
-        // View is included in config, must make immutable version
-        SerializationConfig config = _config.createUnshared(_defaultTyper,
-                _visibilityChecker, _subtypeResolver);
-        config.setSerializationView(view);
-        return new ObjectWriter(this, config);
+        if (view == _config.getSerializationView()) return this;
+        return new ObjectWriter(this, _config.withView(view));
     }    
     
     /**
@@ -230,7 +182,7 @@ public class ObjectWriter
     {
         if (rootType == _rootType) return this;
         // type is stored here, no need to make a copy of config
-        return new ObjectWriter(this, _config, _serializationView, rootType, _prettyPrinter);
+        return new ObjectWriter(this, _config, rootType, _prettyPrinter);
     }    
 
     /**
@@ -263,7 +215,7 @@ public class ObjectWriter
         if (pp == null) {
             pp = NULL_PRETTY_PRINTER;
         }
-        return new ObjectWriter(this, _config, _serializationView, _rootType, pp);
+        return new ObjectWriter(this, _config, _rootType, pp);
     }
 
     /**

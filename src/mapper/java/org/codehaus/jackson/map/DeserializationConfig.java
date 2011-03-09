@@ -433,6 +433,13 @@ public class DeserializationConfig
     protected SubtypeResolver _subtypeResolver;
 
     /**
+     * Custom property naming strategy in use, if any.
+     * 
+     * @since 1.8
+     */
+    protected PropertyNamingStrategy _propertyNamingStrategy;
+    
+    /**
      * To support on-the-fly class generation for interface and abstract classes
      * it is possible to register "abstract type resolver".
      * 
@@ -453,23 +460,31 @@ public class DeserializationConfig
     /**********************************************************
      */
 
+    /**
+     * Constructor used by ObjectMapper to create default configuration object instance.
+     */
     public DeserializationConfig(ClassIntrospector<? extends BeanDescription> intr,
-                               AnnotationIntrospector annIntr, VisibilityChecker<?> vc,
-                               SubtypeResolver subtypeResolver)
+            AnnotationIntrospector annIntr, VisibilityChecker<?> vc,
+            SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy)
     {
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
         _typer = null;
         _visibilityChecker = vc;
-        _subtypeResolver = subtypeResolver;
         _nodeFactory = JsonNodeFactory.instance;
+        _subtypeResolver = subtypeResolver;
+        _propertyNamingStrategy = propertyNamingStrategy;
     }
 
+    /**
+     * Constructor used internally to construct a read-only instance to use for
+     * individual deserialization operation.
+     */
     protected DeserializationConfig(DeserializationConfig src,
             HashMap<ClassKey,Class<?>> mixins,
             TypeResolverBuilder<?> typer,
             VisibilityChecker<?> vc,
-            SubtypeResolver subtypeResolver)
+            SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -482,6 +497,7 @@ public class DeserializationConfig
         _typer = typer;
         _visibilityChecker = vc;
         _subtypeResolver = subtypeResolver;
+        _propertyNamingStrategy = propertyNamingStrategy;
     }
 
     /*
@@ -576,11 +592,12 @@ public class DeserializationConfig
      */
     //@Override
     public DeserializationConfig createUnshared(TypeResolverBuilder<?> typer,
-    		VisibilityChecker<?> vc, SubtypeResolver subtypeResolver)
+    		VisibilityChecker<?> vc, SubtypeResolver subtypeResolver,
+    		PropertyNamingStrategy namingStrategy)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-    	return new DeserializationConfig(this, mixins, typer, vc, subtypeResolver);
+    	return new DeserializationConfig(this, mixins, typer, vc, subtypeResolver, namingStrategy);
     }
 
     /**
@@ -591,7 +608,8 @@ public class DeserializationConfig
      */
     public DeserializationConfig createUnshared(JsonNodeFactory nf)
     {
-        DeserializationConfig config = createUnshared(_typer, _visibilityChecker, _subtypeResolver);
+        DeserializationConfig config = createUnshared(_typer, _visibilityChecker, _subtypeResolver,
+                _propertyNamingStrategy);
         config.setNodeFactory(nf);
         return config;
     }
@@ -723,6 +741,16 @@ public class DeserializationConfig
         _subtypeResolver = r;
     }
 
+    //@Override
+    public PropertyNamingStrategy getPropertyNamingStrategy() {
+        return _propertyNamingStrategy;
+    }
+    
+    //@Override
+    public void setPropertyNamingStrategy(PropertyNamingStrategy s) {
+        _propertyNamingStrategy = s;
+    }
+    
     /**
      * Accessor for getting bean description that only contains class
      * annotations: useful if no getter/setter/creator information is needed.

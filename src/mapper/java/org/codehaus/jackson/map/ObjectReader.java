@@ -6,9 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
-import org.codehaus.jackson.map.introspect.VisibilityChecker;
-import org.codehaus.jackson.map.jsontype.SubtypeResolver;
-import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.NullNode;
@@ -40,14 +37,15 @@ public class ObjectReader
      */
 
     /**
+     * General serialization configuration settings; while immutable,
+     * can use copy-constructor to create modified instances as necessary.
+     */
+    protected final DeserializationConfig _config;
+    
+    /**
      * Root-level cached deserializers
      */
     final protected ConcurrentHashMap<JavaType, JsonDeserializer<Object>> _rootDeserializers;
-
-    /**
-     * General serialization configuration settings
-     */
-    protected final DeserializationConfig _config;
    
     protected final DeserializerProvider _provider;
 
@@ -55,20 +53,6 @@ public class ObjectReader
      * Factory used for constructing {@link JsonGenerator}s
      */
     protected final JsonFactory _jsonFactory;
-    
-    // Support for polymorphic types:
-    protected TypeResolverBuilder<?> _defaultTyper;
-
-    // Configurable visibility limits
-    protected VisibilityChecker<?> _visibilityChecker;
-
-    /**
-     * Registered concrete subtypes that can be used instead of (or
-     * in addition to) ones declared using annotations.
-     * 
-     * @since 1.6
-     */
-    protected final SubtypeResolver _subtypeResolver;
     
     /*
     /**********************************************************
@@ -104,20 +88,21 @@ public class ObjectReader
 
     /**
      * Constructor used by {@link ObjectMapper} for initial instantiation
+     * 
+     * @since 1.8
      */
-    protected ObjectReader(ObjectMapper mapper,  JavaType valueType, Object valueToUpdate)
+    protected ObjectReader(ObjectMapper mapper, DeserializationConfig config)
     {
+        this(mapper, config, null, null);
+    }
+
+    protected ObjectReader(ObjectMapper mapper, DeserializationConfig config,
+            JavaType valueType, Object valueToUpdate)
+    {
+        _config = config;
         _rootDeserializers = mapper._rootDeserializers;
-        _defaultTyper = mapper._defaultTyper;
-        _visibilityChecker = mapper._visibilityChecker;
-        _subtypeResolver = mapper._subtypeResolver;
         _provider = mapper._deserializerProvider;
         _jsonFactory = mapper._jsonFactory;
-
-        // must make a copy at this point, to prevent further changes from trickling down
-        _config = mapper._deserializationConfig.createUnshared(_defaultTyper, _visibilityChecker,
-                _subtypeResolver);
-        
         _valueType = valueType;
         _valueToUpdate = valueToUpdate;
         if (valueToUpdate != null && valueType.isArrayType()) {
@@ -131,15 +116,12 @@ public class ObjectReader
     protected ObjectReader(ObjectReader base, DeserializationConfig config,
             JavaType valueType, Object valueToUpdate)
     {
+        _config = config;
+
         _rootDeserializers = base._rootDeserializers;
-        _defaultTyper = base._defaultTyper;
-        _visibilityChecker = base._visibilityChecker;
         _provider = base._provider;
         _jsonFactory = base._jsonFactory;
-        _subtypeResolver = base._subtypeResolver;
 
-        _config = config;
-        
         _valueType = valueType;
         _valueToUpdate = valueToUpdate;
         if (valueToUpdate != null && valueType.isArrayType()) {

@@ -494,6 +494,13 @@ public class SerializationConfig
     protected SubtypeResolver _subtypeResolver;
 
     /**
+     * Custom property naming strategy in use, if any.
+     * 
+     * @since 1.8
+     */
+    protected PropertyNamingStrategy _propertyNamingStrategy;
+    
+    /**
      * Object used for resolving filter ids to filter instances.
      * Non-null if explicitly defined; null by default.
      * 
@@ -507,26 +514,32 @@ public class SerializationConfig
     /**********************************************************
      */
 
+    /**
+     * Constructor used by ObjectMapper to create default configuration object instance.
+     */
     public SerializationConfig(ClassIntrospector<? extends BeanDescription> intr,
             AnnotationIntrospector annIntr, VisibilityChecker<?> vc,
-            SubtypeResolver subtypeResolver)
+            SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy)
     {
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
         _typer = null;
         _visibilityChecker = vc;
         _subtypeResolver = subtypeResolver;
+        _propertyNamingStrategy = propertyNamingStrategy;
         _filterProvider = null;
     }
 
     /**
+     * Constructor used internally to construct a read-only instance to use for
+     * individual serialization operation.
+     * 
      * @since 1.7
      */
     protected SerializationConfig(SerializationConfig src,
             HashMap<ClassKey,Class<?>> mixins,
-            TypeResolverBuilder<?> typer,
-            VisibilityChecker<?> vc,
-            SubtypeResolver subtypeResolver,
+            TypeResolverBuilder<?> typer, VisibilityChecker<?> vc,
+            SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy,
             FilterProvider filterProvider)
     {
         _classIntrospector = src._classIntrospector;
@@ -539,6 +552,7 @@ public class SerializationConfig
         _typer = typer;
         _visibilityChecker = vc;
         _subtypeResolver = subtypeResolver;
+        _propertyNamingStrategy = propertyNamingStrategy;
         _filterProvider = filterProvider;
     }
 
@@ -566,6 +580,15 @@ public class SerializationConfig
     public SerializationConfig withFilters(FilterProvider filterProvider) {
         return new SerializationConfig(this, filterProvider);
     }
+
+    /**
+     * @since 1.8
+     */
+    public SerializationConfig withView(Class<?> view) {
+        SerializationConfig config = new SerializationConfig(this, _filterProvider);
+        config.setSerializationView(view);
+        return config;
+    }
     
     /**
      * SerializationConfig-specific version for constructing unshared
@@ -575,11 +598,13 @@ public class SerializationConfig
      */
     public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
                 VisibilityChecker<?> vc, SubtypeResolver subtypeResolver,
+                PropertyNamingStrategy propertyNamingStrategy,
                 FilterProvider filterProvider)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-        return new SerializationConfig(this, mixins, typer, vc, subtypeResolver, filterProvider);
+        return new SerializationConfig(this, mixins, typer, vc, subtypeResolver,
+                propertyNamingStrategy, filterProvider);
     }
 
     /*
@@ -640,11 +665,13 @@ public class SerializationConfig
      */
     //@Override
     public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
-            VisibilityChecker<?> vc, SubtypeResolver subtypeResolver)
+            VisibilityChecker<?> vc, SubtypeResolver subtypeResolver,
+            PropertyNamingStrategy pns)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-        return new SerializationConfig(this, mixins, typer, vc, subtypeResolver, _filterProvider);
+        return new SerializationConfig(this, mixins, typer, vc, subtypeResolver,
+                pns, _filterProvider);
     }
 
     //@Override
@@ -938,6 +965,16 @@ public class SerializationConfig
      */
     public FilterProvider getFilterProvider() {
         return _filterProvider;
+    }
+
+    //@Override
+    public PropertyNamingStrategy getPropertyNamingStrategy() {
+        return _propertyNamingStrategy;
+    }
+    
+    //@Override
+    public void setPropertyNamingStrategy(PropertyNamingStrategy s) {
+        _propertyNamingStrategy = s;
     }
     
     /*

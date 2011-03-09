@@ -18,9 +18,9 @@ public class TestAnnotations
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes
-    //////////////////////////////////////////////
+    /**********************************************************************
+    /* Helper classes
+    /**********************************************************************
      */
 
     /// Class for testing {@link JsonProperty} annotations with getters
