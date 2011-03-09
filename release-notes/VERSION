@@ -19,6 +19,7 @@ Description:
   * [JACKSON-106]: Add 'org.codehaus.jackson.io.CharacterEscapes' which can be registered
     with JsonFactory, JsonGenerator, to add fully customized character escaping handling
     (suggested by Scott A)
+  * [JACKSON-178]: Add support for custom property name strategies (with PropertyNamingStrategy)
   * [JACKSON-204]: Add DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT
     to allow binding empty JSON String as null for POJOs
   * [JACKSON-358]: Add JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, to allow

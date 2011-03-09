@@ -1,7 +1,7 @@
 package org.codehaus.jackson.map;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import org.codehaus.jackson.map.introspect.AnnotatedField;
+import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 
 /**
  * Class that defines how names of JSON properties ("external names")
@@ -36,15 +36,13 @@ public abstract class PropertyNamingStrategy
      * @param config Configuration in used: either <code>SerializationConfig</code>
      *   or <code>DeserializationConfig</code>, depending on whether method is called
      *   during serialization or deserialization
-     * @param property Definition of the logical property, including local annotations
-     *   of POJO member as well as its declaring class (including mix-in overrides, defaults)
-     * @param field Field used to access property.
+     * @param field Field used to access property
      * @param defaultName Default name that would be used for property in absence of custom strategy
      * 
      * @return Logical name to use for property that the field represents
      */
-    public String nameForField(MapperConfig<?> config, BeanProperty property,
-            Field field, String defaultName)
+    public String nameForField(MapperConfig<?> config, AnnotatedField field,
+            String defaultName)
     {
         return defaultName;
     }
@@ -59,15 +57,13 @@ public abstract class PropertyNamingStrategy
      * @param config Configuration in used: either <code>SerializationConfig</code>
      *   or <code>DeserializationConfig</code>, depending on whether method is called
      *   during serialization or deserialization
-     * @param property Definition of the logical property, including local annotations
-     *   of POJO member as well as its declaring class (including mix-in overrides, defaults)
      * @param method Method used to access property.
      * @param defaultName Default name that would be used for property in absence of custom strategy
      * 
      * @return Logical name to use for property that the method represents
      */
-    public String nameForGetterMethod(MapperConfig<?> config, BeanProperty property,
-            Method method, String defaultName)
+    public String nameForGetterMethod(MapperConfig<?> config, AnnotatedMethod method,
+            String defaultName)
     {
         return defaultName;
     }
@@ -81,15 +77,13 @@ public abstract class PropertyNamingStrategy
      * @param config Configuration in used: either <code>SerializationConfig</code>
      *   or <code>DeserializationConfig</code>, depending on whether method is called
      *   during serialization or deserialization
-     * @param property Definition of the logical property, including local annotations
-     *   of POJO member as well as its declaring class (including mix-in overrides, defaults)
      * @param method Method used to access property.
      * @param defaultName Default name that would be used for property in absence of custom strategy
      * 
      * @return Logical name to use for property that the method represents
      */
-    public String nameForSetterMethod(MapperConfig<?> config, BeanProperty property,
-            Method method, String defaultName)
+    public String nameForSetterMethod(MapperConfig<?> config, AnnotatedMethod method,
+            String defaultName)
     {
         return defaultName;
     }

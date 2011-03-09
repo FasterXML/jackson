@@ -138,7 +138,7 @@ public class BasicClassIntrospector
         ac.resolveCreators(true);
         // False -> no need to collect ignorable field list
         ac.resolveFields(false);
-        return new BasicBeanDescription(type, ac, ai);
+        return new BasicBeanDescription(cfg, type, ac);
     }
 
     @Override
@@ -155,7 +155,7 @@ public class BasicClassIntrospector
         // yes, we need info on ignored fields as well
         ac.resolveFields(true);
         // Note: can't pass null AnnotationIntrospector for this...
-        return new BasicBeanDescription(type, ac, ai);
+        return new BasicBeanDescription(cfg, type, ac);
     }
 
     @Override
@@ -166,7 +166,7 @@ public class BasicClassIntrospector
         AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
         ac.resolveCreators(true);
-        return new BasicBeanDescription(type, ac, ai);
+        return new BasicBeanDescription(cfg, type, ac);
     }
 
     @Override
@@ -176,7 +176,7 @@ public class BasicClassIntrospector
         boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
         AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(c, (useAnnotations ? ai : null), r);
-        return new BasicBeanDescription(TypeFactory.type(c), ac, ai);
+        return new BasicBeanDescription(cfg, TypeFactory.type(c), ac);
     }
 
     @Override
@@ -186,7 +186,7 @@ public class BasicClassIntrospector
         boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
         AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(c, (useAnnotations ? ai : null), r);
-        return new BasicBeanDescription(TypeFactory.type(c), ac, ai);
+        return new BasicBeanDescription(cfg, TypeFactory.type(c), ac);
     }
     
     /*

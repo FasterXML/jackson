@@ -7,6 +7,8 @@ import java.util.*;
 
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.BeanDescription;
+import org.codehaus.jackson.map.MapperConfig;
+import org.codehaus.jackson.map.PropertyNamingStrategy;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.type.TypeBindings;
@@ -27,13 +29,15 @@ public class BasicBeanDescription extends BeanDescription
     /**********************************************************
      */
 
+    final protected MapperConfig<?> _config;
+
+    final protected AnnotationIntrospector _annotationIntrospector;
+    
     /**
      * Information collected about the class introspected.
      */
     final protected AnnotatedClass _classInfo;
-
-    final protected AnnotationIntrospector _annotationIntrospector;
-
+    
     /**
      * We may need type bindings for the bean type. If so, we'll
      * construct it lazily
@@ -45,14 +49,14 @@ public class BasicBeanDescription extends BeanDescription
     /* Life-cycle
     /**********************************************************
      */
-
-    public BasicBeanDescription(JavaType type, AnnotatedClass ac,
-                                AnnotationIntrospector ai)
-
+    
+    public BasicBeanDescription(MapperConfig<?> config, JavaType type,
+            AnnotatedClass ac)
     {
     	super(type);
+    	_config = config;
+    	_annotationIntrospector = config.getAnnotationIntrospector();
     	_classInfo = ac;
-        _annotationIntrospector = ai;
     }
 
     /*
@@ -144,6 +148,7 @@ public class BasicBeanDescription extends BeanDescription
             Collection<String> ignoredProperties)
     {
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
+        final PropertyNamingStrategy naming = _config.getPropertyNamingStrategy();
         for (AnnotatedMethod am : _classInfo.memberMethods()) {
             /* note: signature has already been checked to some degree
              * via filters; however, no checks were done for arg count
@@ -158,14 +163,17 @@ public class BasicBeanDescription extends BeanDescription
              */
             String propName = _annotationIntrospector.findGettablePropertyName(am);
             if (propName != null) {
-                /* As per [JACKSON-64], let's still use mangled
-                 * name if possible; and only if not use unmodified
-                 * method name
+                /* As per [JACKSON-64], let's still use mangled name if possible;
+                 * and only if not use unmodified method name
                  */
                 if (propName.length() == 0) { 
                     propName = okNameForAnyGetter(am, am.getName());
                     if (propName == null) {
                         propName = am.getName();
+                    }
+                    // [JACKSON-178] Also, allow renaming via strategy
+                    if (naming != null) {
+                        propName = naming.nameForGetterMethod(_config, am, propName);
                     }
                 }
             } else {
@@ -186,6 +194,11 @@ public class BasicBeanDescription extends BeanDescription
                 if (propName == null) continue;
                 // [JACKSON-384] Plus, should not include "AnyGetter" as regular getter..
                 if (_annotationIntrospector.hasAnyGetterAnnotation(am)) continue;
+
+                // [JACKSON-178] Also, allow renaming via strategy
+                if (naming != null) {
+                    propName = naming.nameForGetterMethod(_config, am, propName);
+                }
             }
 
             if (ignoredProperties != null) {
@@ -430,6 +443,7 @@ public class BasicBeanDescription extends BeanDescription
     public LinkedHashMap<String,AnnotatedMethod> findSetters(VisibilityChecker<?> vchecker)
     {
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
+        final PropertyNamingStrategy naming = _config.getPropertyNamingStrategy();
         for (AnnotatedMethod am : _classInfo.memberMethods()) {
             // note: signature has already been checked via filters
 
@@ -454,6 +468,10 @@ public class BasicBeanDescription extends BeanDescription
                     if (propName == null) {
                         propName = am.getName();
                     }
+                    // [JACKSON-178] Also, allow renaming via strategy
+                    if (naming != null) {
+                        propName = naming.nameForSetterMethod(_config, am, propName);
+                    }
                 }
             } else { // nope, but is public bean-setter name?
                 if (!vchecker.isSetterVisible(am)) {
@@ -462,6 +480,10 @@ public class BasicBeanDescription extends BeanDescription
                 propName = okNameForSetter(am);
                 if (propName == null) { // null means 'not valid'
                     continue;
+                }
+                // [JACKSON-178] Also, allow renaming via strategy
+                if (naming != null) {
+                    propName = naming.nameForSetterMethod(_config, am, propName);
                 }
             }
 
@@ -629,7 +651,7 @@ public class BasicBeanDescription extends BeanDescription
         if (name.startsWith("get")) {
             /* 16-Feb-2009, tatu: To handle [JACKSON-53], need to block
              *   CGLib-provided method "getCallbacks". Not sure of exact
-             *   safe critieria to get decent coverage without false matches;
+             *   safe criteria to get decent coverage without false matches;
              *   but for now let's assume there's no reason to use any 
              *   such getter from CGLib.
              *   But let's try this approach...
@@ -799,10 +821,10 @@ public class BasicBeanDescription extends BeanDescription
      *    matching field as value.
      */
     public LinkedHashMap<String,AnnotatedField> _findPropertyFields(VisibilityChecker<?> vchecker,
-                                                                   Collection<String> ignoredProperties,
-                                                                   boolean forSerialization)
+            Collection<String> ignoredProperties, boolean forSerialization)
     {
         LinkedHashMap<String,AnnotatedField> results = new LinkedHashMap<String,AnnotatedField>();
+        final PropertyNamingStrategy naming = _config.getPropertyNamingStrategy();
         for (AnnotatedField af : _classInfo.fields()) {
             /* note: some pre-filtering has been; no static or transient fields 
              * included; nor anything marked as ignorable (@JsonIgnore).
@@ -821,12 +843,20 @@ public class BasicBeanDescription extends BeanDescription
             if (propName != null) { // is annotated
                 if (propName.length() == 0) { 
                     propName = af.getName();
+                    // [JACKSON-178] Also, allow renaming via strategy
+                    if (naming != null) {
+                        propName = naming.nameForField(_config, af, propName);
+                    }
                 }
             } else { // nope, but may be visible (usually, public, can be recofingured)
                 if (!vchecker.isFieldVisible(af)) {
                     continue;
                 }
                 propName = af.getName();
+                // [JACKSON-178] Also, allow renaming via strategy
+                if (naming != null) {
+                    propName = naming.nameForField(_config, af, propName);
+                }
             }
 
             if (ignoredProperties != null) {
