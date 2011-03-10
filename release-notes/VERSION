@@ -55,6 +55,11 @@ Description:
     which is needed to properly handle types such as InetAddress, TimeZone -- unfortunately
     this would break custom TypeIdResolver instances.
 
+  Issues handled by new external projects:
+
+  * [JACKSON-532]: Add support for org.json.JSONObject, org.json.JSONArray;
+    created "jackson-module-json-org" at [https://github.com/FasterXML/jackson-module-json-org]
+
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
