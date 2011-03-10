@@ -64,6 +64,37 @@ Description:
 === History: ===
 ------------------------------------------------------------------------
 
+1.7.4 [04-Mar-2011]
+
+  Fixes:
+
+  * [JACKSON-484]: improve serialization of InetAddress
+   (reported by Brian H)
+  * [JACKSON-506]: problems with type handling for java.util.Date
+    when using @JsonTypeInfo on field/method
+   (reported by Kirill S)
+  * [JACKSON-504]: FilterProvider registration directly via SerializationConfig
+    was not working
+   (reported by Kirill S)
+  * [JACKSON-508]: Type information lost when serializing List<List<X>>
+   (reported by Christopher B)
+  * [JACKSON-518]: Problems with JAX-RS, type variables 
+   (reported by   Kirill S)
+  * [JACKSON-522]: java.util.TimeZone was not correctly handled
+  * [JACKSON-525]: Problem with SmileGenerator, shared-names buffer recycling
+   (reported by Shay B)
+
+1.7.3 [14-Feb-2011]
+
+  Fixes:
+
+  * [JACKSON-483]: allow deserializing CharSequence (also: support
+    conversion from byte[] to char[], assuming base64 encoding)
+  * [JACKSON-492]: problem encoding 1 byte length "raw" UTF8 Strings
+    (reported by David Y)
+
+  (plus all fixes up to and including 1.6.6)
+
 1.7.2 [02-Feb-2011]
 
   Fixes:
