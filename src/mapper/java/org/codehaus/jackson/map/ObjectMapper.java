@@ -1513,6 +1513,18 @@ public class ObjectMapper
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), valueType);
     } 
 
+    /**
+     * @since 1.8
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(byte[] src, Class<T> valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+     // !!! TODO
+//      _setupClassLoaderForDeserialization(valueType);
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueType));
+    } 
+    
     @SuppressWarnings("unchecked")
     public <T> T readValue(byte[] src, int offset, int len, 
                                Class<T> valueType)
@@ -1523,12 +1535,32 @@ public class ObjectMapper
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src, offset, len), TypeFactory.type(valueType));
     } 
 
+    /**
+     * @since 1.8
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(byte[] src, TypeReference valueTypeRef)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueTypeRef));
+    } 
+    
     @SuppressWarnings("unchecked")
     public <T> T readValue(byte[] src, int offset, int len,
                            TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src, offset, len), TypeFactory.type(valueTypeRef));
+    } 
+
+    /**
+     * @since 1.8
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(byte[] src, JavaType valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), valueType);
     } 
 
     @SuppressWarnings("unchecked")
@@ -1538,7 +1570,7 @@ public class ObjectMapper
     {
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src, offset, len), valueType);
     } 
-
+    
     /**
      * Convenience method for converting results from given JSON tree into given
      * value type. Basically short-cut for:

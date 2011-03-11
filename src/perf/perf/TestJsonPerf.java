@@ -10,9 +10,8 @@ import org.codehaus.jackson.util.BufferRecycler;
 // json.org's reference implementation
 import org.json.*;
 // Jsontool implementation
+import com.fasterxml.jackson.module.jsonorg.JsonOrgModule;
 import com.sdicons.json.parser.JSONParser;
-// Noggit:
-//import org.apache.noggit.JSONParser;
 
 @SuppressWarnings("unused")
 public final class TestJsonPerf
@@ -39,6 +38,8 @@ public final class TestJsonPerf
     {
         _jsonFactory = new JsonFactory();
         _mapper = new ObjectMapper(_jsonFactory);
+        _mapper.registerModule(new JsonOrgModule());
+        
         _smileFactory = new SmileFactory();
         _smileMapper = new ObjectMapper(_smileFactory);
         _jsonData = readData(f);
@@ -60,7 +61,7 @@ public final class TestJsonPerf
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
             // Use 9 to test all...
-            int round = (i++ % 2);
+            int round = (i++ % 4);
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -69,6 +70,31 @@ public final class TestJsonPerf
             switch (round) {
 
             case 0:
+                msg = "Jackson, stream/byte";
+                sum += testJacksonStream(REPS, _jsonFactory, _jsonData, true);
+                break;
+
+            case 1:
+                msg = "Jackson/JsonNode";
+                sum += testJacksonTree(_mapper, _jsonData, REPS);
+                break;
+                                
+            case 2:
+                msg = "Jackson+Json.org";
+                sum += testJsonOrgViaJackson(REPS);
+                break;
+
+            case 3:
+                msg = "Json.org";
+                sum += testJsonOrg(REPS);
+                break;
+
+                /*
+            case 0:
+                msg = "Jackson/smile, stream";
+                sum += testJacksonStream(REPS, _smileFactory, _smileData, true);
+                break;
+            case 0:
                 msg = "Smile/data-bind";
                 sum += testJacksonDatabind(_smileMapper, _smileData, REPS);
                 break;
@@ -76,12 +102,6 @@ public final class TestJsonPerf
             case 1:
                 msg = "Jackson/data-bind";
                 sum += testJacksonDatabind(_mapper, _jsonData, REPS);
-                break;
-                
-            /*
-            case 0:
-                msg = "Jackson/smile, stream";
-                sum += testJacksonStream(REPS, _smileFactory, _smileData, true);
                 break;
             case 1:
                 msg = "Jackson, stream/byte";
@@ -92,25 +112,6 @@ public final class TestJsonPerf
                 sum += testJacksonStream(REPS, _jsonFactory, _jsonData, false);
                 break;
 
-            case 3:
-                msg = "Jackson, Java types";
-                sum += testJacksonDatabind(_mapper, REPS);
-                break;
-
-            case 4:
-                msg = "Jackson, JSON types";
-                sum += testJacksonJsonTypes(_mapper, REPS);
-                break;
-
-            case 5:
-                msg = "Noggit";
-                sum += testNoggit(REPS);
-                break;
-
-            case 6:
-                msg = "Json.org";
-                sum += testJsonOrg(REPS);
-                break;
             case 7:
                 msg = "Json-simple";
                 sum += testJsonSimple(REPS);
@@ -128,8 +129,9 @@ public final class TestJsonPerf
             if (lf) {
                 System.out.println();
             }
-            System.out.println("Test '"+msg+"' -> "+curr+" msecs ("
-                               +(sum & 0xFF)+").");
+            System.out.println("Test '"+msg+"' -> "+curr+" msecs"
+//                    +"("+(sum & 0xFF)+")"
+                    		);
 
 
             if ((i % TEST_PER_GC) == 0) {
@@ -215,6 +217,15 @@ public final class TestJsonPerf
         return ob.hashCode();
     }
 
+    protected int testJsonOrgViaJackson(int reps) throws Exception
+    {
+        JSONObject ob = null;
+        for (int i = 0; i < reps; ++i) {
+            ob = _mapper.readValue(_jsonData, JSONObject.class);
+        }
+        return ob.hashCode();
+    }
+    
     private int testJsonTools(int reps)
         throws Exception
     {
@@ -241,41 +252,6 @@ public final class TestJsonPerf
             ob = org.json.simple.JSONValue.parse(input);
         }
         return ob.hashCode();
-    }
-
-    private int testNoggit(int reps)
-        throws Exception
-    {
-        ByteArrayInputStream bin = new ByteArrayInputStream(_jsonData);
-
-        char[] cbuf = new char[_jsonData.length];
-
-        IOContext ctxt = new IOContext(new BufferRecycler(), this, false);
-        int sum = 0;
-
-        for (int i = 0; i < reps; ++i) {
-            /* This may be unfair advantage (allocating buffer of exact
-             * size)? But let's do that for now
-             */
-            //char[] cbuf = new char[mData.length];
-            //InputStreamReader r = new InputStreamReader(bin, "UTF-8");
-            byte[] bbuf = ctxt.allocReadIOBuffer();
-            /* 13-Jan-2009, tatu: Note: Noggit doesn't use our turbo-charged
-             *   UTF8 codec by default. But let's make it as fast as we
-             *   possibly can...
-             */
-            UTF8Reader r = new UTF8Reader(ctxt, bin, bbuf, 0, 0);
-
-            bin.reset();
-            org.apache.noggit.JSONParser jp = new org.apache.noggit.JSONParser(r, cbuf);
-            int type;
-            while ((type = jp.nextEvent()) != org.apache.noggit.JSONParser.EOF) {
-                if (type == org.apache.noggit.JSONParser.STRING) {
-                    sum += jp.getString().length();
-                }
-            }
-        }
-        return sum;
     }
 
     private int testJacksonStream(int reps, JsonFactory factory, byte[] data, boolean fast)
@@ -315,7 +291,7 @@ else System.err.println(""+t);
         Object ob = null;
         for (int i = 0; i < reps; ++i) {
             // This is "untyped"... Maps, Lists etc
-            ob = mapper.readValue(data, 0, data.length, Object.class);
+            ob = mapper.readValue(data, Object.class);
         }
         return ob.hashCode(); // just to get some non-optimizable number
     }
@@ -325,7 +301,7 @@ else System.err.println(""+t);
     {
         Object ob = null;
         for (int i = 0; i < reps; ++i) {
-            ob = mapper.readValue(data, 0, data.length, JsonNode.class);
+            ob = mapper.readValue(data, JsonNode.class);
         }
         return ob.hashCode(); // just to get some non-optimizable number
     }
