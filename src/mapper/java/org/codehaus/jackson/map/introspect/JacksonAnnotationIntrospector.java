@@ -267,7 +267,7 @@ public class JacksonAnnotationIntrospector
             }
         }
         
-        /* 18=Oct-2010, tatu: [JACKSON-351] @JsonRawValue handled just here, for now;
+        /* 18-Oct-2010, tatu: [JACKSON-351] @JsonRawValue handled just here, for now;
          *  if we need to get raw indicator from other sources need to add
          *  separate accessor within {@link AnnotationIntrospector} interface.
          */
@@ -280,6 +280,32 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
+    @Override
+    public Class<? extends JsonSerializer<?>> findKeySerializer(Annotated a)
+    {
+        JsonSerialize ann = a.getAnnotation(JsonSerialize.class);
+        if (ann != null) {
+            Class<? extends JsonSerializer<?>> serClass = ann.keyUsing();
+            if (serClass != JsonSerializer.None.class) {
+                return serClass;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Class<? extends JsonSerializer<?>> findContentSerializer(Annotated a)
+    {
+        JsonSerialize ann = a.getAnnotation(JsonSerialize.class);
+        if (ann != null) {
+            Class<? extends JsonSerializer<?>> serClass = ann.contentUsing();
+            if (serClass != JsonSerializer.None.class) {
+                return serClass;
+            }
+        }
+        return null;
+    }
+    
     @SuppressWarnings("deprecation")
     @Override
     public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue)
@@ -302,10 +328,35 @@ public class JacksonAnnotationIntrospector
     @Override
     public Class<?> findSerializationType(Annotated am)
     {
-        // Primary annotation, JsonSerialize
         JsonSerialize ann = am.getAnnotation(JsonSerialize.class);
         if (ann != null) {
             Class<?> cls = ann.as();
+            if (cls != NoClass.class) {
+                return cls;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Class<?> findSerializationKeyType(Annotated am, JavaType baseType)
+    {
+        JsonSerialize ann = am.getAnnotation(JsonSerialize.class);
+        if (ann != null) {
+            Class<?> cls = ann.keyAs();
+            if (cls != NoClass.class) {
+                return cls;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Class<?> findSerializationContentType(Annotated am, JavaType baseType)
+    {
+        JsonSerialize ann = am.getAnnotation(JsonSerialize.class);
+        if (ann != null) {
+            Class<?> cls = ann.contentAs();
             if (cls != NoClass.class) {
                 return cls;
             }

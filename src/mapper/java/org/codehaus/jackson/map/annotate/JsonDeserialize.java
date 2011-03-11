@@ -95,26 +95,15 @@ public @interface JsonDeserialize
      * instead of type otherwise declared.
      * Must be a subtype of declared type; otherwise an exception may be
      * thrown by deserializer.
-     *<p>
-     * When annotating a class, will define default deserializer to
-     * use when class instances are used as Map keys; when methods,
-     * keys of the associated Map property.
-     * Method annotation has precedence over class annotations, if both
-     * exist.
      */
     public Class<?> keyAs() default NoClass.class;
 
     /**
-     * Deserializer class to use for deserializing associated value
-     * when it will used as contents of {@link java.util.Collection},
-     * {@link java.util.Map} and array types.
-     *<p>
-     * When annotating a class, will define default deserializer to
-     * use when class instances are used as contents of collection/map/array
-     * types; when methods,
-     * keys of the associated collection/map/array property.
-     * Method annotation has precedence over class annotations, if both
-     * exist.
+     * Concrete type to deserialize content (elements
+     * of a Collection/array, values of Maps) values as,
+     * instead of type otherwise declared.
+     * Must be a subtype of declared type; otherwise an exception may be
+     * thrown by deserializer.
      */
     public Class<?> contentAs() default NoClass.class;
 }

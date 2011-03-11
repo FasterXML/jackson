@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.codehaus.jackson.annotate.JacksonAnnotation;
-import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.*;
 
 /**
  * Annotation used for configuring serialization aspects, by attaching
@@ -48,12 +48,34 @@ public @interface JsonSerialize
      */
     public Class<? extends JsonSerializer<?>> using() default JsonSerializer.None.class;
 
+    /**
+     * Serializer class to use for serializing contents (elements
+     * of a Collection/array, values of Maps) of annotated property.
+     * Can only be used on properties (methods, fields, constructors),
+     * and not value classes themselves (as they are typically generic)
+     *
+     * @since 1.8
+     */
+    public Class<? extends JsonSerializer<?>> contentUsing()
+        default JsonSerializer.None.class;
+
+    /**
+     * Serializer class to use for serializing Map keys
+     * of annotated property.
+     * Can only be used on properties (methods, fields, constructors),
+     * and not value classes themselves.
+     *
+     * @since 1.8
+     */
+    public Class<? extends JsonSerializer<?>> keyUsing()
+        default JsonSerializer.None.class;
+    
     // // // Annotations for type handling, explicit declaration
     // // // (type used for choosing deserializer, if not explicitly
     // // // specified)
 
     /**
-     * Subtype (of declared type, which itself is subtype of runtime type)
+     * Supertype (of declared type, which itself is supertype of runtime type)
      * to use as type when locating serializer to use.
      *<p>
      * Bogus type {@link NoClass} can be used to indicate that declared
@@ -61,13 +83,30 @@ public @interface JsonSerialize
      * this since annotation properties are not allowed to have null value.
      *<p>
      * Note: if {@link #using} is also used it has precedence
-     * (since it directly specified
+     * (since it directly specifies
      * serializer, whereas this would only be used to locate the
      * serializer)
      * and value of this annotation property is ignored.
      */
     public Class<?> as() default NoClass.class;
 
+    /**
+     * Concrete type to serialize keys of {@link java.util.Map} as,
+     * instead of type otherwise declared.
+     * Must be a supertype of declared type; otherwise an exception may be
+     * thrown by serializer.
+     */
+    public Class<?> keyAs() default NoClass.class;
+
+    /**
+     * Concrete type to serialize content value (elements
+     * of a Collection/array, values of Maps) as,
+     * instead of type otherwise declared.
+     * Must be a supertype of declared type; otherwise an exception may be
+     * thrown by serializer.
+     */
+    public Class<?> contentAs() default NoClass.class;
+    
     /**
      * Whether type detection used is dynamic or static: that is,
      * whether actual runtime type is used (dynamic), or just the

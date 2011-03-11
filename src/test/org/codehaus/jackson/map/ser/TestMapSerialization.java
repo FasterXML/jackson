@@ -16,7 +16,6 @@ public class TestMapSerialization
     /**********************************************************
      */
 
-
     /**
      * Class needed for testing [JACKSON-220]
      */
@@ -44,6 +43,32 @@ public class TestMapSerialization
         }
     }
 
+    // [JACKSON-480]
+    static class SimpleKey {
+        protected final String key;
+        
+        public SimpleKey(String str) { key = str; }
+        
+        @Override public String toString() { return "simple "+key; }
+    }
+
+    static class ActualKey extends SimpleKey
+    {
+        public ActualKey(String str) { super(str); }
+        
+        @Override public String toString() { return "actual "+key; }
+    }
+
+    static class MapWrapper
+    {
+        @JsonSerialize(keyAs=SimpleKey.class)
+        public final HashMap<ActualKey, String> values = new HashMap<ActualKey, String>();
+        
+        public MapWrapper(String key, String value) {
+            values.put(new ActualKey(key), value);
+        }
+    }
+    
     /*
     /**********************************************************
     /* Test methods
@@ -73,6 +98,16 @@ public class TestMapSerialization
         m.configure(SerializationConfig.Feature.WRITE_NULL_MAP_VALUES, false);
         assertEquals("{}", m.writeValueAsString(map));
     }
+
+    // [JACKSON-480], custom annotations for key, content values
+    public void testSerializedAsAnnotations() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        MapWrapper input = new MapWrapper("a", "b");
+        assertEquals("{\"values\":{\"simple a\":\"b\"}}", m.writeValueAsString(input));
+    }
+
+    // [JACKSON-480], custom handlers for key, content values
     
     // [JACKSON-499], problems with map entries, values
     public void testMapKeyValueSerialization() throws IOException

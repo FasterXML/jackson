@@ -407,7 +407,7 @@ public abstract class AnnotationIntrospector
      * <code>Class<JsonSerializer></code>); if value of different
      * type is returned, a runtime exception may be thrown by caller.
      * 
-     * @deprecated Should use version that gets property object
+     * @deprecated (as of 1.7) Should use version that gets property object
      */
     @Deprecated
     public Object findSerializer(Annotated am) {
@@ -422,6 +422,33 @@ public abstract class AnnotationIntrospector
      * type is returned, a runtime exception may be thrown by caller.
      */
     public abstract Object findSerializer(Annotated am, BeanProperty property);
+
+    /**
+     * Method for getting a serializer definition for keys of associated <code>Map</code> property.
+     * Type of definition is either instance (of type
+     * {@link JsonSerializer}) or Class (of type
+     * <code>Class<JsonSerializer></code>); if value of different
+     * type is returned, a runtime exception may be thrown by caller.
+     * 
+     * @since 1.8
+     */
+    public Class<? extends JsonSerializer<?>> findKeySerializer(Annotated am) {
+        return null;
+    }
+
+    /**
+     * Method for getting a serializer definition for content (values) of
+     * associated <code>Collection</code>, <code>array</code> or <code>Map</code> property.
+     * Type of definition is either instance (of type
+     * {@link JsonSerializer}) or Class (of type
+     * <code>Class<JsonSerializer></code>); if value of different
+     * type is returned, a runtime exception may be thrown by caller.
+     * 
+     * @since 1.8
+     */
+    public Class<? extends JsonSerializer<?>> findContentSerializer(Annotated am) {
+        return null;
+    }
     
     /**
      * Method for checking whether given annotated entity (class, method,
@@ -446,6 +473,30 @@ public abstract class AnnotationIntrospector
      */
     public abstract Class<?> findSerializationType(Annotated a);
 
+    /**
+     * Method for finding possible widening type definition that a property
+     * value can have, to define less specific key type to use for serialization.
+     * It should be only be used with {@link java.util.Map} types.
+     * 
+     * @return Class specifying more general type to use instead of
+     *   declared type, if annotation found; null if not
+     */
+    public Class<?> findSerializationKeyType(Annotated am, JavaType baseType) {
+        return null;
+    }
+
+    /**
+     * Method for finding possible widening type definition that a property
+     * value can have, to define less specific key type to use for serialization.
+     * It should be only used with structured types (arrays, collections, maps).
+     * 
+     * @return Class specifying more general type to use instead of
+     *   declared type, if annotation found; null if not
+     */
+    public Class<?> findSerializationContentType(Annotated am, JavaType baseType) {
+        return null;
+    }
+    
     /**
      * Method for accessing declared typing mode annotated (if any).
      * This is used for type detection, unless more granular settings
@@ -558,7 +609,7 @@ public abstract class AnnotationIntrospector
      */
 
     /**
-     * @deprecated Used version that takes property
+     * @deprecated (as of 1.7) Should use version that gets property object
      */
     @Deprecated
     public final Object findDeserializer(Annotated am) {
@@ -1012,8 +1063,28 @@ public abstract class AnnotationIntrospector
         }
 
         @Override
+        public Class<? extends JsonSerializer<?>> findKeySerializer(Annotated a)
+        {
+            Class<? extends JsonSerializer<?>> result = _primary.findKeySerializer(a);
+            if (result == null || result == JsonSerializer.None.class) {
+                result = _secondary.findKeySerializer(a);
+            }
+            return result;
+        }
+
+        @Override
+        public Class<? extends JsonSerializer<?>> findContentSerializer(Annotated a)
+        {
+            Class<? extends JsonSerializer<?>> result = _primary.findContentSerializer(a);
+            if (result == null || result == JsonSerializer.None.class) {
+                result = _secondary.findContentSerializer(a);
+            }
+            return result;
+        }
+        
+        @Override
         public JsonSerialize.Inclusion findSerializationInclusion(Annotated a,
-                                                                   JsonSerialize.Inclusion defValue)
+                JsonSerialize.Inclusion defValue)
         {
             /* This is bit trickier: need to combine results in a meaningful
              * way. Seems like it should be a disjoint; that is, most
@@ -1041,6 +1112,26 @@ public abstract class AnnotationIntrospector
             return result;
         }
 
+        @Override
+        public Class<?> findSerializationKeyType(Annotated am, JavaType baseType)
+        {
+            Class<?> result = _primary.findSerializationKeyType(am, baseType);
+            if (result == null) {
+                result = _secondary.findSerializationKeyType(am, baseType);
+            }
+            return result;
+        }
+
+        @Override
+        public Class<?> findSerializationContentType(Annotated am, JavaType baseType)
+        {
+            Class<?> result = _primary.findSerializationContentType(am, baseType);
+            if (result == null) {
+                result = _secondary.findSerializationContentType(am, baseType);
+            }
+            return result;
+        }
+        
         @Override
         public JsonSerialize.Typing findSerializationTyping(Annotated a)
         {

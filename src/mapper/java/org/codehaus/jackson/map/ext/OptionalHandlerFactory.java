@@ -49,8 +49,8 @@ public class OptionalHandlerFactory
     /**********************************************************
      */
     
-    public JsonSerializer<?> findSerializer(SerializationConfig config, JavaType type,
-            BasicBeanDescription beanInfo, BeanProperty property)
+    public JsonSerializer<?> findSerializer(SerializationConfig config, JavaType type)
+//            BasicBeanDescription beanInfo, BeanProperty property)
     {
         Class<?> rawType = type.getRawClass();
         String className = rawType.getName();

@@ -345,7 +345,7 @@ public abstract class BasicSerializerFactory
             }
             
             // Then check for optional/external serializers [JACKSON-386]
-            ser = optionalHandlers.findSerializer(config, type, beanDesc, property);
+            ser = optionalHandlers.findSerializer(config, type);
         }
         return ser;
     }

@@ -441,17 +441,13 @@ public class JaxbAnnotationIntrospector
             return new XmlAdapterJsonSerializer(adapter, property);
         }
 
-        /* [JACKSON-150]: add support for additional core XML
-         * types needed by JAXB
-         */
+        // [JACKSON-150]: add support for additional core XML types needed by JAXB
         Class<?> type = am.getRawType();
         if (type != null) {
             if (_dataHandlerSerializer != null && isDataHandler(type)) {
                 return _dataHandlerSerializer;
             }
         }
-
-
         return null;
     }
 
@@ -464,8 +460,7 @@ public class JaxbAnnotationIntrospector
      */
     private boolean isDataHandler(Class<?> type)
     {
-        return type != null
-               && !Object.class.equals(type)
+        return type != null && (Object.class != type)
                && (("javax.activation.DataHandler".equals(type.getName()) || isDataHandler(type.getSuperclass())));
     }
 
