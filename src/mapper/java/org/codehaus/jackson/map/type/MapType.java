@@ -50,20 +50,39 @@ public final class MapType
         if (contentClass == _valueType.getRawClass()) {
             return this;
         }
-        JavaType newValueType = _valueType.narrowBy(contentClass);
-        return new MapType(_class, _keyType, newValueType).copyHandlers(this);
+        return new MapType(_class, _keyType, _valueType.narrowBy(contentClass)).copyHandlers(this);
     }
 
+    @Override
+    public JavaType widenContentsBy(Class<?> contentClass)
+    {
+        if (contentClass == _valueType.getRawClass()) {
+            return this;
+        }
+        return new MapType(_class, _keyType, _valueType.widenBy(contentClass)).copyHandlers(this);
+    }
+    
     public JavaType narrowKey(Class<?> keySubclass)
     {
         // Can do a quick check first:
         if (keySubclass == _keyType.getRawClass()) {
             return this;
         }
-        JavaType newKeyType = _keyType.narrowBy(keySubclass);
-        return new MapType(_class, newKeyType, _valueType).copyHandlers(this);
+        return new MapType(_class, _keyType.narrowBy(keySubclass), _valueType).copyHandlers(this);
     }
 
+    /**
+     * @since 1.8
+     */
+    public JavaType widenKey(Class<?> keySubclass)
+    {
+        // Can do a quick check first:
+        if (keySubclass == _keyType.getRawClass()) {
+            return this;
+        }
+        return new MapType(_class, _keyType.widenBy(keySubclass), _valueType).copyHandlers(this);
+    }
+    
     // Since 1.7:
     @Override
     public MapType withTypeHandler(Object h)

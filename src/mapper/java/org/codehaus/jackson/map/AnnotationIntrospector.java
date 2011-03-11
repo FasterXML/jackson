@@ -406,22 +406,24 @@ public abstract class AnnotationIntrospector
      * {@link JsonSerializer}) or Class (of type
      * <code>Class<JsonSerializer></code>); if value of different
      * type is returned, a runtime exception may be thrown by caller.
-     * 
-     * @deprecated (as of 1.7) Should use version that gets property object
+     *<p>
+     * Note: this variant was briefly deprecated for 1.7; should not be
      */
-    @Deprecated
     public Object findSerializer(Annotated am) {
         return findSerializer(am, null);
     }
 
     /**
-     * Method for getting a serializer definition on specified method
-     * or field. Type of definition is either instance (of type
-     * {@link JsonSerializer}) or Class (of type
-     * <code>Class<JsonSerializer></code>); if value of different
-     * type is returned, a runtime exception may be thrown by caller.
+     * @deprecated (as of 1.8) -- going back to 1.7, since BeanProperty really should not
+     *  have to be bought here; contextualization is via callbacks
      */
-    public abstract Object findSerializer(Annotated am, BeanProperty property);
+    @Deprecated
+    public Object findSerializer(Annotated am, BeanProperty property) {
+        if (property != null) {
+            return findSerializer(am);
+        }
+        return null;
+    }
 
     /**
      * Method for getting a serializer definition for keys of associated <code>Map</code> property.
@@ -609,10 +611,17 @@ public abstract class AnnotationIntrospector
      */
 
     /**
-     * @deprecated (as of 1.7) Should use version that gets property object
+     * Method for getting a deserializer definition on specified method
+     * or field.
+     * Type of definition is either instance (of type
+     * {@link JsonDeserializer}) or Class (of type
+     * <code>Class<JsonDeserializer></code>); if value of different
+     * type is returned, a runtime exception may be thrown by caller.
+     *<p>
+     * Note: this variant was briefly deprecated for 1.7; but it turns out
+     * we really should not try to push BeanProperty through at this point
      */
-    @Deprecated
-    public final Object findDeserializer(Annotated am) {
+    public Object findDeserializer(Annotated am) {
         return findDeserializer(am, null);
     }
 
@@ -623,8 +632,16 @@ public abstract class AnnotationIntrospector
      * {@link JsonDeserializer}) or Class (of type
      * <code>Class<JsonDeserializer></code>); if value of different
      * type is returned, a runtime exception may be thrown by caller.
+     *
+     * @deprecated (as of 1.7) Should use version that gets property object
      */
-    public abstract Object findDeserializer(Annotated am, BeanProperty property);
+    @Deprecated
+    public Object findDeserializer(Annotated am, BeanProperty property) {
+        if (property != null) {
+            return findDeserializer(am);
+        }
+        return null;
+    }
 
     /**
      * Method for getting a deserializer definition for keys of
@@ -1063,6 +1080,16 @@ public abstract class AnnotationIntrospector
         }
 
         @Override
+        public Object findSerializer(Annotated am)
+        {
+            Object result = _primary.findSerializer(am);
+            if (result == null) {
+                result = _secondary.findSerializer(am);
+            }
+            return result;
+        }
+        
+        @Override
         public Class<? extends JsonSerializer<?>> findKeySerializer(Annotated a)
         {
             Class<? extends JsonSerializer<?>> result = _primary.findKeySerializer(a);
@@ -1240,6 +1267,16 @@ public abstract class AnnotationIntrospector
         // // // Deserialization: general annotations
 
         @Override
+        public Object findDeserializer(Annotated am)
+        {
+            Object result = _primary.findDeserializer(am);
+            if (result == null) {
+                result = _secondary.findDeserializer(am);
+            }
+            return result;
+        }
+
+        @Override
         public Object findDeserializer(Annotated am, BeanProperty property)
         {
             Object result = _primary.findDeserializer(am, property);
@@ -1248,7 +1285,7 @@ public abstract class AnnotationIntrospector
             }
             return result;
         }
-
+        
         @Override
         public Class<? extends KeyDeserializer> findKeyDeserializer(Annotated am)
         {

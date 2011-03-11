@@ -248,7 +248,7 @@ public class BeanSerializerFactory
          * see if we have explicit definition
          */
         BasicBeanDescription beanDesc = config.introspect(type);
-        JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo(), property);
+        JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
         if (ser == null) {
             // First: do we have module-provided serializers to consider?
             for (Serializers serializers : _factoryConfig.serializers()) {
@@ -459,8 +459,9 @@ public class BeanSerializerFactory
             boolean staticTyping = config.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING);
             JavaType valueType = type.getContentType();
             TypeSerializer typeSer = createTypeSerializer(config, valueType, property);
+            // last 2 nulls; don't know key, value serializers (yet)
             MapSerializer mapSer = MapSerializer.construct(/* ignored props*/ null, type, staticTyping,
-                    typeSer, property);
+                    typeSer, property, null, null);
             builder.setAnyGetter(new AnyGetterWriter(anyGetter, mapSer));
         }
         // One more thing: need to gather view information, if any:
@@ -756,11 +757,17 @@ public class BeanSerializerFactory
         if (config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
             accessor.fixAccess();
         }
-        JavaType type = accessor.getType(typeContext);
+        JavaType staticType = accessor.getType(typeContext);
+        JavaType type = modifyTypeByAnnotation(config, accessor, staticType);
+        
+        // If modified in any way, consider to have forced static typing
+        if (!staticTyping) {
+            staticTyping = (type != staticType);
+        }
         BeanProperty.Std property = new BeanProperty.Std(name, type, pb.getClassAnnotations(), accessor);
         
         // Does member specify a serializer? If so, let's use it.
-        JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, accessor, property);
+        JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, accessor);
         // And how about polymorphic typing? First special to cover JAXB per-field settings:
         TypeSerializer contentTypeSer = null;
         if (ClassUtil.isCollectionMapOrArray(type.getRawClass())) {

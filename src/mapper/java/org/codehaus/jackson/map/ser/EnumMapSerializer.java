@@ -54,9 +54,19 @@ public class EnumMapSerializer
      * Type serializer used for values, if any.
      */
     protected final TypeSerializer _valueTypeSerializer;
-    
+
+    /**
+     * @deprecated Since 1.8, use variant that takes value serializer
+     */
+    @Deprecated
     public EnumMapSerializer(JavaType valueType, boolean staticTyping, EnumValues keyEnums,
             TypeSerializer vts, BeanProperty property)
+    {
+        this(valueType, staticTyping, keyEnums, vts, property, null);
+    }
+
+    public EnumMapSerializer(JavaType valueType, boolean staticTyping, EnumValues keyEnums,
+            TypeSerializer vts, BeanProperty property, JsonSerializer<Object> valueSerializer)
     {
         super(EnumMap.class, false);
         _staticTyping = staticTyping || (valueType != null && valueType.isFinal());
@@ -64,6 +74,7 @@ public class EnumMapSerializer
         _keyEnums = keyEnums;
         _valueTypeSerializer = vts;
         _property = property;
+        _valueSerializer = valueSerializer;
     }
 
     @Override
@@ -175,7 +186,7 @@ public class EnumMapSerializer
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {
-        if (_staticTyping) {
+        if (_staticTyping && _valueSerializer == null) {
             _valueSerializer = provider.findValueSerializer(_valueType, _property);
         }
     }

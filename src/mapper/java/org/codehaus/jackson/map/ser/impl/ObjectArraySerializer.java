@@ -57,19 +57,30 @@ public class ObjectArraySerializer
      */
     protected PropertySerializerMap _dynamicSerializers;
     
+    /**
+     * @deprecated since 1.8
+     */
+    @Deprecated
     public ObjectArraySerializer(JavaType elemType, boolean staticTyping,
             TypeSerializer vts, BeanProperty property)
+    {
+        this(elemType, staticTyping, vts, property, null);
+    }
+    
+    public ObjectArraySerializer(JavaType elemType, boolean staticTyping,
+            TypeSerializer vts, BeanProperty property, JsonSerializer<Object> elementSerializer)
     {
         super(Object[].class, vts, property);
         _elementType = elemType;
         _staticTyping = staticTyping;
         _dynamicSerializers = PropertySerializerMap.emptyMap();
+        _elementSerializer = elementSerializer;
     }
 
     @Override
     public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
     {
-        return new ObjectArraySerializer(_elementType, _staticTyping, vts, _property);
+        return new ObjectArraySerializer(_elementType, _staticTyping, vts, _property, _elementSerializer);
     }
     
     @Override
@@ -232,7 +243,7 @@ public class ObjectArraySerializer
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {
-        if (_staticTyping) {
+        if (_staticTyping && _elementSerializer == null) {
             _elementSerializer = provider.findValueSerializer(_elementType, _property);
         }
     }        

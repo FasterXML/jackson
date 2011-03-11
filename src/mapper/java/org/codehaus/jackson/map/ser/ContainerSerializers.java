@@ -34,17 +34,39 @@ public final class ContainerSerializers
     /* Factory methods
     /**********************************************************
      */
-    
+
+    /**
+     * @deprecated since 1.8
+     */
+    @Deprecated
     public static ContainerSerializerBase<?> indexedListSerializer(JavaType elemType,
             boolean staticTyping, TypeSerializer vts, BeanProperty property)
     {
-        return new IndexedListSerializer(elemType, staticTyping, vts, property);
+        return indexedListSerializer(elemType, staticTyping, vts, property, null);
+    }
+        
+    public static ContainerSerializerBase<?> indexedListSerializer(JavaType elemType,
+            boolean staticTyping, TypeSerializer vts, BeanProperty property,
+            JsonSerializer<Object> valueSerializer)
+    {
+        return new IndexedListSerializer(elemType, staticTyping, vts, property, valueSerializer);
     }
 
+    /**
+     * @deprecated since 1.8
+     */
+    @Deprecated
     public static ContainerSerializerBase<?> collectionSerializer(JavaType elemType,
             boolean staticTyping, TypeSerializer vts, BeanProperty property)
     {
-        return new CollectionSerializer(elemType, staticTyping, vts, property);
+        return collectionSerializer(elemType, staticTyping, vts, property, null);
+    }
+
+    public static ContainerSerializerBase<?> collectionSerializer(JavaType elemType,
+            boolean staticTyping, TypeSerializer vts, BeanProperty property,
+            JsonSerializer<Object> valueSerializer)
+    {
+        return new CollectionSerializer(elemType, staticTyping, vts, property, valueSerializer);
     }
 
     public static ContainerSerializerBase<?> iteratorSerializer(JavaType elemType,
@@ -108,9 +130,19 @@ public final class ContainerSerializers
          * @since 1.7
          */
         protected PropertySerializerMap _dynamicSerializers;
-        
+
+        /**
+         * @deprecated since 1.8
+         */
+        @Deprecated
         protected AsArraySerializer(Class<?> cls, JavaType et, boolean staticTyping,
                 TypeSerializer vts, BeanProperty property)
+        {
+            this(cls, et, staticTyping, vts, property, null);
+        }
+
+        protected AsArraySerializer(Class<?> cls, JavaType et, boolean staticTyping,
+                TypeSerializer vts, BeanProperty property, JsonSerializer<Object> elementSerializer)
         {
             // typing with generics is messy... have to resort to this:
             super(cls, false);
@@ -119,6 +151,7 @@ public final class ContainerSerializers
             _staticTyping = staticTyping || (et != null && et.isFinal());
             _valueTypeSerializer = vts;
             _property = property;
+            _elementSerializer = elementSerializer;
             _dynamicSerializers = PropertySerializerMap.emptyMap();
         }
 
@@ -195,7 +228,7 @@ public final class ContainerSerializers
         public void resolve(SerializerProvider provider)
             throws JsonMappingException
         {
-            if (_staticTyping && _elementType != null) {
+            if (_staticTyping && _elementType != null && _elementSerializer == null) {
                 _elementSerializer = provider.findValueSerializer(_elementType, _property);
             }
         }
@@ -243,10 +276,20 @@ public final class ContainerSerializers
     public static class IndexedListSerializer
         extends AsArraySerializer<List<?>>
     {
+        /**
+         * @deprecated since 1.8
+         */
+        @Deprecated
         public IndexedListSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
                 BeanProperty property)
         {
-            super(List.class, elemType, staticTyping, vts, property);
+            this(elemType, staticTyping, vts, property, null);
+        }
+
+        public IndexedListSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
+                BeanProperty property, JsonSerializer<Object> valueSerializer)
+        {
+            super(List.class, elemType, staticTyping, vts, property, valueSerializer);
         }
 
         @Override
@@ -372,12 +415,22 @@ public final class ContainerSerializers
     public static class CollectionSerializer
         extends AsArraySerializer<Collection<?>>
     {
+        /**
+         * @deprecated since 1.8
+         */
+        @Deprecated
         public CollectionSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
                 BeanProperty property)
         {
-            super(Collection.class, elemType, staticTyping, vts, property);
+            this(elemType, staticTyping, vts, property, null);
         }
 
+        public CollectionSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
+                BeanProperty property, JsonSerializer<Object> valueSerializer)
+        {
+            super(Collection.class, elemType, staticTyping, vts, property, valueSerializer);
+        }
+        
         @Override
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
             return new CollectionSerializer(_elementType, _staticTyping, vts, _property);

@@ -102,10 +102,19 @@ public final class ArrayType
         if (contentClass == _componentType.getRawClass()) {
             return this;
         }
-        JavaType newComponentType = _componentType.narrowBy(contentClass);
-        return construct(newComponentType).copyHandlers(this);
+        return construct(_componentType.narrowBy(contentClass)).copyHandlers(this);
     }
 
+    @Override
+    public JavaType widenContentsBy(Class<?> contentClass)
+    {
+        // Can do a quick check first:
+        if (contentClass == _componentType.getRawClass()) {
+            return this;
+        }
+        return construct(_componentType.widenBy(contentClass)).copyHandlers(this);
+    }
+    
     /*
     /**********************************************************
     /* Overridden methods

@@ -161,6 +161,11 @@ public abstract class JavaType
     public abstract JavaType narrowContentsBy(Class<?> contentClass);
 
     /**
+     * @since 1.8
+     */
+    public abstract JavaType widenContentsBy(Class<?> contentClass);
+    
+    /**
      * Method for assigning handler to associate with this type; or
      * if null passed, to remove such assignment
      * 

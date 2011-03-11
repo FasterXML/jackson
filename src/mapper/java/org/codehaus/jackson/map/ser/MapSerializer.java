@@ -85,7 +85,7 @@ public class MapSerializer
     protected PropertySerializerMap _dynamicValueSerializers;
     
     protected MapSerializer() {
-        this((HashSet<String>)null, null, null, false, null, null, null);
+        this((HashSet<String>)null, null, null, false, null, null, null, null);
     }
 
     /**
@@ -98,12 +98,26 @@ public class MapSerializer
             JavaType valueType, boolean valueTypeIsStatic,
             TypeSerializer vts)
     {
-        this(ignoredEntries, UNSPECIFIED_TYPE, valueType, valueTypeIsStatic, vts, null, null);
+        this(ignoredEntries, UNSPECIFIED_TYPE, valueType, valueTypeIsStatic, vts, null, null, null);
+    }
+
+    /**
+     * Legacy constructor (as of 1.8)
+     * 
+     * @deprecated As of 1.8, use version that takes valueSerializer
+     */
+    @Deprecated
+    protected MapSerializer(HashSet<String> ignoredEntries,
+            JavaType keyType, JavaType valueType, boolean valueTypeIsStatic,
+            TypeSerializer vts, JsonSerializer<Object> keySerializer, BeanProperty property)
+    {
+        this(ignoredEntries, keyType, valueType, valueTypeIsStatic, vts, keySerializer, null, property);
     }
     
     protected MapSerializer(HashSet<String> ignoredEntries,
             JavaType keyType, JavaType valueType, boolean valueTypeIsStatic,
-            TypeSerializer vts, JsonSerializer<Object> keySerializer,
+            TypeSerializer vts,
+            JsonSerializer<Object> keySerializer, JsonSerializer<Object> valueSerializer, 
             BeanProperty property)
     {
         super(Map.class, false);
@@ -114,6 +128,7 @@ public class MapSerializer
         _valueTypeIsStatic = valueTypeIsStatic;
         _valueTypeSerializer = vts;
         _keySerializer = keySerializer;
+        _valueSerializer = valueSerializer;
         _dynamicValueSerializers = PropertySerializerMap.emptyMap();
     }
     
@@ -121,7 +136,7 @@ public class MapSerializer
     public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts)
     {
         MapSerializer ms = new MapSerializer(_ignoredEntries, _keyType, _valueType, _valueTypeIsStatic, vts,
-                _keySerializer, _property);
+                _keySerializer, _valueSerializer, _property);
         if (_valueSerializer != null) {
             ms._valueSerializer = _valueSerializer;
         }
@@ -137,9 +152,19 @@ public class MapSerializer
      * @param staticValueType Whether static typing should be used for the
      *    Map (which includes its contents)
      * @param vts Type serializer to use for map entry values, if any
+     * 
+     * @deprecated As of 1.8; use the variant with more arguments
      */
+    @Deprecated
     public static MapSerializer construct(String[] ignoredList, JavaType mapType,
             boolean staticValueType, TypeSerializer vts, BeanProperty property)
+    {
+        return construct(ignoredList, mapType, staticValueType, vts, property, null, null);
+    }
+
+    public static MapSerializer construct(String[] ignoredList, JavaType mapType,
+            boolean staticValueType, TypeSerializer vts, BeanProperty property,
+            JsonSerializer<Object> keySerializer, JsonSerializer<Object> valueSerializer)
     {
         HashSet<String> ignoredEntries = toSet(ignoredList);
         JavaType keyType, valueType;
@@ -155,7 +180,7 @@ public class MapSerializer
             staticValueType = (valueType != null && valueType.isFinal());
         }
         return new MapSerializer(ignoredEntries, keyType, valueType, staticValueType, vts,
-                null, property);
+                keySerializer, valueSerializer, property);
     }
 
     private static HashSet<String> toSet(String[] ignoredEntries) {
@@ -375,7 +400,7 @@ public class MapSerializer
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {
-        if (_valueTypeIsStatic) {
+        if (_valueTypeIsStatic && _valueSerializer == null) {
             _valueSerializer = provider.findValueSerializer(_valueType, _property);
         }
         /* 10-Dec-2010, tatu: Let's also fetch key serializer; and always assume we'll
@@ -385,7 +410,9 @@ public class MapSerializer
          *   differs from value handling)... but for now, it's ok to ensure contextual
          *   aspects are handled; this is done by provider.
          */
-        _keySerializer = provider.findKeySerializer(_keyType, _property);
+        if (_keySerializer == null) {
+            _keySerializer = provider.findKeySerializer(_keyType, _property);
+        }
     }
 
     /*

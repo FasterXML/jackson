@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.StdDeserializer;
-import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.util.Provider;
 import org.codehaus.jackson.type.JavaType;
 

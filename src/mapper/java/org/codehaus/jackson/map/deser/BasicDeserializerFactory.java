@@ -549,16 +549,15 @@ public abstract class BasicDeserializerFactory
      * has annotation that tells which class to use for deserialization.
      * Returns null if no such annotation found.
      */
-    protected JsonDeserializer<Object> findDeserializerFromAnnotation(DeserializationConfig config, Annotated a,
-            BeanProperty property)
+    protected JsonDeserializer<Object> findDeserializerFromAnnotation(DeserializationConfig config, Annotated a, BeanProperty property)
     {
-        Object deserDef = config.getAnnotationIntrospector().findDeserializer(a, property);
+        Object deserDef = config.getAnnotationIntrospector().findDeserializer(a);
         if (deserDef != null) {
             return _constructDeserializer(config, deserDef);
         }
         return null;
     }
-
+    
     @SuppressWarnings("unchecked")
     JsonDeserializer<Object> _constructDeserializer(DeserializationConfig config, Object deserDef)
     {

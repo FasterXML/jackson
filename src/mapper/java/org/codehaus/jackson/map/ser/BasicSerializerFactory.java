@@ -20,6 +20,7 @@ import org.codehaus.jackson.map.ser.impl.InetAddressSerializer;
 import org.codehaus.jackson.map.ser.impl.ObjectArraySerializer;
 import org.codehaus.jackson.map.ser.impl.StringCollectionSerializer;
 import org.codehaus.jackson.map.ser.impl.TimeZoneSerializer;
+import org.codehaus.jackson.map.type.MapType;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.EnumValues;
@@ -218,7 +219,7 @@ public abstract class BasicSerializerFactory
          * see if we have explicit definition
          */
         BasicBeanDescription beanDesc = config.introspect(type);
-        JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo(), property);
+        JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
         if (ser == null) {
             // First, fast lookup for exact type:
             ser = findSerializerByLookup(type, config, beanDesc, property);
@@ -399,7 +400,7 @@ public abstract class BasicSerializerFactory
         // [JACKSON-193]: consider @JsonValue for enum types (and basically any type), so:
         AnnotatedMethod valueMethod = beanDesc.findJsonValueMethod();
         if (valueMethod != null) {
-            JsonSerializer<Object> ser = findSerializerFromAnnotation(config, valueMethod, property);
+            JsonSerializer<Object> ser = findSerializerFromAnnotation(config, valueMethod);
             return new JsonValueSerializer(valueMethod.getAnnotated(), ser, property);
         }
         
@@ -453,6 +454,16 @@ public abstract class BasicSerializerFactory
     }
 
     /**
+     * @deprecated since 1.8; should not try passing BeanProperty at this point; only needed for
+     *    later contextualization
+     */
+    @Deprecated
+    protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a, BeanProperty property)
+    {
+        return findSerializerFromAnnotation(config, a);
+    }
+    
+    /**
      * Helper method called to check if a class or method
      * has an annotation
      * (@link org.codehaus.jackson.map.ser.JsonSerialize#using)
@@ -460,46 +471,64 @@ public abstract class BasicSerializerFactory
      * Returns null if no such annotation found.
      */
     @SuppressWarnings("unchecked")
-    protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a, BeanProperty property)
+    protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a)
     {
-        Object serDef = config.getAnnotationIntrospector().findSerializer(a, property);
-        if (serDef != null) {
-            if (serDef instanceof JsonSerializer) {
-                return (JsonSerializer<Object>) serDef;
-            }
-            /* Alas, there's no way to force return type of "either class
-             * X or Y" -- need to throw an exception after the fact
-             */
-            if (!(serDef instanceof Class)) {
-                throw new IllegalStateException("AnnotationIntrospector returned value of type "+serDef.getClass().getName()+"; expected type JsonSerializer or Class<JsonSerializer> instead");
-            }
-            Class<?> cls = (Class<?>) serDef;
-            if (!JsonSerializer.class.isAssignableFrom(cls)) {
-                throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonSerializer>");
-            }
-            return (JsonSerializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+        Object serDef = config.getAnnotationIntrospector().findSerializer(a);
+        if (serDef == null) {
+            return null;
         }
-        return null;
+        if (serDef instanceof JsonSerializer) {
+            return (JsonSerializer<Object>) serDef;
+        }
+        /* Alas, there's no way to force return type of "either class
+         * X or Y" -- need to throw an exception after the fact
+         */
+        if (!(serDef instanceof Class)) {
+            throw new IllegalStateException("AnnotationIntrospector returned value of type "+serDef.getClass().getName()+"; expected type JsonSerializer or Class<JsonSerializer> instead");
+        }
+        Class<?> cls = (Class<?>) serDef;
+        if (!JsonSerializer.class.isAssignableFrom(cls)) {
+            throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonSerializer>");
+        }
+        return (JsonSerializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
     }
 
+    /*
+    /**********************************************************
+    /* Factory methods
+    /**********************************************************
+     */
+    
     /**
      * Helper method that handles configuration details when constructing serializers for
      * {@link java.util.Map} types.
      */
-    protected JsonSerializer<?> buildMapSerializer(SerializationConfig config, JavaType type,
+    protected JsonSerializer<?> buildMapSerializer(SerializationConfig config, JavaType origType,
             BasicBeanDescription beanDesc, BeanProperty property)
     {
-        AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        JavaType valueType = type.getContentType();
-        TypeSerializer vts = createTypeSerializer(config, valueType, property);
-        boolean staticTyping = usesStaticTyping(config, beanDesc, vts);
-        return MapSerializer.construct(intr.findPropertiesToIgnore(beanDesc.getClassInfo()),
-                type, staticTyping, vts, property);
-    }
+        JavaType type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), origType);
+        
+        // If modified in any way, consider to be forced static typing
+        boolean staticTyping = (type != origType);
 
-    protected JsonSerializer<?> buildEnumMapSerializer(SerializationConfig config, JavaType type,
+        JavaType valueType = type.getContentType();
+        
+        TypeSerializer vts = createTypeSerializer(config, valueType, property);
+        if (!staticTyping) {
+            staticTyping = usesStaticTyping(config, beanDesc, vts);
+        }
+        JsonSerializer<Object> keySerializer = findKeySerializer(config, beanDesc.getClassInfo());
+        JsonSerializer<Object> valueSerializer = findContentSerializer(config, beanDesc.getClassInfo());
+        return MapSerializer.construct(config.getAnnotationIntrospector().findPropertiesToIgnore(beanDesc.getClassInfo()),
+                type, staticTyping, vts, property,
+                keySerializer, valueSerializer);
+    }
+    
+    protected JsonSerializer<?> buildEnumMapSerializer(SerializationConfig config, JavaType origType,
             BasicBeanDescription beanDesc, BeanProperty property)
     {
+        JavaType type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), origType);
+        boolean staticTyping = (type != origType);
         JavaType keyType = type.getKeyType();
         JavaType valueType = type.getContentType();
         // Need to find key enum values...
@@ -510,39 +539,57 @@ public abstract class BasicSerializerFactory
             enums = EnumValues.construct(enumClass, config.getAnnotationIntrospector());
         }
         TypeSerializer vts = createTypeSerializer(config, valueType, property);
-        return new EnumMapSerializer(valueType, usesStaticTyping(config, beanDesc, vts),
-                enums, vts, property);
+        if (!staticTyping) {
+            staticTyping = usesStaticTyping(config, beanDesc, vts);
+        }
+        JsonSerializer<Object> valueSerializer = findContentSerializer(config, beanDesc.getClassInfo());
+        return new EnumMapSerializer(valueType, staticTyping, enums, vts, property, valueSerializer);
     }
 
     /**
      * Helper method that handles configuration details when constructing serializers for
      * <code>Object[]</code> (and subtypes, except for String).
      */
-    protected JsonSerializer<?> buildObjectArraySerializer(SerializationConfig config, JavaType type,
+    protected JsonSerializer<?> buildObjectArraySerializer(SerializationConfig config, JavaType origType,
             BasicBeanDescription beanDesc, BeanProperty property)
     {
+        JavaType type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), origType);
+        boolean staticTyping = (type != origType);
         JavaType valueType = type.getContentType();
         TypeSerializer vts = createTypeSerializer(config, valueType, property);
-        return new ObjectArraySerializer(valueType,
-                usesStaticTyping(config, beanDesc, vts), vts, property);
+        if (!staticTyping) {
+            staticTyping = usesStaticTyping(config, beanDesc, vts);
+        }
+        JsonSerializer<Object> valueSerializer = findContentSerializer(config, beanDesc.getClassInfo());
+        return new ObjectArraySerializer(valueType, staticTyping, vts, property, valueSerializer);
     }
 
-    protected JsonSerializer<?> buildIndexedListSerializer(SerializationConfig config, JavaType type,
+    protected JsonSerializer<?> buildIndexedListSerializer(SerializationConfig config, JavaType origType,
             BasicBeanDescription beanDesc, BeanProperty property)
     {
+        JavaType type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), origType);
+        boolean staticTyping = (type != origType);
         JavaType valueType = type.getContentType();
         TypeSerializer vts = createTypeSerializer(config, valueType, property);
-        return ContainerSerializers.indexedListSerializer(valueType,
-                usesStaticTyping(config, beanDesc, vts), vts, property);
+        if (!staticTyping) {
+            staticTyping = usesStaticTyping(config, beanDesc, vts);
+        }
+        JsonSerializer<Object> valueSerializer = findContentSerializer(config, beanDesc.getClassInfo());
+        return ContainerSerializers.indexedListSerializer(valueType, staticTyping, vts, property, valueSerializer);
     }
 
-    protected JsonSerializer<?> buildCollectionSerializer(SerializationConfig config, JavaType type,
+    protected JsonSerializer<?> buildCollectionSerializer(SerializationConfig config, JavaType origType,
             BasicBeanDescription beanDesc, BeanProperty property)
     {
+        JavaType type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), origType);
+        boolean staticTyping = (type != origType);
         JavaType valueType = type.getContentType();
         TypeSerializer vts = createTypeSerializer(config, valueType, property);
-        return ContainerSerializers.collectionSerializer(valueType,
-                usesStaticTyping(config, beanDesc, vts), vts, property);
+        if (!staticTyping) {
+            staticTyping = usesStaticTyping(config, beanDesc, vts);
+        }
+        JsonSerializer<Object> valueSerializer = findContentSerializer(config, beanDesc.getClassInfo());
+        return ContainerSerializers.collectionSerializer(valueType, staticTyping, vts, property, valueSerializer);
     }
 
     protected JsonSerializer<?> buildIteratorSerializer(SerializationConfig config, JavaType type,
@@ -581,6 +628,84 @@ public abstract class BasicSerializerFactory
             enumType = null;
         }
         return ContainerSerializers.enumSetSerializer(enumType, property);
+    }
+
+    /*
+    /**********************************************************
+    /* Other helper methods
+    /**********************************************************
+     */
+    
+    /**
+     * Helper method used to encapsulate details of annotation-based type
+     * coercion
+     * 
+     * @since 1.8
+     */
+    @SuppressWarnings("unchecked")
+    protected <T extends JavaType> T modifyTypeByAnnotation(SerializationConfig config, Annotated a, T type)
+    {
+        // first: let's check class for the instance itself:
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        Class<?> superclass = intr.findSerializationType(a);
+        if (superclass != null) {
+            try {
+                type = (T) type.widenBy(superclass);
+            } catch (IllegalArgumentException iae) {
+                throw new IllegalArgumentException("Failed to widen type "+type+" with concrete-type annotation (value "+superclass.getName()+"), method '"+a.getName()+"': "+iae.getMessage());
+            }
+        }
+
+        // then key class
+        if (type.isContainerType()) {
+            Class<?> keyClass = intr.findSerializationKeyType(a, type.getKeyType());
+            if (keyClass != null) {
+                // illegal to use on non-Maps
+                if (!(type instanceof MapType)) {
+                    throw new IllegalArgumentException("Illegal key-type annotation: type "+type+" is not a Map type");
+                }
+                try {
+                    type = (T) ((MapType) type).widenKey(keyClass);
+                } catch (IllegalArgumentException iae) {
+                    throw new IllegalArgumentException("Failed to narrow key type "+type+" with key-type annotation ("+keyClass.getName()+"): "+iae.getMessage());
+                }
+            }
+            
+            // and finally content class; only applicable to structured types
+            Class<?> cc = intr.findSerializationContentType(a, type.getContentType());
+            if (cc != null) {
+                try {
+                    type = (T) type.widenContentsBy(cc);
+                } catch (IllegalArgumentException iae) {
+                    throw new IllegalArgumentException("Failed to narrow content type "+type+" with content-type annotation ("+cc.getName()+"): "+iae.getMessage());
+                }
+            }
+        }
+        return type;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected JsonSerializer<Object> findKeySerializer(SerializationConfig config, Annotated a)
+    {
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        Class<? extends JsonSerializer<?>> serClass = intr.findKeySerializer(a);
+        if (serClass != null && serClass != JsonSerializer.None.class) {
+            boolean canForceAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+            return (JsonSerializer<Object>) ClassUtil.createInstance(serClass, canForceAccess);
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected JsonSerializer<Object> findContentSerializer(SerializationConfig config, Annotated a)
+    {
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        Class<? extends JsonSerializer<?>> serClass = intr.findContentSerializer(a);
+        if (serClass != null && serClass != JsonSerializer.None.class) {
+            boolean canForceAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+            return (JsonSerializer<Object>) ClassUtil.createInstance(serClass, canForceAccess);
+        }
+        return null;
     }
     
     /**

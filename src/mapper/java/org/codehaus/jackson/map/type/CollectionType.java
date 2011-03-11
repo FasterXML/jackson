@@ -37,10 +37,19 @@ public final class CollectionType
         if (contentClass == _elementType.getRawClass()) {
             return this;
         }
-        JavaType newElementType = _elementType.narrowBy(contentClass);
-        return new CollectionType(_class, newElementType).copyHandlers(this);
+        return new CollectionType(_class, _elementType.narrowBy(contentClass)).copyHandlers(this);
     }
 
+    @Override
+    public JavaType widenContentsBy(Class<?> contentClass)
+    {
+        // Can do a quick check first:
+        if (contentClass == _elementType.getRawClass()) {
+            return this;
+        }
+        return new CollectionType(_class, _elementType.widenBy(contentClass)).copyHandlers(this);
+    }
+    
     public static CollectionType construct(Class<?> rawType, JavaType elemT)
     {
         // nominally component types will be just Object.class
