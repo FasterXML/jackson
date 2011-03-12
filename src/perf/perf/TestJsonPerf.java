@@ -70,17 +70,17 @@ public final class TestJsonPerf
             switch (round) {
 
             case 0:
-                msg = "Jackson, stream/byte";
+                msg = "Jackson, stream"; // byte
                 sum += testJacksonStream(REPS, _jsonFactory, _jsonData, true);
                 break;
 
             case 1:
-                msg = "Jackson/JsonNode";
+                msg = "Jackson, JsonNode";
                 sum += testJacksonTree(_mapper, _jsonData, REPS);
                 break;
                                 
             case 2:
-                msg = "Jackson+Json.org";
+                msg = "Jackson + module-org-json";
                 sum += testJsonOrgViaJackson(REPS);
                 break;
 
