@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 
@@ -41,6 +42,42 @@ public class TestNamingStrategy extends BaseMapTest
         }
     }
 
+    static class CStyleStrategy extends PropertyNamingStrategy
+    {
+        @Override
+        public String nameForField(MapperConfig<?> config, AnnotatedField field, String defaultName)
+        {
+            return convert(defaultName);
+        }
+
+        @Override
+        public String nameForGetterMethod(MapperConfig<?> config, AnnotatedMethod method, String defaultName)
+        {
+            return convert(defaultName);
+        }
+
+        @Override
+        public String nameForSetterMethod(MapperConfig<?> config, AnnotatedMethod method, String defaultName)
+        {
+            return convert(defaultName);
+        }
+
+        private String convert(String input)
+        {
+            // easy: replace capital letters with underscore, lower-cases equivalent
+            StringBuilder result = new StringBuilder();
+            for (int i = 0, len = input.length(); i < len; ++i) {
+                char c = input.charAt(i);
+                if (Character.isUpperCase(c)) {
+                    result.append('_');
+                    c = Character.toLowerCase(c);
+                }
+                result.append(c);
+            }
+            return result.toString();
+        }
+    }
+    
     static class GetterBean {
         public int getKey() { return 123; }
     }
@@ -58,6 +95,19 @@ public class TestNamingStrategy extends BaseMapTest
 
         public FieldBean() { this(0); }
         public FieldBean(int v) { key = v; }
+    }
+
+    @JsonPropertyOrder({"firstName", "lastName"})
+    static class PersonBean {
+        public String firstName;
+        public String lastName;
+
+        public PersonBean() { this(null, null); }
+        public PersonBean(String f, String l)
+        {
+            firstName = f;
+            lastName = l;
+        }
     }
     
     /*
@@ -92,5 +142,19 @@ public class TestNamingStrategy extends BaseMapTest
         // then deserialize
         FieldBean result = mapper.readValue(json, FieldBean.class);
         assertEquals(999, result.key);
+    }
+
+    public void testCStyleNaming() throws Exception
+    {
+        // First serialize
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setPropertyNamingStrategy(new CStyleStrategy());
+        String json = mapper.writeValueAsString(new PersonBean("Joe", "Sixpack"));
+        assertEquals("{\"first_name\":\"Joe\",\"last_name\":\"Sixpack\"}", json);
+        
+        // then deserialize
+        PersonBean result = mapper.readValue(json, PersonBean.class);
+        assertEquals("Joe", result.firstName);
+        assertEquals("Sixpack", result.lastName);
     }
 }
