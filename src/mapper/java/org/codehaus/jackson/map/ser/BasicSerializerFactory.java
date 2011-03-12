@@ -517,8 +517,8 @@ public abstract class BasicSerializerFactory
         if (!staticTyping) {
             staticTyping = usesStaticTyping(config, beanDesc, vts, property);
         }
-        JsonSerializer<Object> keySerializer = findKeySerializer(config, beanDesc.getClassInfo());
-        JsonSerializer<Object> valueSerializer = findContentSerializer(config, beanDesc.getClassInfo());
+        JsonSerializer<Object> keySerializer = findKeySerializer(config, beanDesc.getClassInfo(), property);
+        JsonSerializer<Object> valueSerializer = findContentSerializer(config, beanDesc.getClassInfo(), property);
         return MapSerializer.construct(config.getAnnotationIntrospector().findPropertiesToIgnore(beanDesc.getClassInfo()),
                 type, staticTyping, vts, property,
                 keySerializer, valueSerializer);
@@ -542,7 +542,8 @@ public abstract class BasicSerializerFactory
         if (!staticTyping) {
             staticTyping = usesStaticTyping(config, beanDesc, vts, property);
         }
-        JsonSerializer<Object> valueSerializer = findContentSerializer(config, beanDesc.getClassInfo());
+        JsonSerializer<Object> valueSerializer = findContentSerializer(config,
+                beanDesc.getClassInfo(), property);
         return new EnumMapSerializer(valueType, staticTyping, enums, vts, property, valueSerializer);
     }
 
@@ -560,7 +561,8 @@ public abstract class BasicSerializerFactory
         if (!staticTyping) {
             staticTyping = usesStaticTyping(config, beanDesc, vts, property);
         }
-        JsonSerializer<Object> valueSerializer = findContentSerializer(config, beanDesc.getClassInfo());
+        JsonSerializer<Object> valueSerializer = findContentSerializer(config,
+                beanDesc.getClassInfo(), property);
         return new ObjectArraySerializer(valueType, staticTyping, vts, property, valueSerializer);
     }
 
@@ -574,7 +576,8 @@ public abstract class BasicSerializerFactory
         if (!staticTyping) {
             staticTyping = usesStaticTyping(config, beanDesc, vts, property);
         }
-        JsonSerializer<Object> valueSerializer = findContentSerializer(config, beanDesc.getClassInfo());
+        JsonSerializer<Object> valueSerializer = findContentSerializer(config,
+                beanDesc.getClassInfo(), property);
         return ContainerSerializers.indexedListSerializer(valueType, staticTyping, vts, property, valueSerializer);
     }
 
@@ -588,7 +591,8 @@ public abstract class BasicSerializerFactory
         if (!staticTyping) {
             staticTyping = usesStaticTyping(config, beanDesc, vts, property);
         }
-        JsonSerializer<Object> valueSerializer = findContentSerializer(config, beanDesc.getClassInfo());
+        JsonSerializer<Object> valueSerializer = findContentSerializer(config,
+                beanDesc.getClassInfo(), property);
         return ContainerSerializers.collectionSerializer(valueType, staticTyping, vts, property, valueSerializer);
     }
 
@@ -693,10 +697,16 @@ public abstract class BasicSerializerFactory
     }
 
     @SuppressWarnings("unchecked")
-    protected JsonSerializer<Object> findKeySerializer(SerializationConfig config, Annotated a)
+    protected static JsonSerializer<Object> findKeySerializer(SerializationConfig config,
+            Annotated a, BeanProperty property)
     {
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         Class<? extends JsonSerializer<?>> serClass = intr.findKeySerializer(a);
+        if (serClass == null || serClass == JsonSerializer.None.class) {
+            if (property != null) {
+                serClass = intr.findKeySerializer(property.getMember());
+            }
+        }
         if (serClass != null && serClass != JsonSerializer.None.class) {
             boolean canForceAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
             return (JsonSerializer<Object>) ClassUtil.createInstance(serClass, canForceAccess);
@@ -705,10 +715,16 @@ public abstract class BasicSerializerFactory
     }
 
     @SuppressWarnings("unchecked")
-    protected JsonSerializer<Object> findContentSerializer(SerializationConfig config, Annotated a)
+    protected static JsonSerializer<Object> findContentSerializer(SerializationConfig config,
+            Annotated a, BeanProperty property)
     {
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         Class<? extends JsonSerializer<?>> serClass = intr.findContentSerializer(a);
+        if (serClass == null || serClass == JsonSerializer.None.class) {
+            if (property != null) {
+                serClass = intr.findContentSerializer(property.getMember());
+            }
+        }
         if (serClass != null && serClass != JsonSerializer.None.class) {
             boolean canForceAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
             return (JsonSerializer<Object>) ClassUtil.createInstance(serClass, canForceAccess);

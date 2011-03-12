@@ -109,16 +109,12 @@ public abstract class BaseJsonNode
         throws IOException, JsonProcessingException;
 
     /**
-     * Since JSON node typing is only based on JSON values,
-     * there is no need to include type information. So, serialize
-     * the same way as when no typing is enabled.
+     * Type information is needed, even if JsonNode instances are "plain" JSON,
+     * since they may be mixed with other types.
      */
-    public void serializeWithType(JsonGenerator jgen, SerializerProvider provider,
+    public abstract void serializeWithType(JsonGenerator jgen, SerializerProvider provider,
             TypeSerializer typeSer)
-        throws IOException, JsonProcessingException
-    {
-        serialize(jgen, provider);
-    }
+        throws IOException, JsonProcessingException;
 
     /*
     /**********************************************************

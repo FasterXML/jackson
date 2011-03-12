@@ -6,6 +6,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 
 /**
  * Node that maps to JSON Object structures in JSON content.
@@ -198,6 +199,21 @@ public class ObjectNode
         jg.writeEndObject();
     }
 
+    @Override
+    public void serializeWithType(JsonGenerator jg, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonProcessingException
+    {
+        typeSer.writeTypePrefixForObject(this, jg);
+        if (_children != null) {
+            for (Map.Entry<String, JsonNode> en : _children.entrySet()) {
+                jg.writeFieldName(en.getKey());
+                ((BaseJsonNode) en.getValue()).serialize(jg, provider);
+            }
+        }
+        typeSer.writeTypeSuffixForObject(this, jg);
+    }
+    
     /*
     /**********************************************************
     /* Extended ObjectNode API, accessors

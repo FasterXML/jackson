@@ -1,7 +1,13 @@
 package org.codehaus.jackson.node;
 
+import java.io.IOException;
+
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 
 /**
  * This intermediate base class is used for all leaf nodes, that is,
@@ -19,10 +25,20 @@ public abstract class ValueNode
     @Override
     public abstract JsonToken asToken();
 
+    @Override
+    public void serializeWithType(JsonGenerator jg, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonProcessingException
+    {
+        typeSer.writeTypePrefixForScalar(this, jg);
+        serialize(jg, provider);
+        typeSer.writeTypeSuffixForScalar(this, jg);
+    }
+    
     /*
-    ////////////////////////////////////////////////////
-    // Public API, path handling
-    ////////////////////////////////////////////////////
+    /**********************************************************************
+    /* Public API, path handling
+    /**********************************************************************
      */
 
     @Override
@@ -32,9 +48,9 @@ public abstract class ValueNode
     public JsonNode path(int index) { return MissingNode.getInstance(); }
 
     /*
-    ////////////////////////////////////////////////////
-    // Base impls for standard methods
-    ////////////////////////////////////////////////////
+    /**********************************************************************
+    /* Base impls for standard methods
+    /**********************************************************************
      */
 
     @Override

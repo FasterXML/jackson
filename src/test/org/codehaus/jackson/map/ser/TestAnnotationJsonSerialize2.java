@@ -78,6 +78,16 @@ public class TestAnnotationJsonSerialize2
             values.add(new ActualValue(value));
         }
     }
+
+    static class ListWrapperWithSerializer
+    {
+        @JsonSerialize(contentUsing=SimpleValueSerializer.class)
+        public final ArrayList<ActualValue> values = new ArrayList<ActualValue>();
+        
+        public ListWrapperWithSerializer(String value) {
+            values.add(new ActualValue(value));
+        }
+    }
     
     static class MapWrapper
     {
@@ -89,6 +99,16 @@ public class TestAnnotationJsonSerialize2
         }
     }
 
+    static class MapWrapperWithSerializer
+    {
+        @JsonSerialize(keyUsing=SimpleKeySerializer.class, contentUsing=SimpleValueSerializer.class)
+        public final HashMap<SimpleKey, ActualValue> values = new HashMap<SimpleKey, ActualValue>();
+        
+        public MapWrapperWithSerializer(String key, String value) {
+            values.put(new SimpleKey(key), new ActualValue(value));
+        }
+    }
+    
     /*
     /**********************************************************
     /* Test methods
@@ -139,11 +159,25 @@ public class TestAnnotationJsonSerialize2
         assertEquals("{\"values\":[{\"value\":\"bar\"}]}", m.writeValueAsString(input));
     }
 
+    public void testSerializedAsListWithPropertyAnnotations2() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        ListWrapperWithSerializer input = new ListWrapperWithSerializer("abc");
+        assertEquals("{\"values\":[\"value abc\"]}", m.writeValueAsString(input));
+    }
+    
     // [JACKSON-480], test annotations when applied to Map property (getter, setter)
     public void testSerializedAsMapWithPropertyAnnotations() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
         MapWrapper input = new MapWrapper("a", "b");
         assertEquals("{\"values\":{\"toString:a\":{\"value\":\"b\"}}}", m.writeValueAsString(input));
+    }
+
+    public void testSerializedAsMapWithPropertyAnnotations2() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        MapWrapperWithSerializer input = new MapWrapperWithSerializer("foo", "b");
+        assertEquals("{\"values\":{\"key foo\":\"value b\"}}", m.writeValueAsString(input));
     }
 }

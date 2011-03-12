@@ -97,6 +97,7 @@ public class PropertyBuilder
             serializationType = serializationType.withContentTypeHandler(contentTypeSer);
             ct = serializationType.getContentType();
         }
+        
         Object suppValue = null;
         boolean suppressNulls = false;
 

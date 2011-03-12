@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 
 /**
  * This singleton node class is generated to denote "missing nodes"
@@ -61,8 +62,17 @@ public final class MissingNode
          * Chances are, this is an erroneous call. For now, let's
          * not do that.
          */
+        jg.writeNull();
     }
 
+    @Override
+    public void serializeWithType(JsonGenerator jg, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonProcessingException
+    {
+        jg.writeNull();
+    }
+    
     @Override
     public boolean equals(Object o)
     {

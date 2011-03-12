@@ -6,6 +6,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 
 /**
  * Node class that represents Arrays mapped from Json content.
@@ -63,7 +64,7 @@ public final class ArrayNode
         }
         return MissingNode.getInstance();
     }
-
+    
     /*
     /**********************************************************
     /* Public API, serialization
@@ -88,6 +89,20 @@ public final class ArrayNode
         jg.writeEndArray();
     }
 
+    @Override
+    public void serializeWithType(JsonGenerator jg, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonProcessingException
+    {
+        typeSer.writeTypePrefixForArray(this, jg);
+        if (_children != null) {
+            for (JsonNode n : _children) {
+                ((BaseJsonNode)n).writeTo(jg);
+            }
+        }
+        typeSer.writeTypeSuffixForArray(this, jg);
+    }
+    
     /*
     /**********************************************************
     /* Public API, finding value nodes

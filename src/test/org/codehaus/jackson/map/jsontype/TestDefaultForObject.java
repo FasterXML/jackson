@@ -313,7 +313,6 @@ public class TestDefaultForObject
         wrapper.name = "mickey";
         wrapper.myBean = d1;
         String json = mapper.writeValueAsString(wrapper);
-        //System.out.println(serialText);
         DomainBeanWrapper result = mapper.readValue(json, DomainBeanWrapper.class);
         assertNotNull(result);
         assertNotNull(wrapper.myBean);
