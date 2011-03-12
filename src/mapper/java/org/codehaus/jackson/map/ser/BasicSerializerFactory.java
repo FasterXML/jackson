@@ -646,8 +646,7 @@ public abstract class BasicSerializerFactory
     protected <T extends JavaType> T modifyTypeByAnnotation(SerializationConfig config, Annotated a, T type)
     {
         // first: let's check class for the instance itself:
-        AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        Class<?> superclass = intr.findSerializationType(a);
+        Class<?> superclass = config.getAnnotationIntrospector().findSerializationType(a);
         if (superclass != null) {
             try {
                 type = (T) type.widenBy(superclass);
@@ -655,7 +654,16 @@ public abstract class BasicSerializerFactory
                 throw new IllegalArgumentException("Failed to widen type "+type+" with concrete-type annotation (value "+superclass.getName()+"), method '"+a.getName()+"': "+iae.getMessage());
             }
         }
+        return modifySecondaryTypesByAnnotation(config, a, type);
+    }
 
+    /**
+     * @since 1.8
+     */
+    @SuppressWarnings("unchecked")
+    protected static <T extends JavaType> T modifySecondaryTypesByAnnotation(SerializationConfig config, Annotated a, T type)
+    {
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
         // then key class
         if (type.isContainerType()) {
             Class<?> keyClass = intr.findSerializationKeyType(a, type.getKeyType());

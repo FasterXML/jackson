@@ -9,12 +9,7 @@ import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
-import org.codehaus.jackson.map.introspect.Annotated;
-import org.codehaus.jackson.map.introspect.AnnotatedField;
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
-import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.BasicBeanDescription;
-import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.util.Annotations;
 import org.codehaus.jackson.type.JavaType;
 
@@ -164,6 +159,12 @@ public class PropertyBuilder
             useStaticTyping = true;
         }
 
+        JavaType secondary = BeanSerializerFactory.modifySecondaryTypesByAnnotation(_config, a, declaredType);
+        if (secondary != declaredType) {
+            useStaticTyping = true;
+            declaredType = secondary;
+        }
+        
         /* [JACKSON-114]: if using static typing, declared type is known
          * to be the type...
          */
