@@ -78,7 +78,7 @@ public class PropertyBuilder
         }
 
         // do we have annotation that forces type to use (to declared type or its super type)?
-        JavaType serializationType = findSerializationType(am, defaultUseStaticTyping);
+        JavaType serializationType = findSerializationType(am, defaultUseStaticTyping, declaredType);
 
         // Container types can have separate type serializers for content (value / element) type
         if (contentTypeSer != null) {
@@ -136,42 +136,44 @@ public class PropertyBuilder
      * declared type (if static typing for serialization is enabled).
      * If neither can be used (no annotations, dynamic typing), returns null.
      */
-    protected JavaType findSerializationType(Annotated a, boolean useStaticTyping)
+    protected JavaType findSerializationType(Annotated a, boolean useStaticTyping, JavaType declaredType)
     {
         // [JACKSON-120]: Check to see if serialization type is fixed
-        Class<?> serializationType = _annotationIntrospector.findSerializationType(a);
-        if (serializationType != null) {
+        Class<?> serClass = _annotationIntrospector.findSerializationType(a);
+        if (serClass != null) {
             // Must be a super type to be usable
-            Class<?> raw = a.getRawType();
-            if (serializationType.isAssignableFrom(raw)) {
-                return TypeFactory.type(serializationType);
+            Class<?> rawDeclared = declaredType.getRawClass();
+            if (serClass.isAssignableFrom(rawDeclared)) {
+                declaredType = declaredType.widenBy(serClass);
+            } else {
+                /* 18-Nov-2010, tatu: Related to fixing [JACKSON-416], an issue with such
+                 *   check is that for deserialization more specific type makes sense;
+                 *   and for serialization more generic. But alas JAXB uses but a single
+                 *   annotation to do both... Hence, we must just discard type, as long as
+                 *   types are related
+                 */
+                if (!rawDeclared.isAssignableFrom(serClass)) {
+                    throw new IllegalArgumentException("Illegal concrete-type annotation for method '"+a.getName()+"': class "+serClass.getName()+" not a super-type of (declared) class "+rawDeclared.getName());
+                }
+                /* 03-Dec-2010, tatu: Actually, ugh, to resolve [JACKSON-415] may further relax this
+                 *   and actually accept subtypes too for serialization. Bit dangerous in theory
+                 *   but need to trust user here...
+                 */
+                declaredType = declaredType.forcedNarrowBy(serClass);
             }
-            /* 18-Nov-2010, tatu: Related to fixing [JACKSON-416], an issue with such
-             *   check is that for deserialization more specific type makes sense;
-             *   and for serialization more generic. But alas JAXB uses but a single
-             *   annotation to do both... Hence, we must just discard type, as long as
-             *   types are related
-             */
-            if (!raw.isAssignableFrom(serializationType)) {
-                throw new IllegalArgumentException("Illegal concrete-type annotation for method '"+a.getName()+"': class "+serializationType.getName()+" not a super-type of (declared) class "+raw.getName());
-            }
-            /* 03-Dec-2010, tatu: Actually, ugh, to resolve [JACKSON-415] may further relax this
-             *   and actually accept subtypes too for serialization. Bit dangerous in theory
-             *   but need to trust user here...
-             */
-            return TypeFactory.type(serializationType);
+            useStaticTyping = true;
         }
+
         /* [JACKSON-114]: if using static typing, declared type is known
          * to be the type...
          */
-        JsonSerialize.Typing typing = _annotationIntrospector.findSerializationTyping(a);
-        if (typing != null) {
-            useStaticTyping = (typing == JsonSerialize.Typing.STATIC);
+        if (!useStaticTyping) {
+            JsonSerialize.Typing typing = _annotationIntrospector.findSerializationTyping(a);
+            if (typing != null) {
+                useStaticTyping = (typing == JsonSerialize.Typing.STATIC);
+            }
         }
-        if (useStaticTyping) {
-            return TypeFactory.type(a.getGenericType(), _beanDesc.getType());
-        }
-        return null;
+        return useStaticTyping ? declaredType : null;
     }
 
     protected Object getDefaultBean()

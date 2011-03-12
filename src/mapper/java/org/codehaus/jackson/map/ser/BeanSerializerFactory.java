@@ -757,13 +757,7 @@ public class BeanSerializerFactory
         if (config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
             accessor.fixAccess();
         }
-        JavaType staticType = accessor.getType(typeContext);
-        JavaType type = modifyTypeByAnnotation(config, accessor, staticType);
-        
-        // If modified in any way, consider to have forced static typing
-        if (!staticTyping) {
-            staticTyping = (type != staticType);
-        }
+        JavaType type = accessor.getType(typeContext);
         BeanProperty.Std property = new BeanProperty.Std(name, type, pb.getClassAnnotations(), accessor);
         
         // Does member specify a serializer? If so, let's use it.
