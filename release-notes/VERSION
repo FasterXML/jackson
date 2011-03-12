@@ -16,24 +16,29 @@ Description:
   
   * [JACKSON-102]: Ability to force escaping of non-ASCII characters; using
     JsonGenerator.Feature.ESCAPE_NON_ASCII and JsonGenerator.setHighestNonEscapedChar
-  * [JACKSON-106]: Add 'org.codehaus.jackson.io.CharacterEscapes' which can be registered
-    with JsonFactory, JsonGenerator, to add fully customized character escaping handling
+  * [JACKSON-106]: Add 'org.codehaus.jackson.io.CharacterEscapes' which can be
+    registered with JsonFactory, JsonGenerator, to add fully customized
+    character escaping handling
     (suggested by Scott A)
-  * [JACKSON-178]: Add support for custom property name strategies (with PropertyNamingStrategy)
+  * [JACKSON-178]: Add support for custom property name strategies (with
+    PropertyNamingStrategy)
   * [JACKSON-204]: Add DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT
     to allow binding empty JSON String as null for POJOs
   * [JACKSON-358]: Add JsonParser.Feature.ALLOW_NUMERIC_LEADING_ZEROS, to allow
     optional (and non-standard) support for numbers like 00006
     (suggested by Bryce M)
-  * [JACKSON-494]: Add support for format auto-detection (via JsonFactory); add support
-    for basic JSON, Smile (and as many modules as possible)
-  * [JACKSON-513]: Add methods for registering key serializers, deserializers, via Module API
-  * [JACKSON-523]: Allow passing actual type for TypeSerializer to use, to force specific
-    super type to be used (instead of a concrete sub type)
+  * [JACKSON-494]: Add support for format auto-detection (via JsonFactory); add
+    support for basic JSON, Smile (and as many modules as possible)
+  * [JACKSON-513]: Add methods for registering key serializers, deserializers,
+    via Module API
+  * [JACKSON-523]: Allow passing actual type for TypeSerializer to use, to
+    force specific super type to be used (instead of a concrete sub type)
 
   Improvements:
 
-  * [JACKSON-502]: Convert mr Bean functionality to be basic Module (to simplify registration)
+  * [JACKSON-480]: Added missing @JsonSerialize properties: keyAs, keyUsing,
+    contentAs, contentUsing
+  * [JACKSON-502]: Convert mr Bean functionality to be basic Module
   * [JACKSON-503]: Allow registering AbstractTypeResolvers via Module API
   * [JACKSON-519]: Add support for contextual key serializers, deserializers
 

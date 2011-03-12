@@ -34,32 +34,12 @@ public final class ContainerSerializers
     /* Factory methods
     /**********************************************************
      */
-
-    /**
-     * @deprecated since 1.8
-     */
-    @Deprecated
-    public static ContainerSerializerBase<?> indexedListSerializer(JavaType elemType,
-            boolean staticTyping, TypeSerializer vts, BeanProperty property)
-    {
-        return indexedListSerializer(elemType, staticTyping, vts, property, null);
-    }
         
     public static ContainerSerializerBase<?> indexedListSerializer(JavaType elemType,
             boolean staticTyping, TypeSerializer vts, BeanProperty property,
             JsonSerializer<Object> valueSerializer)
     {
         return new IndexedListSerializer(elemType, staticTyping, vts, property, valueSerializer);
-    }
-
-    /**
-     * @deprecated since 1.8
-     */
-    @Deprecated
-    public static ContainerSerializerBase<?> collectionSerializer(JavaType elemType,
-            boolean staticTyping, TypeSerializer vts, BeanProperty property)
-    {
-        return collectionSerializer(elemType, staticTyping, vts, property, null);
     }
 
     public static ContainerSerializerBase<?> collectionSerializer(JavaType elemType,
@@ -276,16 +256,6 @@ public final class ContainerSerializers
     public static class IndexedListSerializer
         extends AsArraySerializer<List<?>>
     {
-        /**
-         * @deprecated since 1.8
-         */
-        @Deprecated
-        public IndexedListSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
-                BeanProperty property)
-        {
-            this(elemType, staticTyping, vts, property, null);
-        }
-
         public IndexedListSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
                 BeanProperty property, JsonSerializer<Object> valueSerializer)
         {
@@ -294,7 +264,7 @@ public final class ContainerSerializers
 
         @Override
         public ContainerSerializerBase<?> _withValueTypeSerializer(TypeSerializer vts) {
-            return new IndexedListSerializer(_elementType, _staticTyping, vts, _property);
+            return new IndexedListSerializer(_elementType, _staticTyping, vts, _property, _elementSerializer);
         }
         
         @Override

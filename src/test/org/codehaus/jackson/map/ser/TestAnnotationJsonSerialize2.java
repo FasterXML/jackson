@@ -95,7 +95,6 @@ public class TestAnnotationJsonSerialize2
     /**********************************************************
      */
     
-    /*
     // [JACKSON-480], test value annotation applied to List value class
     public void testSerializedAsListWithClassAnnotations() throws IOException
     {
@@ -111,7 +110,7 @@ public class TestAnnotationJsonSerialize2
         ObjectMapper m = new ObjectMapper();
         SimpleValueMap map = new SimpleValueMap();
         map.put(new SimpleKey("x"), new ActualValue("y"));
-        assertEquals("{\"key x\":{\"value\":\"y\"}}", m.writeValueAsString(map));
+        assertEquals("{\"toString:x\":{\"value\":\"y\"}}", m.writeValueAsString(map));
     }
 
     // [JACKSON-480], test Serialization annotation with List
@@ -124,32 +123,27 @@ public class TestAnnotationJsonSerialize2
     }
 
     // [JACKSON-480], test Serialization annotation with Map
-    public void testSerializedAsListWithClassSerializer() throws IOException
+    public void testSerializedAsMapWithClassSerializer() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
         SimpleValueMapWithSerializer map = new SimpleValueMapWithSerializer();
         map.put(new SimpleKey("abc"), new ActualValue("123"));
         assertEquals("{\"key abc\":\"value 123\"}", m.writeValueAsString(map));
     }
-    */
     
     // [JACKSON-480], test annotations when applied to List property (getter, setter)
     public void testSerializedAsListWithPropertyAnnotations() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
         ListWrapper input = new ListWrapper("bar");
-        assertEquals("{\"values\":[{\"value\":\"bar\"}}]", m.writeValueAsString(input));
+        assertEquals("{\"values\":[{\"value\":\"bar\"}]}", m.writeValueAsString(input));
     }
 
-/*
     // [JACKSON-480], test annotations when applied to Map property (getter, setter)
     public void testSerializedAsMapWithPropertyAnnotations() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
         MapWrapper input = new MapWrapper("a", "b");
-        assertEquals("{\"values\":{\"key a\":{\"value b\"}}}", m.writeValueAsString(input));
+        assertEquals("{\"values\":{\"toString:a\":{\"value\":\"b\"}}}", m.writeValueAsString(input));
     }
-*/    
-    // [JACKSON-480], custom handlers for key, content values
-    
 }
