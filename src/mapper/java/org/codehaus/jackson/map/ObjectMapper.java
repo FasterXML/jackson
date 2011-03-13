@@ -933,15 +933,6 @@ public class ObjectMapper
     }
 
     /**
-     * @deprecated Typo in name -- use {@link #setDefaultTyping} instead.
-     */
-    @Deprecated
-    public ObjectMapper setDefaltTyping(TypeResolverBuilder<?> typer) {
-        _defaultTyper = typer;
-        return this;
-    }
-
-    /**
      * Method for enabling automatic inclusion of type information, using
      * specified handler object for determining which types this affects,
      * as well as details of how information is embedded.
