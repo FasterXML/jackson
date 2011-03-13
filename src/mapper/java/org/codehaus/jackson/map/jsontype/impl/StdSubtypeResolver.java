@@ -53,15 +53,33 @@ public class StdSubtypeResolver extends SubtypeResolver
     public Collection<NamedType> collectAndResolveSubtypes(AnnotatedMember property,
         MapperConfig<?> config, AnnotationIntrospector ai)
     {
-        // but if annotations found, may need to resolve subtypes:
-        Collection<NamedType> st = ai.findSubtypes(property);
-        // If no explicit definitions, base itself might have name
-        if (st == null) {
-            st = new ArrayList<NamedType>();
+        HashMap<NamedType, NamedType> collected = new HashMap<NamedType, NamedType>();
+        // start with registered subtypes (which have precedence)
+        if (_registeredSubtypes != null) {
+            Class<?> rawBase = property.getRawType();
+            for (NamedType subtype : _registeredSubtypes) {
+                // is it a subtype of root type?
+                if (rawBase.isAssignableFrom(subtype.getType())) { // yes
+                    AnnotatedClass curr = AnnotatedClass.constructWithoutSuperTypes(subtype.getType(), ai, config);
+                    _collectAndResolve(curr, subtype, config, ai, collected);
+                }
+            }
         }
-        // ensure that base type is included as starting point
-        st.add(new NamedType(property.getRawType(), null));
-        return _collectAndResolve(property, config, ai, st);
+
+        // then annotated types for property itself
+        Collection<NamedType> st = ai.findSubtypes(property);
+        if (st != null) {
+            for (NamedType nt : st) {
+                AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(nt.getType(), ai, config);
+                _collectAndResolve(ac, nt, config, ai, collected);
+            }            
+        }
+        NamedType rootType = new NamedType(property.getRawType(), null);
+        AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(property.getRawType(), ai, config);
+            
+        // and finally subtypes via annotations from base type (recursively)
+        _collectAndResolve(ac, rootType, config, ai, collected);
+        return new ArrayList<NamedType>(collected.values());
     }
 
     @Override
@@ -92,43 +110,6 @@ public class StdSubtypeResolver extends SubtypeResolver
     /**********************************************************
      */
     
-    /**
-     * Method called to find subtypes for a property that has specific annotations
-     * (mostly to support JAXB per-property subtype declarations)
-     * 
-     * @param property Member (method, field) to proces
-     */
-    protected Collection<NamedType> _collectAndResolve(AnnotatedMember property, MapperConfig<?> config,
-            AnnotationIntrospector ai, Collection<NamedType> subtypeList)
-    {
-        // Hmmh. Can't iterate over collection and modify it, so:
-        HashSet<NamedType> seen = new HashSet<NamedType>(subtypeList);          
-        ArrayList<NamedType> subtypes = new ArrayList<NamedType>(subtypeList);
-        
-        // collect all subtypes iteratively
-        for (int i = 0; i < subtypes.size(); ++i) {
-            NamedType type = subtypes.get(i);
-            AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(type.getType(), ai, config);
-            // but first: does type have a name already?
-            if (!type.hasName()) { // if not, let's see if annotations define it
-                type.setName(ai.findTypeName(ac));
-            }
-            // and see if annotations list more subtypes
-            List<NamedType> moreTypes = ai.findSubtypes(ac);
-            if (moreTypes != null) {
-                for (NamedType t2 : moreTypes) {
-                    // we want to keep the first reference (may have name)
-                    if (seen.add(t2)) {
-                        subtypes.add(t2);
-                    }
-                }
-            }
-        }
-        // 14-Aug-2010, tatu: Should we consider registered subtypes [JACKSON-257]?
-        //   For now assume not, such that annotation is assumed to be complete
-        return subtypes;
-    }
-
     /**
      * Method called to find subtypes for a specific type (class)
      */
@@ -167,42 +148,4 @@ public class StdSubtypeResolver extends SubtypeResolver
             }
         }
     }
-
-    /*
-    protected Collection<NamedType> _collectAndResolve(AnnotatedClass rootType,
-            MapperConfig<?> config, AnnotationIntrospector ai, Collection<NamedType> subtypeList)
-    {
-        // Hmmh. Can't iterate over collection and modify it, need to make a copy
-        HashMap<NamedType,NamedType> subtypes = new HashMap<NamedType,NamedType>(4 + 2 * subtypeList.size());
-        for (NamedType type : subtypeList) {
-            subtypes.put(type, type);
-        }
-    
-        // Plus root type can have name of its own...
-        NamedType rootNamedType = new NamedType(rootType.getRawType(), ai.findTypeName(rootType));                
-        subtypes.put(rootNamedType, rootNamedType);
-
-        // Check subtypes reachable via annotations first:
-        for (int i = 0; i < subtypes.size(); ++i) {
-            NamedType type = subtypes.get(i);
-            AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(type.getType(), ai, config);
-            // but first: does type have a name already?
-            if (!type.hasName()) { // if not, let's see if annotations define it
-                type.setName(ai.findTypeName(ac));
-            }
-            // and see if annotations list more subtypes
-            List<NamedType> moreTypes = ai.findSubtypes(ac);
-            if (moreTypes != null) {
-                for (NamedType t2 : moreTypes) {
-                    // we want to keep the first reference (may have name)
-                    if (seen.add(t2)) {
-                        subtypes.add(t2);
-                    }
-                }
-            }
-        }
-
-        return subtypes.values();
-    }
-    */
 }

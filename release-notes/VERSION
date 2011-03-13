@@ -53,6 +53,7 @@ Description:
     (reported by John V)
   * [JACKSON-509] @JsonSubTypes was not allowed for fields/methods/ctor-parameters (although
     @JsonTypeInfo was, starting with 1.7)
+  * [JACKSON-510] Registered subtypes not used for @JsonTypeInfo used with properties
 
   Potential backwards compatibility issues (compared to 1.7.x):
 
