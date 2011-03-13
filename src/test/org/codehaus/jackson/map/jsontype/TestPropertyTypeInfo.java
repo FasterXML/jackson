@@ -122,16 +122,20 @@ public class TestPropertyTypeInfo extends BaseMapTest
         ObjectMapper mapper = new ObjectMapper();
         MethodWrapperBeanList list = new MethodWrapperBeanList();
         list.add(new MethodWrapperBean(new BooleanWrapper(true)));
-//        list.add(new MethodWrapperBean(new StringWrapper("x")));
-//        list.add(new MethodWrapperBean(new OtherBean()));
+        list.add(new MethodWrapperBean(new StringWrapper("x")));
+        list.add(new MethodWrapperBean(new OtherBean()));
         String json = mapper.writeValueAsString(list);
-//System.out.println("JSON/method+list == "+json);
         MethodWrapperBeanList result = mapper.readValue(json, MethodWrapperBeanList.class);
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(3, result.size());
         MethodWrapperBean bean = result.get(0);
         assertEquals(BooleanWrapper.class, bean.value.getClass());
         assertEquals(((BooleanWrapper) bean.value).b, Boolean.TRUE);
+        bean = result.get(1);
+        assertEquals(StringWrapper.class, bean.value.getClass());
+        assertEquals(((StringWrapper) bean.value).str, "x");
+        bean = result.get(2);
+        assertEquals(OtherBean.class, bean.value.getClass());
     }
 
     public void testSimpleArrayField() throws Exception
@@ -140,7 +144,6 @@ public class TestPropertyTypeInfo extends BaseMapTest
         FieldWrapperBeanArray array = new FieldWrapperBeanArray(new
                 FieldWrapperBean[] { new FieldWrapperBean(new BooleanWrapper(true)) });
         String json = mapper.writeValueAsString(array);
-//System.out.println("JSON/field+array == "+json);
         FieldWrapperBeanArray result = mapper.readValue(json, FieldWrapperBeanArray.class);
         assertNotNull(result);
         FieldWrapperBean[] beans = result.beans;
@@ -156,7 +159,6 @@ public class TestPropertyTypeInfo extends BaseMapTest
         MethodWrapperBeanArray array = new MethodWrapperBeanArray(new
                 MethodWrapperBean[] { new MethodWrapperBean(new StringWrapper("A")) });
         String json = mapper.writeValueAsString(array);
-//System.out.println("JSON/method+array == "+json);
         MethodWrapperBeanArray result = mapper.readValue(json, MethodWrapperBeanArray.class);
         assertNotNull(result);
         MethodWrapperBean[] beans = result.beans;
@@ -172,7 +174,6 @@ public class TestPropertyTypeInfo extends BaseMapTest
         FieldWrapperBeanMap map = new FieldWrapperBeanMap();
         map.put("foop", new FieldWrapperBean(new IntWrapper(13)));
         String json = mapper.writeValueAsString(map);
-//System.out.println("JSON/field+map == "+json);
         FieldWrapperBeanMap result = mapper.readValue(json, FieldWrapperBeanMap.class);
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -189,7 +190,6 @@ public class TestPropertyTypeInfo extends BaseMapTest
         MethodWrapperBeanMap map = new MethodWrapperBeanMap();
         map.put("xyz", new MethodWrapperBean(new BooleanWrapper(true)));
         String json = mapper.writeValueAsString(map);
-//System.out.println("JSON/method+map == "+json);
         MethodWrapperBeanMap result = mapper.readValue(json, MethodWrapperBeanMap.class);
         assertNotNull(result);
         assertEquals(1, result.size());

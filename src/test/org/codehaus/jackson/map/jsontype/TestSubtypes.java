@@ -31,12 +31,34 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
     static class EmptyBean extends BaseBean { }
 
     static class EmptyNonFinal { }
+
+    // Verify combinations with [JACKSON-510]
+
+    static class PropertyBean
+    {
+        @JsonTypeInfo(use=JsonTypeInfo.Id.NAME)
+        public SuperType value;
+        
+        public PropertyBean() { this(null); }
+        public PropertyBean(SuperType v) { value = v; }
+    }
     
     /*
     /**********************************************************
     /* Unit tests
     /**********************************************************
      */
+
+    // JACKSON-510
+    public void testPropertyWithSubtypes() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // must register subtypes
+        mapper.registerSubtypes(SubB.class, SubC.class, SubD.class);
+        String json = mapper.writeValueAsString(new PropertyBean(new SubC()));
+        PropertyBean result = mapper.readValue(json, PropertyBean.class);
+        assertSame(SubC.class, result.value.getClass());
+    }
 
     public void testSerialization() throws Exception
     {
