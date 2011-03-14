@@ -21,7 +21,7 @@ public final class AnnotatedConstructor
      */
 
     public AnnotatedConstructor(Constructor<?> constructor,
-                                AnnotationMap classAnn, AnnotationMap[] paramAnn)
+            AnnotationMap classAnn, AnnotationMap[] paramAnn)
     {
         super(classAnn, paramAnn);
         if (constructor == null) {
@@ -73,8 +73,9 @@ public final class AnnotatedConstructor
                 bindings._addPlaceholder(name);
                 // About only useful piece of information is the lower bound (which is at least Object.class)
                 Type lowerBound = var.getBounds()[0];
-                JavaType type = (lowerBound == null) ? TypeFactory.fastSimpleType(Object.class)
-                        : TypeFactory.type(lowerBound, bindings);
+                TypeFactory tf = bindings.getTypeFactory();
+                JavaType type = (lowerBound == null) ? tf.uncheckedSimpleType(Object.class)
+                        : tf._constructType(lowerBound, bindings);
                 bindings.addBinding(var.getName(), type);
             }
         }

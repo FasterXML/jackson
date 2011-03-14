@@ -104,7 +104,7 @@ public final class TypeFactory
      */
     public static JavaType type(Type type, Class<?> context)
     {
-        return instance._constructType(type, new TypeBindings(context));
+        return instance.constructType(type, context);
     }
 
     /**
@@ -112,7 +112,7 @@ public final class TypeFactory
      */
     public static JavaType type(Type type, JavaType context)
     {
-        return instance._constructType(type, new TypeBindings(context));
+        return instance.constructType(type, context);
     }
     
     public static JavaType type(Type type, TypeBindings bindings)
@@ -128,7 +128,7 @@ public final class TypeFactory
      */
     public static JavaType type(TypeReference<?> ref)
     {
-        return instance._constructType(ref.getType(), null);
+        return instance.constructType(ref.getType());
     }
     
     /**
@@ -140,7 +140,7 @@ public final class TypeFactory
      */
     public static JavaType arrayType(Class<?> elementType)
     {
-        return instance.constructArrayType(type(elementType));
+        return instance.constructArrayType(instance.constructType(elementType));
     }
 
     /**
@@ -165,7 +165,7 @@ public final class TypeFactory
     @SuppressWarnings("unchecked")
     public static JavaType collectionType(Class<? extends Collection> collectionType, Class<?> elementType)
     {
-        return instance.constructCollectionType(collectionType, type(elementType));
+        return instance.constructCollectionType(collectionType, instance.constructType(elementType));
     }
     
     /**
@@ -190,7 +190,7 @@ public final class TypeFactory
     @SuppressWarnings("unchecked")
     public static JavaType mapType(Class<? extends Map> mapClass, Class<?> keyType, Class<?> valueType)
     {
-        return instance.constructMapType(mapClass, type(keyType), type(valueType));
+        return instance.constructMapType(mapClass, type(keyType), instance.constructType(valueType));
     }
 
     /**
@@ -254,12 +254,6 @@ public final class TypeFactory
     {
         return instance._parser.parse(canonical);
     }
-    
-    /*
-    /**********************************************************
-    /* Type conversions
-    /**********************************************************
-     */
 
     /**
      * Method that tries to create specialized type given base type, and
@@ -269,36 +263,10 @@ public final class TypeFactory
      * example), unliked <code>narrowBy</code> which assumes same logical
      * type.
      */
-    public static JavaType specialize(JavaType baseType, Class<?> subclass)
-    {
-        // Currently only SimpleType instances can become something else
-    	if (baseType instanceof SimpleType) {
-            // and only if subclass is an array, Collection or Map
-            if (subclass.isArray()
-                || Map.class.isAssignableFrom(subclass)
-                || Collection.class.isAssignableFrom(subclass)) {
-                // need to assert type compatibility...
-                if (!baseType.getRawClass().isAssignableFrom(subclass)) {
-                    throw new IllegalArgumentException("Class "+subclass.getClass().getName()+" not subtype of "+baseType);
-                }
-                // this _should_ work, right?
-                JavaType subtype = instance._fromClass(subclass, new TypeBindings(baseType.getRawClass()));
-                // one more thing: handlers to copy?
-                Object h = baseType.getValueHandler();
-                if (h != null) {
-                    subtype.setValueHandler(h);
-                }
-                h = baseType.getTypeHandler();
-                if (h != null) {
-                    subtype = subtype.withTypeHandler(h);
-                }
-                return subtype;
-            }
-        }
-        // otherwise regular narrowing should work just fine
-        return baseType.narrowBy(subclass);
+    public static JavaType specialize(JavaType baseType, Class<?> subclass) {
+        return instance.specializeType(baseType, subclass);
     }
-
+    
     /**
      * Method that can be used if it is known for sure that given type
      * is not a structured type (array, Map, Collection).
@@ -322,44 +290,15 @@ public final class TypeFactory
      * 
      * @since 1.6
      */
+    @Deprecated
     public static JavaType[] findParameterTypes(Class<?> clz, Class<?> expType)
     {
-        return findParameterTypes(clz, expType, new TypeBindings(clz));
+        return instance.findTypeParameters(clz, expType);
     }
-        
-    public static JavaType[] findParameterTypes(Class<?> clz, Class<?> expType, TypeBindings bindings)
-    {
-        // First: find full inheritance chain
-        HierarchicType subType = _findSuperTypeChain(clz, expType);
-        // Caller is supposed to ensure this never happens, so:
-        if (subType == null) {
-            throw new IllegalArgumentException("Class "+clz.getName()+" is not a subtype of "+expType.getName());
-        }
-        // Ok and then go to the ultimate super-type:
-        HierarchicType superType = subType;
-        while (superType.getSuperType() != null) {
-            superType = superType.getSuperType();
-            Class<?> raw = superType.getRawClass();
-            TypeBindings newBindings = new TypeBindings(raw);
-            if (superType.isGeneric()) { // got bindings, need to resolve
-                ParameterizedType pt = superType.asGeneric();
-                Type[] actualTypes = pt.getActualTypeArguments();
-                TypeVariable<?>[] vars = raw.getTypeParameters();
-                int len = actualTypes.length;
-                for (int i = 0; i < len; ++i) {
-                    String name = vars[i].getName();
-                    JavaType type = instance._constructType(actualTypes[i], bindings);
-                    newBindings.addBinding(name, type);
-                }
-            }
-            bindings = newBindings;
-        }
 
-        // which ought to be generic (if not, it's raw type)
-        if (!superType.isGeneric()) {
-            return null;
-        }
-        return bindings.typesAsArray();
+    @Deprecated
+    public static JavaType[] findParameterTypes(Class<?> clz, Class<?> expType, TypeBindings bindings) {
+        return instance.findTypeParameters(clz, expType, bindings);
     }
 
     /**
@@ -372,36 +311,13 @@ public final class TypeFactory
      * @param type Sub-type (leaf type) that implements <code>expType</code>
      * 
      * @since 1.6
+     * 
+     * @deprecated Since 1.8, use instance method {@link #findTypeParameters}
      */
-    public static JavaType[] findParameterTypes(JavaType type, Class<?> expType)
-    {
-        /* Tricky part here is that some JavaType instances have been constructed
-         * from generic type (usually via TypeReference); and in those case
-         * types have been resolved. Alternative is that the leaf type is type-erased
-         * class, in which case this has not been done.
-         * For now simplest way to handle this is to split processing in two: latter
-         * case actually fully works; and former mostly works. In future may need to
-         * rewrite former part, which requires changes to JavaType as well.
-         */
-        Class<?> raw = type.getRawClass();
-        if (raw == expType) {
-            // Direct type info; good since we can return it as is
-            int count = type.containedTypeCount();
-            if (count == 0) return null;
-            JavaType[] result = new JavaType[count];
-            for (int i = 0; i < count; ++i) {
-                result[i] = type.containedType(i);
-            }
-            return result;
-        }
-        /* Otherwise need to go through type-erased class. This may miss cases where
-         * we get generic type; ideally JavaType/SimpleType would retain information
-         * about generic declaration at main level... but let's worry about that
-         * if/when there are problems; current handling is an improvement over earlier
-         * code.
-         */
-        return findParameterTypes(raw, expType, new TypeBindings(type));
-    }    
+    @Deprecated
+    public static JavaType[] findParameterTypes(JavaType type, Class<?> expType) {
+        return instance.findTypeParameters(type, expType);
+    }
     
     /*
     /**********************************************************
@@ -455,6 +371,121 @@ public final class TypeFactory
 
     /*
     /**********************************************************
+    /* Type conversion, parameterization resolution methods
+    /**********************************************************
+     */
+    public JavaType specializeType(JavaType baseType, Class<?> subclass)
+    {
+        // Currently only SimpleType instances can become something else
+        if (baseType instanceof SimpleType) {
+            // and only if subclass is an array, Collection or Map
+            if (subclass.isArray()
+                || Map.class.isAssignableFrom(subclass)
+                || Collection.class.isAssignableFrom(subclass)) {
+                // need to assert type compatibility...
+                if (!baseType.getRawClass().isAssignableFrom(subclass)) {
+                    throw new IllegalArgumentException("Class "+subclass.getClass().getName()+" not subtype of "+baseType);
+                }
+                // this _should_ work, right?
+                JavaType subtype = instance._fromClass(subclass, new TypeBindings(this, baseType.getRawClass()));
+                // one more thing: handlers to copy?
+                Object h = baseType.getValueHandler();
+                if (h != null) {
+                    subtype.setValueHandler(h);
+                }
+                h = baseType.getTypeHandler();
+                if (h != null) {
+                    subtype = subtype.withTypeHandler(h);
+                }
+                return subtype;
+            }
+        }
+        // otherwise regular narrowing should work just fine
+        return baseType.narrowBy(subclass);
+    }
+
+    /**
+     * Method that is to figure out actual type parameters that given
+     * class binds to generic types defined by given (generic)
+     * interface or class.
+     * This could mean, for example, trying to figure out
+     * key and value types for Map implementations.
+     * 
+     * @param type Sub-type (leaf type) that implements <code>expType</code>
+     * 
+     * @since 1.6
+     */
+    public JavaType[] findTypeParameters(JavaType type, Class<?> expType)
+    {
+        /* Tricky part here is that some JavaType instances have been constructed
+         * from generic type (usually via TypeReference); and in those case
+         * types have been resolved. Alternative is that the leaf type is type-erased
+         * class, in which case this has not been done.
+         * For now simplest way to handle this is to split processing in two: latter
+         * case actually fully works; and former mostly works. In future may need to
+         * rewrite former part, which requires changes to JavaType as well.
+         */
+        Class<?> raw = type.getRawClass();
+        if (raw == expType) {
+            // Direct type info; good since we can return it as is
+            int count = type.containedTypeCount();
+            if (count == 0) return null;
+            JavaType[] result = new JavaType[count];
+            for (int i = 0; i < count; ++i) {
+                result[i] = type.containedType(i);
+            }
+            return result;
+        }
+        /* Otherwise need to go through type-erased class. This may miss cases where
+         * we get generic type; ideally JavaType/SimpleType would retain information
+         * about generic declaration at main level... but let's worry about that
+         * if/when there are problems; current handling is an improvement over earlier
+         * code.
+         */
+        return findTypeParameters(raw, expType, new TypeBindings(this, type));
+    }
+
+    public JavaType[] findTypeParameters(Class<?> clz, Class<?> expType) {
+        return findTypeParameters(clz, expType, new TypeBindings(this, clz));
+    }
+    
+    public JavaType[] findTypeParameters(Class<?> clz, Class<?> expType, TypeBindings bindings)
+    {
+        // First: find full inheritance chain
+        HierarchicType subType = _findSuperTypeChain(clz, expType);
+        // Caller is supposed to ensure this never happens, so:
+        if (subType == null) {
+            throw new IllegalArgumentException("Class "+clz.getName()+" is not a subtype of "+expType.getName());
+        }
+        // Ok and then go to the ultimate super-type:
+        HierarchicType superType = subType;
+        while (superType.getSuperType() != null) {
+            superType = superType.getSuperType();
+            Class<?> raw = superType.getRawClass();
+            TypeBindings newBindings = new TypeBindings(this, raw);
+            if (superType.isGeneric()) { // got bindings, need to resolve
+                ParameterizedType pt = superType.asGeneric();
+                Type[] actualTypes = pt.getActualTypeArguments();
+                TypeVariable<?>[] vars = raw.getTypeParameters();
+                int len = actualTypes.length;
+                for (int i = 0; i < len; ++i) {
+                    String name = vars[i].getName();
+                    JavaType type = instance._constructType(actualTypes[i], bindings);
+                    newBindings.addBinding(name, type);
+                }
+            }
+            bindings = newBindings;
+        }
+
+        // which ought to be generic (if not, it's raw type)
+        if (!superType.isGeneric()) {
+            return null;
+        }
+        return bindings.typesAsArray();
+    }
+    
+    /*
+    /**********************************************************
     /* Public factory methods
     /**********************************************************
      */
@@ -464,11 +495,11 @@ public final class TypeFactory
     }
 
     public JavaType constructType(Type type, Class<?> context) {
-        return _constructType(type, new TypeBindings(context));
+        return _constructType(type, new TypeBindings(this, context));
     }
 
     public JavaType constructType(Type type, JavaType context) {
-        return _constructType(type, new TypeBindings(context));
+        return _constructType(type, new TypeBindings(this, context));
     }
     
     /**
@@ -476,7 +507,7 @@ public final class TypeFactory
      * as Java typing returned from <code>getGenericXxx</code> methods
      * (usually for a return or argument type).
      */
-    protected JavaType _constructType(Type type, TypeBindings context)
+    public JavaType _constructType(Type type, TypeBindings context)
     {
         // simple class?
         if (type instanceof Class<?>) {
@@ -485,7 +516,7 @@ public final class TypeFactory
              *   mostly matters for root serialization types
              */
             if (context == null) {
-                context = new TypeBindings(cls);
+                context = new TypeBindings(this, cls);
             }
             return _fromClass(cls, context);
         }

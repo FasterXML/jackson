@@ -23,19 +23,21 @@ public class TestTypeBindings
         /* Abstract type does declare type parameters, but they are only
          * known as 'Object.class' (via lower bound)
          */
-        TypeBindings b = new TypeBindings(AbstractType.class);
+        TypeFactory tf = TypeFactory.defaultInstance();
+        TypeBindings b = new TypeBindings(tf, AbstractType.class);
         assertEquals(2, b.getBindingCount());
-        JavaType obType = TypeFactory.type(Object.class);
+        JavaType obType = tf.constructType(Object.class);
         assertEquals(obType, b.findType("A"));
         assertEquals(obType, b.findType("B"));
     }
 
     public void testSimple() throws Exception
     {
+        TypeFactory tf = TypeFactory.defaultInstance();
         // concrete class does have bindings however
-        TypeBindings b = new TypeBindings(LongStringType.class);
+        TypeBindings b = new TypeBindings(tf, LongStringType.class);
         assertEquals(2, b.getBindingCount());
-        assertEquals(TypeFactory.type(Long.class), b.findType("A"));
-        assertEquals(TypeFactory.type(String.class), b.findType("B"));
+        assertEquals(tf.constructType(Long.class), b.findType("A"));
+        assertEquals(tf.constructType(String.class), b.findType("B"));
     }
 }

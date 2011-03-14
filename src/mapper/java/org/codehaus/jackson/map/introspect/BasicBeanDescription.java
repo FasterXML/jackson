@@ -83,7 +83,7 @@ public class BasicBeanDescription extends BeanDescription
     public TypeBindings bindingsForBeanType()
     {
         if (_bindings == null) {
-            _bindings = new TypeBindings(_type);
+            _bindings = new TypeBindings(_config.getTypeFactory(), _type);
         }
         return _bindings;
     }
