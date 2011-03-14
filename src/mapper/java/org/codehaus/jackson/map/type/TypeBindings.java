@@ -237,7 +237,7 @@ public class TypeBindings
                     // first: add a placeholder to prevent infinite loops
                     _addPlaceholder(name);
                     // then resolve type
-                    _bindings.put(name, TypeFactory.instance._fromType(args[i], this));
+                    _bindings.put(name, TypeFactory.instance._constructType(args[i], this));
                 }
             }
             raw = (Class<?>)pt.getRawType();
@@ -258,7 +258,7 @@ public class TypeBindings
                             if (_bindings.containsKey(name)) continue;
                         }
                         _addPlaceholder(name); // to prevent infinite loops
-                        _bindings.put(name, TypeFactory.instance._fromType(varType, this));
+                        _bindings.put(name, TypeFactory.instance._constructType(varType, this));
                     }
                 }
             }

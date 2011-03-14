@@ -13,6 +13,7 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdSubtypeResolver;
 import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.type.ClassKey;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.type.JavaType;
 
@@ -392,7 +393,6 @@ public class SerializationConfig
     /**********************************************************
      */
 
-
     /**
      * Introspector used to figure out Bean properties needed for bean serialization
      * and deserialization. Overridable so that it is possible to change low-level
@@ -492,13 +492,6 @@ public class SerializationConfig
      * @since 1.6
      */
     protected SubtypeResolver _subtypeResolver;
-
-    /**
-     * Custom property naming strategy in use, if any.
-     * 
-     * @since 1.8
-     */
-    protected PropertyNamingStrategy _propertyNamingStrategy;
     
     /**
      * Object used for resolving filter ids to filter instances.
@@ -507,10 +500,24 @@ public class SerializationConfig
      * @since 1.7
      */
     protected FilterProvider _filterProvider;
+
+    /**
+     * Custom property naming strategy in use, if any.
+     * 
+     * @since 1.8
+     */
+    protected final PropertyNamingStrategy _propertyNamingStrategy;
+
+    /**
+     * Specific factory used for creating {@link JavaType} instances;
+     * needed to allow modules to add more custom type handling
+     * (mostly to support types of non-Java JVM languages)
+     */
+    protected final TypeFactory _typeFactory;
     
     /*
     /**********************************************************
-    /* Life-cycle
+    /* Life-cycle, constructors
     /**********************************************************
      */
 
@@ -519,7 +526,8 @@ public class SerializationConfig
      */
     public SerializationConfig(ClassIntrospector<? extends BeanDescription> intr,
             AnnotationIntrospector annIntr, VisibilityChecker<?> vc,
-            SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy)
+            SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy,
+            TypeFactory typeFactory)
     {
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
@@ -527,6 +535,7 @@ public class SerializationConfig
         _visibilityChecker = vc;
         _subtypeResolver = subtypeResolver;
         _propertyNamingStrategy = propertyNamingStrategy;
+        _typeFactory = typeFactory;
         _filterProvider = null;
     }
 
@@ -534,13 +543,12 @@ public class SerializationConfig
      * Constructor used internally to construct a read-only instance to use for
      * individual serialization operation.
      * 
-     * @since 1.7
+     * @since 1.8
      */
     protected SerializationConfig(SerializationConfig src,
             HashMap<ClassKey,Class<?>> mixins,
             TypeResolverBuilder<?> typer, VisibilityChecker<?> vc,
-            SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy,
-            FilterProvider filterProvider)
+            SubtypeResolver subtypeResolver, FilterProvider filterProvider)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -548,11 +556,13 @@ public class SerializationConfig
         _dateFormat = src._dateFormat;
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
+        _propertyNamingStrategy = src._propertyNamingStrategy;
+        _typeFactory = src._typeFactory;
+        
         _mixInAnnotations = mixins;
         _typer = typer;
         _visibilityChecker = vc;
         _subtypeResolver = subtypeResolver;
-        _propertyNamingStrategy = propertyNamingStrategy;
         _filterProvider = filterProvider;
     }
 
@@ -560,9 +570,10 @@ public class SerializationConfig
      * Copy constructor used for creating a new instance that is same as
      * this one, but with different <code>FilterProvider</code>.
      * 
-     * @since 1.7
+     * @since 1.8
      */
-    protected SerializationConfig(SerializationConfig src, FilterProvider filterProvider)
+    protected SerializationConfig(SerializationConfig src,
+            FilterProvider filterProvider, PropertyNamingStrategy naming, TypeFactory typeFactory)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -574,20 +585,50 @@ public class SerializationConfig
         _typer = src._typer;
         _visibilityChecker = src._visibilityChecker;
         _subtypeResolver = src._subtypeResolver;
+
         _filterProvider = filterProvider;
+        _propertyNamingStrategy = naming;
+        _typeFactory = typeFactory;
     }
+
+    /*
+    /**********************************************************
+    /* Life-cycle, withXxx factories
+    /**********************************************************
+     */
     
+    /**
+     * @since 1.7
+     */
     public SerializationConfig withFilters(FilterProvider filterProvider) {
-        return new SerializationConfig(this, filterProvider);
+        return new SerializationConfig(this,
+                filterProvider, _propertyNamingStrategy, _typeFactory);
     }
 
     /**
      * @since 1.8
      */
     public SerializationConfig withView(Class<?> view) {
-        SerializationConfig config = new SerializationConfig(this, _filterProvider);
+        SerializationConfig config = new SerializationConfig(this,
+                _filterProvider, _propertyNamingStrategy, _typeFactory);
         config.setSerializationView(view);
         return config;
+    }
+
+    /**
+     * @since 1.8
+     */
+    public SerializationConfig withPropertyNamingStrategy(PropertyNamingStrategy strategy) {
+        return new SerializationConfig(this,
+                _filterProvider, strategy, _typeFactory);
+    }
+    
+    /**
+     * @since 1.8
+     */
+    public SerializationConfig withTypeFactory(TypeFactory typeFactory) {
+        return new SerializationConfig(this,
+                _filterProvider, _propertyNamingStrategy, typeFactory);
     }
     
     /**
@@ -603,8 +644,7 @@ public class SerializationConfig
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-        return new SerializationConfig(this, mixins, typer, vc, subtypeResolver,
-                propertyNamingStrategy, filterProvider);
+        return new SerializationConfig(this, mixins, typer, vc, subtypeResolver, filterProvider);
     }
 
     /*
@@ -665,13 +705,12 @@ public class SerializationConfig
      */
     //@Override
     public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
-            VisibilityChecker<?> vc, SubtypeResolver subtypeResolver,
-            PropertyNamingStrategy pns)
+            VisibilityChecker<?> vc, SubtypeResolver subtypeResolver)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
         return new SerializationConfig(this, mixins, typer, vc, subtypeResolver,
-                pns, _filterProvider);
+                _filterProvider);
     }
 
     //@Override
@@ -788,6 +827,29 @@ public class SerializationConfig
         return _visibilityChecker;
     }
 
+    //@Override
+    public SubtypeResolver getSubtypeResolver() {
+        if (_subtypeResolver == null) {
+            _subtypeResolver = new StdSubtypeResolver();
+        }
+        return _subtypeResolver;
+    }
+
+    //@Override
+    public void setSubtypeResolver(SubtypeResolver r) {
+        _subtypeResolver = r;
+    }
+    
+    //@Override
+    public PropertyNamingStrategy getPropertyNamingStrategy() {
+        return _propertyNamingStrategy;
+    }
+
+    //@Override
+    public TypeFactory getTypeFactory() {
+        return _typeFactory;
+    }
+
     /**
      * Accessor for getting bean description that only contains class
      * annotations: useful if no getter/setter/creator information is needed.
@@ -881,29 +943,6 @@ public class SerializationConfig
     
     /*
     /**********************************************************
-    /* Polymorphic type handling configuration
-    /**********************************************************
-     */
-    
-    /**
-     * @since 1.6
-     */
-    public SubtypeResolver getSubtypeResolver() {
-        if (_subtypeResolver == null) {
-            _subtypeResolver = new StdSubtypeResolver();
-        }
-        return _subtypeResolver;
-    }
-
-    /**
-     * @since 1.6
-     */
-    public void setSubtypeResolver(SubtypeResolver r) {
-        _subtypeResolver = r;
-    }
-    
-    /*
-    /**********************************************************
     /* Configuration: other
     /**********************************************************
      */
@@ -965,16 +1004,6 @@ public class SerializationConfig
      */
     public FilterProvider getFilterProvider() {
         return _filterProvider;
-    }
-
-    //@Override
-    public PropertyNamingStrategy getPropertyNamingStrategy() {
-        return _propertyNamingStrategy;
-    }
-    
-    //@Override
-    public void setPropertyNamingStrategy(PropertyNamingStrategy s) {
-        _propertyNamingStrategy = s;
     }
     
     /*

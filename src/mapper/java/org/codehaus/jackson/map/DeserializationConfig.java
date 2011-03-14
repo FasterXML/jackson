@@ -13,6 +13,7 @@ import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdSubtypeResolver;
 import org.codehaus.jackson.map.type.ClassKey;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.node.JsonNodeFactory;
@@ -431,13 +432,6 @@ public class DeserializationConfig
      * @since 1.6
      */
     protected SubtypeResolver _subtypeResolver;
-
-    /**
-     * Custom property naming strategy in use, if any.
-     * 
-     * @since 1.8
-     */
-    protected PropertyNamingStrategy _propertyNamingStrategy;
     
     /**
      * To support on-the-fly class generation for interface and abstract classes
@@ -453,10 +447,24 @@ public class DeserializationConfig
      * @since 1.6
      */
     protected JsonNodeFactory _nodeFactory;
+
+    /**
+     * Custom property naming strategy in use, if any.
+     * 
+     * @since 1.8
+     */
+    protected final PropertyNamingStrategy _propertyNamingStrategy;
+    
+    /**
+     * Specific factory used for creating {@link JavaType} instances;
+     * needed to allow modules to add more custom type handling
+     * (mostly to support types of non-Java JVM languages)
+     */
+    protected final TypeFactory _typeFactory;
     
     /*
     /**********************************************************
-    /* Life-cycle
+    /* Life-cycle, constructors
     /**********************************************************
      */
 
@@ -465,7 +473,8 @@ public class DeserializationConfig
      */
     public DeserializationConfig(ClassIntrospector<? extends BeanDescription> intr,
             AnnotationIntrospector annIntr, VisibilityChecker<?> vc,
-            SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy)
+            SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy,
+            TypeFactory typeFactory)
     {
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
@@ -474,6 +483,7 @@ public class DeserializationConfig
         _nodeFactory = JsonNodeFactory.instance;
         _subtypeResolver = subtypeResolver;
         _propertyNamingStrategy = propertyNamingStrategy;
+        _typeFactory = typeFactory;
     }
 
     /**
@@ -482,9 +492,8 @@ public class DeserializationConfig
      */
     protected DeserializationConfig(DeserializationConfig src,
             HashMap<ClassKey,Class<?>> mixins,
-            TypeResolverBuilder<?> typer,
-            VisibilityChecker<?> vc,
-            SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy)
+            TypeResolverBuilder<?> typer, VisibilityChecker<?> vc,
+            SubtypeResolver subtypeResolver)
     {
         _classIntrospector = src._classIntrospector;
         _annotationIntrospector = src._annotationIntrospector;
@@ -497,9 +506,52 @@ public class DeserializationConfig
         _typer = typer;
         _visibilityChecker = vc;
         _subtypeResolver = subtypeResolver;
-        _propertyNamingStrategy = propertyNamingStrategy;
+        _propertyNamingStrategy = src._propertyNamingStrategy;
+        _typeFactory = src._typeFactory;
     }
 
+    /**
+     * @since 1.8
+     */
+    protected DeserializationConfig(DeserializationConfig src,
+            PropertyNamingStrategy naming, TypeFactory typeFactory)
+    {
+        _classIntrospector = src._classIntrospector;
+        _annotationIntrospector = src._annotationIntrospector;
+        _abstractTypeResolver = src._abstractTypeResolver;
+        _featureFlags = src._featureFlags;
+        _problemHandlers = src._problemHandlers;
+        _dateFormat = src._dateFormat;
+        _nodeFactory = src._nodeFactory;
+        _mixInAnnotations = src._mixInAnnotations;
+        _typer = src._typer;
+        _visibilityChecker = src._visibilityChecker;
+        _subtypeResolver = src._subtypeResolver;
+
+        _propertyNamingStrategy = naming;
+        _typeFactory = typeFactory;
+    }
+    
+    /*
+    /**********************************************************
+    /* Life-cycle, withXxx factories
+    /**********************************************************
+     */
+
+    /**
+     * @since 1.8
+     */
+    public DeserializationConfig withPropertyNamingStrategy(PropertyNamingStrategy strategy) {
+        return new DeserializationConfig(this, strategy, _typeFactory);
+    }
+    
+    /**
+     * @since 1.8
+     */
+    public DeserializationConfig withTypeFactory(TypeFactory typeFactory) {
+        return new DeserializationConfig(this, _propertyNamingStrategy, typeFactory);
+    }
+    
     /*
     /**********************************************************
     /* Configuration: on/off features
@@ -592,12 +644,11 @@ public class DeserializationConfig
      */
     //@Override
     public DeserializationConfig createUnshared(TypeResolverBuilder<?> typer,
-    		VisibilityChecker<?> vc, SubtypeResolver subtypeResolver,
-    		PropertyNamingStrategy namingStrategy)
+    		VisibilityChecker<?> vc, SubtypeResolver subtypeResolver)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-    	return new DeserializationConfig(this, mixins, typer, vc, subtypeResolver, namingStrategy);
+    	return new DeserializationConfig(this, mixins, typer, vc, subtypeResolver);
     }
 
     /**
@@ -608,8 +659,7 @@ public class DeserializationConfig
      */
     public DeserializationConfig createUnshared(JsonNodeFactory nf)
     {
-        DeserializationConfig config = createUnshared(_typer, _visibilityChecker, _subtypeResolver,
-                _propertyNamingStrategy);
+        DeserializationConfig config = createUnshared(_typer, _visibilityChecker, _subtypeResolver);
         config.setNodeFactory(nf);
         return config;
     }
@@ -745,10 +795,10 @@ public class DeserializationConfig
     public PropertyNamingStrategy getPropertyNamingStrategy() {
         return _propertyNamingStrategy;
     }
-    
+
     //@Override
-    public void setPropertyNamingStrategy(PropertyNamingStrategy s) {
-        _propertyNamingStrategy = s;
+    public TypeFactory getTypeFactory() {
+        return _typeFactory;
     }
     
     /**

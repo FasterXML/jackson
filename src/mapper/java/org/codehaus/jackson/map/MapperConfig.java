@@ -7,6 +7,7 @@ import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -39,7 +40,7 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * between multiple operations but only used for a single one.
      */
     public T createUnshared(TypeResolverBuilder<?> typer, VisibilityChecker<?> vc,
-            SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy);
+            SubtypeResolver subtypeResolver);
 
     // // // Configuration
 
@@ -186,14 +187,12 @@ public interface MapperConfig<T extends MapperConfig<T>>
     /**
      * @since 1.8
      */
-    public PropertyNamingStrategy getPropertyNamingStrategy() ;
-    
+    public PropertyNamingStrategy getPropertyNamingStrategy();
+
     /**
-     * Method for setting custom property naming strategy to use.
-     * 
      * @since 1.8
      */
-    public void setPropertyNamingStrategy(PropertyNamingStrategy s);
+    public TypeFactory getTypeFactory();
     
     /**
      * Accessor for getting bean description that only contains class

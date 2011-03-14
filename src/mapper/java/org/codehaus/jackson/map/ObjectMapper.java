@@ -179,7 +179,7 @@ public class ObjectMapper
     /**********************************************************
      */
     
-    private final static JavaType JSON_NODE_TYPE = TypeFactory.type(JsonNode.class);
+    private final static JavaType JSON_NODE_TYPE = TypeFactory.defaultInstance().uncheckedSimpleType(JsonNode.class);
 
     /* !!! 03-Apr-2009, tatu: Should try to avoid direct reference... but not
      *   sure what'd be simple and elegant way. So until then:
@@ -238,12 +238,11 @@ public class ObjectMapper
     protected SubtypeResolver _subtypeResolver;
 
     /**
-     * Custom naming strategy (used instead of default Java Bean
-     * strategy) if any.
-     *
-     * @since 1.8
+     * Specific factory used for creating {@link JavaType} instances;
+     * needed to allow modules to add more custom type handling
+     * (mostly to support types of non-Java JVM languages)
      */
-    protected PropertyNamingStrategy _propertyNamingStrategy;
+    protected TypeFactory _typeFactory;
     
     /*
     /**********************************************************
@@ -397,12 +396,14 @@ public class ObjectMapper
         _jsonFactory = (jf == null) ? new MappingJsonFactory(this) : jf;
         // visibility checker; usually default
         _visibilityChecker = STD_VISIBILITY_CHECKER;
+        // and default type factory is shared one
+        _typeFactory = TypeFactory.defaultInstance();
         _serializationConfig = (sconfig != null) ? sconfig :
             new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker,
-                    null, null);
+                    null, null, _typeFactory);
         _deserializationConfig = (dconfig != null) ? dconfig :
             new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker,
-                    null, null);
+                    null, null, _typeFactory);
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
@@ -515,13 +516,6 @@ public class ObjectMapper
     public void setSubtypeResolver(SubtypeResolver r) {
         _subtypeResolver = r;
     }
-
-    /**
-     * @since 1.8
-     */
-    public PropertyNamingStrategy getPropertyNamingStrategy() {
-        return _propertyNamingStrategy;
-    }
     
     /**
      * Method for setting custom property naming strategy to use.
@@ -529,7 +523,8 @@ public class ObjectMapper
      * @since 1.8
      */
     public void setPropertyNamingStrategy(PropertyNamingStrategy s) {
-        _propertyNamingStrategy = s;
+        _serializationConfig = _serializationConfig.withPropertyNamingStrategy(s);
+        _deserializationConfig = _deserializationConfig.withPropertyNamingStrategy(s);
     }
     
     /**
@@ -723,7 +718,7 @@ public class ObjectMapper
      */
     public SerializationConfig copySerializationConfig() {
         return _serializationConfig.createUnshared(_defaultTyper,
-                _visibilityChecker, _subtypeResolver, _propertyNamingStrategy);
+                _visibilityChecker, _subtypeResolver);
     }
 
     /**
@@ -776,7 +771,7 @@ public class ObjectMapper
      */
     public DeserializationConfig copyDeserializationConfig() {
         return _deserializationConfig.createUnshared(_defaultTyper,
-                _visibilityChecker, _subtypeResolver, _propertyNamingStrategy);
+                _visibilityChecker, _subtypeResolver);
     }
 
     /**
@@ -971,7 +966,7 @@ public class ObjectMapper
     {
 // !!! TODO
 //    	_setupClassLoaderForDeserialization(valueType);
-        return (T) _readValue(copyDeserializationConfig(), jp, TypeFactory.type(valueType));
+        return (T) _readValue(copyDeserializationConfig(), jp, _typeFactory.type(valueType));
     } 
 
     /**
@@ -998,7 +993,7 @@ public class ObjectMapper
     {
      // !!! TODO
 //    	_setupClassLoaderForDeserialization(valueType);
-        return (T) _readValue(cfg, jp, TypeFactory.type(valueType));
+        return (T) _readValue(cfg, jp, _typeFactory.type(valueType));
     } 
 
     /**
@@ -1013,7 +1008,7 @@ public class ObjectMapper
     public <T> T readValue(JsonParser jp, TypeReference<?> valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(copyDeserializationConfig(), jp, TypeFactory.type(valueTypeRef));
+        return (T) _readValue(copyDeserializationConfig(), jp, _typeFactory.type(valueTypeRef));
     } 
 
     /**
@@ -1036,7 +1031,7 @@ public class ObjectMapper
                            DeserializationConfig cfg)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(cfg, jp, TypeFactory.type(valueTypeRef));
+        return (T) _readValue(cfg, jp, _typeFactory.type(valueTypeRef));
     } 
 
     /**
@@ -1395,14 +1390,14 @@ public class ObjectMapper
     {
      // !!! TODO
 //    	_setupClassLoaderForDeserialization(valueType);
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueType));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.type(valueType));
     } 
 
     @SuppressWarnings("unchecked")
     public <T> T readValue(File src, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueTypeRef));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.type(valueTypeRef));
     } 
 
     @SuppressWarnings("unchecked")
@@ -1418,14 +1413,14 @@ public class ObjectMapper
     {
      // !!! TODO
 //    	_setupClassLoaderForDeserialization(valueType);
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueType));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.type(valueType));
     } 
 
     @SuppressWarnings("unchecked")
     public <T> T readValue(URL src, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueTypeRef));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.type(valueTypeRef));
     } 
 
     @SuppressWarnings("unchecked")
@@ -1441,14 +1436,14 @@ public class ObjectMapper
     {
      // !!! TODO
 //    	_setupClassLoaderForDeserialization(valueType);
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(content), TypeFactory.type(valueType));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(content), _typeFactory.type(valueType));
     } 
 
     @SuppressWarnings("unchecked")
     public <T> T readValue(String content, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(content), TypeFactory.type(valueTypeRef));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(content), _typeFactory.type(valueTypeRef));
     } 
 
     @SuppressWarnings("unchecked")
@@ -1464,14 +1459,14 @@ public class ObjectMapper
     {
      // !!! TODO
 //    	_setupClassLoaderForDeserialization(valueType);
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueType));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.type(valueType));
     } 
 
     @SuppressWarnings("unchecked")
     public <T> T readValue(Reader src, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueTypeRef));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.type(valueTypeRef));
     } 
 
     @SuppressWarnings("unchecked")
@@ -1487,14 +1482,14 @@ public class ObjectMapper
     {
      // !!! TODO
 //    	_setupClassLoaderForDeserialization(valueType);
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueType));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.type(valueType));
     } 
 
     @SuppressWarnings("unchecked")
     public <T> T readValue(InputStream src, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueTypeRef));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.type(valueTypeRef));
     } 
 
     @SuppressWarnings("unchecked")
@@ -1513,7 +1508,7 @@ public class ObjectMapper
     {
      // !!! TODO
 //      _setupClassLoaderForDeserialization(valueType);
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueType));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.type(valueType));
     } 
     
     @SuppressWarnings("unchecked")
@@ -1523,7 +1518,7 @@ public class ObjectMapper
     {
      // !!! TODO
 //    	_setupClassLoaderForDeserialization(valueType);
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src, offset, len), TypeFactory.type(valueType));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src, offset, len), _typeFactory.type(valueType));
     } 
 
     /**
@@ -1533,7 +1528,7 @@ public class ObjectMapper
     public <T> T readValue(byte[] src, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), TypeFactory.type(valueTypeRef));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.type(valueTypeRef));
     } 
     
     @SuppressWarnings("unchecked")
@@ -1541,7 +1536,7 @@ public class ObjectMapper
                            TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src, offset, len), TypeFactory.type(valueTypeRef));
+        return (T) _readMapAndClose(_jsonFactory.createJsonParser(src, offset, len), _typeFactory.type(valueTypeRef));
     } 
 
     /**
@@ -1577,7 +1572,7 @@ public class ObjectMapper
     {
      // !!! TODO
 //    	_setupClassLoaderForDeserialization(valueType);
-        return (T) _readValue(copyDeserializationConfig(), root.traverse(), TypeFactory.type(valueType));
+        return (T) _readValue(copyDeserializationConfig(), root.traverse(), _typeFactory.type(valueType));
     } 
 
     /**
@@ -1593,7 +1588,7 @@ public class ObjectMapper
     public <T> T readValue(JsonNode root, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(copyDeserializationConfig(), root.traverse(), TypeFactory.type(valueTypeRef));
+        return (T) _readValue(copyDeserializationConfig(), root.traverse(), _typeFactory.type(valueTypeRef));
     } 
     
     /**
@@ -1809,7 +1804,7 @@ public class ObjectMapper
      * @since 1.5
      */
     public ObjectWriter typedWriter(Class<?> rootType) {
-        JavaType t = (rootType == null) ? null : TypeFactory.type(rootType);
+        JavaType t = (rootType == null) ? null : _typeFactory.type(rootType);
         return new ObjectWriter(this, copySerializationConfig(), t, /*PrettyPrinter*/null);
     }
 
@@ -1832,7 +1827,7 @@ public class ObjectMapper
      * @since 1.7
      */
     public ObjectWriter typedWriter(TypeReference<?> rootType) {
-        JavaType t = (rootType == null) ? null : TypeFactory.type(rootType);
+        JavaType t = (rootType == null) ? null : _typeFactory.type(rootType);
         return new ObjectWriter(this, copySerializationConfig(), t, /*PrettyPrinter*/null);
     }
     
@@ -1897,7 +1892,7 @@ public class ObjectMapper
      */
     public ObjectReader updatingReader(Object valueToUpdate)
     {
-        JavaType t = TypeFactory.type(valueToUpdate.getClass());
+        JavaType t = _typeFactory.type(valueToUpdate.getClass());
         return new ObjectReader(this, copyDeserializationConfig(), t, valueToUpdate);
     }
 
@@ -1920,7 +1915,7 @@ public class ObjectMapper
      */
     public ObjectReader reader(Class<?> type)
     {
-        return reader(TypeFactory.type(type));
+        return reader(_typeFactory.type(type));
     }
 
     /**
@@ -1931,7 +1926,7 @@ public class ObjectMapper
      */
     public ObjectReader reader(TypeReference<?> type)
     {
-        return reader(TypeFactory.type(type));
+        return reader(_typeFactory.type(type));
     }
 
     /**
@@ -1967,14 +1962,14 @@ public class ObjectMapper
     public <T> T convertValue(Object fromValue, Class<T> toValueType)
         throws IllegalArgumentException
     {
-        return (T) _convert(fromValue, TypeFactory.type(toValueType));
+        return (T) _convert(fromValue, _typeFactory.type(toValueType));
     } 
 
     @SuppressWarnings("unchecked")
     public <T> T convertValue(Object fromValue, TypeReference toValueTypeRef)
         throws IllegalArgumentException
     {
-        return (T) _convert(fromValue, TypeFactory.type(toValueTypeRef));
+        return (T) _convert(fromValue, _typeFactory.type(toValueTypeRef));
     } 
 
     @SuppressWarnings("unchecked")
