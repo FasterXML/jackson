@@ -95,9 +95,10 @@ public class TestTypeFactory
                 Date.class,
         };
 
+        TypeFactory tf = TypeFactory.defaultInstance();
         for (Class<?> clz : classes) {
-            assertSame(clz, TypeFactory.type(clz).getRawClass());
-            assertSame(clz, TypeFactory.type(clz).getRawClass());
+            assertSame(clz, tf.constructType(clz).getRawClass());
+            assertSame(clz, tf.constructType(clz).getRawClass());
         }
     }
 
@@ -112,22 +113,24 @@ public class TestTypeFactory
                 Calendar[].class,
         };
 
+        TypeFactory tf = TypeFactory.defaultInstance();
         for (Class<?> clz : classes) {
-            assertSame(clz, TypeFactory.type(clz).getRawClass());
+            assertSame(clz, tf.constructType(clz).getRawClass());
             Class<?> elemType = clz.getComponentType();
-            assertSame(clz, TypeFactory.arrayType(elemType).getRawClass());
+            assertSame(clz, tf.constructArrayType(elemType).getRawClass());
         }
     }
 
     public void testCollections()
     {
         // Ok, first: let's test what happens when we pass 'raw' Collection:
-        JavaType t = TypeFactory.type(ArrayList.class);
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType t = tf.constructType(ArrayList.class);
         assertEquals(CollectionType.class, t.getClass());
         assertSame(ArrayList.class, t.getRawClass());
 
         // And then the proper way
-        t = TypeFactory.type(new TypeReference<ArrayList<String>>() { });
+        t = tf.constructType(new TypeReference<ArrayList<String>>() { });
         assertEquals(CollectionType.class, t.getClass());
         assertSame(ArrayList.class, t.getRawClass());
 
@@ -137,47 +140,49 @@ public class TestTypeFactory
         assertSame(String.class, elemType.getRawClass());
 
         // And alternate method too
-        t = TypeFactory.collectionType(ArrayList.class, String.class);
+        t = tf.constructCollectionType(ArrayList.class, String.class);
         assertEquals(CollectionType.class, t.getClass());
         assertSame(String.class, ((CollectionType) t).getContentType().getRawClass());
     }
     
     public void testMaps()
     {
+        TypeFactory tf = TypeFactory.defaultInstance();
         // Ok, first: let's test what happens when we pass 'raw' Map:
-        JavaType t = TypeFactory.type(HashMap.class);
+        JavaType t = tf.constructType(HashMap.class);
         assertEquals(MapType.class, t.getClass());
         assertSame(HashMap.class, t.getRawClass());
 
         // Then explicit construction
-        t = TypeFactory.mapType(TreeMap.class, String.class, Integer.class);
+        t = tf.constructMapType(TreeMap.class, String.class, Integer.class);
         assertEquals(MapType.class, t.getClass());
         assertSame(String.class, ((MapType) t).getKeyType().getRawClass());
         assertSame(Integer.class, ((MapType) t).getContentType().getRawClass());
 
         // And then with TypeReference
-        t = TypeFactory.type(new TypeReference<HashMap<String,Integer>>() { });
+        t = tf.constructType(new TypeReference<HashMap<String,Integer>>() { });
         assertEquals(MapType.class, t.getClass());
         assertSame(HashMap.class, t.getRawClass());
         MapType mt = (MapType) t;
-        assertEquals(TypeFactory.type(String.class), mt.getKeyType());
-        assertEquals(TypeFactory.type(Integer.class), mt.getContentType());
+        assertEquals(tf.constructType(String.class), mt.getKeyType());
+        assertEquals(tf.constructType(Integer.class), mt.getContentType());
 
-        t = TypeFactory.type(new TypeReference<LongValuedMap<Boolean>>() { });
+        t = tf.constructType(new TypeReference<LongValuedMap<Boolean>>() { });
         assertEquals(MapType.class, t.getClass());
         assertSame(LongValuedMap.class, t.getRawClass());
         mt = (MapType) t;
-        assertEquals(TypeFactory.type(Boolean.class), mt.getKeyType());
-        assertEquals(TypeFactory.type(Long.class), mt.getContentType());
+        assertEquals(tf.constructType(Boolean.class), mt.getKeyType());
+        assertEquals(tf.constructType(Long.class), mt.getContentType());
     }
 
     public void testIterator()
     {
-        JavaType t = TypeFactory.type(new TypeReference<Iterator<String>>() { });
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType t = tf.constructType(new TypeReference<Iterator<String>>() { });
         assertEquals(SimpleType.class, t.getClass());
         assertSame(Iterator.class, t.getRawClass());
         assertEquals(1, t.containedTypeCount());
-        assertEquals(TypeFactory.type(String.class), t.containedType(0));
+        assertEquals(tf.constructType(String.class), t.containedType(0));
         assertNull(t.containedType(1));
     }
 
@@ -189,16 +194,17 @@ public class TestTypeFactory
      */
     public void testParametricTypes()
     {
+        TypeFactory tf = TypeFactory.defaultInstance();
         // first, simple class based
-        JavaType t = TypeFactory.parametricType(ArrayList.class, String.class); // ArrayList<String>
+        JavaType t = tf.constructParametricType(ArrayList.class, String.class); // ArrayList<String>
         assertEquals(CollectionType.class, t.getClass());
-        JavaType strC = TypeFactory.type(String.class);
+        JavaType strC = tf.constructType(String.class);
         assertEquals(1, t.containedTypeCount());
         assertEquals(strC, t.containedType(0));
         assertNull(t.containedType(1));
 
         // Then using JavaType
-        JavaType t2 = TypeFactory.parametricType(Map.class, strC, t); // Map<String,ArrayList<String>>
+        JavaType t2 = tf.constructParametricType(Map.class, strC, t); // Map<String,ArrayList<String>>
         // should actually produce a MapType
         assertEquals(MapType.class, t2.getClass());
         assertEquals(2, t2.containedTypeCount());
@@ -207,7 +213,7 @@ public class TestTypeFactory
         assertNull(t2.containedType(2));
 
         // and then custom generic type as well
-        JavaType custom = TypeFactory.parametricType(SingleArgGeneric.class, String.class);
+        JavaType custom = tf.constructParametricType(SingleArgGeneric.class, String.class);
         assertEquals(SimpleType.class, custom.getClass());
         assertEquals(1, custom.containedTypeCount());
         assertEquals(strC, custom.containedType(0));
@@ -218,14 +224,14 @@ public class TestTypeFactory
         // And finally, ensure that we can't create invalid combinations
         try {
             // Maps must take 2 type parameters, not just one
-            TypeFactory.parametricType(Map.class, strC);
+            tf.constructParametricType(Map.class, strC);
         } catch (IllegalArgumentException e) {
             verifyException(e, "Need exactly 2 parameter types for Map types");
         }
 
         try {
             // Type only accepts one type param
-            TypeFactory.parametricType(SingleArgGeneric.class, strC, strC);
+            tf.constructParametricType(SingleArgGeneric.class, strC, strC);
         } catch (IllegalArgumentException e) {
             verifyException(e, "expected 1 parameters, was given 2");
         }
@@ -238,24 +244,25 @@ public class TestTypeFactory
      */
     public void testCanonicalNames()
     {
-        JavaType t = TypeFactory.type(java.util.Calendar.class);
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType t = tf.constructType(java.util.Calendar.class);
         String can = t.toCanonical();
         assertEquals("java.util.Calendar", can);
         assertEquals(t, TypeFactory.fromCanonical(can));
 
         // Generic maps and collections will default to Object.class if type-erased
-        t = TypeFactory.type(java.util.ArrayList.class);
+        t = tf.constructType(java.util.ArrayList.class);
         can = t.toCanonical();
         assertEquals("java.util.ArrayList<java.lang.Object>", can);
         assertEquals(t, TypeFactory.fromCanonical(can));
 
-        t = TypeFactory.type(java.util.TreeMap.class);
+        t = tf.constructType(java.util.TreeMap.class);
         can = t.toCanonical();
         assertEquals("java.util.TreeMap<java.lang.Object,java.lang.Object>", can);
         assertEquals(t, TypeFactory.fromCanonical(can));
 
         // And then EnumMap (actual use case for us)
-        t = TypeFactory.mapType(EnumMap.class, EnumForCanonical.class, String.class);
+        t = tf.constructMapType(EnumMap.class, EnumForCanonical.class, String.class);
         can = t.toCanonical();
         assertEquals("java.util.EnumMap<org.codehaus.jackson.map.type.TestTypeFactory$EnumForCanonical,java.lang.String>",
                 can);
@@ -318,7 +325,8 @@ public class TestTypeFactory
      */
     public void testAtomicArrayRefParameterDetection()
     {
-        JavaType type = TypeFactory.type(new TypeReference<AtomicReference<long[]>>() { });
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType type = tf.constructType(new TypeReference<AtomicReference<long[]>>() { });
         HierarchicType sub = TypeFactory._findSuperTypeChain(type.getRawClass(), AtomicReference.class);
         assertNotNull(sub);
         assertEquals(0, _countSupers(sub));
@@ -346,10 +354,11 @@ public class TestTypeFactory
      */
     public void testMapTypesSimple()
     {
-        JavaType type = TypeFactory.type(new TypeReference<Map<String,Boolean>>() { });
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType type = tf.constructType(new TypeReference<Map<String,Boolean>>() { });
         MapType mapType = (MapType) type;
-        assertEquals(TypeFactory.type(String.class), mapType.getKeyType());
-        assertEquals(TypeFactory.type(Boolean.class), mapType.getContentType());
+        assertEquals(tf.constructType(String.class), mapType.getKeyType());
+        assertEquals(tf.constructType(Boolean.class), mapType.getContentType());
     }
 
     /**
@@ -357,10 +366,11 @@ public class TestTypeFactory
      */
     public void testMapTypesRaw()
     {
-        JavaType type = TypeFactory.type(HashMap.class);
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType type = tf.constructType(HashMap.class);
         MapType mapType = (MapType) type;
-        assertEquals(TypeFactory.type(Object.class), mapType.getKeyType());
-        assertEquals(TypeFactory.type(Object.class), mapType.getContentType());        
+        assertEquals(tf.constructType(Object.class), mapType.getKeyType());
+        assertEquals(tf.constructType(Object.class), mapType.getContentType());        
     }
 
     /**
@@ -368,20 +378,21 @@ public class TestTypeFactory
      */
     public void testMapTypesAdvanced()
     {
-        JavaType type = TypeFactory.type(MyMap.class);
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType type = tf.constructType(MyMap.class);
         MapType mapType = (MapType) type;
-        assertEquals(TypeFactory.type(String.class), mapType.getKeyType());
-        assertEquals(TypeFactory.type(Long.class), mapType.getContentType());
+        assertEquals(tf.constructType(String.class), mapType.getKeyType());
+        assertEquals(tf.constructType(Long.class), mapType.getContentType());
 
-        type = TypeFactory.type(MapInterface.class);
+        type = tf.constructType(MapInterface.class);
         mapType = (MapType) type;
-        assertEquals(TypeFactory.type(String.class), mapType.getKeyType());
-        assertEquals(TypeFactory.type(Integer.class), mapType.getContentType());
+        assertEquals(tf.constructType(String.class), mapType.getKeyType());
+        assertEquals(tf.constructType(Integer.class), mapType.getContentType());
 
-        type = TypeFactory.type(MyStringIntMap.class);
+        type = tf.constructType(MyStringIntMap.class);
         mapType = (MapType) type;
-        assertEquals(TypeFactory.type(String.class), mapType.getKeyType());
-        assertEquals(TypeFactory.type(Integer.class), mapType.getContentType());
+        assertEquals(tf.constructType(String.class), mapType.getKeyType());
+        assertEquals(tf.constructType(Integer.class), mapType.getContentType());
     }
 
     /**
@@ -392,10 +403,11 @@ public class TestTypeFactory
      */
     public void testMapTypesSneaky()
     {
-        JavaType type = TypeFactory.type(IntLongMap.class);
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType type = tf.constructType(IntLongMap.class);
         MapType mapType = (MapType) type;
-        assertEquals(TypeFactory.type(Integer.class), mapType.getKeyType());
-        assertEquals(TypeFactory.type(Long.class), mapType.getContentType());
+        assertEquals(tf.constructType(Integer.class), mapType.getKeyType());
+        assertEquals(tf.constructType(Long.class), mapType.getContentType());
     }    
     
     /**
@@ -405,18 +417,19 @@ public class TestTypeFactory
      */
     public void testSneakyFieldTypes() throws Exception
     {
+        TypeFactory tf = TypeFactory.defaultInstance();
         Field field = SneakyBean.class.getDeclaredField("intMap");
-        JavaType type = TypeFactory.type(field.getGenericType());
+        JavaType type = tf.constructType(field.getGenericType());
         assertTrue(type instanceof MapType);
         MapType mapType = (MapType) type;
-        assertEquals(TypeFactory.type(Integer.class), mapType.getKeyType());
-        assertEquals(TypeFactory.type(Long.class), mapType.getContentType());
+        assertEquals(tf.constructType(Integer.class), mapType.getKeyType());
+        assertEquals(tf.constructType(Long.class), mapType.getContentType());
 
         field = SneakyBean.class.getDeclaredField("longList");
-        type = TypeFactory.type(field.getGenericType());
+        type = tf.constructType(field.getGenericType());
         assertTrue(type instanceof CollectionType);
         CollectionType collectionType = (CollectionType) type;
-        assertEquals(TypeFactory.type(Long.class), collectionType.getContentType());
+        assertEquals(tf.constructType(Long.class), collectionType.getContentType());
     }    
     
     /**
@@ -443,11 +456,12 @@ public class TestTypeFactory
     
     public void testAtomicArrayRefParameters()
     {
-        JavaType type = TypeFactory.type(new TypeReference<AtomicReference<long[]>>() { });
-        JavaType[] params = TypeFactory.findParameterTypes(type, AtomicReference.class);
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType type = tf.constructType(new TypeReference<AtomicReference<long[]>>() { });
+        JavaType[] params = tf.findTypeParameters(type, AtomicReference.class);
         assertNotNull(params);
         assertEquals(1, params.length);
-        assertEquals(TypeFactory.type(long[].class), params[0]);
+        assertEquals(tf.constructType(long[].class), params[0]);
     }
 
     public void testSneakySelfRefs() throws Exception

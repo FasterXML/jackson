@@ -95,7 +95,7 @@ public class TestContextualKeyTypes extends BaseMapTest
         mapper.registerModule(module);
         Map<String,Object> input = new HashMap<String,Object>();
         input.put("a", Integer.valueOf(3));
-        String json = mapper.typedWriter(TypeFactory.mapType(HashMap.class, String.class, Object.class))
+        String json = mapper.typedWriter(TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, Object.class))
             .writeValueAsString(input);
         assertEquals("{\"prefix:a\":3}", json);
     }

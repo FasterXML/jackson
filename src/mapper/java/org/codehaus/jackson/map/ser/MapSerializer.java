@@ -25,7 +25,7 @@ public class MapSerializer
     extends ContainerSerializerBase<Map<?,?>>
     implements ResolvableSerializer
 {
-    protected final static JavaType UNSPECIFIED_TYPE = TypeFactory.fastSimpleType(Object.class);
+    protected final static JavaType UNSPECIFIED_TYPE = TypeFactory.unknownType();
     
     /**
      * Map-valued property being serialized with this instance

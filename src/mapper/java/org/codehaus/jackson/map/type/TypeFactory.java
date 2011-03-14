@@ -74,6 +74,20 @@ public final class TypeFactory
      * @since 1.8
      */
     public static TypeFactory defaultInstance() { return instance; }
+
+    /**
+     * Method for constructing a marker type that indicates missing generic
+     * type information, which is handled same as simple type for
+     * <code>java.lang.Object</code>.
+     * This is the only static method (aside from {@link #defaultInstance} accessor)
+     * that is not deprecated, since there os no configurability with respect
+     * to this marker type.
+     * 
+     * @since 1.8
+     */
+    public static JavaType unknownType() {
+        return defaultInstance()._unknownType();
+    }
     
     /*
     /**********************************************************
@@ -102,6 +116,7 @@ public final class TypeFactory
      *    for bean properties the actual bean class (not necessarily class
      *    that contains method or field, may be a sub-class thereof)
      */
+    @Deprecated
     public static JavaType type(Type type, Class<?> context)
     {
         return instance.constructType(type, context);
@@ -110,11 +125,13 @@ public final class TypeFactory
     /**
      * @since 1.7.0
      */
+    @Deprecated
     public static JavaType type(Type type, JavaType context)
     {
         return instance.constructType(type, context);
     }
     
+    @Deprecated
     public static JavaType type(Type type, TypeBindings bindings)
     {
         return instance._constructType(type, bindings);
@@ -126,6 +143,7 @@ public final class TypeFactory
      * done if the root type to bind to is generic; but if so,
      * it must be done to get proper typing.
      */
+    @Deprecated
     public static JavaType type(TypeReference<?> ref)
     {
         return instance.constructType(ref.getType());
@@ -138,6 +156,7 @@ public final class TypeFactory
      *
      * @since 1.3
      */
+    @Deprecated
     public static JavaType arrayType(Class<?> elementType)
     {
         return instance.constructArrayType(instance.constructType(elementType));
@@ -150,6 +169,7 @@ public final class TypeFactory
      * 
      * @since 1.3
      */
+    @Deprecated
     public static JavaType arrayType(JavaType elementType)
     {
         return instance.constructArrayType(elementType);
@@ -162,6 +182,7 @@ public final class TypeFactory
      *
      * @since 1.3
      */
+    @Deprecated
     @SuppressWarnings("unchecked")
     public static JavaType collectionType(Class<? extends Collection> collectionType, Class<?> elementType)
     {
@@ -175,6 +196,7 @@ public final class TypeFactory
      *
      * @since 1.3
      */
+    @Deprecated
     @SuppressWarnings("unchecked")
     public static JavaType collectionType(Class<? extends Collection> collectionType, JavaType elementType) {
         return instance.constructCollectionType(collectionType, elementType);
@@ -187,6 +209,7 @@ public final class TypeFactory
      *
      * @since 1.3
      */
+    @Deprecated
     @SuppressWarnings("unchecked")
     public static JavaType mapType(Class<? extends Map> mapClass, Class<?> keyType, Class<?> valueType)
     {
@@ -200,6 +223,7 @@ public final class TypeFactory
      *
      * @since 1.3
      */
+    @Deprecated
     @SuppressWarnings("unchecked")
     public static JavaType mapType(Class<? extends Map> mapType, JavaType keyType, JavaType valueType)
     {
@@ -217,6 +241,7 @@ public final class TypeFactory
      *
      * @since 1.5
      */
+    @Deprecated
     public static JavaType parametricType(Class<?> parametrized, Class<?>... parameterClasses) {
         return instance.constructParametricType(parametrized, parameterClasses);
     }
@@ -233,6 +258,7 @@ public final class TypeFactory
      *
      * @since 1.5
      */
+    @Deprecated
     public static JavaType parametricType(Class<?> parametrized, JavaType... parameterTypes) {
         return instance.constructParametricType(parametrized, parameterTypes);
     }
@@ -252,9 +278,9 @@ public final class TypeFactory
     public static JavaType fromCanonical(String canonical)
         throws IllegalArgumentException
     {
-        return instance._parser.parse(canonical);
+        return instance.constructFromCanonical(canonical);
     }
-
+    
     /**
      * Method that tries to create specialized type given base type, and
      * a sub-class thereof (which is assumed to use same parametrization
@@ -263,8 +289,9 @@ public final class TypeFactory
      * example), unliked <code>narrowBy</code> which assumes same logical
      * type.
      */
+    @Deprecated
     public static JavaType specialize(JavaType baseType, Class<?> subclass) {
-        return instance.specializeType(baseType, subclass);
+        return instance.constructSpecializedType(baseType, subclass);
     }
     
     /**
@@ -374,7 +401,8 @@ public final class TypeFactory
     /* Type conversion, parameterization resolution methods
     /**********************************************************
      */
-    public JavaType specializeType(JavaType baseType, Class<?> subclass)
+
+    public JavaType constructSpecializedType(JavaType baseType, Class<?> subclass)
     {
         // Currently only SimpleType instances can become something else
         if (baseType instanceof SimpleType) {
@@ -404,6 +432,23 @@ public final class TypeFactory
         return baseType.narrowBy(subclass);
     }
 
+    /**
+     * Factory method for constructing a {@link JavaType} out of its canonical
+     * representation (see {@link JavaType#toCanonical()}).
+     * 
+     * @param canonical Canonical string representation of a type
+     * 
+     * @throws IllegalArgumentException If canonical representation is malformed,
+     *   or class that type represents (including its generic parameters) is
+     *   not found
+     * 
+     * @since 1.8
+     */
+    public JavaType constructFromCanonical(String canonical) throws IllegalArgumentException
+    {
+        return _parser.parse(canonical);
+    }
+    
     /**
      * Method that is to figure out actual type parameters that given
      * class binds to generic types defined by given (generic)
@@ -491,9 +536,13 @@ public final class TypeFactory
      */
 
     public JavaType constructType(Type type) {
-        return _constructType(type, (TypeBindings) null);
+        return _constructType(type, null);
     }
 
+    public JavaType constructType(TypeReference<?> typeRef) {
+        return _constructType(typeRef.getType(), null);
+    }
+    
     public JavaType constructType(Type type, Class<?> context) {
         return _constructType(type, new TypeBindings(this, context));
     }
@@ -542,9 +591,18 @@ public final class TypeFactory
     /* Direct factory methods
     /**********************************************************
      */
+
+    protected ArrayType constructArrayType(Class<?> elementType) {
+        return ArrayType.construct(constructType(elementType));
+    }
     
     protected ArrayType constructArrayType(JavaType elementType) {
         return ArrayType.construct(elementType);
+    }
+
+    @SuppressWarnings("unchecked")
+    public CollectionType constructCollectionType(Class<? extends Collection> collectionClass, Class<?> elementClass) {
+        return CollectionType.construct(collectionClass, constructType(elementClass));
     }
     
     @SuppressWarnings("unchecked")
@@ -557,6 +615,11 @@ public final class TypeFactory
         return MapType.construct(mapClass, keyType, valueType);
     }
 
+    @SuppressWarnings("unchecked")
+    public MapType constructMapType(Class<? extends Map> mapClass, Class<?> keyClass, Class<?> valueClass) {
+        return MapType.construct(mapClass, constructType(keyClass), constructType(valueClass));
+    }
+    
     public SimpleType constructSimpleType(Class<?> rawType, JavaType[] parameterTypes)
     {
         // Quick sanity check: must match numbers of types with expected...

@@ -797,8 +797,13 @@ public class DeserializationConfig
     }
 
     //@Override
-    public TypeFactory getTypeFactory() {
+    public final TypeFactory getTypeFactory() {
         return _typeFactory;
+    }
+
+    //@Override
+    public final JavaType constructType(Class<?> cls) {
+        return _typeFactory.constructType(cls);
     }
     
     /**

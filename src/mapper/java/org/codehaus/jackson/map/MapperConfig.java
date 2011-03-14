@@ -193,6 +193,11 @@ public interface MapperConfig<T extends MapperConfig<T>>
      * @since 1.8
      */
     public TypeFactory getTypeFactory();
+
+    /**
+     * @since 1.8
+     */
+    public JavaType constructType(Class<?> cls);
     
     /**
      * Accessor for getting bean description that only contains class

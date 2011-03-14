@@ -20,25 +20,27 @@ public class TestTypeResolution extends BaseTest
     
     public void testMaps()
     {
-        JavaType t = TypeFactory.type(new TypeReference<LongValuedMap<String>>() { });
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType t = tf.constructType(new TypeReference<LongValuedMap<String>>() { });
         MapType type = (MapType) t;
         assertSame(LongValuedMap.class, type.getRawClass());
-        assertEquals(TypeFactory.type(String.class), type.getKeyType());
-        assertEquals(TypeFactory.type(Long.class), type.getContentType());        
+        assertEquals(tf.constructType(String.class), type.getKeyType());
+        assertEquals(tf.constructType(Long.class), type.getContentType());        
     }
 
     public void testList()
     {
         JavaType t;
 
-        t = TypeFactory.type(new TypeReference<MyLongList<Integer>>() {});
+        TypeFactory tf = TypeFactory.defaultInstance();
+        t = tf.constructType(new TypeReference<MyLongList<Integer>>() {});
         CollectionType type = (CollectionType) t;
         assertSame(MyLongList.class, type.getRawClass());
-        assertEquals(TypeFactory.type(Long.class), type.getContentType());        
+        assertEquals(tf.constructType(Long.class), type.getContentType());        
 
-        t = TypeFactory.type(LongList.class);
+        t = tf.constructType(LongList.class);
         type = (CollectionType) t;
         assertSame(LongList.class, type.getRawClass());
-        assertEquals(TypeFactory.type(Long.class), type.getContentType());        
+        assertEquals(tf.constructType(Long.class), type.getContentType());        
     }
 }

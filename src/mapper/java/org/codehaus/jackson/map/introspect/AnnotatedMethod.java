@@ -3,7 +3,6 @@ package org.codehaus.jackson.map.introspect;
 import java.lang.reflect.*;
 
 import org.codehaus.jackson.map.type.TypeBindings;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
 public final class AnnotatedMethod
@@ -80,22 +79,7 @@ public final class AnnotatedMethod
     @Override
     public JavaType getType(TypeBindings bindings)
     {
-        TypeVariable<?>[] localTypeParams = _method.getTypeParameters();
-        // [JACKSON-468] Need to consider local type binding declarations too...
-        if (localTypeParams != null && localTypeParams.length > 0) {
-            bindings = bindings.childInstance();
-            for (TypeVariable<?> var : localTypeParams) {
-                String name = var.getName();
-                // to prevent infinite loops, need to first add placeholder ("<T extends Enum<T>>" etc)
-                bindings._addPlaceholder(name);
-                // About only useful piece of information is the lower bound (which is at least Object.class)
-                Type lowerBound = var.getBounds()[0];
-                JavaType type = (lowerBound == null) ? TypeFactory.fastSimpleType(Object.class)
-                        : TypeFactory.type(lowerBound, bindings);
-                bindings.addBinding(var.getName(), type);
-            }
-        }
-        return TypeFactory.type(getGenericType(), bindings);
+        return getType(bindings, _method.getTypeParameters());
     }
     
     /*

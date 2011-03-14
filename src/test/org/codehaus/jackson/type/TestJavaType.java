@@ -19,7 +19,8 @@ public class TestJavaType
 
     public void testSimpleClass()
     {
-        JavaType baseType = TypeFactory.type(BaseType.class);
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType baseType = tf.constructType(BaseType.class);
         assertSame(BaseType.class, baseType.getRawClass());
         assertTrue(baseType.hasRawClass(BaseType.class));
 
@@ -61,8 +62,9 @@ public class TestJavaType
 
     public void testMapType()
     {
-        JavaType keyT = TypeFactory.type(String.class);
-        JavaType baseT = TypeFactory.type(BaseType.class);
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType keyT = tf.constructType(String.class);
+        JavaType baseT = tf.constructType(BaseType.class);
 
         MapType mapT = MapType.construct(Map.class, keyT, baseT);
         assertNotNull(mapT);
@@ -89,7 +91,8 @@ public class TestJavaType
 
     public void testArrayType()
     {
-        JavaType arrayT = ArrayType.construct(TypeFactory.type(String.class));
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType arrayT = ArrayType.construct(tf.constructType(String.class));
         assertNotNull(arrayT);
         assertTrue(arrayT.isContainerType());
 
@@ -102,8 +105,8 @@ public class TestJavaType
         assertFalse(arrayT.equals(null));
         assertFalse(arrayT.equals("xyz"));
 
-        assertTrue(arrayT.equals(ArrayType.construct(TypeFactory.type(String.class))));
-        assertFalse(arrayT.equals(ArrayType.construct(TypeFactory.type(Integer.class))));
+        assertTrue(arrayT.equals(ArrayType.construct(tf.constructType(String.class))));
+        assertFalse(arrayT.equals(ArrayType.construct(tf.constructType(Integer.class))));
 
         // Also, must NOT try to create using simple type
         try {
@@ -115,8 +118,9 @@ public class TestJavaType
 
     public void testCollectionType()
     {
+        TypeFactory tf = TypeFactory.defaultInstance();
         // List<String>
-        JavaType collectionT = CollectionType.construct(List.class, TypeFactory.type(String.class));
+        JavaType collectionT = CollectionType.construct(List.class, tf.constructType(String.class));
         assertNotNull(collectionT);
         assertTrue(collectionT.isContainerType());
 
@@ -129,8 +133,8 @@ public class TestJavaType
         assertFalse(collectionT.equals(null));
         assertFalse(collectionT.equals("xyz"));
 
-        assertTrue(collectionT.equals(CollectionType.construct(List.class, TypeFactory.type(String.class))));
-        assertFalse(collectionT.equals(CollectionType.construct(Set.class, TypeFactory.type(String.class))));
+        assertTrue(collectionT.equals(CollectionType.construct(List.class, tf.constructType(String.class))));
+        assertFalse(collectionT.equals(CollectionType.construct(Set.class, tf.constructType(String.class))));
 
         // Also, must NOT try to create using simple type
         try {

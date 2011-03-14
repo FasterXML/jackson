@@ -28,7 +28,7 @@ import org.codehaus.jackson.util.VersionUtil;
 public class ObjectReader
     implements Versioned
 {
-    private final static JavaType JSON_NODE_TYPE = TypeFactory.type(JsonNode.class);
+    private final static JavaType JSON_NODE_TYPE = TypeFactory.defaultInstance().uncheckedSimpleType(JsonNode.class);
 
     /*
     /**********************************************************
@@ -148,12 +148,12 @@ public class ObjectReader
 
     public ObjectReader withType(Class<?> valueType)
     {
-        return withType(TypeFactory.type(valueType));
+        return withType(_config.constructType(valueType));
     }    
 
     public ObjectReader withType(java.lang.reflect.Type valueType)
     {
-        return withType(TypeFactory.type(valueType));
+        return withType(_config.getTypeFactory().constructType(valueType));
     }    
 
     public ObjectReader withNodeFactory(JsonNodeFactory f)
@@ -170,7 +170,7 @@ public class ObjectReader
         if (value == null) {
             throw new IllegalArgumentException("cat not update null value");
         }
-        JavaType t = TypeFactory.type(value.getClass());
+        JavaType t = _config.constructType(value.getClass());
         return new ObjectReader(this, _config, t, value);
     }    
 

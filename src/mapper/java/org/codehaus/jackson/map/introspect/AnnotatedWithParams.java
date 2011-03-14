@@ -2,6 +2,11 @@ package org.codehaus.jackson.map.introspect;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+
+import org.codehaus.jackson.map.type.TypeBindings;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Intermediate base class that encapsulates features that
@@ -67,6 +72,32 @@ public abstract class AnnotatedWithParams
     public final void addIfNotPresent(Annotation a)
     {
         _annotations.addIfNotPresent(a);
+    }
+
+    /*
+    /**********************************************************
+    /* Helper methods for subclasses
+    /**********************************************************
+     */
+
+    protected  JavaType getType(TypeBindings bindings, TypeVariable<?>[] typeParams)
+    {
+        // [JACKSON-468] Need to consider local type binding declarations too...
+        if (typeParams != null && typeParams.length > 0) {
+            bindings = bindings.childInstance();
+            for (TypeVariable<?> var : typeParams) {
+                String name = var.getName();
+                // to prevent infinite loops, need to first add placeholder ("<T extends Enum<T>>" etc)
+                bindings._addPlaceholder(name);
+                // About only useful piece of information is the lower bound (which is at least Object.class)
+                Type lowerBound = var.getBounds()[0];
+                TypeFactory tf = bindings.getTypeFactory();
+                JavaType type = (lowerBound == null) ? tf.uncheckedSimpleType(Object.class)
+                        : tf._constructType(lowerBound, bindings);
+                bindings.addBinding(var.getName(), type);
+            }
+        }
+        return TypeFactory.type(getGenericType(), bindings);
     }
 
     /*

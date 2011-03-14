@@ -5,7 +5,6 @@ import java.io.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.SegmentedStringWriter;
 import org.codehaus.jackson.map.ser.FilterProvider;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 import org.codehaus.jackson.util.ByteArrayBuilder;
@@ -192,7 +191,7 @@ public class ObjectWriter
      */
     public ObjectWriter withType(Class<?> rootType)
     {
-        return withType(TypeFactory.type(rootType));
+        return withType(_config.constructType(rootType));
     }
 
     /**
@@ -200,7 +199,7 @@ public class ObjectWriter
      */
     public ObjectWriter withType(TypeReference<?> rootType)
     {
-        return withType(TypeFactory.type(rootType));
+        return withType(_config.getTypeFactory().constructType(rootType.getType()));
     }
     
     /**

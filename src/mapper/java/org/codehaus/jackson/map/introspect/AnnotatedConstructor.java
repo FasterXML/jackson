@@ -3,10 +3,8 @@ package org.codehaus.jackson.map.introspect;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 
 import org.codehaus.jackson.map.type.TypeBindings;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
 public final class AnnotatedConstructor
@@ -63,23 +61,7 @@ public final class AnnotatedConstructor
     @Override
     public JavaType getType(TypeBindings bindings)
     {
-        TypeVariable<?>[] localTypeParams = _constructor.getTypeParameters();
-        // [JACKSON-468] Need to consider local type binding declarations too...
-        if (localTypeParams != null && localTypeParams.length > 0) {
-            bindings = bindings.childInstance();
-            for (TypeVariable<?> var : localTypeParams) {
-                String name = var.getName();
-                // to prevent infinite loops, need to first add placeholder ("<T extends Enum<T>>" etc)
-                bindings._addPlaceholder(name);
-                // About only useful piece of information is the lower bound (which is at least Object.class)
-                Type lowerBound = var.getBounds()[0];
-                TypeFactory tf = bindings.getTypeFactory();
-                JavaType type = (lowerBound == null) ? tf.uncheckedSimpleType(Object.class)
-                        : tf._constructType(lowerBound, bindings);
-                bindings.addBinding(var.getName(), type);
-            }
-        }
-        return TypeFactory.type(getGenericType(), bindings);
+        return getType(bindings, _constructor.getTypeParameters());
     }
     
     /*
