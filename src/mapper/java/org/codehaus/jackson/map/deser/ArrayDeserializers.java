@@ -52,10 +52,14 @@ public class ArrayDeserializers
     }
 
     @SuppressWarnings("unchecked")
-	private void add(Class<?> cls, JsonDeserializer<?> deser)
+    private void add(Class<?> cls, JsonDeserializer<?> deser)
     {
-        _allDeserializers.put(TypeFactory.type(cls),
-                              (JsonDeserializer<Object>) deser);
+        /* Not super clean to use default TypeFactory in general, but
+         * since primitive array types can't be modified for anything
+         * useful, this should be ok:
+         */
+        _allDeserializers.put(TypeFactory.defaultInstance().constructType(cls),
+                (JsonDeserializer<Object>) deser);
     }
 
     public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,

@@ -17,7 +17,7 @@ import org.codehaus.jackson.type.JavaType;
 public class XmlAdapterJsonDeserializer
     extends StdDeserializer<Object>
 {
-    protected final static JavaType ADAPTER_TYPE = TypeFactory.type(XmlAdapter.class);
+    protected final static JavaType ADAPTER_TYPE = TypeFactory.defaultInstance().uncheckedSimpleType(XmlAdapter.class);
 
     protected final BeanProperty _property;
 
@@ -26,17 +26,24 @@ public class XmlAdapterJsonDeserializer
 
     protected JsonDeserializer<?> _deserializer;
     
-    public XmlAdapterJsonDeserializer(XmlAdapter<Object,Object> xmlAdapter, BeanProperty property)
+    public XmlAdapterJsonDeserializer(XmlAdapter<Object,Object> xmlAdapter,
+            BeanProperty property)
     {
         super(Object.class); // type not yet known (will be in a second), but that's ok...
         _property = property;
         _xmlAdapter = xmlAdapter;
-        /* [JACKSON-404] Need to figure out generic type parameters
-         *   used...
+        // [JACKSON-404] Need to figure out generic type parameters used...
+        /* 14-Mar-2011, tatu: This is sub-optimal, as we really should use
+         *    configured TypeFactory, not global one; but it should not cause
+         *    issues here (issue would be that it will ignore module-provided additional
+         *    type manging, most relevant for languages other than Java)
          */
-        JavaType type = TypeFactory.type(xmlAdapter.getClass());
-        JavaType[] rawTypes = TypeFactory.findParameterTypes(type, XmlAdapter.class);
-        _valueType = (rawTypes == null || rawTypes.length == 0)  ? TypeFactory.type(Object.class) : rawTypes[0];
+        TypeFactory typeFactory = TypeFactory.defaultInstance();
+
+        JavaType type = typeFactory.constructType(xmlAdapter.getClass());
+        JavaType[] rawTypes = typeFactory.findTypeParameters(type, XmlAdapter.class);
+        _valueType = (rawTypes == null || rawTypes.length == 0)
+            ? TypeFactory.unknownType() : rawTypes[0];
     }
 
     @Override

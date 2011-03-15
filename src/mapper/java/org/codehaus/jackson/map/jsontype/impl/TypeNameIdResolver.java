@@ -6,7 +6,6 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.MapperConfig;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.jsontype.NamedType;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
 public class TypeNameIdResolver
@@ -72,7 +71,7 @@ public class TypeNameIdResolver
                             continue;
                         }
                     }
-                    idToType.put(id, TypeFactory.type(cls));
+                    idToType.put(id, config.constructType(cls));
                 }
             }
         }

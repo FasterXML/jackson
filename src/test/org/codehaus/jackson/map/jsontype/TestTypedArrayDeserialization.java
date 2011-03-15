@@ -50,7 +50,7 @@ public class TestTypedArrayDeserialization
         ObjectMapper m = new ObjectMapper();
         // uses WRAPPER_OBJECT inclusion
         String JSON = "{\""+TypedListAsWrapper.class.getName()+"\":[4,5, 6]}";
-        JavaType type = TypeFactory.collectionType(TypedListAsWrapper.class, Integer.class);        
+        JavaType type = TypeFactory.defaultInstance().constructCollectionType(TypedListAsWrapper.class, Integer.class);        
         TypedListAsWrapper<Integer> result = m.readValue(JSON, type);
         assertNotNull(result);
         assertEquals(3, result.size());
@@ -69,7 +69,7 @@ public class TestTypedArrayDeserialization
         ObjectMapper m = new ObjectMapper();
         // tries to use PROPERTY inclusion; but for ARRAYS (and scalars) will become ARRAY_WRAPPER
         String JSON = "[\""+TypedListAsProp.class.getName()+"\",[true, false]]";
-        JavaType type = TypeFactory.collectionType(TypedListAsProp.class, Boolean.class);        
+        JavaType type = TypeFactory.defaultInstance().constructCollectionType(TypedListAsProp.class, Boolean.class);        
         TypedListAsProp<Object> result = m.readValue(JSON, type);
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -83,7 +83,7 @@ public class TestTypedArrayDeserialization
         // uses OBJECT_ARRAY, works just fine
         
         String JSON = "{\""+TypedListAsWrapper.class.getName()+"\":[1, 3]}";
-        JavaType type = TypeFactory.collectionType(TypedListAsWrapper.class, Long.class);        
+        JavaType type = TypeFactory.defaultInstance().constructCollectionType(TypedListAsWrapper.class, Long.class);        
         TypedListAsWrapper<Object> result = m.readValue(JSON, type);
         assertNotNull(result);
         assertEquals(2, result.size());

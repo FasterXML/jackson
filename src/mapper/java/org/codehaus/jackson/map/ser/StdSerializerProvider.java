@@ -7,7 +7,6 @@ import java.util.Date;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.ser.impl.ReadOnlyClassToSerializerMap;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.RootNameLookup;
 import org.codehaus.jackson.node.ObjectNode;
@@ -364,7 +363,7 @@ public class StdSerializerProvider
             ser = _serializerCache.untypedValueSerializer(valueType);
             if (ser == null) {
                 // ... possibly as fully typed?
-                ser = _serializerCache.untypedValueSerializer(TypeFactory.type(valueType));
+                ser = _serializerCache.untypedValueSerializer(_config.constructType(valueType));
                 if (ser == null) {
                     // If neither, must create
                     ser = _createAndCacheUntypedSerializer(valueType, property);
@@ -452,7 +451,7 @@ public class StdSerializerProvider
         // Well, let's just compose from pieces:
         ser = findValueSerializer(valueType, property);
         TypeSerializer typeSer = _serializerFactory.createTypeSerializer(_config,
-                TypeFactory.type(valueType), property);
+                _config.constructType(valueType), property);
         if (typeSer != null) {
             ser = new WrappedSerializer(typeSer, ser);
         }
@@ -722,7 +721,7 @@ public class StdSerializerProvider
     {        
         JsonSerializer<Object> ser;
         try {
-            ser = _createUntypedSerializer(TypeFactory.type(type), property);
+            ser = _createUntypedSerializer(_config.constructType(type), property);
         } catch (IllegalArgumentException iae) {
             /* We better only expose checked exceptions, since those
              * are what caller is expected to handle

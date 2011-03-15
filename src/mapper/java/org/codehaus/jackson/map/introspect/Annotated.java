@@ -7,7 +7,6 @@ import java.lang.reflect.Type;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.type.TypeBindings;
-import org.codehaus.jackson.map.type.TypeFactory;
 
 /**
  * Shared base class used for anything on which annotations (included
@@ -44,7 +43,7 @@ public abstract class Annotated
      * of what exactly this means depends on sub-class.
      */
     public JavaType getType(TypeBindings context) {
-        return TypeFactory.type(getGenericType(), context);
+        return context.resolveType(getGenericType());
     }
 
     /**

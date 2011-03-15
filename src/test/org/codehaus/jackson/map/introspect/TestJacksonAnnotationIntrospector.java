@@ -175,7 +175,7 @@ public class TestJacksonAnnotationIntrospector
     {
         JacksonAnnotationIntrospector ai = new JacksonAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(TypeResolverBean.class, ai, null);
-        JavaType baseType = TypeFactory.type(TypeResolverBean.class);
+        JavaType baseType = TypeFactory.defaultInstance().constructType(TypeResolverBean.class);
         TypeResolverBuilder<?> rb = ai.findTypeResolver(ac, baseType);
         assertNotNull(rb);
         assertSame(DummyBuilder.class, rb.getClass());

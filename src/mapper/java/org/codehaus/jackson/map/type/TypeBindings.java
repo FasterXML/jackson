@@ -95,6 +95,20 @@ public class TypeBindings
         _contextClass = cc;
         _contextType = type;
     }
+
+    /*
+    /**********************************************************
+    /* Pass-through type resolution methods
+    /**********************************************************
+     */
+
+    public JavaType resolveType(Class<?> cls) {
+        return _typeFactory._constructType(cls, this);
+    }
+
+    public JavaType resolveType(Type type) {
+        return _typeFactory._constructType(type, this);
+    }
     
     /*
     /**********************************************************
@@ -105,9 +119,11 @@ public class TypeBindings
     /**
      * @since 1.8
      */
+    /*
     public TypeFactory getTypeFactory() {
         return _typeFactory;
     }
+    */
     
     public int getBindingCount() {
         if (_bindings == null) {

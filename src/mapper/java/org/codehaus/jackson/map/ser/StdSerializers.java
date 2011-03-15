@@ -540,7 +540,7 @@ public class StdSerializers
             String objectProperties = null;
             String itemDefinition = null;
             if (typeHint != null) {
-                Class<?> rawClass = TypeFactory.type(typeHint).getRawClass();
+                Class<?> rawClass = TypeFactory.rawClass(typeHint);
                 if (rawClass.isAnnotationPresent(JsonSerializableSchema.class)) {
                     JsonSerializableSchema schemaInfo = rawClass.getAnnotation(JsonSerializableSchema.class);
                     schemaType = schemaInfo.schemaType();

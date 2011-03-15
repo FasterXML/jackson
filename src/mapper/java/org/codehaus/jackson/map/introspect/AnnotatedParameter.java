@@ -97,8 +97,13 @@ public final class AnnotatedParameter
     }
 
     @Override
-    public Class<?> getRawType() {
-        JavaType t = TypeFactory.type(_type);
+    public Class<?> getRawType()
+    {
+        if (_type instanceof Class<?>) {
+            return (Class<?>) _type;
+        }
+        // 14-Mar-2011, tatu: Not optimal, but has to do for now...
+        JavaType t = TypeFactory.defaultInstance().constructType(_type);
         return t.getRawClass();
     }
 

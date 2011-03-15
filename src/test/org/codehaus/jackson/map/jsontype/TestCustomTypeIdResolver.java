@@ -59,7 +59,7 @@ public class TestCustomTypeIdResolver extends BaseMapTest
         public JavaType typeFromId(String id)
         {
             if ("*".equals(id)) {
-                return TypeFactory.type(CustomBean.class);
+                return TypeFactory.defaultInstance().constructType(CustomBean.class);
             }
             return null;
         }

@@ -144,7 +144,7 @@ public class TestGenericMapDeser
     {
         ObjectMapper mapper = new ObjectMapper();
         Map<KeyTypeCtor,Integer> map = mapper.readValue("{\"a\":123}",
-                TypeFactory.mapType(HashMap.class, KeyTypeCtor.class, Integer.class));
+                TypeFactory.defaultInstance().constructMapType(HashMap.class, KeyTypeCtor.class, Integer.class));
         assertEquals(1, map.size());
         Map.Entry<?,?> entry = map.entrySet().iterator().next();
         assertEquals(Integer.valueOf(123), entry.getValue());
@@ -157,7 +157,7 @@ public class TestGenericMapDeser
     {
         ObjectMapper mapper = new ObjectMapper();
         Map<KeyTypeCtor,Integer> map = mapper.readValue("{\"a\":123}",
-                TypeFactory.mapType(HashMap.class, KeyTypeFactory.class, Integer.class));
+                TypeFactory.defaultInstance().constructMapType(HashMap.class, KeyTypeFactory.class, Integer.class));
         assertEquals(1, map.size());
         Map.Entry<?,?> entry = map.entrySet().iterator().next();
         assertEquals(Integer.valueOf(123), entry.getValue());

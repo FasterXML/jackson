@@ -91,13 +91,12 @@ public abstract class AnnotatedWithParams
                 bindings._addPlaceholder(name);
                 // About only useful piece of information is the lower bound (which is at least Object.class)
                 Type lowerBound = var.getBounds()[0];
-                TypeFactory tf = bindings.getTypeFactory();
-                JavaType type = (lowerBound == null) ? tf.uncheckedSimpleType(Object.class)
-                        : tf._constructType(lowerBound, bindings);
+                JavaType type = (lowerBound == null) ? TypeFactory.unknownType()
+                        : bindings.resolveType(lowerBound);
                 bindings.addBinding(var.getName(), type);
             }
         }
-        return TypeFactory.type(getGenericType(), bindings);
+        return bindings.resolveType(getGenericType());
     }
 
     /*

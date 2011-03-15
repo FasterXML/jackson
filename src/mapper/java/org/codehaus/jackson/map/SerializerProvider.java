@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.Date;
 
 import org.codehaus.jackson.*;
@@ -21,7 +22,7 @@ import org.codehaus.jackson.type.JavaType;
  */
 public abstract class SerializerProvider
 {
-    protected final static JavaType TYPE_OBJECT = TypeFactory.type(Object.class);
+    protected final static JavaType TYPE_OBJECT = TypeFactory.defaultInstance().uncheckedSimpleType(Object.class);
     
     /**
      * Serialization configuration to use for serialization processing.
@@ -173,6 +174,13 @@ public abstract class SerializerProvider
      */
     public final FilterProvider getFilterProvider() {
         return _config.getFilterProvider();
+    }
+
+    /**
+     * @since 1.8
+     */
+    public JavaType constructType(Type type) {
+         return _config.getTypeFactory().constructType(type);
     }
     
     /*

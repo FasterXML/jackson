@@ -65,7 +65,7 @@ public final class TypeFactory
     protected TypeFactory(TypeParser p) {
         _parser = p;
     }
-
+    
     /**
      * Method used to access the globally shared instance, which has
      * no custom configuration. Used by <code>ObjectMapper</code> to
@@ -75,18 +75,29 @@ public final class TypeFactory
      */
     public static TypeFactory defaultInstance() { return instance; }
 
+    /*
+    /**********************************************************
+    /* Static methods for non-instance-specific functionality
+    /**********************************************************
+     */
+    
     /**
      * Method for constructing a marker type that indicates missing generic
      * type information, which is handled same as simple type for
      * <code>java.lang.Object</code>.
-     * This is the only static method (aside from {@link #defaultInstance} accessor)
-     * that is not deprecated, since there os no configurability with respect
-     * to this marker type.
      * 
      * @since 1.8
      */
     public static JavaType unknownType() {
         return defaultInstance()._unknownType();
+    }
+
+    public static Class<?> rawClass(Type t) {
+        if (t instanceof Class<?>) {
+            return (Class<?>) t;
+        }
+        // Can optimize bit more in future.
+        return defaultInstance().constructType(t).getRawClass();
     }
     
     /*
@@ -539,6 +550,10 @@ public final class TypeFactory
         return _constructType(type, null);
     }
 
+    public JavaType constructType(Type type, TypeBindings bindings) {
+        return _constructType(type, bindings);
+    }
+    
     public JavaType constructType(TypeReference<?> typeRef) {
         return _constructType(typeRef.getType(), null);
     }

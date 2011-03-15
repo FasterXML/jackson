@@ -781,7 +781,7 @@ public abstract class BasicDeserializerFactory
             AnnotatedParameter param)
         throws JsonMappingException
     {
-        JavaType t0 = TypeFactory.type(param.getParameterType(), beanDesc.bindingsForBeanType());
+        JavaType t0 = config.getTypeFactory().constructType(param.getParameterType(), beanDesc.bindingsForBeanType());
         BeanProperty.Std property = new BeanProperty.Std(name, t0, beanDesc.getClassAnnotations(), param);
         JavaType type = resolveType(config, beanDesc, t0, param, property);
         if (type != t0) {

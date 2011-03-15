@@ -53,7 +53,7 @@ public class TestTypeNames extends BaseMapTest
         };
         String json = m.writeValueAsString(input);
         List<Animal> output = m.readValue(json,
-                TypeFactory.collectionType(ArrayList.class, Animal.class));
+                TypeFactory.defaultInstance().constructCollectionType(ArrayList.class, Animal.class));
         assertEquals(input.length, output.size());
         for (int i = 0, len = input.length; i < len; ++i) {
             assertEquals("Entry #"+i+" differs, input = '"+json+"'",
