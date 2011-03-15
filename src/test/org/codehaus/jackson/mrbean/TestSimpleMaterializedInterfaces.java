@@ -3,6 +3,7 @@ package org.codehaus.jackson.mrbean;
 import static org.junit.Assert.assertArrayEquals;
 
 import org.codehaus.jackson.map.BaseMapTest;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.mrbean.AbstractTypeMaterializer;
 
@@ -59,7 +60,8 @@ public class TestSimpleMaterializedInterfaces
     public void testLowLevelMaterializer() throws Exception
     {
         AbstractTypeMaterializer mat = new AbstractTypeMaterializer();
-        Class<?> impl = mat.materializeClass(Bean.class);
+        DeserializationConfig config = new ObjectMapper().getDeserializationConfig();
+        Class<?> impl = mat.materializeClass(config, Bean.class);
         assertNotNull(impl);
         assertTrue(Bean.class.isAssignableFrom(impl));
         // also, let's instantiate to make sure:
@@ -70,7 +72,7 @@ public class TestSimpleMaterializedInterfaces
         assertNull(bean.getA());
 
         // Also: let's verify that we can handle dup calls:
-        Class<?> impl2 = mat.materializeClass(Bean.class);
+        Class<?> impl2 = mat.materializeClass(config, Bean.class);
         assertNotNull(impl2);
         assertSame(impl, impl2);
     }
@@ -78,8 +80,9 @@ public class TestSimpleMaterializedInterfaces
     public void testLowLevelMaterializerFailOnIncompatible() throws Exception
     {
         AbstractTypeMaterializer mat = new AbstractTypeMaterializer();
+        DeserializationConfig config = new ObjectMapper().getDeserializationConfig();
         try {
-            mat.materializeClass(InvalidBean.class);
+            mat.materializeClass(config, InvalidBean.class);
             fail("Expected exception for incompatible property types");
         } catch (IllegalArgumentException e) {
             verifyException(e, "incompatible types");
@@ -91,8 +94,9 @@ public class TestSimpleMaterializedInterfaces
         AbstractTypeMaterializer mat = new AbstractTypeMaterializer();
         //  by default early failure is disabled, enable:
         mat.enable(AbstractTypeMaterializer.Feature.FAIL_ON_UNMATERIALIZED_METHOD);
+        DeserializationConfig config = new ObjectMapper().getDeserializationConfig();
         try {
-            mat.materializeClass(PartialBean.class);
+            mat.materializeClass(config, PartialBean.class);
             fail("Expected exception for unrecognized method");
         } catch (IllegalArgumentException e) {
             verifyException(e, "Unrecognized abstract method 'foobar'");

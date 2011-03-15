@@ -84,11 +84,13 @@ public class ClassNameIdResolver
              */
             if (value instanceof EnumSet<?>) { // Regular- and JumboEnumSet...
                 Class<?> enumClass = ClassUtil.findEnumType((EnumSet<?>) value);
-                str = TypeFactory.collectionType(EnumSet.class, enumClass).toCanonical();
+                // not optimal: but EnumSet is not a customizable type so this is sort of ok
+                str = TypeFactory.defaultInstance().constructCollectionType(EnumSet.class, enumClass).toCanonical();
             } else if (value instanceof EnumMap<?,?>) {
                 Class<?> enumClass = ClassUtil.findEnumType((EnumMap<?,?>) value);
                 Class<?> valueClass = Object.class;
-                str = TypeFactory.mapType(EnumMap.class, enumClass, valueClass).toCanonical();
+                // not optimal: but EnumMap is not a customizable type so this is sort of ok
+                str = TypeFactory.defaultInstance().constructMapType(EnumMap.class, enumClass, valueClass).toCanonical();
             } else {
                 String end = str.substring(9);
                 if ((end.startsWith(".Arrays$") || end.startsWith(".Collections$"))

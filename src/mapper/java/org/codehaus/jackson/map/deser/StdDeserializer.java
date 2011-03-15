@@ -14,7 +14,6 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.io.NumberInput;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
 
@@ -1026,17 +1025,12 @@ public abstract class StdDeserializer<T>
         protected JsonDeserializer<?> _valueDeserializer;
         
         /**
-         * @param type AtomicReference deserializer is to be constructed for
+         * @param referencedType Parameterization of this reference
          */
-        public AtomicReferenceDeserializer(JavaType type, BeanProperty property)
+        public AtomicReferenceDeserializer(JavaType referencedType, BeanProperty property)
         {
-            super(type.getRawClass());
-            JavaType[] refTypes = TypeFactory.findParameterTypes(type, AtomicReference.class);
-            if (refTypes == null) { // untyped (raw)
-                _referencedType = TypeFactory.type(Object.class);
-            } else {
-                _referencedType = refTypes[0];
-            }
+            super(AtomicReference.class);
+            _referencedType = referencedType;
             _property = property;
         }
 

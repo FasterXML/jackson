@@ -49,10 +49,15 @@ public class JSONPObject
         _serializationType = asType;
     }
 
+    /**
+     * @deprected Since 1.8; instead use variant that takes JavaType: this ensures
+     *    that type information is properly resolved
+     */
+    @Deprecated
     public JSONPObject(String function, Object value, Class<?> rawType) {
         _function = function;
         _value = value;
-        _serializationType = (rawType == null) ? null : TypeFactory.type(rawType);
+        _serializationType = (rawType == null) ? null : TypeFactory.defaultInstance().constructType(rawType);
     }
     
     /*

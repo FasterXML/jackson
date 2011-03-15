@@ -168,7 +168,7 @@ public class AbstractTypeMaterializer
         if (type.isContainerType()) {
             return null;
         }
-        Class<?> impl = materializeClass(type.getRawClass());
+        Class<?> impl = materializeClass(config, type.getRawClass());
         return config.constructType(impl);
     }
     
@@ -178,11 +178,11 @@ public class AbstractTypeMaterializer
     /**********************************************************
      */
 
-    protected Class<?> materializeClass(Class<?> cls)
+    protected Class<?> materializeClass(DeserializationConfig config, Class<?> cls)
     {
         // Need to have proper name mangling in future, but for now...
         String newName = _defaultPackage+cls.getName();
-        BeanBuilder builder = new BeanBuilder(cls);
+        BeanBuilder builder = new BeanBuilder(config, cls);
         byte[] bytecode = builder.implement(isEnabled(Feature.FAIL_ON_UNMATERIALIZED_METHOD)).build(newName);
         Class<?> result = _classLoader.loadAndResolve(newName, bytecode, cls);
         return result;

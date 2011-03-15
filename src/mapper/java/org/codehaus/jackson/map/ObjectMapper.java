@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map;
 
 import java.io.*;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
@@ -384,8 +385,8 @@ public class ObjectMapper
      * 	will be constructed
      */
     public ObjectMapper(JsonFactory jf,
-                        SerializerProvider sp, DeserializerProvider dp,
-                        SerializationConfig sconfig, DeserializationConfig dconfig)
+            SerializerProvider sp, DeserializerProvider dp,
+            SerializationConfig sconfig, DeserializationConfig dconfig)
     {
         /* 02-Mar-2009, tatu: Important: we MUST default to using
          *   the mapping factory, otherwise tree serialization will
@@ -541,6 +542,26 @@ public class ObjectMapper
      */
     public void setFilters(FilterProvider filterProvider) {
         _serializationConfig = _serializationConfig.withFilters(filterProvider);
+    }
+
+    /**
+     * Accessor for getting currently configured {@link TypeFactory} instance.
+     * 
+     * @since 1.8
+     */
+    public TypeFactory getTypeFactory() {
+        return _typeFactory;
+    }
+    
+    /**
+     * Convenience method for constructing {@link JavaType} out of given
+     * type (typically <code>java.lang.Class</code>), but without explicit
+     * context.
+     * 
+     * @since 1.8
+     */
+    public JavaType constructType(Type t) {
+        return _typeFactory.constructType(t);
     }
     
     /**

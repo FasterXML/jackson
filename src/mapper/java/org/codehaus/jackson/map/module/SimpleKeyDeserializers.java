@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -22,7 +22,7 @@ import org.codehaus.jackson.type.JavaType;
  */
 public class SimpleKeyDeserializers implements KeyDeserializers
 {
-    protected HashMap<JavaType,KeyDeserializer> _classMappings = null;
+    protected HashMap<ClassKey,KeyDeserializer> _classMappings = null;
 
     /*
     /**********************************************************
@@ -32,18 +32,13 @@ public class SimpleKeyDeserializers implements KeyDeserializers
     
     public SimpleKeyDeserializers() { }
 
-    public SimpleKeyDeserializers addDeserializer(JavaType forType, KeyDeserializer deser)
-    {
-        if (_classMappings == null) {
-            _classMappings = new HashMap<JavaType,KeyDeserializer>();
-        }
-        _classMappings.put(forType, deser);
-        return this;
-    }
-
     public SimpleKeyDeserializers addDeserializer(Class<?> forClass, KeyDeserializer deser)
     {
-        return addDeserializer(TypeFactory.type(forClass), deser);
+        if (_classMappings == null) {
+            _classMappings = new HashMap<ClassKey,KeyDeserializer>();
+        }
+        _classMappings.put(new ClassKey(forClass), deser);
+        return this;
     }
 
     /*
@@ -56,6 +51,9 @@ public class SimpleKeyDeserializers implements KeyDeserializers
     public KeyDeserializer findKeyDeserializer(JavaType type, DeserializationConfig config, 
             BeanDescription beanDesc, BeanProperty property)
     {
-        return (_classMappings == null) ? null : _classMappings.get(type);
+        if (_classMappings == null) {
+            return null;
+        }
+        return _classMappings.get(new ClassKey(type.getRawClass()));
     }
 }

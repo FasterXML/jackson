@@ -1,7 +1,9 @@
 package org.codehaus.jackson.map.ser;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.JSONPObject;
+import org.codehaus.jackson.type.JavaType;
 
 public class TestJSONP
     extends BaseMapTest
@@ -45,7 +47,8 @@ public class TestJSONP
     {
         ObjectMapper m = new ObjectMapper();
         Object ob = new Impl("abc", "def");
+        JavaType type = TypeFactory.defaultInstance().uncheckedSimpleType(Base.class);
         assertEquals("do({\"a\":\"abc\"})",
-                serializeAsString(m, new JSONPObject("do", ob, Base.class)));
+                serializeAsString(m, new JSONPObject("do", ob, type)));
     }
 }

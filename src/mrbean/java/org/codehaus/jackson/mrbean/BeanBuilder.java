@@ -8,6 +8,7 @@ import org.codehaus.jackson.org.objectweb.asm.*;
 import static org.codehaus.jackson.org.objectweb.asm.Opcodes.*;
 
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.type.TypeFactory;
 
 /**
@@ -25,9 +26,13 @@ public class BeanBuilder
      * Abstract class or interface that the bean is created to extend or implement.
      */
     protected final Class<?> _implementedType;
+
+    protected final TypeFactory _typeFactory;
     
-    public BeanBuilder(Class<?> implType) {
+    public BeanBuilder(DeserializationConfig config, Class<?> implType)
+    {
         _implementedType = implType;
+        _typeFactory = config.getTypeFactory();
     }
 
     /*
@@ -109,7 +114,7 @@ public class BeanBuilder
         BeanBuilder.generateDefaultConstructor(cw, superName);
         for (Property prop : _beanProperties.values()) {
             // First: determine type to use; preferably setter (usually more explicit); otherwise getter
-            TypeDescription type = prop.selectType();
+            TypeDescription type = prop.selectType(_typeFactory);
             createField(cw, prop, type);
             // since some getters and/or setters may be implemented, check:
             if (!prop.hasConcreteGetter()) {
@@ -335,30 +340,32 @@ public class BeanBuilder
             return (_setter != null) && BeanUtil.isConcrete(_setter);
         }
 
-        private TypeDescription getterType() {
+        private TypeDescription getterType(TypeFactory tf)
+        {
             Class<?> context = _getter.getDeclaringClass();
-            return new TypeDescription(TypeFactory.type(_getter.getGenericReturnType(), context));
+            return new TypeDescription(tf.constructType(_getter.getGenericReturnType(), context));
         }
 
-        private TypeDescription setterType() {
+        private TypeDescription setterType(TypeFactory tf)
+        {
             Class<?> context = _setter.getDeclaringClass();
-            return new TypeDescription(TypeFactory.type(_setter.getGenericParameterTypes()[0], context));
+            return new TypeDescription(tf.constructType(_setter.getGenericParameterTypes()[0], context));
         }
         
-        public TypeDescription selectType()
+        public TypeDescription selectType(TypeFactory tf)
         {
             // First: if only know setter, or getter, use that one:
             if (_getter == null) {
-                return setterType();
+                return setterType(tf);
             }
             if (_setter == null) {
-                return getterType();
+                return getterType(tf);
             }
             /* Otherwise must ensure they are compatible, choose more specific
              * (most often setter - type)
              */
-            TypeDescription st = setterType();
-            TypeDescription gt = getterType();
+            TypeDescription st = setterType(tf);
+            TypeDescription gt = getterType(tf);
             TypeDescription specificType = TypeDescription.moreSpecificType(st, gt);
             if (specificType == null) { // incompatible...
                 throw new IllegalArgumentException("Invalid property '"+getName()

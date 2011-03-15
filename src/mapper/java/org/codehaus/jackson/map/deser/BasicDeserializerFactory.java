@@ -438,7 +438,17 @@ public abstract class BasicDeserializerFactory
         // [JACKSON-283]: AtomicReference is a rather special type...
         Class<?> cls = type.getRawClass();
         if (AtomicReference.class.isAssignableFrom(cls)) {
-            JsonDeserializer<?> d2 = new StdDeserializer.AtomicReferenceDeserializer(type, property);
+            // Must find parameterization
+            TypeFactory tf = config.getTypeFactory();
+            JavaType[] params = tf.findTypeParameters(type, AtomicReference.class);
+            JavaType referencedType;
+            if (params == null || params.length < 1) { // untyped (raw)
+                referencedType = TypeFactory.unknownType();
+            } else {
+                referencedType = params[0];
+            }
+            
+            JsonDeserializer<?> d2 = new StdDeserializer.AtomicReferenceDeserializer(referencedType, property);
             return (JsonDeserializer<Object>)d2;
         }
         // [JACKSON-386]: External/optional type handlers are handled somewhat differently

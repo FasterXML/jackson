@@ -59,11 +59,16 @@ public class JSONWrappedObject
         _serializationType = asType;
     }
 
+    /**
+     * @deprecated Since 1.8; should construct with resolved <code>JavaType</code>,
+     *   to ensure type has been properly resolved
+     */
+    @Deprecated
     public JSONWrappedObject(String prefix, String suffix, Object value, Class<?> rawType) {
         _prefix = prefix;
         _suffix = suffix;
         _value = value;
-        _serializationType = (rawType == null) ? null : TypeFactory.type(rawType);
+        _serializationType = (rawType == null) ? null : TypeFactory.defaultInstance().constructType(rawType);
     }
     
     /*

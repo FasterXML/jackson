@@ -18,7 +18,6 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.type.ClassKey;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.JSONPObject;
 import org.codehaus.jackson.type.JavaType;
@@ -387,7 +386,8 @@ public class JacksonJsonProvider
 
         // Finally: if we really want to verify that we can serialize, we'll check:
         if (_cfgCheckCanSerialize) {
-            if (!locateMapper(type, mediaType).canDeserialize(_convertType(type))) {
+            ObjectMapper mapper = locateMapper(type, mediaType);
+            if (!mapper.canDeserialize(mapper.constructType(type))) {
                 return false;
             }
         }
@@ -407,7 +407,7 @@ public class JacksonJsonProvider
          * mapping, so we need to instruct parser:
          */
         jp.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
-        return mapper.readValue(jp, _convertType(genericType));
+        return mapper.readValue(jp, mapper.constructType(genericType));
     }
 
     /*
@@ -508,7 +508,7 @@ public class JacksonJsonProvider
                  * specialized with 'value.getClass()'? Let's see how well this works before
                  * trying to come up with more complete solution.
                  */
-                rootType = TypeFactory.type(genericType);
+                rootType = mapper.getTypeFactory().constructType(genericType);
                 /* 26-Feb-2011, tatu: To help with [JACKSON-518], we better recognize cases where
                  *    type degenerates back into "Object.class" (as is the case with plain TypeVariable,
                  *    for example), and not use that.
@@ -624,15 +624,6 @@ public class JacksonJsonProvider
     /* Private/sub-class helper methods
     /**********************************************************
      */
-
-    /**
-     * Method used to construct a JDK generic type into type definition
-     * Jackson understands.
-     */
-    protected JavaType _convertType(Type jdkType)
-    {
-        return TypeFactory.type(jdkType);
-    }
 
     protected static boolean _containedIn(Class<?> mainType, HashSet<ClassKey> set)
     {

@@ -91,7 +91,6 @@ public class TestFieldSerialization
         @JsonProperty("x")
         protected int myX;
 
-        @SuppressWarnings("hiding")
         public int y;
 
         public OkDupFieldBean(int x, int y) {
