@@ -10,8 +10,8 @@ import org.codehaus.jackson.map.util.ClassUtil;
 public class ClassNameIdResolver
     extends TypeIdResolverBase
 {
-    public ClassNameIdResolver(JavaType baseType) {
-        super(baseType);
+    public ClassNameIdResolver(JavaType baseType, TypeFactory typeFactory) {
+        super(baseType, typeFactory);
     }
 
     public JsonTypeInfo.Id getMechanism() { return JsonTypeInfo.Id.CLASS; }
@@ -50,7 +50,7 @@ public class ClassNameIdResolver
 //          Class<?> cls = Class.forName(id);
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
             Class<?> cls = Class.forName(id, true, loader);
-            return TypeFactory.specialize(_baseType, cls);
+            return _typeFactory.constructSpecializedType(_baseType, cls);
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException("Invalid type id '"+id+"' (for id type 'Id.class'): no such class found");
         } catch (Exception e) {

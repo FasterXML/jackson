@@ -29,7 +29,7 @@ public class TypeNameIdResolver
     protected TypeNameIdResolver(MapperConfig<?> config, JavaType baseType,
             HashMap<String, String> typeToId, HashMap<String, JavaType> idToType)
     {
-        super(baseType);
+        super(baseType, config.getTypeFactory());
         _config = config;
         _typeToId = typeToId;
         _idToType = idToType;

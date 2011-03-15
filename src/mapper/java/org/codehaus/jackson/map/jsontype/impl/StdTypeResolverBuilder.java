@@ -144,9 +144,9 @@ public class StdTypeResolverBuilder
         }
         switch (_idType) {
         case CLASS:
-            return new ClassNameIdResolver(baseType);
+            return new ClassNameIdResolver(baseType, config.getTypeFactory());
         case MINIMAL_CLASS:
-            return new MinimalClassNameIdResolver(baseType);
+            return new MinimalClassNameIdResolver(baseType, config.getTypeFactory());
         case NAME:
             return TypeNameIdResolver.construct(config, baseType, subtypes, forSer, forDeser);
 

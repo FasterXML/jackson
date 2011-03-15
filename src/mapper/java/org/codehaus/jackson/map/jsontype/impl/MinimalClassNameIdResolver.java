@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.jsontype.impl;
 
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
@@ -18,9 +19,9 @@ public class MinimalClassNameIdResolver
      */
     protected final String _basePackagePrefix;
     
-    protected MinimalClassNameIdResolver(JavaType baseType)
+    protected MinimalClassNameIdResolver(JavaType baseType, TypeFactory typeFactory)
     {
-        super(baseType);
+        super(baseType, typeFactory);
         String base = baseType.getRawClass().getName();
         int ix = base.lastIndexOf('.');
         if (ix < 0) { // can this ever occur?
