@@ -334,7 +334,7 @@ public class BeanBuilder
         public boolean hasConcreteSetter() {
             return (_setter != null) && BeanUtil.isConcrete(_setter);
         }
-        
+
         private TypeDescription getterType() {
             Class<?> context = _getter.getDeclaringClass();
             return new TypeDescription(TypeFactory.type(_getter.getGenericReturnType(), context));

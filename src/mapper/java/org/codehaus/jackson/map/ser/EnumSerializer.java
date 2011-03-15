@@ -8,7 +8,6 @@ import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.ArrayNode;
@@ -60,7 +59,7 @@ public class EnumSerializer
     {
         ObjectNode objectNode = createSchemaNode("string", true);
         if (typeHint != null) {
-            JavaType type = TypeFactory.type(typeHint);
+            JavaType type = provider.constructType(typeHint);
             if (type.isEnumType()) {
                 ArrayNode enumNode = objectNode.putArray("enum");
                 for (SerializedString value : _values.values()) {

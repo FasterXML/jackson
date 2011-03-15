@@ -9,7 +9,6 @@ import org.codehaus.jackson.map.ClassIntrospector;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.MapperConfig;
 import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
@@ -176,7 +175,7 @@ public class BasicClassIntrospector
         boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
         AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(c, (useAnnotations ? ai : null), r);
-        return new BasicBeanDescription(cfg, TypeFactory.type(c), ac);
+        return new BasicBeanDescription(cfg, cfg.constructType(c), ac);
     }
 
     @Override
@@ -186,7 +185,7 @@ public class BasicClassIntrospector
         boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
         AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(c, (useAnnotations ? ai : null), r);
-        return new BasicBeanDescription(cfg, TypeFactory.type(c), ac);
+        return new BasicBeanDescription(cfg, cfg.constructType(c), ac);
     }
     
     /*

@@ -11,7 +11,6 @@ import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -385,7 +384,7 @@ public class BeanSerializer
              * the actual type until we get the instance.
              */
             if (type == null) {
-                type = TypeFactory.type(prop.getGenericPropertyType());
+                type = provider.constructType(prop.getGenericPropertyType());
                 if (!type.isFinal()) {
                     /* 18-Feb-2010, tatus: But even if it is non-final,
                      *    we may need to retain some of type information

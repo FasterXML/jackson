@@ -89,6 +89,13 @@ public abstract class DeserializationContext
     public final JsonNodeFactory getNodeFactory() {
         return _config.getNodeFactory();
     }
+
+    /**
+     * @since 1.8
+     */
+    public JavaType constructType(Class<?> cls) {
+        return _config.constructType(cls);
+    }
     
     /*
     /**********************************************************

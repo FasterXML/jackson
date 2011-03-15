@@ -31,7 +31,7 @@ public abstract class BasicDeserializerFactory
 {
     // // Can cache some types
 
-    final static JavaType TYPE_STRING = TypeFactory.type(String.class);
+    final static JavaType TYPE_STRING = TypeFactory.defaultInstance().uncheckedSimpleType(String.class);
 
     /**
      * We will pre-create serializers for common non-structured

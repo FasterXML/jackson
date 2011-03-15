@@ -930,7 +930,7 @@ public class BeanDeserializerFactory
             setter.fixAccess(); // to ensure we can call it
         }
         // we know it's a 2-arg method, second arg is the value
-        JavaType type = TypeFactory.type(setter.getParameterType(1), beanDesc.bindingsForBeanType());
+        JavaType type = beanDesc.bindingsForBeanType().resolveType(setter.getParameterType(1));
         BeanProperty.Std property = new BeanProperty.Std(setter.getName(), type, beanDesc.getClassAnnotations(), setter);
         type = resolveType(config, beanDesc, type, setter, property);
 
@@ -973,7 +973,7 @@ public class BeanDeserializerFactory
         }
 
         // note: this works since we know there's exactly one arg for methods
-        JavaType t0 = TypeFactory.type(setter.getParameterType(0), beanDesc.bindingsForBeanType());
+        JavaType t0 = beanDesc.bindingsForBeanType().resolveType(setter.getParameterType(0));
         BeanProperty.Std property = new BeanProperty.Std(name, t0, beanDesc.getClassAnnotations(), setter);
         JavaType type = resolveType(config, beanDesc, t0, setter, property);
         // did type change?
@@ -1008,7 +1008,7 @@ public class BeanDeserializerFactory
         if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
             field.fixAccess();
         }
-        JavaType t0 = TypeFactory.type(field.getGenericType(), beanDesc.bindingsForBeanType());
+        JavaType t0 = beanDesc.bindingsForBeanType().resolveType(field.getGenericType());
         BeanProperty.Std property = new BeanProperty.Std(name, t0, beanDesc.getClassAnnotations(), field);
         JavaType type = resolveType(config, beanDesc, t0, field, property);
         // did type change?

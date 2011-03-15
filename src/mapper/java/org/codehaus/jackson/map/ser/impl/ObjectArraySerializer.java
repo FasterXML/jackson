@@ -17,7 +17,6 @@ import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.ser.ArraySerializers;
 import org.codehaus.jackson.map.ser.ContainerSerializerBase;
 import org.codehaus.jackson.map.type.ArrayType;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.schema.SchemaAware;
@@ -218,7 +217,7 @@ public class ObjectArraySerializer
     {
         ObjectNode o = createSchemaNode("array", true);
         if (typeHint != null) {
-            JavaType javaType = TypeFactory.type(typeHint);
+            JavaType javaType = provider.constructType(typeHint);
             if (javaType.isArrayType()) {
                 Class<?> componentType = ((ArrayType) javaType).getContentType().getRawClass();
                 // 15-Oct-2010, tatu: We can't serialize plain Object.class; but what should it produce here? Untyped?

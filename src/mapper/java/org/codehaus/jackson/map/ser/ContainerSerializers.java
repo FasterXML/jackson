@@ -11,7 +11,6 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.ser.impl.PropertySerializerMap;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.schema.SchemaAware;
@@ -169,13 +168,13 @@ public final class ContainerSerializers
             ObjectNode o = createSchemaNode("array", true);
             JavaType contentType = null;
             if (typeHint != null) {
-                JavaType javaType = TypeFactory.type(typeHint);
+                JavaType javaType = provider.constructType(typeHint);
                 contentType = javaType.getContentType();
                 if (contentType == null) { // could still be parametrized (Iterators)
                     if (typeHint instanceof ParameterizedType) {
                         Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
                         if (typeArgs.length == 1) {
-                            contentType = TypeFactory.type(typeArgs[0]);
+                            contentType = provider.constructType(typeArgs[0]);
                         }
                     }
                 }

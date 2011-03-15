@@ -10,7 +10,6 @@ import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.deser.impl.BeanPropertyMap;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.type.ClassKey;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
@@ -773,7 +772,7 @@ public class BeanDeserializer
         // If not, maybe we can locate one. First, need provider
         DeserializerProvider deserProv = ctxt.getDeserializerProvider();
         if (deserProv != null) {
-            JavaType type = TypeFactory.type(bean.getClass());
+            JavaType type = ctxt.constructType(bean.getClass());
             /* 09-Dec-2010, tatu: Would be nice to know which property pointed to this
              *    bean... but, alas, no such information is retained, so:
              */

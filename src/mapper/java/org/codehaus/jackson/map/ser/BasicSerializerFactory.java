@@ -602,7 +602,7 @@ public abstract class BasicSerializerFactory
         // if there's generic type, it'll be the first contained type
         JavaType valueType = type.containedType(0);
         if (valueType == null) {
-            valueType = TypeFactory.type(Object.class);
+            valueType = TypeFactory.unknownType();
         }
         TypeSerializer vts = createTypeSerializer(config, valueType, property);
         return ContainerSerializers.iteratorSerializer(valueType,
@@ -615,7 +615,7 @@ public abstract class BasicSerializerFactory
         // if there's generic type, it'll be the first contained type
         JavaType valueType = type.containedType(0);
         if (valueType == null) {
-            valueType = TypeFactory.type(Object.class);
+            valueType = TypeFactory.unknownType();
         }
         TypeSerializer vts = createTypeSerializer(config, valueType, property);
         return ContainerSerializers.iterableSerializer(valueType,

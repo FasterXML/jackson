@@ -41,7 +41,10 @@ class StdKeyDeserializers
     private void add(StdKeyDeserializer kdeser)
     {
         Class<?> keyClass = kdeser.getKeyClass();
-        _keyDeserializers.put(TypeFactory.type(keyClass), kdeser);
+        /* As with other cases involving primitive types, we can use
+         * default TypeFactory ok, even if it's not our first choice:
+         */
+        _keyDeserializers.put(TypeFactory.defaultInstance().constructType(keyClass), kdeser);
     }
 
     public static HashMap<JavaType, KeyDeserializer> constructAll()

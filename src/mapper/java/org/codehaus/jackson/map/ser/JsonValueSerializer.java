@@ -12,7 +12,6 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.type.JavaType;
@@ -184,7 +183,7 @@ public final class JsonValueSerializer
             // 10-Mar-2010, tatu: Except if static typing is to be used
             if (provider.isEnabled(SerializationConfig.Feature.USE_STATIC_TYPING)
                     || Modifier.isFinal(_accessorMethod.getReturnType().getModifiers())) {
-                JavaType t = TypeFactory.type(_accessorMethod.getGenericReturnType());
+                JavaType t = provider.constructType(_accessorMethod.getGenericReturnType());
                 // false -> no need to cache
                 /* 10-Mar-2010, tatu: Ideally we would actually separate out type
                  *   serializer from value serializer; but, alas, there's no access

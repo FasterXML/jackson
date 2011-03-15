@@ -95,6 +95,7 @@ class StdDeserializers
         // must do some unfortunate casting here...
         @SuppressWarnings("unchecked")
         JsonDeserializer<Object> deser = (JsonDeserializer<Object>) stdDeser;
-        _deserializers.put(TypeFactory.type(valueClass), deser);
+        // Not super clean, but default TypeFactory does work here:
+        _deserializers.put(TypeFactory.defaultInstance().constructType(valueClass), deser);
     }
 }

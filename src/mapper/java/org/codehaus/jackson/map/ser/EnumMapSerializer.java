@@ -8,7 +8,6 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.node.JsonNodeFactory;
@@ -200,8 +199,8 @@ public class EnumMapSerializer
         if (typeHint instanceof ParameterizedType) {
             Type[] typeArgs = ((ParameterizedType) typeHint).getActualTypeArguments();
             if (typeArgs.length == 2) {
-                JavaType enumType = TypeFactory.type(typeArgs[0]);
-                JavaType valueType = TypeFactory.type(typeArgs[1]);
+                JavaType enumType = provider.constructType(typeArgs[0]);
+                JavaType valueType = provider.constructType(typeArgs[1]);
                 ObjectNode propsNode = JsonNodeFactory.instance.objectNode();
                 Class<Enum<?>> enumClass = (Class<Enum<?>>) enumType.getRawClass();
                 for (Enum<?> enumValue : enumClass.getEnumConstants()) {
