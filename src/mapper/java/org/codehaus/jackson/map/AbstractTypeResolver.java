@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -16,12 +17,12 @@ public abstract class AbstractTypeResolver
      * concrete type, usually for purposes of deserializing.
      * 
      * @param config Deserialization configuration in use
-     * @param type Abstract type (with generic type parameters if any)
-     *   to resolve
+     * @param beanDesc Bean description for the type
      * 
      * @return Resolved concrete type (which should retain generic
      *    type parameters of input type, if any), if resolution succeeds;
      *    null if resolver does not know how to resolve type
      */
-    public abstract JavaType resolveAbstractType(DeserializationConfig config, JavaType type);
+    public abstract JavaType resolveAbstractType(DeserializationConfig config,
+            BasicBeanDescription beanDesc);
 }

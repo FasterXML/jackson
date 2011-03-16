@@ -176,7 +176,8 @@ public final class ArrayBuilders
 
     /**
      * Helper method for constructing a new array that contains specified
-     * element followed by contents of the given array
+     * element followed by contents of the given array. No checking is done
+     * to see if element being inserted is duplicate.
      */
     public static <T> T[] insertInList(T[] array, T element)
     {
@@ -190,6 +191,40 @@ public final class ArrayBuilders
         return result;
     }
 
+    /**
+     * Helper method for constructing a new array that contains specified
+     * element followed by contents of the given array; but never contains
+     * duplicates; if element already existed, it is only moved to the head.
+     */
+    public static <T> T[] insertInListNoDup(T[] array, T element)
+    {
+        final int len = array.length;
+        
+        // First: see if the element already exists
+        for (int ix = 0; ix < len; ++ix) {
+            if (array[ix] == element) {
+                // if at head already, return as is
+                if (ix == 0) {
+                    return array;
+                }
+                // otherwise shuffle, return
+                T prev = array[ix];
+                System.arraycopy(array, 0, array, 1, 2);
+                array[0] = prev;
+                return array;
+            }
+        }
+
+        // but if not, allocate new array, move
+        @SuppressWarnings("unchecked")
+        T[] result = (T[]) Array.newInstance(array.getClass().getComponentType(), len+1);
+        if (len > 0) {
+            System.arraycopy(array, 0, result, 1, len);
+        }
+        result[0] = element;
+        return result;
+    }
+    
     /**
      * Helper method for exposing contents of arrays using a read-only
      * iterator
@@ -252,5 +287,4 @@ public final class ArrayBuilders
             return this;
         }
     }
-
 }

@@ -107,7 +107,7 @@ public class BeanDeserializerFactory
             if (additional == null) {
                 throw new IllegalArgumentException("Can not pass null Deserializers");
             }
-            Deserializers[] all = ArrayBuilders.insertInList(_additionalDeserializers, additional);
+            Deserializers[] all = ArrayBuilders.insertInListNoDup(_additionalDeserializers, additional);
             return new ConfigImpl(all, _additionalKeyDeserializers, _modifiers, _abstractTypeResolvers);
         }
 
@@ -117,7 +117,7 @@ public class BeanDeserializerFactory
             if (additional == null) {
                 throw new IllegalArgumentException("Can not pass null KeyDeserializers");
             }
-            KeyDeserializers[] all = ArrayBuilders.insertInList(_additionalKeyDeserializers, additional);
+            KeyDeserializers[] all = ArrayBuilders.insertInListNoDup(_additionalKeyDeserializers, additional);
             return new ConfigImpl(_additionalDeserializers, all, _modifiers, _abstractTypeResolvers);
         }
         
@@ -127,7 +127,7 @@ public class BeanDeserializerFactory
             if (modifier == null) {
                 throw new IllegalArgumentException("Can not pass null modifier");
             }
-            BeanDeserializerModifier[] all = ArrayBuilders.insertInList(_modifiers, modifier);
+            BeanDeserializerModifier[] all = ArrayBuilders.insertInListNoDup(_modifiers, modifier);
             return new ConfigImpl(_additionalDeserializers, _additionalKeyDeserializers, all, _abstractTypeResolvers);
         }
 
@@ -137,7 +137,7 @@ public class BeanDeserializerFactory
             if (resolver == null) {
                 throw new IllegalArgumentException("Can not pass null modifier");
             }
-            AbstractTypeResolver[] all = ArrayBuilders.insertInList(_abstractTypeResolvers, resolver);
+            AbstractTypeResolver[] all = ArrayBuilders.insertInListNoDup(_abstractTypeResolvers, resolver);
             return new ConfigImpl(_additionalDeserializers, _additionalKeyDeserializers, _modifiers, all);
         }
         
@@ -372,8 +372,8 @@ public class BeanDeserializerFactory
      * enums.
      */
     @Override
-    public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, DeserializerProvider p,
-            JavaType type, BeanProperty property)
+    public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config,
+            DeserializerProvider p, JavaType type, BeanProperty property)
         throws JsonMappingException
     {
         // First things first: maybe explicit definition via annotations?
@@ -393,19 +393,6 @@ public class BeanDeserializerFactory
         if (custom != null) {
             return custom;
         }
-
-        /* Let's call super class first: it knows simple types for
-         * which we have default deserializers
-         */
-        JsonDeserializer<Object> deser = super.createBeanDeserializer(config, p, type, property);
-        if (deser != null) {
-            return deser;
-        }
-        // Otherwise: could the class be a Bean class?
-        if (!isPotentialBeanType(type.getRawClass())) {
-            return null;
-        }
-
         /* One more thing to check: do we have an exception type
          * (Throwable or its sub-classes)? If so, need slightly
          * different handling.
@@ -413,53 +400,68 @@ public class BeanDeserializerFactory
         if (type.isThrowable()) {
             return buildThrowableDeserializer(config, type, beanDesc, property);
         }
-
-        /* Abstract types can not be handled using regular bean deserializer, but need
-         * either type deserializer (which caller usually deals with), or resolve
-         * to a concrete type.
+        /* Or, for abstract types, may have alternate means for resolution
+         * (defaulting, materialization)
          */
         if (type.isAbstract()) {
-            // [JACKSON-41] (v1.6): Let's make it possible to materialize abstract types.
-            /* One check however: if type information is indicated, we usually do not
-             * want materialization...
+            JavaType concreteType = resolveAbstractType(config, beanDesc, property);
+            /* important: introspect actual implementation (abstract class or
+             * interface doesn't have constructors, for one)
              */
-            AnnotationIntrospector intr = config.getAnnotationIntrospector();
-            if (intr.findTypeResolver(beanDesc.getClassInfo(), type) == null) {
-                /* [JACKSON-502] (1.8): And now it is possible to have multiple resolvers too,
-                 *   as they are registered via module interface.
-                 */
-                for (AbstractTypeResolver resolver : _factoryConfig.abstractTypeResolvers()) {
-                    JavaType concrete = resolver.resolveAbstractType(config, type);
-                    if (concrete != null) {
-                        /* important: introspect actual implementation (abstract class or
-                         * interface doesn't have constructors, for one)
-                         */
-                        beanDesc = config.introspect(concrete);
-                        return buildBeanDeserializer(config, concrete, beanDesc, property);
-                    }
-                }
-                // Also; as a fallback,  we support (until 2.0) old extension point too
-                @SuppressWarnings("deprecation")
-                AbstractTypeResolver resolver = config.getAbstractTypeResolver();
-                if (resolver != null) {
-                    JavaType concrete = resolver.resolveAbstractType(config, type);
-                    if (concrete != null) {
-                        beanDesc = config.introspect(concrete);
-                        return buildBeanDeserializer(config, concrete, beanDesc, property);
-                    }
-                }
+            if (concreteType != null) {
+                beanDesc = config.introspect(concreteType);
+                return buildBeanDeserializer(config, concreteType, beanDesc, property);
             }
-            
-            // otherwise we assume there must be extra type information coming
-            return new AbstractDeserializer(type);
+        }
+
+        // Otherwise, may want to check handlers for standard types, from superclass:
+        JsonDeserializer<Object> deser = findStdBeanDeserializer(config, p, type, property);
+        if (deser != null) {
+            return deser;
+        }
+
+        // Otherwise: could the class be a Bean class? If not, bail out
+        if (!isPotentialBeanType(type.getRawClass())) {
+            return null;
         }
         
+        // if we still just have abstract type (but no deserializer), probably need type info, so:
+        if (type.isAbstract()) {
+            return new AbstractDeserializer(type);
+        }
         /* Otherwise we'll just use generic bean introspection
          * to build deserializer
          */
         return buildBeanDeserializer(config, type, beanDesc, property);
     }
 
+    @Override
+    protected JavaType resolveAbstractType(DeserializationConfig config,
+            BasicBeanDescription beanDesc, BeanProperty property)
+        throws JsonMappingException
+    {
+        // [JACKSON-41] (v1.6): Let's make it possible to materialize abstract types.
+        /* [JACKSON-502] (1.8): And now it is possible to have multiple resolvers too,
+         *   as they are registered via module interface.
+         */
+        for (AbstractTypeResolver resolver : _factoryConfig.abstractTypeResolvers()) {
+            JavaType concrete = resolver.resolveAbstractType(config, beanDesc);
+            if (concrete != null) {
+                return concrete;
+            }
+        }
+        // Also; as a fallback,  we support (until 2.0) old extension point too
+        @SuppressWarnings("deprecation")
+        AbstractTypeResolver resolver = config.getAbstractTypeResolver();
+        if (resolver != null) {
+            JavaType concrete = resolver.resolveAbstractType(config, beanDesc);
+            if (concrete != null) {
+                return concrete;
+            }
+        }
+        return null;
+    }
+    
     /*
     /**********************************************************
     /* Public construction method beyond DeserializerFactory API:

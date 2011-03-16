@@ -124,7 +124,7 @@ public class BeanSerializerFactory
             if (additional == null) {
                 throw new IllegalArgumentException("Can not pass null Serializers");
             }
-            Serializers[] all = ArrayBuilders.insertInList(_additionalSerializers, additional);
+            Serializers[] all = ArrayBuilders.insertInListNoDup(_additionalSerializers, additional);
             return new ConfigImpl(all, _additionalKeySerializers, _modifiers);
         }
 
@@ -134,7 +134,7 @@ public class BeanSerializerFactory
             if (additional == null) {
                 throw new IllegalArgumentException("Can not pass null Serializers");
             }
-            Serializers[] all = ArrayBuilders.insertInList(_additionalKeySerializers, additional);
+            Serializers[] all = ArrayBuilders.insertInListNoDup(_additionalKeySerializers, additional);
             return new ConfigImpl(_additionalSerializers, all, _modifiers);
         }
         
@@ -144,7 +144,7 @@ public class BeanSerializerFactory
             if (modifier == null) {
                 throw new IllegalArgumentException("Can not pass null modifier");
             }
-            BeanSerializerModifier[] modifiers = ArrayBuilders.insertInList(_modifiers, modifier);
+            BeanSerializerModifier[] modifiers = ArrayBuilders.insertInListNoDup(_modifiers, modifier);
             return new ConfigImpl(_additionalSerializers, _additionalKeySerializers, modifiers);
         }
 

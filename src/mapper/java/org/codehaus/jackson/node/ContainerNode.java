@@ -79,8 +79,18 @@ public abstract class ContainerNode
     /**********************************************************
      */
 
+    /**
+     * Factory method that constructs and returns an empty {@link ArrayNode}
+     * Construction is done using registered {@link JsonNodeFactory}.
+     */
     public final ArrayNode arrayNode() { return _nodeFactory.arrayNode(); }
+
+    /**
+     * Factory method that constructs and returns an empty {@link ObjectNode}
+     * Construction is done using registered {@link JsonNodeFactory}.
+     */
     public final ObjectNode objectNode() { return _nodeFactory.objectNode(); }
+
     public final NullNode nullNode() { return _nodeFactory.nullNode(); }
 
     public final BooleanNode booleanNode(boolean v) { return _nodeFactory.booleanNode(v); }

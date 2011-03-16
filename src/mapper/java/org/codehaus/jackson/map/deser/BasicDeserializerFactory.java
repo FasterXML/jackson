@@ -423,18 +423,22 @@ public abstract class BasicDeserializerFactory
         return JsonNodeDeserializer.getDeserializer(nodeClass);
     }
 
+    /**
+     * Method called by {@link BeanDeserializerFactory} to see if g
+     * 
+     * @since 1.8
+     */
     @SuppressWarnings("unchecked")
-    @Override
-    public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, DeserializerProvider p,
-            JavaType type, BeanProperty property)
+    protected JsonDeserializer<Object> findStdBeanDeserializer(DeserializationConfig config,
+            DeserializerProvider p, JavaType type, BeanProperty property)
         throws JsonMappingException
     {
         // note: we do NOT check for custom deserializers here; that's for sub-class to do
-        
         JsonDeserializer<Object> deser = _simpleDeserializers.get(type);
         if (deser != null) {
             return deser;
         }
+        
         // [JACKSON-283]: AtomicReference is a rather special type...
         Class<?> cls = type.getRawClass();
         if (AtomicReference.class.isAssignableFrom(cls)) {
@@ -482,8 +486,12 @@ public abstract class BasicDeserializerFactory
             subtypes = config.getSubtypeResolver().collectAndResolveSubtypes(ac, config, ai);
         }
         return b.buildTypeDeserializer(config, baseType, subtypes, property);
-    }    
+    }
 
+    protected abstract JavaType resolveAbstractType(DeserializationConfig config,
+            BasicBeanDescription beanDesc, BeanProperty property)
+        throws JsonMappingException;
+    
     /*
     /**********************************************************
     /* Extended API

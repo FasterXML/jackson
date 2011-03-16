@@ -23,10 +23,17 @@ public class SimpleModule extends Module
 
     protected SimpleSerializers _keySerializers = null;
     protected SimpleKeyDeserializers _keyDeserializers = null;
+
+    /**
+     * Lazily-constructed resolver used for storing mappings from
+     * abstract classes to more specific implementing classes
+     * (which may be abstract or concrete)
+     */
+    protected SimpleAbstractTypeResolver _abstractTypes = null;
     
     /*
     /**********************************************************
-    /* Life-cycle: create, configure
+    /* Life-cycle: creation
     /**********************************************************
      */
     
@@ -36,6 +43,12 @@ public class SimpleModule extends Module
         _version = version;
     }
 
+    /*
+    /**********************************************************
+    /* Configuration methods
+    /**********************************************************
+     */
+    
     public SimpleModule addSerializer(JsonSerializer<?> ser)
     {
         if (_serializers == null) {
@@ -78,6 +91,22 @@ public class SimpleModule extends Module
             _keyDeserializers = new SimpleKeyDeserializers();
         }
         _keyDeserializers.addDeserializer(type, deser);
+        return this;
+    }
+
+    /**
+     * Lazily-constructed resolver used for storing mappings from
+     * abstract classes to more specific implementing classes
+     * (which may be abstract or concrete)
+     */
+    public <T> SimpleModule addAbstractTypeMapping(Class<T> superType,
+            Class<? extends T> subType)
+    {
+        if (_abstractTypes == null) {
+            _abstractTypes = new SimpleAbstractTypeResolver();
+        }
+        // note: addMapping() will verify arguments
+        _abstractTypes = _abstractTypes.addMapping(superType, subType);
         return this;
     }
     
