@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.ser;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
@@ -83,6 +84,12 @@ public class TestMapSerialization
         map.put("c", "d");
         assertEquals("[\"c\"]", m.writeValueAsString(map.keySet()));
         assertEquals("[\"d\"]", m.writeValueAsString(map.values()));
+
+        // and for [JACKSON-533], same for concurrent maps
+        map = new ConcurrentHashMap<String,String>();
+        map.put("e", "f");
+        assertEquals("[\"e\"]", m.writeValueAsString(map.keySet()));
+        assertEquals("[\"f\"]", m.writeValueAsString(map.values()));
     }
 
     
