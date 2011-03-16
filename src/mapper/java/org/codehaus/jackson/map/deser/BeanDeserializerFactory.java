@@ -588,7 +588,7 @@ public class BeanDeserializerFactory
         throws JsonMappingException
     {
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        CreatorContainer creators =  new CreatorContainer(beanDesc.getBeanClass(), fixAccess);
+        CreatorContainer creators =  new CreatorContainer(beanDesc, fixAccess);
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
 
         // First, let's figure out constructor/factory-based instantation

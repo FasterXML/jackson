@@ -731,10 +731,9 @@ public abstract class BasicDeserializerFactory
     protected CreatorContainer findMapCreators(DeserializationConfig config, BasicBeanDescription beanDesc)
         throws JsonMappingException
     {
-        Class<?> mapClass = beanDesc.getBeanClass();
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        CreatorContainer creators =  new CreatorContainer(mapClass, fixAccess);
+        CreatorContainer creators =  new CreatorContainer(beanDesc, fixAccess);
         // First, let's find if we have a constructor creator:
         for (AnnotatedConstructor ctor : beanDesc.getConstructors()) {
             int argCount = ctor.getParameterCount();

@@ -16,6 +16,7 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
  */
 public class BeanDeserializerBuilder
 {
+    
     /*
     /**********************************************************
     /* General information about POJO

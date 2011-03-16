@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
@@ -13,7 +14,9 @@ import org.codehaus.jackson.map.util.ClassUtil;
 public class CreatorContainer
 {
     /// Type of bean being created
-    final Class<?> _beanClass;
+    final BasicBeanDescription _beanDesc;
+
+//    final Class<?> _beanClass;
     final boolean _canFixAccess;
 
     protected Constructor<?> _defaultConstructor;
@@ -28,9 +31,11 @@ public class CreatorContainer
     AnnotatedConstructor _propertyBasedConstructor;
     SettableBeanProperty[] _propertyBasedConstructorProperties = null;
 
-    public CreatorContainer(Class<?> beanClass, boolean canFixAccess) {
+    public CreatorContainer(BasicBeanDescription beanDesc, boolean canFixAccess)
+    {
+        _beanDesc = beanDesc;
         _canFixAccess = canFixAccess;
-        _beanClass = beanClass;
+//        _beanClass = beanClass;
     }
 
     /*
@@ -107,7 +112,7 @@ public class CreatorContainer
         if (_strConstructor == null &&  _strFactory == null) {
             return null;
         }
-        return new Creator.StringBased(_beanClass, _strConstructor, _strFactory);
+        return new Creator.StringBased(_beanDesc.getBeanClass(), _strConstructor, _strFactory);
     }
 
     public Creator.NumberBased numberCreator()
@@ -116,7 +121,7 @@ public class CreatorContainer
             && _longConstructor == null && _longFactory == null) {
             return null;
         }
-        return new Creator.NumberBased(_beanClass, _intConstructor, _intFactory,
+        return new Creator.NumberBased(_beanDesc.getBeanClass(), _intConstructor, _intFactory,
                                        _longConstructor, _longFactory);
     }
 
@@ -125,7 +130,7 @@ public class CreatorContainer
         if (_delegatingConstructor == null && _delegatingFactory == null) {
             return null;
         }
-        return new Creator.Delegating(_delegatingConstructor, _delegatingFactory);
+        return new Creator.Delegating(_beanDesc, _delegatingConstructor, _delegatingFactory);
     }
 
     public Creator.PropertyBased propertyBasedCreator()

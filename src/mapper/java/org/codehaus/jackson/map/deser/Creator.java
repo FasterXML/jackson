@@ -10,7 +10,8 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.type.TypeBindings;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
@@ -148,18 +149,19 @@ abstract class Creator
 	 */
 	protected JsonDeserializer<Object> _deserializer;
 
-        public Delegating(AnnotatedConstructor ctor, AnnotatedMethod factory)
-	{
+        public Delegating(BasicBeanDescription beanDesc, AnnotatedConstructor ctor, AnnotatedMethod factory)
+        {
+            TypeBindings bindings = beanDesc.bindingsForBeanType();
             if (ctor != null) {
                 _creator = ctor;
                 _ctor = ctor.getAnnotated();
                 _factoryMethod = null;
-                _valueType = TypeFactory.type(ctor.getParameterType(0));
+                _valueType = bindings.resolveType(ctor.getParameterType(0));
             } else if (factory != null) {
                 _creator = factory;
                 _ctor = null;
                 _factoryMethod = factory.getAnnotated();
-                _valueType = TypeFactory.type(factory.getParameterType(0));
+                _valueType = bindings.resolveType(factory.getParameterType(0));
             } else {
                 throw new IllegalArgumentException("Internal error: neither delegating constructor nor factory method passed");
             }

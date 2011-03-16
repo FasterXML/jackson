@@ -135,5 +135,15 @@ public abstract class AnnotatedWithParams
 
     public abstract Type getParameterType(int index);
 
+    /**
+     * Method called to fully resolve type of one of parameters, given
+     * specified type variable bindings.
+     * 
+     * @since 1.8
+     */
+    public final JavaType resolveParameterType(int index, TypeBindings bindings) {
+        return bindings.resolveType(getParameterType(index));
+    }
+    
     public final int getAnnotationCount() { return _annotations.size(); }
 }
