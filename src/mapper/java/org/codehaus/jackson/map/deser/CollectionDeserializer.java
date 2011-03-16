@@ -7,6 +7,7 @@ import java.util.*;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.TypeDeserializer;
@@ -98,12 +99,12 @@ public class CollectionDeserializer
 
     @Override
     public Collection<Object> deserialize(JsonParser jp, DeserializationContext ctxt,
-                                          Collection<Object> result)
+            Collection<Object> result)
         throws IOException, JsonProcessingException
     {
         // Ok: must point to START_ARRAY (or equivalent)
         if (!jp.isExpectedStartArrayToken()) {
-            throw ctxt.mappingException(_collectionType.getRawClass());
+            return handleNonArray(jp, ctxt, result);
         }
 
         JsonDeserializer<Object> valueDes = _valueDeserializer;
@@ -132,5 +133,35 @@ public class CollectionDeserializer
     {
         // In future could check current token... for now this should be enough:
         return typeDeserializer.deserializeTypedFromArray(jp, ctxt);
+    }
+
+    /**
+     * Helper method called when current token is no START_ARRAY. Will either
+     * throw an exception, or try to handle value as if member of implicit
+     * array, depending on configuration.
+     */
+    private final Collection<Object> handleNonArray(JsonParser jp, DeserializationContext ctxt,
+            Collection<Object> result)
+        throws IOException, JsonProcessingException
+    {
+        // [JACKSON-526]: implicit arrays from single values?
+        if (!ctxt.isEnabled(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)) {
+            throw ctxt.mappingException(_collectionType.getRawClass());
+        }
+        JsonDeserializer<Object> valueDes = _valueDeserializer;
+        final TypeDeserializer typeDeser = _valueTypeDeserializer;
+        JsonToken t = jp.getCurrentToken();
+
+        Object value;
+        
+        if (t == JsonToken.VALUE_NULL) {
+            value = null;
+        } else if (typeDeser == null) {
+            value = valueDes.deserialize(jp, ctxt);
+        } else {
+            value = valueDes.deserializeWithType(jp, ctxt, typeDeser);
+        }
+        result.add(value);
+        return result;
     }
 }

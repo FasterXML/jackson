@@ -286,12 +286,6 @@ public class DeserializationConfig
          */
         @Deprecated
         WRAP_ROOT_VALUE(false),
-
-        /*
-        /******************************************************
-         *  Other features
-        /******************************************************
-         */
         
         /**
          * Feature that can be enabled to allow JSON empty String
@@ -301,8 +295,29 @@ public class DeserializationConfig
          * constructors are defined; both of which can add support for other
          * kinds of JSON values); if enable, empty JSON String can be taken
          * to be equivalent of JSON null.
+         * 
+         * @since 1.8
          */
-        ACCEPT_EMPTY_STRING_AS_NULL_OBJECT(false)
+        ACCEPT_EMPTY_STRING_AS_NULL_OBJECT(false),
+
+        /**
+         * Feature that determines whether it is acceptable to coerce non-array
+         * (in JSON) values to work with Java collection (arrays, java.util.Collection)
+         * types. If enabled, collection deserializers will try to handle non-array
+         * values as if they had "implicit" surrounding JSON array.
+         * This feature is meant to be used for compatibility/interoperability reasons,
+         * to work with packages (such as XML-to-JSON converters) that leave out JSON
+         * array in cases where there is just a single element in array.
+         * 
+         * @since 1.8
+         */
+        ACCEPT_SINGLE_VALUE_AS_ARRAY(false)
+        
+        /*
+        /******************************************************
+         *  Other features
+        /******************************************************
+         */
         
         ;
 

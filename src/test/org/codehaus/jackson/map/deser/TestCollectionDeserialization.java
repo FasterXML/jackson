@@ -34,6 +34,16 @@ public class TestCollectionDeserialization
         }
     }
 
+    static class XBean {
+        public int x;
+    }
+    
+    /*
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
+     */
+    
     public void testUntypedList() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -95,5 +105,40 @@ public class TestCollectionDeserialization
         CustomList result = mapper.readValue(quote("abc"), CustomList.class);
         assertEquals(1, result.size());
         assertEquals("abc", result.get(0));
+    }
+
+    /* Testing [JACKSON-526], "implicit JSON array" for single-element arrays,
+     * mostly produced by Jettison, Badgerfish conversions (from XML)
+     */
+    @SuppressWarnings("unchecked")
+    public void testImplicitArrays() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+
+        // first with simple scalar types (numbers), with collections
+        List<Integer> ints = mapper.readValue("4", List.class);
+        assertEquals(1, ints.size());
+        assertEquals(Integer.valueOf(4), ints.get(0));
+        List<String> strings = mapper.readValue(quote("abc"), new TypeReference<ArrayList<String>>() { });
+        assertEquals(1, strings.size());
+        assertEquals("abc", strings.get(0));
+        // and arrays:
+        int[] intArray = mapper.readValue("-7", int[].class);
+        assertEquals(1, intArray.length);
+        assertEquals(-7, intArray[0]);
+        String[] stringArray = mapper.readValue(quote("xyz"), String[].class);
+        assertEquals(1, stringArray.length);
+        assertEquals("xyz", stringArray[0]);
+
+        // and then with Beans:
+        List<XBean> xbeanList = mapper.readValue("{\"x\":4}", new TypeReference<List<XBean>>() { });
+        assertEquals(1, xbeanList.size());
+        assertEquals(XBean.class, xbeanList.get(0).getClass());
+
+        Object ob = mapper.readValue("{\"x\":29}", XBean[].class);
+        XBean[] xbeanArray = (XBean[]) ob;
+        assertEquals(1, xbeanArray.length);
+        assertEquals(XBean.class, xbeanArray[0].getClass());
     }
 }

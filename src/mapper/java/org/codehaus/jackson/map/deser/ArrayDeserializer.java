@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
@@ -45,6 +46,9 @@ public class ArrayDeserializer
      */
     final TypeDeserializer _elementTypeDeserializer;
     
+    /**
+     * @deprecated
+     */
     @Deprecated
     public ArrayDeserializer(ArrayType arrayType, JsonDeserializer<Object> elemDeser)
     {
@@ -90,14 +94,7 @@ public class ArrayDeserializer
     {
         // Ok: must point to START_ARRAY (or equivalent)
         if (!jp.isExpectedStartArrayToken()) {
-            /* 04-Oct-2009, tatu: One exception; byte arrays are generally
-             *   serialized as base64, so that should be handled
-             */
-            if (jp.getCurrentToken() == JsonToken.VALUE_STRING
-                && _elementClass == Byte.class) {
-                return deserializeFromBase64(jp, ctxt);
-            }
-            throw ctxt.mappingException(_arrayType.getRawClass());
+            return handleNonArray(jp, ctxt);
         }
 
         final ObjectBuffer buffer = ctxt.leaseObjectBuffer();
@@ -164,4 +161,41 @@ public class ArrayDeserializer
         }
         return result;
     }
+
+    private final Object[] handleNonArray(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        // Can we do implicit coercion to a single-element array still?
+        if (!ctxt.isEnabled(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)) {
+            /* 04-Oct-2009, tatu: One exception; byte arrays are generally
+             *   serialized as base64, so that should be handled
+             */
+            if (jp.getCurrentToken() == JsonToken.VALUE_STRING
+                && _elementClass == Byte.class) {
+                return deserializeFromBase64(jp, ctxt);
+            }
+            throw ctxt.mappingException(_arrayType.getRawClass());
+        }
+        JsonToken t = jp.getCurrentToken();
+        Object value;
+        
+        if (t == JsonToken.VALUE_NULL) {
+            value = null;
+        } else if (_elementTypeDeserializer == null) {
+            value = _elementDeserializer.deserialize(jp, ctxt);
+        } else {
+            value = _elementDeserializer.deserializeWithType(jp, ctxt, _elementTypeDeserializer);
+        }
+        // Ok: bit tricky, since we may want T[], not just Object[]
+        Object[] result;
+
+        if (_untyped) {
+            result = new Object[1];
+        } else {
+            result = (Object[]) Array.newInstance(_elementClass, 1);
+        }
+        result[0] = value;
+        return result;
+    }
 }
+

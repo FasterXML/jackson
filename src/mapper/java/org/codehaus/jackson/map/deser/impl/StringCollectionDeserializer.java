@@ -7,6 +7,7 @@ import java.util.Collection;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonToken;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.TypeDeserializer;
@@ -80,11 +81,6 @@ public final class StringCollectionDeserializer
     public Collection<String> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        // Ok: must point to START_ARRAY
-        if (!jp.isExpectedStartArrayToken()) {
-            throw ctxt.mappingException(_collectionType.getRawClass());
-        }
-
         Collection<String> result;
         try {
             result = (Collection<String>) _defaultCtor.newInstance();
@@ -99,6 +95,11 @@ public final class StringCollectionDeserializer
                                           Collection<String> result)
         throws IOException, JsonProcessingException
     {
+        // Ok: must point to START_ARRAY
+        if (!jp.isExpectedStartArrayToken()) {
+            return handleNonArray(jp, ctxt, result);
+        }
+
         if (!_isDefaultDeserializer) {
             return deserializeUsingCustom(jp, ctxt, result);
         }
@@ -139,4 +140,32 @@ public final class StringCollectionDeserializer
         return typeDeserializer.deserializeTypedFromArray(jp, ctxt);
     }
 
+    /**
+     * Helper method called when current token is no START_ARRAY. Will either
+     * throw an exception, or try to handle value as if member of implicit
+     * array, depending on configuration.
+     */
+    private final Collection<String> handleNonArray(JsonParser jp, DeserializationContext ctxt,
+            Collection<String> result)
+        throws IOException, JsonProcessingException
+    {
+        // [JACKSON-526]: implicit arrays from single values?
+        if (!ctxt.isEnabled(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)) {
+            throw ctxt.mappingException(_collectionType.getRawClass());
+        }
+        // Strings are one of "native" (intrinsic) types, so there's never type deserializer involved
+        JsonDeserializer<String> valueDes = _valueDeserializer;
+        JsonToken t = jp.getCurrentToken();
+
+        String value;
+        
+        if (t == JsonToken.VALUE_NULL) {
+            value = null;
+        } else {
+            value = (valueDes == null) ? jp.getText() : valueDes.deserialize(jp, ctxt);
+        }
+        result.add(value);
+        return result;
+    }
+    
 }

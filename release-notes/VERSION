@@ -33,6 +33,9 @@ Description:
     via Module API
   * [JACKSON-523]: Allow passing actual type for TypeSerializer to use, to
     force specific super type to be used (instead of a concrete sub type)
+  * [JACKSON-526]: Add DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY
+    which allows implicit conversion from JSON scalars and Objects into single-element
+    collections/arrays (for interoperability with XML-to-JSON converers like Jettison)
 
   Improvements:
 
