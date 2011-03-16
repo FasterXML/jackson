@@ -131,7 +131,8 @@ public class TypeBindings
             if (enclosing != null) {
                 Package pkg = enclosing.getPackage();
                 if (pkg != null) {
-                    if (pkg.getName().equals("java.util")) {
+                    // as per [JACKSON-533], also include "java.util.concurrent":
+                    if (pkg.getName().startsWith("java.util")) {
                         return UNBOUND;
                     }
                 }

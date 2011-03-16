@@ -8,6 +8,9 @@ Description:
 
   Fixes:
 
+  * [JACKSON-533] Failed to serialize LinkedHashMap.value()
+    (reported by Linghu C)
+
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
