@@ -135,7 +135,7 @@ public class BeanDeserializerFactory
         public Config withAbstractTypeResolver(AbstractTypeResolver resolver)
         {
             if (resolver == null) {
-                throw new IllegalArgumentException("Can not pass null modifier");
+                throw new IllegalArgumentException("Can not pass null resolver");
             }
             AbstractTypeResolver[] all = ArrayBuilders.insertInListNoDup(_abstractTypeResolvers, resolver);
             return new ConfigImpl(_additionalDeserializers, _additionalKeyDeserializers, _modifiers, all);
@@ -376,6 +376,11 @@ public class BeanDeserializerFactory
             DeserializerProvider p, JavaType type, BeanProperty property)
         throws JsonMappingException
     {
+        // First things first: abstract types may use defaulting:
+        if (type.isAbstract()) {
+            type = mapAbstractType(config, type);
+        }
+        
         // First things first: maybe explicit definition via annotations?
         BasicBeanDescription beanDesc = config.introspect(type);
         JsonDeserializer<Object> ad = findDeserializerFromAnnotation(config, beanDesc.getClassInfo(), property);
@@ -404,11 +409,12 @@ public class BeanDeserializerFactory
          * (defaulting, materialization)
          */
         if (type.isAbstract()) {
-            JavaType concreteType = resolveAbstractType(config, beanDesc, property);
-            /* important: introspect actual implementation (abstract class or
-             * interface doesn't have constructors, for one)
-             */
+            // [JACKSON-41] (v1.6): Let's make it possible to materialize abstract types.
+            JavaType concreteType = materializeAbstractType(config, type);
             if (concreteType != null) {
+                /* important: introspect actual implementation (abstract class or
+                 * interface doesn't have constructors, for one)
+                 */
                 beanDesc = config.introspect(concreteType);
                 return buildBeanDeserializer(config, concreteType, beanDesc, property);
             }
@@ -428,6 +434,7 @@ public class BeanDeserializerFactory
         // if we still just have abstract type (but no deserializer), probably need type info, so:
         if (type.isAbstract()) {
             return new AbstractDeserializer(type);
+            
         }
         /* Otherwise we'll just use generic bean introspection
          * to build deserializer
@@ -435,17 +442,70 @@ public class BeanDeserializerFactory
         return buildBeanDeserializer(config, type, beanDesc, property);
     }
 
+
+    /**
+     * Method that will find complete abstract type mapping for specified type, doing as
+     * many resolution steps as necessary.
+     */
     @Override
-    protected JavaType resolveAbstractType(DeserializationConfig config,
-            BasicBeanDescription beanDesc, BeanProperty property)
+    protected JavaType mapAbstractType(DeserializationConfig config, JavaType type)
         throws JsonMappingException
     {
-        // [JACKSON-41] (v1.6): Let's make it possible to materialize abstract types.
-        /* [JACKSON-502] (1.8): And now it is possible to have multiple resolvers too,
+        while (true) {
+            JavaType next = _mapAbstractType2(config, type);
+            if (next == null) {
+                return type;
+            }
+            /* Should not have to worry about cycles; but better verify since they will invariably
+             * occur... :-)
+             * (also: guard against invalid resolution to a non-related type)
+             */
+            Class<?> prevCls = type.getRawClass();
+            Class<?> nextCls = next.getRawClass();
+            if ((prevCls == nextCls) || !prevCls.isAssignableFrom(nextCls)) {
+                throw new IllegalArgumentException("Invalid abstract type resolution from "+type+" to "+next+": latter is not a subtype of former");
+            }
+            type = next;
+        }
+    }
+
+    /**
+     * Method that will find abstract type mapping for specified type, doing a single
+     * lookup through registered abstract type resolvers; will not do recursive lookups.
+     */
+    protected JavaType _mapAbstractType2(DeserializationConfig config, JavaType type)
+        throws JsonMappingException
+    {
+        Class<?> currClass = type.getRawClass();
+        if (_factoryConfig.hasAbstractTypeResolvers()) {
+            for (AbstractTypeResolver resolver : _factoryConfig.abstractTypeResolvers()) {
+                JavaType concrete = resolver.findTypeMapping(config, type);
+                if (concrete != null && concrete.getRawClass() != currClass) {
+                    return concrete;
+                }
+            }
+        }
+        // Also; as a fallback,  we support (until 2.0) old extension point too
+        @SuppressWarnings("deprecation")
+        AbstractTypeResolver resolver = config.getAbstractTypeResolver();
+        if (resolver != null) {
+            JavaType concrete = resolver.findTypeMapping(config, type);
+            if (concrete != null && concrete.getRawClass() != currClass) {
+                return concrete;
+            }
+        }
+        return null;
+    }
+    
+    protected JavaType materializeAbstractType(DeserializationConfig config,
+            JavaType abstractType)
+        throws JsonMappingException
+    {
+        /* [JACKSON-502] (1.8): Now it is possible to have multiple resolvers too,
          *   as they are registered via module interface.
          */
         for (AbstractTypeResolver resolver : _factoryConfig.abstractTypeResolvers()) {
-            JavaType concrete = resolver.resolveAbstractType(config, beanDesc);
+            JavaType concrete = resolver.resolveAbstractType(config, abstractType);
             if (concrete != null) {
                 return concrete;
             }
@@ -454,7 +514,7 @@ public class BeanDeserializerFactory
         @SuppressWarnings("deprecation")
         AbstractTypeResolver resolver = config.getAbstractTypeResolver();
         if (resolver != null) {
-            JavaType concrete = resolver.resolveAbstractType(config, beanDesc);
+            JavaType concrete = resolver.resolveAbstractType(config, abstractType);
             if (concrete != null) {
                 return concrete;
             }

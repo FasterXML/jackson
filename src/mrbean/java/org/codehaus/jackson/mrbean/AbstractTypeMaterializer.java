@@ -3,10 +3,7 @@ package org.codehaus.jackson.mrbean;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.Versioned;
 import org.codehaus.jackson.map.AbstractTypeResolver;
-import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.introspect.BasicBeanDescription;
-import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.VersionUtil;
 
@@ -160,34 +157,21 @@ public class AbstractTypeMaterializer
      */
     
     @Override
-    public JavaType resolveAbstractType(DeserializationConfig config,
-            BasicBeanDescription beanDesc)
+    public JavaType resolveAbstractType(DeserializationConfig config, JavaType type)
     {
-        JavaType type = beanDesc.getType();
-
-        /* 19-Feb-2011, tatu: Future plans include calling of this method for all kinds
-         *    of abstract types; and specifically this will include Map and Collection
-         *    types. This is different from Jackson 1.6 and 1.7 which only call method
-         *    for POJO types. As precaution let's filter out Map and Collecion types.
-         *    Also: let's do basic weeding out of other types we won't be able to deal
-         *    with (at least for now).
+        /* 19-Feb-2011, tatu: Future plans may include calling of this method for all kinds
+         *    of abstract types. So as simple precaution, let's limit kinds of types we
+         *    will try materializa implementations for.
          */
-        // We won't be handling any container types (Collections, Maps and arrays); or Throwables
-        if (type.isContainerType() || type.isThrowable()) {
+        /* We won't be handling any container types (Collections, Maps and arrays),
+         * Throwables or enums.
+         */
+        if (type.isContainerType() || type.isPrimitive() || type.isEnumType() || type.isThrowable()) {
             return null;
         }
-        // and must be potential POJO type (not enum, array etc)
-        Class<?> raw = type.getRawClass();
-        if (isPotentialBeanType(raw)) {
-            /* and one more thing: avoid trying to materialize anything with
-             * @JsonTypeInfo
-             */
-            AnnotationIntrospector intr = config.getAnnotationIntrospector();
-            if (intr.findTypeResolver(beanDesc.getClassInfo(), type) == null) {
-                return config.constructType(materializeClass(config, raw));
-            }
-        }
-        return null;
+        // might want to skip proxies, local types too... but let them be for now:
+        //if (intr.findTypeResolver(beanDesc.getClassInfo(), type) == null) {
+        return config.constructType(materializeClass(config, type.getRawClass()));
     }
 
     /*
@@ -195,24 +179,6 @@ public class AbstractTypeMaterializer
     /* Internal methods
     /**********************************************************
      */
-    
-    protected boolean isPotentialBeanType(Class<?> type)
-    {
-        if (ClassUtil.isProxyType(type)) {
-            return false;
-        }
-        // no primitive types, enums, annotations etc:
-        String typeStr = ClassUtil.canBeABeanType(type);
-        if (typeStr != null) {
-            return false;
-        }
-        // also: can't deserialize local (in-method, anonymous, non-static-enclosed) classes
-        typeStr = ClassUtil.isLocalType(type);
-        if (typeStr != null) {
-            return false;
-        }
-        return true;
-    }
 
     protected Class<?> materializeClass(DeserializationConfig config, Class<?> cls)
     {

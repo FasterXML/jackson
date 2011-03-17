@@ -1,10 +1,7 @@
 package org.codehaus.jackson.map.module;
 
 import org.codehaus.jackson.Version;
-import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.KeyDeserializer;
-import org.codehaus.jackson.map.Module;
+import org.codehaus.jackson.map.*;
 
 /**
  * Simple {@link Module} implementation that allows registration
@@ -135,6 +132,9 @@ public class SimpleModule extends Module
         }
         if (_keyDeserializers != null) {
             context.addKeyDeserializers(_keyDeserializers);
+        }
+        if (_abstractTypes != null) {
+            context.addAbstractTypeResolver(_abstractTypes);
         }
     }
 

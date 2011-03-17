@@ -5,7 +5,6 @@ import java.util.*;
 
 import org.codehaus.jackson.map.AbstractTypeResolver;
 import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.type.JavaType;
 
@@ -61,19 +60,27 @@ public class SimpleAbstractTypeResolver extends AbstractTypeResolver
             throw new IllegalArgumentException("Can not add mapping from class "+superType.getName()
                     +" since it is not abstract");
         }
+        _mappings.put(new ClassKey(superType), subType);
         return this;
     }
-    
+
     @Override
-    public JavaType resolveAbstractType(DeserializationConfig config, BasicBeanDescription beanDesc)
+    public JavaType findTypeMapping(DeserializationConfig config, JavaType type)
     {
-        JavaType type = beanDesc.getType();
+        // this is the main mapping base, so let's 
         Class<?> src = type.getRawClass();
         Class<?> dst = _mappings.get(new ClassKey(src));
         if (dst == null) {
-            return type;
+            return null;
         }
         return type.narrowBy(dst);
     }
 
+    
+    @Override
+    public JavaType resolveAbstractType(DeserializationConfig config, JavaType type)
+    {
+        // never materialize anything, so:
+        return null;
+    }
 }

@@ -204,6 +204,9 @@ public abstract class BasicDeserializerFactory
             CollectionType type, BeanProperty property)
         throws JsonMappingException
     {
+        // First: global defaulting:
+        type = (CollectionType) mapAbstractType(config, type);
+
         Class<?> collectionClass = type.getRawClass();
         BasicBeanDescription beanDesc = config.introspectClassAnnotations(collectionClass);
         // Explicit deserializer to use? (@JsonDeserialize.using)
@@ -276,6 +279,9 @@ public abstract class BasicDeserializerFactory
             MapType type, BeanProperty property)
         throws JsonMappingException
     {
+        // First: global defaulting:
+        type = (MapType) mapAbstractType(config, type);
+        
         Class<?> mapClass = type.getRawClass();
 
         BasicBeanDescription beanDesc = config.introspectForCreation(type);
@@ -424,7 +430,8 @@ public abstract class BasicDeserializerFactory
     }
 
     /**
-     * Method called by {@link BeanDeserializerFactory} to see if g
+     * Method called by {@link BeanDeserializerFactory} to see if there might be a standard
+     * deserializer registered for given type.
      * 
      * @since 1.8
      */
@@ -487,10 +494,6 @@ public abstract class BasicDeserializerFactory
         }
         return b.buildTypeDeserializer(config, baseType, subtypes, property);
     }
-
-    protected abstract JavaType resolveAbstractType(DeserializationConfig config,
-            BasicBeanDescription beanDesc, BeanProperty property)
-        throws JsonMappingException;
     
     /*
     /**********************************************************
@@ -562,6 +565,9 @@ public abstract class BasicDeserializerFactory
     /**********************************************************
      */
 
+    protected abstract JavaType mapAbstractType(DeserializationConfig config, JavaType type)
+        throws JsonMappingException;
+    
     /**
      * Helper method called to check if a class or method
      * has annotation that tells which class to use for deserialization.

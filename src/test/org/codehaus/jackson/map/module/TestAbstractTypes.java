@@ -49,7 +49,7 @@ public class TestAbstractTypes extends BaseMapTest
         mod.addAbstractTypeMapping(List.class, LinkedList.class);
         mapper.registerModule(mod);
         Collection<?> result = mapper.readValue("[]", Collection.class);
-        assertEquals(TreeSet.class, result.getClass());
+        assertEquals(LinkedList.class, result.getClass());
     }
 
     public void testInterfaceDefaulting() throws Exception
