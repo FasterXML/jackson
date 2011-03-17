@@ -410,7 +410,7 @@ public class BeanDeserializerFactory
          */
         if (type.isAbstract()) {
             // [JACKSON-41] (v1.6): Let's make it possible to materialize abstract types.
-            JavaType concreteType = materializeAbstractType(config, type);
+            JavaType concreteType = materializeAbstractType(config, beanDesc);
             if (concreteType != null) {
                 /* important: introspect actual implementation (abstract class or
                  * interface doesn't have constructors, for one)
@@ -498,23 +498,37 @@ public class BeanDeserializerFactory
     }
     
     protected JavaType materializeAbstractType(DeserializationConfig config,
-            JavaType abstractType)
+            BasicBeanDescription beanDesc)
         throws JsonMappingException
     {
-        /* [JACKSON-502] (1.8): Now it is possible to have multiple resolvers too,
-         *   as they are registered via module interface.
-         */
-        for (AbstractTypeResolver resolver : _factoryConfig.abstractTypeResolvers()) {
+        // Deprecated registration method, try this one:
+        @SuppressWarnings("deprecation")
+        AbstractTypeResolver resolver = config.getAbstractTypeResolver();
+
+        // Quick shortchut: if nothing registered, return quickly:
+        if (resolver == null && !_factoryConfig.hasAbstractTypeResolvers()) {
+            return null;
+        }
+
+        final JavaType abstractType = beanDesc.getType();
+        // Otherwise check that there is no @JsonTypeInfo registered (to avoid conflicts)
+        AnnotationIntrospector intr = config.getAnnotationIntrospector();
+        if (intr.findTypeResolver(beanDesc.getClassInfo(), abstractType) != null) {
+            return null;
+        }
+
+        if (resolver != null) {
             JavaType concrete = resolver.resolveAbstractType(config, abstractType);
             if (concrete != null) {
                 return concrete;
             }
         }
-        // Also; as a fallback,  we support (until 2.0) old extension point too
-        @SuppressWarnings("deprecation")
-        AbstractTypeResolver resolver = config.getAbstractTypeResolver();
-        if (resolver != null) {
-            JavaType concrete = resolver.resolveAbstractType(config, abstractType);
+        
+        /* [JACKSON-502] (1.8): Now it is possible to have multiple resolvers too,
+         *   as they are registered via module interface.
+         */
+        for (AbstractTypeResolver r : _factoryConfig.abstractTypeResolvers()) {
+            JavaType concrete = r.resolveAbstractType(config, abstractType);
             if (concrete != null) {
                 return concrete;
             }
