@@ -598,7 +598,7 @@ public abstract class BasicDeserializerFactory
         if (!JsonDeserializer.class.isAssignableFrom(cls)) {
             throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonDeserializer>");
         }
-        return (JsonDeserializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+        /*[JACKSON-521]*/ return (JsonDeserializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
     }
 
     /**
@@ -686,14 +686,14 @@ public abstract class BasicDeserializerFactory
             if (keyType != null) {
                 Class<? extends KeyDeserializer> kdClass = intr.findKeyDeserializer(member);
                 if (kdClass != null && kdClass != KeyDeserializer.None.class) {
-                    KeyDeserializer kd = ClassUtil.createInstance(kdClass, canForceAccess);
+                    /*[JACKSON-521]*/ KeyDeserializer kd = ClassUtil.createInstance(kdClass, canForceAccess);
                     keyType.setValueHandler(kd);
                 }
             }
             // and all container types have content types...
             Class<? extends JsonDeserializer<?>> cdClass = intr.findContentDeserializer(member);
             if (cdClass != null && cdClass != JsonDeserializer.None.class) {
-                JsonDeserializer<?> cd = ClassUtil.createInstance(cdClass, canForceAccess);
+                /*[JACKSON-521]*/ JsonDeserializer<?> cd = ClassUtil.createInstance(cdClass, canForceAccess);
                 type.getContentType().setValueHandler(cd);
             }
             /* 04-Feb-2010, tatu: Need to figure out JAXB annotations that indicate type

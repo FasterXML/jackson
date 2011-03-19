@@ -490,7 +490,7 @@ public abstract class BasicSerializerFactory
         if (!JsonSerializer.class.isAssignableFrom(cls)) {
             throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonSerializer>");
         }
-        return (JsonSerializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+        /*[JACKSON-521]*/ return (JsonSerializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
     }
 
     /*
@@ -709,7 +709,7 @@ public abstract class BasicSerializerFactory
         }
         if (serClass != null && serClass != JsonSerializer.None.class) {
             boolean canForceAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-            return (JsonSerializer<Object>) ClassUtil.createInstance(serClass, canForceAccess);
+            /*[JACKSON-521]*/ return (JsonSerializer<Object>) ClassUtil.createInstance(serClass, canForceAccess);
         }
         return null;
     }
@@ -727,7 +727,7 @@ public abstract class BasicSerializerFactory
         }
         if (serClass != null && serClass != JsonSerializer.None.class) {
             boolean canForceAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-            return (JsonSerializer<Object>) ClassUtil.createInstance(serClass, canForceAccess);
+            /*[JACKSON-521]*/ return (JsonSerializer<Object>) ClassUtil.createInstance(serClass, canForceAccess);
         }
         return null;
     }

@@ -729,7 +729,7 @@ public class JacksonAnnotationIntrospector
              * settings through if we did, since that's not doable on some
              * platforms)
              */
-            b = ClassUtil.createInstance(resAnn.value(), false);
+            b = /*[JACKSON-521]*/ ClassUtil.createInstance(resAnn.value(), false);
         } else { // if not, use standard one, if indicated by annotations
             if (info == null || info.use() == JsonTypeInfo.Id.NONE) {
                 return null;
@@ -739,7 +739,7 @@ public class JacksonAnnotationIntrospector
         // Does it define a custom type id resolver?
         JsonTypeIdResolver idResInfo = ann.getAnnotation(JsonTypeIdResolver.class);
         TypeIdResolver idRes = (idResInfo == null) ? null
-                : ClassUtil.createInstance(idResInfo.value(), true);
+                : /*[JACKSON-521]*/ ClassUtil.createInstance(idResInfo.value(), true);
         if (idRes != null) { // [JACKSON-359]
             idRes.init(baseType);
         }

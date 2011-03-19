@@ -52,6 +52,17 @@ public class TestAbstractTypes extends BaseMapTest
         assertEquals(LinkedList.class, result.getClass());
     }
 
+    public void testMapDefaulting() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule mod = new SimpleModule("test", Version.unknownVersion());
+        // default is HashMap, so:
+        mod.addAbstractTypeMapping(Map.class, TreeMap.class);
+        mapper.registerModule(mod);
+        Map<?,?> result = mapper.readValue("{}", Map.class);
+        assertEquals(TreeMap.class, result.getClass());
+    }
+    
     public void testInterfaceDefaulting() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
