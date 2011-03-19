@@ -23,8 +23,6 @@ public class BasicClassIntrospector
     public static class GetterMethodFilter
         implements MethodFilter
     {
-        public final static GetterMethodFilter instance = new GetterMethodFilter();
-
         private GetterMethodFilter() { }
     
         public boolean includeMethod(Method m)
@@ -45,8 +43,6 @@ public class BasicClassIntrospector
     public static class SetterMethodFilter
         implements MethodFilter
     {
-        public final static SetterMethodFilter instance = new SetterMethodFilter();
-
         public boolean includeMethod(Method m)
         {
             // First: we can't use static methods
@@ -81,8 +77,6 @@ public class BasicClassIntrospector
     public final static class SetterAndGetterMethodFilter
         extends SetterMethodFilter
     {
-        public final static SetterAndGetterMethodFilter instance = new SetterAndGetterMethodFilter();
-
         @Override
         public boolean includeMethod(Method m)
         {
@@ -102,6 +96,21 @@ public class BasicClassIntrospector
         }
     }
 
+    /**
+     * @since 1.8
+     */
+    public final static GetterMethodFilter DEFAULT_GETTER_FILTER = new GetterMethodFilter();
+
+    /**
+     * @since 1.8
+     */
+    public final static SetterMethodFilter DEFAULT_SETTER_FILTER = new SetterMethodFilter();
+
+    /**
+     * @since 1.8
+     */
+    public final static SetterAndGetterMethodFilter DEFAULT_SETTER_AND_GETTER_FILTER = new SetterAndGetterMethodFilter();
+    
     /*
     /**********************************************************
     /* Life cycle
@@ -199,7 +208,7 @@ public class BasicClassIntrospector
      */
     protected MethodFilter getSerializationMethodFilter(SerializationConfig cfg)
     {
-    	return GetterMethodFilter.instance;
+    	return DEFAULT_GETTER_FILTER;
     }
 
     /**
@@ -212,9 +221,9 @@ public class BasicClassIntrospector
          * Collection and Map types)
          */
         if (cfg.isEnabled(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS)) {
-            return SetterAndGetterMethodFilter.instance;
+            return DEFAULT_SETTER_AND_GETTER_FILTER;
             
         }
-    	return SetterMethodFilter.instance;
+    	return DEFAULT_SETTER_FILTER;
     }
 }

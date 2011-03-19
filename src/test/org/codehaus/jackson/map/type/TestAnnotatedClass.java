@@ -19,9 +19,9 @@ public class TestAnnotatedClass
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated helper classes
+    /**********************************************************
      */
 
     static class BaseClass
@@ -72,16 +72,16 @@ public class TestAnnotatedClass
     }
 
     /*
-    //////////////////////////////////////////////
-    // Test methods
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
      */
 
     public void testSimple()
     {
         // null -> no mix-in annotations
         AnnotatedClass ac = AnnotatedClass.construct(SubClass.class, new JacksonAnnotationIntrospector(), null);
-        ac.resolveMemberMethods(BasicClassIntrospector.GetterMethodFilter.instance, true);
+        ac.resolveMemberMethods(BasicClassIntrospector.DEFAULT_GETTER_FILTER, true);
         ac.resolveCreators(true);
         ac.resolveFields(true);
 
@@ -112,7 +112,7 @@ public class TestAnnotatedClass
     {
         // null -> no mix-in annotations
         AnnotatedClass ac = AnnotatedClass.construct(NumberBean.class, new JacksonAnnotationIntrospector(), null);
-        ac.resolveMemberMethods(BasicClassIntrospector.SetterMethodFilter.instance, true);
+        ac.resolveMemberMethods(BasicClassIntrospector.DEFAULT_SETTER_FILTER, true);
         assertEquals(1, ac.getMemberMethodCount());
 
         Iterator<AnnotatedMethod> it = ac.memberMethods().iterator();
