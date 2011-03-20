@@ -24,6 +24,7 @@ import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
+import org.codehaus.jackson.map.MapperConfig;
 import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.*;
@@ -292,14 +293,16 @@ public class JaxbAnnotationIntrospector
      */
     
     @Override
-    public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType)
+    public TypeResolverBuilder<?> findTypeResolver(MapperConfig<?> config,
+            AnnotatedClass ac, JavaType baseType)
     {
         // no per-class type resolvers, right?
         return null;
     }
 
     @Override
-    public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType)
+    public TypeResolverBuilder<?> findPropertyTypeResolver(MapperConfig<?> config,
+            AnnotatedMember am, JavaType baseType)
     {
         /* First: @XmlElements and @XmlElementRefs only applies type for immediate property, if it
          * is NOT a structured type.
@@ -309,7 +312,8 @@ public class JaxbAnnotationIntrospector
     }
 
     @Override
-    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType containerType)
+    public TypeResolverBuilder<?> findPropertyContentTypeResolver(MapperConfig<?> config,
+            AnnotatedMember am, JavaType containerType)
     {
         /* First: let's ensure property is a container type: caller should have
          * verified but just to be sure

@@ -38,7 +38,7 @@ public class TestDateSerialization
         StringWriter sw = new StringWriter();
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'X'HH:mm:ss");
         df.setTimeZone(TimeZone.getTimeZone("PST"));
-        mapper.getSerializationConfig().setDateFormat(df);
+        mapper.setDateFormat(df);
         // let's hit epoch start, offset by a bit
         mapper.writeValue(sw, new Date(0L));
         assertEquals("\"1969-12-31X16:00:00\"", sw.toString());

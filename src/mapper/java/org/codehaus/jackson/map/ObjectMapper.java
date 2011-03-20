@@ -3,6 +3,7 @@ package org.codehaus.jackson.map;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.net.URL;
+import java.text.DateFormat;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -544,6 +545,20 @@ public class ObjectMapper
         _serializationConfig = _serializationConfig.withFilters(filterProvider);
     }
 
+    /**
+     * Method for configuring {@link DateFormat} to use when serializing time
+     * values as Strings, and deserializing from JSON Strings.
+     * This is preferably to directly modifying {@link SerializationConfig} and
+     * {@link DeserializationConfig} instances.
+     * 
+     * @since 1.8
+     */
+    public void setDateFormat(DateFormat dateFormat)
+    {
+        _deserializationConfig = _deserializationConfig.withDateFormat(dateFormat);
+        _serializationConfig = _serializationConfig.withDateFormat(dateFormat);
+    }
+    
     /**
      * Accessor for getting currently configured {@link TypeFactory} instance.
      * 

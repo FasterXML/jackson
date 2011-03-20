@@ -513,7 +513,7 @@ public class BeanDeserializerFactory
         final JavaType abstractType = beanDesc.getType();
         // Otherwise check that there is no @JsonTypeInfo registered (to avoid conflicts)
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        if (intr.findTypeResolver(beanDesc.getClassInfo(), abstractType) != null) {
+        if (intr.findTypeResolver(config, beanDesc.getClassInfo(), abstractType) != null) {
             return null;
         }
 

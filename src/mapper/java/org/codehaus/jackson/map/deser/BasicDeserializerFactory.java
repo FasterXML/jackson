@@ -478,7 +478,7 @@ public abstract class BasicDeserializerFactory
         BasicBeanDescription bean = config.introspectClassAnnotations(cls);
         AnnotatedClass ac = bean.getClassInfo();
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
-        TypeResolverBuilder<?> b = ai.findTypeResolver(ac, baseType);
+        TypeResolverBuilder<?> b = ai.findTypeResolver(config, ac, baseType);
 
         /* Ok: if there is no explicit type info handler, we may want to
          * use a default. If so, config object knows what to use.
@@ -520,7 +520,7 @@ public abstract class BasicDeserializerFactory
            AnnotatedMember annotated, BeanProperty property)
     {
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
-        TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(annotated, baseType);        
+        TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(config, annotated, baseType);        
 
         // Defaulting: if no annotations on member, check value class
         if (b == null) {
@@ -548,7 +548,7 @@ public abstract class BasicDeserializerFactory
             AnnotatedMember propertyEntity, BeanProperty property)
     {
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
-        TypeResolverBuilder<?> b = ai.findPropertyContentTypeResolver(propertyEntity, containerType);        
+        TypeResolverBuilder<?> b = ai.findPropertyContentTypeResolver(config, propertyEntity, containerType);        
         JavaType contentType = containerType.getContentType();
         // Defaulting: if no annotations on member, check class
         if (b == null) {

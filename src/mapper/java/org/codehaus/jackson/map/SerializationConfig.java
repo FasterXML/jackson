@@ -10,7 +10,6 @@ import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
-import org.codehaus.jackson.map.jsontype.impl.StdSubtypeResolver;
 import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -30,7 +29,7 @@ import org.codehaus.jackson.type.JavaType;
  * cached first time they are needed.
  */
 public class SerializationConfig
-    implements MapperConfig<SerializationConfig>
+    extends MapperConfig<SerializationConfig>
 {
     /**
      * Enumeration that defines togglable features that guide
@@ -393,31 +392,7 @@ public class SerializationConfig
     /**********************************************************
      */
 
-    /**
-     * Introspector used to figure out Bean properties needed for bean serialization
-     * and deserialization. Overridable so that it is possible to change low-level
-     * details of introspection, like adding new annotation types.
-     */
-    protected ClassIntrospector<? extends BeanDescription> _classIntrospector;
-
-    /**
-     * Introspector used for accessing annotation value based configuration.
-     */
-    protected AnnotationIntrospector _annotationIntrospector;
-
     protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
-
-    /**
-     * Textual date format to use for serialization (if enabled by
-     * {@link Feature#WRITE_DATES_AS_TIMESTAMPS} being set to false).
-     * Defaults to a ISO-8601 compliant format used by
-     * {@link StdDateFormat}.
-     *<p>
-     * Note that format object is <b>not to be used as is</b> by caller:
-     * since date format objects are not thread-safe, caller has to
-     * create a clone first.
-     */
-    protected DateFormat _dateFormat = StdDateFormat.instance;
 
     /**
      * Which Bean/Map properties are to be included in serialization?
@@ -439,59 +414,6 @@ public class SerializationConfig
      * is defined), meaning that all properties are to be included.
      */
     protected Class<?> _serializationView;
-
-    /**
-     * Mapping that defines how to apply mix-in annotations: key is
-     * the type to received additional annotations, and value is the
-     * type that has annotations to "mix in".
-     *<p>
-     * Annotations associated with the value classes will be used to
-     * override annotations of the key class, associated with the
-     * same field or method. They can be further masked by sub-classes:
-     * you can think of it as injecting annotations between the target
-     * class and its sub-classes (or interfaces)
-     *
-     * @since 1.2
-     */
-    protected HashMap<ClassKey,Class<?>> _mixInAnnotations;
-
-    /**
-     * Flag used to detect when a copy if mix-in annotations is
-     * needed: set when current copy is shared, cleared when a
-     * fresh copy is maed
-     *
-     * @since 1.2
-     */
-    protected boolean _mixInAnnotationsShared;
-
-    /**
-     * Type information handler used for "untyped" values (ones declared
-     * to have type <code>Object.class</code>)
-     * 
-     * @since 1.5
-     */
-    protected final TypeResolverBuilder<?> _typer;
-
-    /**
-     * Object used for determining whether specific property elements
-     * (method, constructors, fields) can be auto-detected based on
-     * their visibility (access modifiers). Can be changed to allow
-     * different minimum visibility levels for auto-detection. Note
-     * that this is the global handler; individual types (classes)
-     * can further override active checker used (using
-     * {@link JsonAutoDetect} annotation)
-     * 
-     * @since 1.5
-     */
-    protected VisibilityChecker<?> _visibilityChecker;
-
-    /**
-     * Registered concrete subtypes that can be used instead of (or
-     * in addition to) ones declared using annotations.
-     * 
-     * @since 1.6
-     */
-    protected SubtypeResolver _subtypeResolver;
     
     /**
      * Object used for resolving filter ids to filter instances.
@@ -500,20 +422,6 @@ public class SerializationConfig
      * @since 1.7
      */
     protected FilterProvider _filterProvider;
-
-    /**
-     * Custom property naming strategy in use, if any.
-     * 
-     * @since 1.8
-     */
-    protected final PropertyNamingStrategy _propertyNamingStrategy;
-
-    /**
-     * Specific factory used for creating {@link JavaType} instances;
-     * needed to allow modules to add more custom type handling
-     * (mostly to support types of non-Java JVM languages)
-     */
-    protected final TypeFactory _typeFactory;
     
     /*
     /**********************************************************
@@ -529,13 +437,10 @@ public class SerializationConfig
             SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy,
             TypeFactory typeFactory)
     {
+        super(intr, annIntr, vc, subtypeResolver, propertyNamingStrategy, typeFactory);
         _classIntrospector = intr;
         _annotationIntrospector = annIntr;
-        _typer = null;
         _visibilityChecker = vc;
-        _subtypeResolver = subtypeResolver;
-        _propertyNamingStrategy = propertyNamingStrategy;
-        _typeFactory = typeFactory;
         _filterProvider = null;
     }
 
@@ -550,19 +455,10 @@ public class SerializationConfig
             TypeResolverBuilder<?> typer, VisibilityChecker<?> vc,
             SubtypeResolver subtypeResolver, FilterProvider filterProvider)
     {
-        _classIntrospector = src._classIntrospector;
-        _annotationIntrospector = src._annotationIntrospector;
+        super(src, mixins, vc, subtypeResolver, typer);
         _featureFlags = src._featureFlags;
-        _dateFormat = src._dateFormat;
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
-        _propertyNamingStrategy = src._propertyNamingStrategy;
-        _typeFactory = src._typeFactory;
-        
-        _mixInAnnotations = mixins;
-        _typer = typer;
-        _visibilityChecker = vc;
-        _subtypeResolver = subtypeResolver;
         _filterProvider = filterProvider;
     }
 
@@ -573,64 +469,53 @@ public class SerializationConfig
      * @since 1.8
      */
     protected SerializationConfig(SerializationConfig src,
-            FilterProvider filterProvider, PropertyNamingStrategy naming, TypeFactory typeFactory)
+            DateFormat dateFormat, PropertyNamingStrategy naming, TypeFactory typeFactory,
+            FilterProvider filterProvider)
     {
-        _classIntrospector = src._classIntrospector;
-        _annotationIntrospector = src._annotationIntrospector;
+        super(src, dateFormat, naming, typeFactory);
         _featureFlags = src._featureFlags;
-        _dateFormat = src._dateFormat;
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
-        _mixInAnnotations = src._mixInAnnotations;
-        _typer = src._typer;
-        _visibilityChecker = src._visibilityChecker;
-        _subtypeResolver = src._subtypeResolver;
-
         _filterProvider = filterProvider;
-        _propertyNamingStrategy = naming;
-        _typeFactory = typeFactory;
     }
-
+    
     /*
     /**********************************************************
-    /* Life-cycle, withXxx factories
+    /* Life-cycle, standard factory methods (from MapperConfig)
     /**********************************************************
      */
-    
-    /**
-     * @since 1.7
-     */
-    public SerializationConfig withFilters(FilterProvider filterProvider) {
-        return new SerializationConfig(this,
-                filterProvider, _propertyNamingStrategy, _typeFactory);
-    }
 
-    /**
-     * @since 1.8
-     */
-    public SerializationConfig withView(Class<?> view) {
-        SerializationConfig config = new SerializationConfig(this,
-                _filterProvider, _propertyNamingStrategy, _typeFactory);
-        config.setSerializationView(view);
-        return config;
-    }
-
-    /**
-     * @since 1.8
-     */
+    @Override
     public SerializationConfig withPropertyNamingStrategy(PropertyNamingStrategy strategy) {
         return new SerializationConfig(this,
-                _filterProvider, strategy, _typeFactory);
+                _dateFormat, strategy, _typeFactory,
+                _filterProvider);
     }
     
-    /**
-     * @since 1.8
-     */
+    @Override
     public SerializationConfig withTypeFactory(TypeFactory typeFactory) {
         return new SerializationConfig(this,
-                _filterProvider, _propertyNamingStrategy, typeFactory);
+                _dateFormat, _propertyNamingStrategy, typeFactory,
+                _filterProvider);
     }
-    
+
+    @Override
+    public SerializationConfig withDateFormat(DateFormat df)
+    {
+        SerializationConfig result = new SerializationConfig(this,
+                df, _propertyNamingStrategy, _typeFactory,
+                _filterProvider);
+        // better also enable/disable write-as-timestamps, depending on format
+        result.set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
+        return result;
+    }
+        
+    /*
+    /**********************************************************
+    /* Life-cycle, SerializationConfig specific factory methods
+    /**********************************************************
+     */
+
     /**
      * SerializationConfig-specific version for constructing unshared
      * configuration object.
@@ -645,6 +530,26 @@ public class SerializationConfig
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
         return new SerializationConfig(this, mixins, typer, vc, subtypeResolver, filterProvider);
+    }
+    
+    /**
+     * @since 1.7
+     */
+    public SerializationConfig withFilters(FilterProvider filterProvider) {
+        return new SerializationConfig(this,
+                _dateFormat, _propertyNamingStrategy, _typeFactory,
+                filterProvider);
+    }
+
+    /**
+     * @since 1.8
+     */
+    public SerializationConfig withView(Class<?> view) {
+        SerializationConfig config = new SerializationConfig(this,
+                _dateFormat, _propertyNamingStrategy, _typeFactory,
+                _filterProvider);
+        config.setSerializationView(view);
+        return config;
     }
 
     /*
@@ -671,7 +576,7 @@ public class SerializationConfig
      * @param cls Class of which class annotations to use
      *   for changing configuration settings
      */
-    //@Override
+    @Override
     public void fromAnnotations(Class<?> cls)
     {
         /* 10-Jul-2009, tatu: Should be able to just pass null as
@@ -703,7 +608,7 @@ public class SerializationConfig
      * this method <b>must</b> be overridden to produce proper sub-class
      * instance.
      */
-    //@Override
+    @Override
     public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
             VisibilityChecker<?> vc, SubtypeResolver subtypeResolver)
     {
@@ -713,16 +618,7 @@ public class SerializationConfig
                 _filterProvider);
     }
 
-    //@Override
-    public void setIntrospector(ClassIntrospector<? extends BeanDescription> i) {
-        _classIntrospector = i;
-    }
-
-    /**
-     * Method for getting {@link AnnotationIntrospector} configured
-     * to introspect annotation values used for configuration.
-     */
-    //@Override
+    @Override
     public AnnotationIntrospector getAnnotationIntrospector()
     {
         /* 29-Jul-2009, tatu: it's now possible to disable use of
@@ -734,127 +630,6 @@ public class SerializationConfig
         return AnnotationIntrospector.nopInstance();
     }
 
-    //@Override
-    public void setAnnotationIntrospector(AnnotationIntrospector ai) {
-        _annotationIntrospector = ai;
-    }
-
-    //@Override
-    public void insertAnnotationIntrospector(AnnotationIntrospector introspector)
-    {
-        _annotationIntrospector = AnnotationIntrospector.Pair.create(introspector, _annotationIntrospector);
-    }
-
-    //@Override
-    public void appendAnnotationIntrospector(AnnotationIntrospector introspector)
-    {
-        _annotationIntrospector = AnnotationIntrospector.Pair.create(_annotationIntrospector, introspector);
-    }
-    
-    /**
-     * Method to use for defining mix-in annotations to use for augmenting
-     * annotations that serializable classes have.
-     * Mixing in is done when introspecting class annotations and properties.
-     * Map passed contains keys that are target classes (ones to augment
-     * with new annotation overrides), and values that are source classes
-     * (have annotations to use for augmentation).
-     * Annotations from source classes (and their supertypes)
-     * will <b>override</b>
-     * annotations that target classes (and their super-types) have.
-     *<p>
-     * Note: a copy of argument Map is created; the original Map is
-     * not modified or retained by this config object.
-     *
-     * @since 1.2
-     */
-    //@Override
-    public void setMixInAnnotations(Map<Class<?>, Class<?>> sourceMixins)
-    {
-        HashMap<ClassKey,Class<?>> mixins = null;
-        if (sourceMixins != null && sourceMixins.size() > 0) {
-            mixins = new HashMap<ClassKey,Class<?>>(sourceMixins.size());
-            for (Map.Entry<Class<?>,Class<?>> en : sourceMixins.entrySet()) {
-                mixins.put(new ClassKey(en.getKey()), en.getValue());
-            }
-        }
-        _mixInAnnotationsShared = false;
-        _mixInAnnotations = mixins;
-    }
-
-    //@Override
-    public void addMixInAnnotations(Class<?> target, Class<?> mixinSource)
-    {
-        if (_mixInAnnotations == null || _mixInAnnotationsShared) {
-            _mixInAnnotationsShared = false;
-            _mixInAnnotations = new HashMap<ClassKey,Class<?>>();
-        }
-        _mixInAnnotations.put(new ClassKey(target), mixinSource);
-    }
-
-    /**
-     * @since 1.2
-     */
-    //@Override
-    public Class<?> findMixInClassFor(Class<?> cls) {
-        return (_mixInAnnotations == null) ? null : _mixInAnnotations.get(new ClassKey(cls));
-    }
-
-    //@Override
-    public DateFormat getDateFormat() { return _dateFormat; }
-
-    /**
-     * Method that will set the specific date format to use for
-     * serializing Dates (and Calendars); or if null passed, simply
-     * disable textual serialization and use timestamp.
-     * In addition to setting format, will also enable/disable feature
-     * {@link Feature#WRITE_DATES_AS_TIMESTAMPS}: enable, if argument
-     * is null; disable if non-null.
-     */
-    //@Override
-    public void setDateFormat(DateFormat df) {
-        _dateFormat = df;
-        // Also: enable/disable usage of 
-        set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
-    }
-
-    //@Override
-    public TypeResolverBuilder<?> getDefaultTyper(JavaType baseType) {
-        return _typer;
-    }
-
-    //@Override
-    public VisibilityChecker<?> getDefaultVisibilityChecker() {
-        return _visibilityChecker;
-    }
-
-    //@Override
-    public SubtypeResolver getSubtypeResolver() {
-        if (_subtypeResolver == null) {
-            _subtypeResolver = new StdSubtypeResolver();
-        }
-        return _subtypeResolver;
-    }
-
-    //@Override
-    public void setSubtypeResolver(SubtypeResolver r) {
-        _subtypeResolver = r;
-    }
-    
-    //@Override
-    public PropertyNamingStrategy getPropertyNamingStrategy() {
-        return _propertyNamingStrategy;
-    }
-
-    //@Override
-    public final TypeFactory getTypeFactory() {
-        return _typeFactory;
-    }
-
-    //@Override
-    public final JavaType constructType(Class<?> cls) {
-        return _typeFactory.constructType(cls);
-    }
-
     /**
      * Accessor for getting bean description that only contains class
      * annotations: useful if no getter/setter/creator information is needed.
@@ -862,6 +637,7 @@ public class SerializationConfig
      * Note: part of {@link MapperConfig} since 1.7
      */
     @SuppressWarnings("unchecked")
+    @Override
     public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
         return (T) _classIntrospector.forClassAnnotations(this, cls, this);
     }
@@ -874,20 +650,30 @@ public class SerializationConfig
      * Note: part of {@link MapperConfig} since 1.7
      */
     @SuppressWarnings("unchecked")
+    @Override
     public <T extends BeanDescription> T introspectDirectClassAnnotations(Class<?> cls) {
         return (T) _classIntrospector.forDirectClassAnnotations(this, cls, this);
     }
 
-    /**
-     * Method for determining whether annotation processing is enabled or not
-     * (default settings are typically that it is enabled; must explicitly disable).
-     * 
-     * @return True if annotation processing is enabled; false if not
-     * 
-     * @since 1.8
-     */
+    @Override
     public boolean isAnnotationProcessingEnabled() {
         return isEnabled(SerializationConfig.Feature.USE_ANNOTATIONS);
+    }
+    
+    @Override
+    public boolean canOverrideAccessModifiers() {
+        return isEnabled(Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+    }
+
+    /**
+     * One thing to note is that this will set {@link Feature#WRITE_DATES_AS_TIMESTAMPS}
+     * to false (if null format set), or true (if non-null format)
+     */
+    @SuppressWarnings("deprecation")
+    @Override
+    public final void setDateFormat(DateFormat df) {
+        super.setDateFormat(df);
+        set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
     }
     
     /*

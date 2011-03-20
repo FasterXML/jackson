@@ -193,7 +193,7 @@ public class TestDateDeserialization
         ObjectMapper mapper = new ObjectMapper();
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'X'HH:mm:ss");
         df.setTimeZone(TimeZone.getTimeZone("PST"));
-        mapper.getDeserializationConfig().setDateFormat(df);
+        mapper.setDateFormat(df);
 
         String dateStr = "1972-12-28X15:45:00";
         java.util.Date exp = df.parse(dateStr);

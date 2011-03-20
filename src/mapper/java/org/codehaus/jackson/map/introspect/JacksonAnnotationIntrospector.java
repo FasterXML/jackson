@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
+import org.codehaus.jackson.map.MapperConfig;
 import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonFilter;
@@ -164,32 +165,35 @@ public class JacksonAnnotationIntrospector
     /* Class annotations for PM type handling (1.5+)
     /**********************************************************
      */
-    
+
     @Override
-    public TypeResolverBuilder<?> findTypeResolver(AnnotatedClass ac, JavaType baseType)
+    public TypeResolverBuilder<?> findTypeResolver(MapperConfig<?> config,
+            AnnotatedClass ac, JavaType baseType)
     {
-        return _findTypeResolver(ac, baseType);
+        return _findTypeResolver(config, ac, baseType);
     }
 
     /**
      * Since 1.7, it is possible to use {@link JsonTypeInfo} from a property too.
      */
     @Override
-    public TypeResolverBuilder<?> findPropertyTypeResolver(AnnotatedMember am, JavaType baseType)
+    public TypeResolverBuilder<?> findPropertyTypeResolver(MapperConfig<?> config,
+            AnnotatedMember am, JavaType baseType)
     {
         /* As per definition of @JsonTypeInfo, should only apply to contents of container
          * (collection, map) types, not container types themselves:
          */
         if (baseType.isContainerType()) return null;
         // No per-member type overrides (yet)
-        return _findTypeResolver(am, baseType);
+        return _findTypeResolver(config, am, baseType);
     }
 
     /**
      * Since 1.7, it is possible to use {@link JsonTypeInfo} from a property too.
      */
     @Override
-    public TypeResolverBuilder<?> findPropertyContentTypeResolver(AnnotatedMember am, JavaType containerType)
+    public TypeResolverBuilder<?> findPropertyContentTypeResolver(MapperConfig<?> config,
+            AnnotatedMember am, JavaType containerType)
     {
         /* First: let's ensure property is a container type: caller should have
          * verified but just to be sure
@@ -197,7 +201,7 @@ public class JacksonAnnotationIntrospector
         if (!containerType.isContainerType()) {
             throw new IllegalArgumentException("Must call method with a container type (got "+containerType+")");
         }
-        return _findTypeResolver(am, containerType);
+        return _findTypeResolver(config, am, containerType);
     }
     
     @Override
@@ -712,7 +716,8 @@ public class JacksonAnnotationIntrospector
      * Helper method called to construct and initialize instance of {@link TypeResolverBuilder}
      * if given annotated element indicates one is needed.
      */
-    protected TypeResolverBuilder<?> _findTypeResolver(Annotated ann, JavaType baseType)
+    protected TypeResolverBuilder<?> _findTypeResolver(MapperConfig<?> config,
+            Annotated ann, JavaType baseType)
     {
         // First: maybe we have explicit type resolver?
         TypeResolverBuilder<?> b;

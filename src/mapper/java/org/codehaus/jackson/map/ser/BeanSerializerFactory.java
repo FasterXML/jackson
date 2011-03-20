@@ -353,7 +353,7 @@ public class BeanSerializerFactory
             AnnotatedMember accessor, BeanProperty property)
     {
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
-        TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(accessor, baseType);        
+        TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(config, accessor, baseType);        
         // Defaulting: if no annotations on member, check value class
         if (b == null) {
             return createTypeSerializer(config, baseType, property);
@@ -379,7 +379,7 @@ public class BeanSerializerFactory
     {
         JavaType contentType = containerType.getContentType();
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
-        TypeResolverBuilder<?> b = ai.findPropertyContentTypeResolver(accessor, containerType);        
+        TypeResolverBuilder<?> b = ai.findPropertyContentTypeResolver(config, accessor, containerType);        
         // Defaulting: if no annotations on member, check value class
         if (b == null) {
             return createTypeSerializer(config, contentType, property);

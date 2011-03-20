@@ -82,9 +82,8 @@ public class TestConfig
     public void testMisc()
     {
         ObjectMapper m = new ObjectMapper();
-        SerializationConfig cfg = m.getSerializationConfig();
-        cfg.setDateFormat(null); // just to execute the code path
-        assertNotNull(cfg.toString()); // ditto
+        m.setDateFormat(null); // just to execute the code path
+        assertNotNull(m.getSerializationConfig().toString()); // ditto
     }
 
     @SuppressWarnings("deprecation")
