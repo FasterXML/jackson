@@ -430,6 +430,18 @@ public class DeserializationConfig
         _problemHandlers = src._problemHandlers;
         _nodeFactory = src._nodeFactory;
     }
+
+    /**
+     * @since 1.8
+     */
+    protected DeserializationConfig(DeserializationConfig src, JsonNodeFactory f)
+    {
+        super(src);
+        _abstractTypeResolver = src._abstractTypeResolver;
+        _featureFlags = src._featureFlags;
+        _problemHandlers = src._problemHandlers;
+        _nodeFactory = f;
+    }
     
     /*
     /**********************************************************
@@ -457,6 +469,13 @@ public class DeserializationConfig
     /* Life-cycle, deserialization-specific factory methods
     /**********************************************************
      */
+
+    /**
+     * @since 1.8
+     */
+    public DeserializationConfig withNodeFactory(JsonNodeFactory f) {
+        return new DeserializationConfig(this, f);
+    }
     
     /*
     /**********************************************************
@@ -555,19 +574,6 @@ public class DeserializationConfig
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
     	return new DeserializationConfig(this, mixins, typer, vc, subtypeResolver);
-    }
-
-    /**
-     * Alternative "copy factory" that creates an unshared copy that uses
-     * different node factory than this instance.
-     * 
-     * @since 1.6
-     */
-    public DeserializationConfig createUnshared(JsonNodeFactory nf)
-    {
-        DeserializationConfig config = createUnshared(_typer, _visibilityChecker, _subtypeResolver);
-        config.setNodeFactory(nf);
-        return config;
     }
 
     /**
@@ -689,9 +695,43 @@ public class DeserializationConfig
     
     /*
     /**********************************************************
-    /* Polymorphic type handling configuration
+    /* Other configuration
     /**********************************************************
      */
+
+    /**
+     * Method called during deserialization if Base64 encoded content
+     * needs to be decoded. Default version just returns default Jackson
+     * uses, which is modified-mime which does not add linefeeds (because
+     * those would have to be escaped in JSON strings).
+     */
+    public Base64Variant getBase64Variant() {
+        return Base64Variants.getDefaultVariant();
+    }
+
+    /**
+     * @since 1.6
+     */
+    public final JsonNodeFactory getNodeFactory() {
+        return _nodeFactory;
+    }
+
+    /*
+    /**********************************************************
+    /* Deprecated methods
+    /**********************************************************
+     */
+
+    /**
+     * @since 1.6
+     * 
+     * @deprecated Since 1.8 should use {@link #withNodeFactory} instead
+     */
+    @Deprecated
+    public void setNodeFactory(JsonNodeFactory nf) {
+        _nodeFactory = nf;
+    }
+
 
     /**
      * Method for accessing {@link AbstractTypeResolver} configured, if any
@@ -722,33 +762,4 @@ public class DeserializationConfig
         _abstractTypeResolver = atr;
     }
     
-    /*
-    /**********************************************************
-    /* Other configuration
-    /**********************************************************
-     */
-
-    /**
-     * Method called during deserialization if Base64 encoded content
-     * needs to be decoded. Default version just returns default Jackson
-     * uses, which is modified-mime which does not add linefeeds (because
-     * those would have to be escaped in Json strings).
-     */
-    public Base64Variant getBase64Variant() {
-        return Base64Variants.getDefaultVariant();
-    }
-    
-    /**
-     * @since 1.6
-     */
-    public void setNodeFactory(JsonNodeFactory nf) {
-        _nodeFactory = nf;
-    }
-
-    /**
-     * @since 1.6
-     */
-    public final JsonNodeFactory getNodeFactory() {
-        return _nodeFactory;
-    }
 }

@@ -324,7 +324,7 @@ public class ObjectMapper
 
     /*
     /**********************************************************
-    /* Life-cycle (construction, configuration)
+    /* Life-cycle: constructing instance
     /**********************************************************
      */
 
@@ -413,6 +413,12 @@ public class ObjectMapper
         _serializerFactory = BeanSerializerFactory.instance;
     }
 
+    /*
+    /**********************************************************
+    /* Versioned impl
+    /**********************************************************
+     */
+    
     /**
      * Method that will return version information stored in and read from jar
      * that contains this class.
@@ -423,188 +429,11 @@ public class ObjectMapper
         return VersionUtil.versionFor(getClass());
     }
     
-    /**
-     * Method for setting specific {@link SerializerFactory} to use
-     * for constructing (bean) serializers.
+    /*
+    /**********************************************************
+    /* Module registration
+    /**********************************************************
      */
-    public ObjectMapper setSerializerFactory(SerializerFactory f) {
-        _serializerFactory = f;
-        return this;
-    }
-
-    /**
-     * Method for setting specific {@link SerializerProvider} to use
-     * for handling caching of {@link JsonSerializer} instances.
-     */
-    public ObjectMapper setSerializerProvider(SerializerProvider p) {
-        _serializerProvider = p;
-        return this;
-    }
-
-    /**
-     * @since 1.4
-     */   
-    public SerializerProvider getSerializerProvider() {
-        return _serializerProvider;
-    }
-    
-    /**
-     * Method for setting specific {@link DeserializerProvider} to use
-     * for handling caching of {@link JsonDeserializer} instances.
-     */
-    public ObjectMapper setDeserializerProvider(DeserializerProvider p) {
-        _deserializerProvider = p;
-        return this;
-    }
-
-    /**
-     * @since 1.4
-     */   
-    public DeserializerProvider getDeserializerProvider() {
-        return _deserializerProvider;
-    }
-    
-    /**
-     * Method for specifying {@link JsonNodeFactory} to use for
-     * constructing root level tree nodes (via method
-     * {@link #createObjectNode}
-     *
-     * @since 1.2
-     */
-    public ObjectMapper setNodeFactory(JsonNodeFactory f) {
-        _deserializationConfig.setNodeFactory(f);
-        return this;
-    }
-
-    /**
-     * Method for accessing currently configured visibility checker;
-     * object used for determining whether given property element
-     * (method, field, constructor) can be auto-detected or not.
-     * 
-     * @since 1.5
-     */
-    public VisibilityChecker<?> getVisibilityChecker() {
-    	return _visibilityChecker;
-    }
-
-    /**
-     * Method for setting currently configured visibility checker;
-     * object used for determining whether given property element
-     * (method, field, constructor) can be auto-detected or not.
-     * This default checker is used if no per-class overrides
-     * are defined.
-     * 
-     * @since 1.5
-     */    
-    public void setVisibilityChecker(VisibilityChecker<?> vc) {
-        _visibilityChecker = vc;
-    }
-
-    /**
-     * @since 1.6
-     */
-    public SubtypeResolver getSubtypeResolver() {
-        if (_subtypeResolver == null) {
-            _subtypeResolver = new StdSubtypeResolver();
-        }
-        return _subtypeResolver;
-    }
-
-    /**
-     * Method for setting custom subtype resolver to use.
-     * 
-     * @since 1.6
-     */
-    public void setSubtypeResolver(SubtypeResolver r) {
-        _subtypeResolver = r;
-    }
-    
-    /**
-     * Method for setting custom property naming strategy to use.
-     * 
-     * @since 1.8
-     */
-    public void setPropertyNamingStrategy(PropertyNamingStrategy s) {
-        _serializationConfig = _serializationConfig.withPropertyNamingStrategy(s);
-        _deserializationConfig = _deserializationConfig.withPropertyNamingStrategy(s);
-    }
-    
-    /**
-     * Convenience method that is equivalent to:
-     *<pre>
-     *  mapper.setFilters(mapper.getSerializationConfig().withFilters(filterProvider));
-     *</pre>
-     *<p>
-     * Note that usually it is better to use method {@link #filteredWriter}; however, sometimes
-     * this method is more convenient. For example, some frameworks only allow configuring
-     * of ObjectMapper instances and not ObjectWriters.
-     * 
-     * @since 1.8
-     */
-    public void setFilters(FilterProvider filterProvider) {
-        _serializationConfig = _serializationConfig.withFilters(filterProvider);
-    }
-
-    /**
-     * Method for configuring {@link DateFormat} to use when serializing time
-     * values as Strings, and deserializing from JSON Strings.
-     * This is preferably to directly modifying {@link SerializationConfig} and
-     * {@link DeserializationConfig} instances.
-     * 
-     * @since 1.8
-     */
-    public void setDateFormat(DateFormat dateFormat)
-    {
-        _deserializationConfig = _deserializationConfig.withDateFormat(dateFormat);
-        _serializationConfig = _serializationConfig.withDateFormat(dateFormat);
-    }
-    
-    /**
-     * Accessor for getting currently configured {@link TypeFactory} instance.
-     * 
-     * @since 1.8
-     */
-    public TypeFactory getTypeFactory() {
-        return _typeFactory;
-    }
-    
-    /**
-     * Convenience method for constructing {@link JavaType} out of given
-     * type (typically <code>java.lang.Class</code>), but without explicit
-     * context.
-     * 
-     * @since 1.8
-     */
-    public JavaType constructType(Type t) {
-        return _typeFactory.constructType(t);
-    }
-    
-    /**
-     * Method for registering specified class as a subtype, so that
-     * typename-based resolution can link supertypes to subtypes
-     * (as an alternative to using annotations).
-     * Type for given class is determined from appropriate annotation;
-     * or if missing, default name (unqualified class name)
-     * 
-     * @since 1.6
-     */
-    public void registerSubtypes(Class<?>... classes) {
-        getSubtypeResolver().registerSubtypes(classes);
-    }
-
-    /**
-     * Method for registering specified class as a subtype, so that
-     * typename-based resolution can link supertypes to subtypes
-     * (as an alternative to using annotations).
-     * Name may be provided as part of argument, but if not will
-     * be based on annotations or use default name (unqualified
-     * class name).
-     * 
-     * @since 1.6
-     */
-    public void registerSubtypes(NamedType... types) {
-        getSubtypeResolver().registerSubtypes(types);
-    }
 
     /**
      * Method for registering a module that can extend functionality
@@ -721,10 +550,10 @@ public class ObjectMapper
         registerModule(module);
         return this;
     }
-    
+
     /*
     /**********************************************************
-    /* Access to configuration settings
+    /* Configuration: main config object access
     /**********************************************************
      */
 
@@ -763,19 +592,6 @@ public class ObjectMapper
      */
     public ObjectMapper setSerializationConfig(SerializationConfig cfg) {
         _serializationConfig = cfg;
-        return this;
-    }
-
-    /**
-     * Method for changing state of an on/off serialization feature for
-     * this object mapper.
-     *<p>
-     * This is method is basically a shortcut method for calling
-     * {@link SerializationConfig#set} on the shared {@link SerializationConfig}
-     * object with given arguments.
-     */
-    public ObjectMapper configure(SerializationConfig.Feature f, boolean state) {
-        _serializationConfig.set(f, state);
         return this;
     }
 
@@ -819,75 +635,110 @@ public class ObjectMapper
         return this;
     }
 
-    /**
-     * Method for changing state of an on/off deserialization feature for
-     * this object mapper.
-     *<p>
-     * This is method is basically a shortcut method for calling
-     * {@link DeserializationConfig#set} on the shared {@link DeserializationConfig}
-     * object with given arguments.
+    /*
+    /**********************************************************
+    /* Configuration: ser/deser factory, provider access
+    /**********************************************************
      */
-    public ObjectMapper configure(DeserializationConfig.Feature f, boolean state) {
-        _deserializationConfig.set(f, state);
+    
+    /**
+     * Method for setting specific {@link SerializerFactory} to use
+     * for constructing (bean) serializers.
+     */
+    public ObjectMapper setSerializerFactory(SerializerFactory f) {
+        _serializerFactory = f;
         return this;
     }
 
     /**
-     * Method that can be used to get hold of {@link JsonFactory} that this
-     * mapper uses if it needs to construct {@link JsonParser}s
-     * and/or {@link JsonGenerator}s.
-     *
-     * @return {@link JsonFactory} that this mapper uses when it needs to
-     *   construct Json parser and generators
+     * Method for setting specific {@link SerializerProvider} to use
+     * for handling caching of {@link JsonSerializer} instances.
      */
-    public JsonFactory getJsonFactory() { return _jsonFactory; }
-
-    /**
-     * Method for changing state of an on/off {@link JsonParser} feature for
-     * {@link JsonFactory} instance this object mapper uses.
-     *<p>
-     * This is method is basically a shortcut method for calling
-     * {@link JsonFactory#setParserFeature} on the shared
-     * {@link JsonFactory} this mapper uses (which is accessible
-     * using {@link #getJsonFactory}).
-     *
-     * @since 1.2
-     */
-    public ObjectMapper configure(JsonParser.Feature f, boolean state) {
-        _jsonFactory.configure(f, state);
+    public ObjectMapper setSerializerProvider(SerializerProvider p) {
+        _serializerProvider = p;
         return this;
     }
 
     /**
-     * Method for changing state of an on/off {@link JsonGenerator} feature for
-     * {@link JsonFactory} instance this object mapper uses.
-     *<p>
-     * This is method is basically a shortcut method for calling
-     * {@link JsonFactory#setGeneratorFeature} on the shared
-     * {@link JsonFactory} this mapper uses (which is accessible
-     * using {@link #getJsonFactory}).
-     *
-     * @since 1.2
+     * @since 1.4
+     */   
+    public SerializerProvider getSerializerProvider() {
+        return _serializerProvider;
+    }
+    
+    /**
+     * Method for setting specific {@link DeserializerProvider} to use
+     * for handling caching of {@link JsonDeserializer} instances.
      */
-    public ObjectMapper configure(JsonGenerator.Feature f, boolean state) {
-        _jsonFactory.configure(f, state);
+    public ObjectMapper setDeserializerProvider(DeserializerProvider p) {
+        _deserializerProvider = p;
         return this;
     }
 
     /**
-     * Method that can be used to get hold of {@link JsonNodeFactory}
-     * that this mapper will use when directly constructing
-     * root {@link JsonNode} instances for Trees.
-     *<p>
-     * Note: this is just a shortcut for calling
-     *<pre>
-     *   getDeserializationConfig().getNodeFactory()
-     *</pre>
-     *
-     * @since 1.2
+     * @since 1.4
+     */   
+    public DeserializerProvider getDeserializerProvider() {
+        return _deserializerProvider;
+    }
+
+    /*
+    /**********************************************************
+    /* Configuration, introspection
+    /**********************************************************
      */
-    public JsonNodeFactory getNodeFactory() {
-        return _deserializationConfig.getNodeFactory();
+
+    /**
+     * Method for accessing currently configured visibility checker;
+     * object used for determining whether given property element
+     * (method, field, constructor) can be auto-detected or not.
+     * 
+     * @since 1.5
+     */
+    public VisibilityChecker<?> getVisibilityChecker() {
+        return _visibilityChecker;
+    }
+
+    /**
+     * Method for setting currently configured visibility checker;
+     * object used for determining whether given property element
+     * (method, field, constructor) can be auto-detected or not.
+     * This default checker is used if no per-class overrides
+     * are defined.
+     * 
+     * @since 1.5
+     */    
+    public void setVisibilityChecker(VisibilityChecker<?> vc) {
+        _visibilityChecker = vc;
+    }
+
+    /**
+     * @since 1.6
+     */
+    public SubtypeResolver getSubtypeResolver() {
+        if (_subtypeResolver == null) {
+            _subtypeResolver = new StdSubtypeResolver();
+        }
+        return _subtypeResolver;
+    }
+
+    /**
+     * Method for setting custom subtype resolver to use.
+     * 
+     * @since 1.6
+     */
+    public void setSubtypeResolver(SubtypeResolver r) {
+        _subtypeResolver = r;
+    }
+    
+    /**
+     * Method for setting custom property naming strategy to use.
+     * 
+     * @since 1.8
+     */
+    public void setPropertyNamingStrategy(PropertyNamingStrategy s) {
+        _serializationConfig = _serializationConfig.withPropertyNamingStrategy(s);
+        _deserializationConfig = _deserializationConfig.withPropertyNamingStrategy(s);
     }
 
     /*
@@ -976,6 +827,210 @@ public class ObjectMapper
         _defaultTyper = typer;
         return this;
     }
+
+    /**
+     * Method for registering specified class as a subtype, so that
+     * typename-based resolution can link supertypes to subtypes
+     * (as an alternative to using annotations).
+     * Type for given class is determined from appropriate annotation;
+     * or if missing, default name (unqualified class name)
+     * 
+     * @since 1.6
+     */
+    public void registerSubtypes(Class<?>... classes) {
+        getSubtypeResolver().registerSubtypes(classes);
+    }
+
+    /**
+     * Method for registering specified class as a subtype, so that
+     * typename-based resolution can link supertypes to subtypes
+     * (as an alternative to using annotations).
+     * Name may be provided as part of argument, but if not will
+     * be based on annotations or use default name (unqualified
+     * class name).
+     * 
+     * @since 1.6
+     */
+    public void registerSubtypes(NamedType... types) {
+        getSubtypeResolver().registerSubtypes(types);
+    }
+
+    /*
+    /**********************************************************
+    /* Configuration, basic type handling
+    /**********************************************************
+     */
+
+    /**
+     * Accessor for getting currently configured {@link TypeFactory} instance.
+     * 
+     * @since 1.8
+     */
+    public TypeFactory getTypeFactory() {
+        return _typeFactory;
+    }
+    
+    /**
+     * Convenience method for constructing {@link JavaType} out of given
+     * type (typically <code>java.lang.Class</code>), but without explicit
+     * context.
+     * 
+     * @since 1.8
+     */
+    public JavaType constructType(Type t) {
+        return _typeFactory.constructType(t);
+    }
+    
+    /*
+    /**********************************************************
+    /* Configuration, deserialization
+    /**********************************************************
+     */
+    
+    /**
+     * Method for specifying {@link JsonNodeFactory} to use for
+     * constructing root level tree nodes (via method
+     * {@link #createObjectNode}
+     *
+     * @since 1.2
+     */
+    public ObjectMapper setNodeFactory(JsonNodeFactory f) {
+        _deserializationConfig = _deserializationConfig.withNodeFactory(f);
+        return this;
+    }
+
+    /*
+    /**********************************************************
+    /* Configuration, serialization
+    /**********************************************************
+     */
+
+    /**
+     * Convenience method that is equivalent to:
+     *<pre>
+     *  mapper.setFilters(mapper.getSerializationConfig().withFilters(filterProvider));
+     *</pre>
+     *<p>
+     * Note that usually it is better to use method {@link #filteredWriter}; however, sometimes
+     * this method is more convenient. For example, some frameworks only allow configuring
+     * of ObjectMapper instances and not ObjectWriters.
+     * 
+     * @since 1.8
+     */
+    public void setFilters(FilterProvider filterProvider) {
+        _serializationConfig = _serializationConfig.withFilters(filterProvider);
+    }
+    
+    /*
+    /**********************************************************
+    /* Configuration, other
+    /**********************************************************
+     */
+
+    /**
+     * Method for configuring {@link DateFormat} to use when serializing time
+     * values as Strings, and deserializing from JSON Strings.
+     * This is preferably to directly modifying {@link SerializationConfig} and
+     * {@link DeserializationConfig} instances.
+     * 
+     * @since 1.8
+     */
+    public void setDateFormat(DateFormat dateFormat)
+    {
+        _deserializationConfig = _deserializationConfig.withDateFormat(dateFormat);
+        _serializationConfig = _serializationConfig.withDateFormat(dateFormat);
+    }
+
+    /**
+     * Method that can be used to get hold of {@link JsonFactory} that this
+     * mapper uses if it needs to construct {@link JsonParser}s
+     * and/or {@link JsonGenerator}s.
+     *
+     * @return {@link JsonFactory} that this mapper uses when it needs to
+     *   construct Json parser and generators
+     */
+    public JsonFactory getJsonFactory() { return _jsonFactory; }
+    
+    /*
+    /**********************************************************
+    /* Configuration, simple features
+    /**********************************************************
+     */
+
+    /**
+     * Method for changing state of an on/off serialization feature for
+     * this object mapper.
+     *<p>
+     * This is method is basically a shortcut method for calling
+     * {@link SerializationConfig#set} on the shared {@link SerializationConfig}
+     * object with given arguments.
+     */
+    public ObjectMapper configure(SerializationConfig.Feature f, boolean state) {
+        _serializationConfig.set(f, state);
+        return this;
+    }
+
+    /**
+     * Method for changing state of an on/off deserialization feature for
+     * this object mapper.
+     *<p>
+     * This is method is basically a shortcut method for calling
+     * {@link DeserializationConfig#set} on the shared {@link DeserializationConfig}
+     * object with given arguments.
+     */
+    public ObjectMapper configure(DeserializationConfig.Feature f, boolean state) {
+        _deserializationConfig.set(f, state);
+        return this;
+    }
+
+    /**
+     * Method for changing state of an on/off {@link JsonParser} feature for
+     * {@link JsonFactory} instance this object mapper uses.
+     *<p>
+     * This is method is basically a shortcut method for calling
+     * {@link JsonFactory#setParserFeature} on the shared
+     * {@link JsonFactory} this mapper uses (which is accessible
+     * using {@link #getJsonFactory}).
+     *
+     * @since 1.2
+     */
+    public ObjectMapper configure(JsonParser.Feature f, boolean state) {
+        _jsonFactory.configure(f, state);
+        return this;
+    }
+
+    /**
+     * Method for changing state of an on/off {@link JsonGenerator} feature for
+     * {@link JsonFactory} instance this object mapper uses.
+     *<p>
+     * This is method is basically a shortcut method for calling
+     * {@link JsonFactory#setGeneratorFeature} on the shared
+     * {@link JsonFactory} this mapper uses (which is accessible
+     * using {@link #getJsonFactory}).
+     *
+     * @since 1.2
+     */
+    public ObjectMapper configure(JsonGenerator.Feature f, boolean state) {
+        _jsonFactory.configure(f, state);
+        return this;
+    }
+
+    /**
+     * Method that can be used to get hold of {@link JsonNodeFactory}
+     * that this mapper will use when directly constructing
+     * root {@link JsonNode} instances for Trees.
+     *<p>
+     * Note: this is just a shortcut for calling
+     *<pre>
+     *   getDeserializationConfig().getNodeFactory()
+     *</pre>
+     *
+     * @since 1.2
+     */
+    public JsonNodeFactory getNodeFactory() {
+        return _deserializationConfig.getNodeFactory();
+    }
+
     
     /*
     /**********************************************************

@@ -160,8 +160,7 @@ public class ObjectReader
     {
         // node factory is stored within config, so need to copy that first
         if (f == _config.getNodeFactory()) return this;
-        DeserializationConfig cfg = _config.createUnshared(f);
-        return new ObjectReader(this, cfg, _valueType, _valueToUpdate);
+        return new ObjectReader(this, _config.withNodeFactory(f), _valueType, _valueToUpdate);
     }
     
     public ObjectReader withValueToUpdate(Object value)

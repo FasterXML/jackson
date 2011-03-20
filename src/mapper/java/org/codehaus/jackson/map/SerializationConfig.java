@@ -13,7 +13,6 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.type.TypeFactory;
-import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -38,7 +37,7 @@ public class SerializationConfig
     public enum Feature {
         /*
         /******************************************************
-         *  Introspection features
+        /*  Introspection features
         /******************************************************
          */
         

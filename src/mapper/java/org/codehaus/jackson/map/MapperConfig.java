@@ -182,6 +182,21 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
     /**
      * @since 1.8
      */
+    protected MapperConfig(MapperConfig<?> src)
+    {
+        _classIntrospector = src._classIntrospector;
+        _annotationIntrospector = src._annotationIntrospector;
+        _visibilityChecker = src._visibilityChecker;
+        _subtypeResolver = src._subtypeResolver;
+        _propertyNamingStrategy = src._propertyNamingStrategy;
+        _typeFactory = src._typeFactory;
+        _typer = src._typer;
+        _dateFormat = src._dateFormat;
+    }
+
+    /**
+     * @since 1.8
+     */
     protected MapperConfig(MapperConfig<?> src,
             DateFormat dateFormat, PropertyNamingStrategy naming, TypeFactory typeFactory)
     {
