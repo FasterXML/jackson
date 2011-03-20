@@ -372,6 +372,8 @@ public class DeserializationConfig
     /**
      * To support on-the-fly class generation for interface and abstract classes
      * it is possible to register "abstract type resolver".
+     *<p>
+     * Non-final to support deprecated legacy methods; should be made final for 2.0
      * 
      * @since 1.6
      */
@@ -379,6 +381,8 @@ public class DeserializationConfig
     
     /**
      * Factory used for constructing {@link org.codehaus.jackson.JsonNode} instances.
+     *<p>
+     * Non-final to support deprecated legacy methods; should be made final for 2.0
      * 
      * @since 1.6
      */
@@ -396,49 +400,51 @@ public class DeserializationConfig
     public DeserializationConfig(ClassIntrospector<? extends BeanDescription> intr,
             AnnotationIntrospector annIntr, VisibilityChecker<?> vc,
             SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy,
-            TypeFactory typeFactory)
+            TypeFactory typeFactory, HandlerInstantiator handlerInstantiator)
     {
-        super(intr, annIntr, vc, subtypeResolver, propertyNamingStrategy, typeFactory);
+        super(intr, annIntr, vc, subtypeResolver, propertyNamingStrategy, typeFactory, handlerInstantiator);
         _nodeFactory = JsonNodeFactory.instance;
-    }
-
-    /**
-     * Constructor used internally to construct a read-only instance to use for
-     * individual deserialization operation.
-     */
-    protected DeserializationConfig(DeserializationConfig src,
-            HashMap<ClassKey,Class<?>> mixins,
-            TypeResolverBuilder<?> typer,
-            VisibilityChecker<?> vc, SubtypeResolver subtypeResolver)
-    {
-        super(src, mixins, vc, subtypeResolver, typer);
-        _abstractTypeResolver = src._abstractTypeResolver;
-        _featureFlags = src._featureFlags;
-        _problemHandlers = src._problemHandlers;
-        _nodeFactory = src._nodeFactory;
     }
 
     /**
      * @since 1.8
      */
+    protected DeserializationConfig(DeserializationConfig src) {
+        this(src, src._base);
+    }
+
+    /**
+     * Constructor used to make a private copy of specific mix-in definitions.
+     * 
+     * @since 1.8
+     */
     protected DeserializationConfig(DeserializationConfig src,
-            DateFormat dateFormat, PropertyNamingStrategy naming, TypeFactory typeFactory)
+            HashMap<ClassKey,Class<?>> mixins, SubtypeResolver subtypeResolver)
     {
-        super(src, dateFormat, naming, typeFactory);
-        _abstractTypeResolver = src._abstractTypeResolver;
+        this(src, src._base.withSubtypeResolver(subtypeResolver));
+        _mixInAnnotations = mixins;
+        _mixInAnnotationsShared = false;
+    }
+    
+    /**
+     * @since 1.8
+     */
+    protected DeserializationConfig(DeserializationConfig src, MapperConfig.Base base) {
+        super(base);
         _featureFlags = src._featureFlags;
+        _abstractTypeResolver = src._abstractTypeResolver;
         _problemHandlers = src._problemHandlers;
         _nodeFactory = src._nodeFactory;
     }
-
+    
     /**
      * @since 1.8
      */
     protected DeserializationConfig(DeserializationConfig src, JsonNodeFactory f)
     {
         super(src);
-        _abstractTypeResolver = src._abstractTypeResolver;
         _featureFlags = src._featureFlags;
+        _abstractTypeResolver = src._abstractTypeResolver;
         _problemHandlers = src._problemHandlers;
         _nodeFactory = f;
     }
@@ -450,18 +456,48 @@ public class DeserializationConfig
      */
 
     @Override
-    public DeserializationConfig withPropertyNamingStrategy(PropertyNamingStrategy strategy) {
-        return new DeserializationConfig(this, _dateFormat, strategy, _typeFactory);
+    public DeserializationConfig withClassIntrospector(ClassIntrospector<? extends BeanDescription> ci) {
+        return new DeserializationConfig(this, _base.withClassIntrospector(ci));
+    }
+
+    @Override
+    public DeserializationConfig withAnnotationIntrospector(AnnotationIntrospector ai) {
+        return new DeserializationConfig(this, _base.withAnnotationIntrospector(ai));
+    }
+
+    @Override
+    public DeserializationConfig withVisibilityChecker(VisibilityChecker<?> vc) {
+        return new DeserializationConfig(this, _base.withVisibilityChecker(vc));
+    }
+
+    @Override
+    public DeserializationConfig withTypeResolverBuilder(TypeResolverBuilder<?> trb) {
+        return new DeserializationConfig(this, _base.withTypeResolverBuilder(trb));
+    }
+
+    @Override
+    public DeserializationConfig withSubtypeResolver(SubtypeResolver str) {
+        return new DeserializationConfig(this, _base.withSubtypeResolver(str));
     }
     
     @Override
-    public DeserializationConfig withTypeFactory(TypeFactory typeFactory) {
-        return new DeserializationConfig(this, _dateFormat, _propertyNamingStrategy, typeFactory);
+    public DeserializationConfig withPropertyNamingStrategy(PropertyNamingStrategy pns) {
+        return new DeserializationConfig(this, _base.withPropertyNamingStrategy(pns));
+    }
+    
+    @Override
+    public DeserializationConfig withTypeFactory(TypeFactory tf) {
+        return new DeserializationConfig(this, _base.withTypeFactory(tf));
     }
 
     @Override
     public DeserializationConfig withDateFormat(DateFormat df) {
-        return new DeserializationConfig(this, df, _propertyNamingStrategy, _typeFactory);
+        return new DeserializationConfig(this, _base.withDateFormat(df));
+    }
+    
+    @Override
+    public DeserializationConfig withHandlerInstantiator(HandlerInstantiator hi) {
+        return new DeserializationConfig(this, _base.withHandlerInstantiator(hi));
     }
     
     /*
@@ -554,9 +590,11 @@ public class DeserializationConfig
         /* 10-Jul-2009, tatu: Should be able to just pass null as
          *    'MixInResolver'; no mix-ins set at this point
          */
-        AnnotatedClass ac = AnnotatedClass.construct(cls, _annotationIntrospector, null);
+        AnnotationIntrospector ai = getAnnotationIntrospector();
+        AnnotatedClass ac = AnnotatedClass.construct(cls, ai, null);
         // visibility checks handled via separate checker object...
-        _visibilityChecker = _annotationIntrospector.findAutoDetectVisibility(ac, _visibilityChecker);
+        VisibilityChecker<?> prevVc = getDefaultVisibilityChecker();
+        _base = _base.withVisibilityChecker(ai.findAutoDetectVisibility(ac, prevVc));
     }
 
     /**
@@ -568,12 +606,11 @@ public class DeserializationConfig
      * instance.
      */
     @Override
-    public DeserializationConfig createUnshared(TypeResolverBuilder<?> typer,
-    		VisibilityChecker<?> vc, SubtypeResolver subtypeResolver)
+    public DeserializationConfig createUnshared(SubtypeResolver subtypeResolver)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-    	return new DeserializationConfig(this, mixins, typer, vc, subtypeResolver);
+        return new DeserializationConfig(this, mixins, subtypeResolver);
     }
 
     /**
@@ -587,7 +624,7 @@ public class DeserializationConfig
          *   annotations; can be done using "no-op" introspector
          */
         if (isEnabled(Feature.USE_ANNOTATIONS)) {
-            return _annotationIntrospector;
+            return super.getAnnotationIntrospector();
         }
         return NopAnnotationIntrospector.instance;
     }
@@ -601,7 +638,7 @@ public class DeserializationConfig
     @Override
     @SuppressWarnings("unchecked")
     public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
-        return (T) _classIntrospector.forClassAnnotations(this, cls, this);
+        return (T) getClassIntrospector().forClassAnnotations(this, cls, this);
     }
 
     /**
@@ -614,7 +651,7 @@ public class DeserializationConfig
     @Override
     @SuppressWarnings("unchecked")
     public <T extends BeanDescription> T introspectDirectClassAnnotations(Class<?> cls) {
-        return (T) _classIntrospector.forDirectClassAnnotations(this, cls, this);
+        return (T) getClassIntrospector().forDirectClassAnnotations(this, cls, this);
     }
 
     @Override
@@ -681,7 +718,7 @@ public class DeserializationConfig
      */
     @SuppressWarnings("unchecked")
     public <T extends BeanDescription> T introspect(JavaType type) {
-        return (T) _classIntrospector.forDeserialization(this, type, this);
+        return (T) getClassIntrospector().forDeserialization(this, type, this);
     }
 
     /**
@@ -690,7 +727,7 @@ public class DeserializationConfig
      */
     @SuppressWarnings("unchecked")
     public <T extends BeanDescription> T introspectForCreation(JavaType type) {
-        return (T) _classIntrospector.forCreation(this, type, this);
+        return (T) getClassIntrospector().forCreation(this, type, this);
     }
     
     /*
@@ -722,6 +759,19 @@ public class DeserializationConfig
     /**********************************************************
      */
 
+    /**
+     * @deprecated Since 1.8 should use variant without arguments
+     */
+    @Deprecated
+    @Override
+    public DeserializationConfig createUnshared(TypeResolverBuilder<?> typer,
+            VisibilityChecker<?> vc, SubtypeResolver str)
+    {
+        return createUnshared(str)
+            .withTypeResolverBuilder(typer)
+            .withVisibilityChecker(vc);
+    }
+    
     /**
      * @since 1.6
      * 

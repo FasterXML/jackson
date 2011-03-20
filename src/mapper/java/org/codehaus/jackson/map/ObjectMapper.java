@@ -34,10 +34,7 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
-import org.codehaus.jackson.util.ByteArrayBuilder;
-import org.codehaus.jackson.util.DefaultPrettyPrinter;
-import org.codehaus.jackson.util.TokenBuffer;
-import org.codehaus.jackson.util.VersionUtil;
+import org.codehaus.jackson.util.*;
 
 /**
  * This mapper (or, data binder, or codec) provides functionality for
@@ -191,8 +188,15 @@ public class ObjectMapper
     // 16-May-2009, tatu: Ditto ^^^
     protected final static AnnotationIntrospector DEFAULT_ANNOTATION_INTROSPECTOR = new JacksonAnnotationIntrospector();
 
-    // @since 1.5
+    /**
+     * @since 1.5
+     */
     protected final static VisibilityChecker<?> STD_VISIBILITY_CHECKER = VisibilityChecker.Std.defaultInstance();
+
+    /**
+     * @since 1.8
+     */
+    protected final static HandlerInstantiator DEFAULT_HANDLER_INSTANTIATOR = new HandlerInstantiator.DefaultImpl();
     
     /*
     /**********************************************************
@@ -205,31 +209,6 @@ public class ObjectMapper
      * instances as necessary.
      */
     protected final JsonFactory _jsonFactory;
-
-    /**
-     * Object that defines how to add type information for types that do not
-     * have explicit type information settings (which are usually
-     * indicated by {@link org.codehaus.jackson.annotate.JsonTypeInfo})
-     * If set to null, no type information will be added unless annotations
-     * are used; if set to non-null, resolver builder is used to check
-     * which type serializers and deserializers are to be used (if any)
-     * 
-     * @since 1.5
-     */
-    protected TypeResolverBuilder<?> _defaultTyper;
-
-    /**
-     * Object used for determining whether specific property elements
-     * (method, constructors, fields) can be auto-detected based on
-     * their visibility (access modifiers). Can be changed to allow
-     * different minimum visibility levels for auto-detection. Note
-     * that this is the global handler; individual types (classes)
-     * can further override active checker used (using
-     * {@link org.codehaus.jackson.annotate.JsonAutoDetect} annotation)
-     * 
-     * @since 1.5
-     */
-    protected VisibilityChecker<?> _visibilityChecker;
 
     /**
      * Registered concrete subtypes that can be used instead of (or
@@ -396,16 +375,14 @@ public class ObjectMapper
          *    to create actual linking.
          */
         _jsonFactory = (jf == null) ? new MappingJsonFactory(this) : jf;
-        // visibility checker; usually default
-        _visibilityChecker = STD_VISIBILITY_CHECKER;
         // and default type factory is shared one
         _typeFactory = TypeFactory.defaultInstance();
         _serializationConfig = (sconfig != null) ? sconfig :
-            new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker,
-                    null, null, _typeFactory);
+            new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, STD_VISIBILITY_CHECKER,
+                    null, null, _typeFactory, DEFAULT_HANDLER_INSTANTIATOR);
         _deserializationConfig = (dconfig != null) ? dconfig :
-            new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, _visibilityChecker,
-                    null, null, _typeFactory);
+            new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, STD_VISIBILITY_CHECKER,
+                    null, null, _typeFactory, DEFAULT_HANDLER_INSTANTIATOR);
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
@@ -582,8 +559,7 @@ public class ObjectMapper
      * (like date format being used, see {@link SerializationConfig#setDateFormat}).
      */
     public SerializationConfig copySerializationConfig() {
-        return _serializationConfig.createUnshared(_defaultTyper,
-                _visibilityChecker, _subtypeResolver);
+        return _serializationConfig.createUnshared(_subtypeResolver);
     }
 
     /**
@@ -622,8 +598,7 @@ public class ObjectMapper
      * see {@link DeserializationConfig#addHandler})
      */
     public DeserializationConfig copyDeserializationConfig() {
-        return _deserializationConfig.createUnshared(_defaultTyper,
-                _visibilityChecker, _subtypeResolver);
+        return _deserializationConfig.createUnshared(_subtypeResolver);
     }
 
     /**
@@ -696,7 +671,7 @@ public class ObjectMapper
      * @since 1.5
      */
     public VisibilityChecker<?> getVisibilityChecker() {
-        return _visibilityChecker;
+        return _serializationConfig.getDefaultVisibilityChecker();
     }
 
     /**
@@ -709,7 +684,8 @@ public class ObjectMapper
      * @since 1.5
      */    
     public void setVisibilityChecker(VisibilityChecker<?> vc) {
-        _visibilityChecker = vc;
+        _deserializationConfig = _deserializationConfig.withVisibilityChecker(vc);
+        _serializationConfig = _serializationConfig.withVisibilityChecker(vc);
     }
 
     /**
@@ -729,6 +705,15 @@ public class ObjectMapper
      */
     public void setSubtypeResolver(SubtypeResolver r) {
         _subtypeResolver = r;
+    }
+
+    /**
+     * Method for changing {@link AnnotationIntrospector} used by this
+     * mapper instance for both serialization and deserialization
+     */
+    public void setAnnotationIntrospector(AnnotationIntrospector ai) {
+        _serializationConfig = _serializationConfig.withAnnotationIntrospector(ai);
+        _deserializationConfig = _deserializationConfig.withAnnotationIntrospector(ai);
     }
     
     /**
@@ -824,7 +809,8 @@ public class ObjectMapper
      * 
      */
     public ObjectMapper setDefaultTyping(TypeResolverBuilder<?> typer) {
-        _defaultTyper = typer;
+        _deserializationConfig = _deserializationConfig.withTypeResolverBuilder(typer);
+        _serializationConfig = _serializationConfig.withTypeResolverBuilder(typer);
         return this;
     }
 
@@ -928,6 +914,16 @@ public class ObjectMapper
      */
 
     /**
+     * Method that can be used to get hold of {@link JsonFactory} that this
+     * mapper uses if it needs to construct {@link JsonParser}s
+     * and/or {@link JsonGenerator}s.
+     *
+     * @return {@link JsonFactory} that this mapper uses when it needs to
+     *   construct Json parser and generators
+     */
+    public JsonFactory getJsonFactory() { return _jsonFactory; }
+    
+    /**
      * Method for configuring {@link DateFormat} to use when serializing time
      * values as Strings, and deserializing from JSON Strings.
      * This is preferably to directly modifying {@link SerializationConfig} and
@@ -942,14 +938,20 @@ public class ObjectMapper
     }
 
     /**
-     * Method that can be used to get hold of {@link JsonFactory} that this
-     * mapper uses if it needs to construct {@link JsonParser}s
-     * and/or {@link JsonGenerator}s.
+     * Method for configuring {@link HandlerInstantiator} to use for creating
+     * instances of handlers (such as serializers, deserializers, type and type
+     * id resolvers), given a class.
      *
-     * @return {@link JsonFactory} that this mapper uses when it needs to
-     *   construct Json parser and generators
+     * @param hi Instantiator to use; if null, use the default implementation
      */
-    public JsonFactory getJsonFactory() { return _jsonFactory; }
+    public void setHandlerInstantiator(HandlerInstantiator hi)
+    {
+        if (hi == null) {
+            hi = DEFAULT_HANDLER_INSTANTIATOR;
+        }
+        _deserializationConfig = _deserializationConfig.withHandlerInstantiator(hi);
+        _serializationConfig = _serializationConfig.withHandlerInstantiator(hi);
+    }
     
     /*
     /**********************************************************
@@ -2178,11 +2180,10 @@ public class ObjectMapper
     protected final void _configAndWriteValue(JsonGenerator jgen, Object value, Class<?> viewClass)
         throws IOException, JsonGenerationException, JsonMappingException
     {
-        SerializationConfig cfg = copySerializationConfig();
+        SerializationConfig cfg = copySerializationConfig().withView(viewClass);
         if (cfg.isEnabled(SerializationConfig.Feature.INDENT_OUTPUT)) {
             jgen.useDefaultPrettyPrinter();
         }
-        cfg.setSerializationView(viewClass);
         // [JACKSON-282]: consider Closeable
         if (cfg.isEnabled(SerializationConfig.Feature.CLOSE_CLOSEABLE) && (value instanceof Closeable)) {
             _configAndWriteCloseable(jgen, value, cfg);

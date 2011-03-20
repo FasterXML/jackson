@@ -122,6 +122,8 @@ public class MapperConfigurator
         return _mapper;
     }
 
+    // since replacement methods were added in 1.8, let's not yet switch over to use them:
+    @SuppressWarnings("deprecation")
     protected void _setAnnotations(ObjectMapper mapper, Annotations[] annotationsToUse)
     {
         AnnotationIntrospector intr;

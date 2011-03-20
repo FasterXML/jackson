@@ -40,22 +40,24 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
 
     /*
     /**********************************************************
-    /* Configuration settings; introspection, related
+    /* Simple immutable basic settings
+    /**********************************************************
+     */
+
+    /**
+     * Immutable container object for simple configuration settings.
+     *<p>
+     * Note: ideally this would be final, but until we can eliminate
+     * mutators, must keep it mutable.
+     */
+    protected Base _base;
+    
+    /*
+    /**********************************************************
+    /* Mix-in annotations
     /**********************************************************
      */
     
-    /**
-     * Introspector used to figure out Bean properties needed for bean serialization
-     * and deserialization. Overridable so that it is possible to change low-level
-     * details of introspection, like adding new annotation types.
-     */
-    protected ClassIntrospector<? extends BeanDescription> _classIntrospector;
-
-    /**
-     * Introspector used for accessing annotation value based configuration.
-     */
-    protected AnnotationIntrospector _annotationIntrospector;
-
     /**
      * Mapping that defines how to apply mix-in annotations: key is
      * the type to received additional annotations, and value is the
@@ -79,136 +81,47 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.2
      */
     protected boolean _mixInAnnotationsShared;
-
-    /**
-     * Object used for determining whether specific property elements
-     * (method, constructors, fields) can be auto-detected based on
-     * their visibility (access modifiers). Can be changed to allow
-     * different minimum visibility levels for auto-detection. Note
-     * that this is the global handler; individual types (classes)
-     * can further override active checker used (using
-     * {@link JsonAutoDetect} annotation)
-     * 
-     * @since 1.5
-     */
-    protected VisibilityChecker<?> _visibilityChecker;
-
-    /**
-     * Custom property naming strategy in use, if any.
-     * 
-     * @since 1.8
-     */
-    protected final PropertyNamingStrategy _propertyNamingStrategy;
-
-    /**
-     * Specific factory used for creating {@link JavaType} instances;
-     * needed to allow modules to add more custom type handling
-     * (mostly to support types of non-Java JVM languages)
-     */
-    protected final TypeFactory _typeFactory;
     
     /*
     /**********************************************************
-    /* Configuration settings; type resolution
+    /* Life-cycle: constructors
     /**********************************************************
      */
 
-    /**
-     * Type information handler used for "untyped" values (ones declared
-     * to have type <code>Object.class</code>)
-     * 
-     * @since 1.5
-     */
-    protected final TypeResolverBuilder<?> _typer;
-
-    /**
-     * Registered concrete subtypes that can be used instead of (or
-     * in addition to) ones declared using annotations.
-     * 
-     * @since 1.6
-     */
-    protected SubtypeResolver _subtypeResolver;
-    
-    /*
-    /**********************************************************
-    /* Configuration settings; other
-    /**********************************************************
-     */
-    
-    /**
-     * Custom date format to use for de-serialization. If specified, will be
-     * used instead of {@link org.codehaus.jackson.map.util.StdDateFormat}.
-     *<p>
-     * Note that the configured format object will be cloned once per
-     * deserialization process (first time it is needed)
-     */
-    protected DateFormat _dateFormat;
-    
-    /*
-    /**********************************************************
-    /* Life-cycle: construction
-    /**********************************************************
-     */
-
-    protected MapperConfig(ClassIntrospector<? extends BeanDescription> intr,
-            AnnotationIntrospector annIntr, VisibilityChecker<?> vc, SubtypeResolver subtypeResolver,
-            PropertyNamingStrategy propertyNamingStrategy, TypeFactory typeFactory)
+    protected MapperConfig(ClassIntrospector<? extends BeanDescription> ci, AnnotationIntrospector ai,
+            VisibilityChecker<?> vc, SubtypeResolver str, PropertyNamingStrategy pns, TypeFactory tf,
+            HandlerInstantiator hi)
     {
-        _classIntrospector = intr;
-        _annotationIntrospector = annIntr;
-        _visibilityChecker = vc;
-        _subtypeResolver = subtypeResolver;
-        _propertyNamingStrategy = propertyNamingStrategy;
-        _typeFactory = typeFactory;
-        _typer = null;
-        _dateFormat = DEFAULT_DATE_FORMAT;
+        _base = new Base(ci, ai, vc, pns, tf, null, str, DEFAULT_DATE_FORMAT, hi);
     }
 
     protected MapperConfig(MapperConfig<?> src, HashMap<ClassKey,Class<?>> mixins,
-            VisibilityChecker<?> vc, SubtypeResolver subtypeResolver,
+            VisibilityChecker<?> vc, SubtypeResolver str,
             TypeResolverBuilder<?> typer)
     {
+        _base = src._base.withVisibilityChecker(vc).withSubtypeResolver(str).withTypeResolverBuilder(typer);
         _mixInAnnotations = mixins;
-        _classIntrospector = src._classIntrospector;
-        _annotationIntrospector = src._annotationIntrospector;
-        _visibilityChecker = vc;
-        _subtypeResolver = subtypeResolver;
-        _propertyNamingStrategy = src._propertyNamingStrategy;
-        _typeFactory = src._typeFactory;
-        _typer = typer;
-        _dateFormat = src._dateFormat;
     }
 
     /**
      * @since 1.8
      */
-    protected MapperConfig(MapperConfig<?> src)
-    {
-        _classIntrospector = src._classIntrospector;
-        _annotationIntrospector = src._annotationIntrospector;
-        _visibilityChecker = src._visibilityChecker;
-        _subtypeResolver = src._subtypeResolver;
-        _propertyNamingStrategy = src._propertyNamingStrategy;
-        _typeFactory = src._typeFactory;
-        _typer = src._typer;
-        _dateFormat = src._dateFormat;
+    protected MapperConfig(MapperConfig<?> src) {
+        _base = src._base;
     }
 
     /**
      * @since 1.8
      */
-    protected MapperConfig(MapperConfig<?> src,
-            DateFormat dateFormat, PropertyNamingStrategy naming, TypeFactory typeFactory)
-    {
-        _classIntrospector = src._classIntrospector;
-        _annotationIntrospector = src._annotationIntrospector;
-        _visibilityChecker = src._visibilityChecker;
-        _subtypeResolver = src._subtypeResolver;
-        _propertyNamingStrategy = naming;
-        _typeFactory = typeFactory;
-        _typer = src._typer;
-        _dateFormat = dateFormat;
+    protected MapperConfig(Base base) {
+        _base = base;
     }
+    
+    /*
+    /**********************************************************
+    /* Life-cycle: factory methods
+    /**********************************************************
+     */
     
     /**
      * Method that checks class annotations that the argument Object has,
@@ -222,11 +135,59 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
 
     /**
      * Method to use for constructing an instance that is not shared
-     * between multiple operations but only used for a single one.
+     * between multiple operations but only used for a single one
+     * (which may be this instance, if it is immutable; if not, a copy
+     * is constructed with same settings)
+     * 
+     * @since 1.8
      */
-    public abstract T createUnshared(TypeResolverBuilder<?> typer, VisibilityChecker<?> vc,
-            SubtypeResolver subtypeResolver);
+    public abstract T createUnshared(SubtypeResolver subtypeResolver);
 
+    /**
+     * Method for constructing and returning a new instance with different
+     * {@link ClassIntrospector}
+     * to use.
+     * 
+     * @since 1.8
+     */
+    public abstract T withClassIntrospector(ClassIntrospector<? extends BeanDescription> ci);
+
+    /**
+     * Method for constructing and returning a new instance with different
+     * {@link AnnotationIntrospector} 
+     * to use (replacing old one).
+     * 
+     * @since 1.8
+     */
+    public abstract T withAnnotationIntrospector(AnnotationIntrospector ai);
+    
+    /**
+     * Method for constructing and returning a new instance with different
+     * {@link VisibilityChecker}
+     * to use.
+     * 
+     * @since 1.8
+     */
+    public abstract T withVisibilityChecker(VisibilityChecker<?> vc);
+
+    /**
+     * Method for constructing and returning a new instance with different
+     * {@link TypeResolverBuilder}
+     * to use.
+     * 
+     * @since 1.8
+     */
+    public abstract T withTypeResolverBuilder(TypeResolverBuilder<?> trb);
+    
+    /**
+     * Method for constructing and returning a new instance with different
+     * {@link SubtypeResolver}
+     * to use.
+     * 
+     * @since 1.8
+     */
+    public abstract T withSubtypeResolver(SubtypeResolver str);
+    
     /**
      * Method for constructing and returning a new instance with different
      * {@link PropertyNamingStrategy}
@@ -244,7 +205,7 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.8
      */
     public abstract T withTypeFactory(TypeFactory typeFactory);
-
+    
     /**
      * Method for constructing and returning a new instance with different
      * {@link DateFormat}
@@ -253,35 +214,34 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.8
      */
     public abstract T withDateFormat(DateFormat df);
+
+    /**
+     * Method for constructing and returning a new instance with different
+     * {@link HandlerInstantiator}
+     * to use.
+     * 
+     * @since 1.8
+     */
+    public abstract T withHandlerInstantiator(HandlerInstantiator hi);
     
     /*
     /**********************************************************
     /* Configuration: introspectors, mix-ins
     /**********************************************************
      */
-
-    /**
-     * Method for replacing existing {@link ClassIntrospector} with
-     * specified replacement.
-     */
-    public final void setIntrospector(ClassIntrospector<? extends BeanDescription> i) {
-        _classIntrospector = i;
-    }
     
+    public ClassIntrospector<? extends BeanDescription> getClassIntrospector() {
+        return _base.getClassIntrospector();
+    }
+
     /**
      * Method for getting {@link AnnotationIntrospector} configured
      * to introspect annotation values used for configuration.
      *<p>
      * Non-final since it is actually overridden by sub-classes (for now?)
      */
-    public abstract AnnotationIntrospector getAnnotationIntrospector();
-
-    /**
-     * Method for replacing existing annotation introspector(s) with specified
-     * introspector.
-     */
-    public final void setAnnotationIntrospector(AnnotationIntrospector ai) {
-        _annotationIntrospector = ai;
+    public AnnotationIntrospector getAnnotationIntrospector() {
+        return _base.getAnnotationIntrospector();
     }
 
     /**
@@ -294,7 +254,8 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.7
      */
     public final void insertAnnotationIntrospector(AnnotationIntrospector introspector) {
-        _annotationIntrospector = AnnotationIntrospector.Pair.create(introspector, _annotationIntrospector);
+        _base = _base.withAnnotationIntrospector(AnnotationIntrospector.Pair.create(introspector,
+                getAnnotationIntrospector()));
     }
 
     /**
@@ -307,7 +268,8 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.7
      */
     public final void appendAnnotationIntrospector(AnnotationIntrospector introspector) {
-        _annotationIntrospector = AnnotationIntrospector.Pair.create(_annotationIntrospector, introspector);
+        _base = _base.withAnnotationIntrospector(AnnotationIntrospector.Pair.create(getAnnotationIntrospector(),
+                introspector));
     }
 
     /**
@@ -322,15 +284,21 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.5
      */    
     public final VisibilityChecker<?> getDefaultVisibilityChecker() {
-        return _visibilityChecker;
+        return _base.getVisibilityChecker();
     }
     
     /**
      * @since 1.8
      */
     public final PropertyNamingStrategy getPropertyNamingStrategy() {
-        return _propertyNamingStrategy;
+        return _base.getPropertyNamingStrategy();
     }
+
+    /*
+    /**********************************************************
+    /* Configuration: mix-in annotations
+    /**********************************************************
+     */
     
     /**
      * Method to use for defining mix-in annotations to use for augmenting
@@ -407,7 +375,7 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.5
      */
     public final TypeResolverBuilder<?> getDefaultTyper(JavaType baseType) {
-        return _typer;
+        return _base.getTypeResolverBuilder();
     }
     
     /**
@@ -418,26 +386,14 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.6
      */
     public final SubtypeResolver getSubtypeResolver() {
-        if (_subtypeResolver == null) {
-            _subtypeResolver = new StdSubtypeResolver();
-        }
-        return _subtypeResolver;
-    }
-
-    /**
-     * Method for overriding subtype resolver used.
-     * 
-     * @since 1.6
-     */
-    public final void setSubtypeResolver(SubtypeResolver r) {
-        _subtypeResolver = r;
+        return _base.getSubtypeResolver();
     }
 
     /**
      * @since 1.8
      */
     public final TypeFactory getTypeFactory() {
-        return _typeFactory;
+        return _base.getTypeFactory();
     }
 
     /**
@@ -476,7 +432,7 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * {@link DeserializationContext} and {@link SerializerProvider} that
      * take care of cloning and thread-safe reuse.
      */
-    public final DateFormat getDateFormat() { return _dateFormat; }
+    public final DateFormat getDateFormat() { return _base.getDateFormat(); }
 
     /**
      * Accessor for getting bean description that only contains class
@@ -525,6 +481,37 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      */
 
     /**
+     * @deprecated Since 1.8, use variant that does not take arguments
+     */
+    @Deprecated
+    public abstract T createUnshared(TypeResolverBuilder<?> typer, VisibilityChecker<?> vc,
+            SubtypeResolver subtypeResolver);
+    
+    /**
+     * Method for replacing existing {@link ClassIntrospector} with
+     * specified replacement.
+     * 
+     * @deprecated Since 1.8, use {@link #withClassIntrospector(ClassIntrospector)} instead
+     */
+    @Deprecated
+    public final void setIntrospector(ClassIntrospector<? extends BeanDescription> ci) {
+        _base = _base.withClassIntrospector(ci);
+    }
+
+    /**
+     * Method for replacing existing annotation introspector(s) with specified
+     * introspector.
+     * 
+     * @deprecated Since 1.8, use either
+     *  {@link #withAnnotationIntrospector(AnnotationIntrospector)} or
+     *  Module API instead
+     */
+    @Deprecated
+    public final void setAnnotationIntrospector(AnnotationIntrospector ai) {
+        _base = _base.withAnnotationIntrospector(ai);
+    }
+    
+    /**
      * Method that will define specific date format to use for reading/writing
      * Date and Calendar values.
      * If null is passed, will use {@link StdDateFormat}.
@@ -537,6 +524,248 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      */
     @Deprecated
     public void setDateFormat(DateFormat df) {
-        _dateFormat = (df == null) ? StdDateFormat.instance : df;
+        if (df == null) {
+            df = StdDateFormat.instance;
+        }
+        _base = _base.withDateFormat(df);
+    }        
+
+    /**
+     * Method for overriding subtype resolver used.
+     * 
+     * @since 1.6
+     * 
+     * @deprecated since 1.8, use {@link #withSubtypeResolver(SubtypeResolver)} instead.
+     */
+    @Deprecated
+    public final void setSubtypeResolver(SubtypeResolver str) {
+        _base = _base.withSubtypeResolver(str);
+    }
+    
+    /*
+    /**********************************************************
+    /* Helper class to contain basic state needed to implement
+    /* MapperConfig.
+    /**********************************************************
+     */
+
+    /**
+     * Immutable container class used to store simple configuration
+     * settings, to make it easier to use aggregation approach
+     * even though sub-classing is used for interface
+     */
+    public static class Base
+    {
+        /*
+        /**********************************************************
+        /* Configuration settings; introspection, related
+        /**********************************************************
+         */
+        
+        /**
+         * Introspector used to figure out Bean properties needed for bean serialization
+         * and deserialization. Overridable so that it is possible to change low-level
+         * details of introspection, like adding new annotation types.
+         */
+        protected final ClassIntrospector<? extends BeanDescription> _classIntrospector;
+
+        /**
+         * Introspector used for accessing annotation value based configuration.
+         */
+        protected final AnnotationIntrospector _annotationIntrospector;
+
+        /**
+         * Object used for determining whether specific property elements
+         * (method, constructors, fields) can be auto-detected based on
+         * their visibility (access modifiers). Can be changed to allow
+         * different minimum visibility levels for auto-detection. Note
+         * that this is the global handler; individual types (classes)
+         * can further override active checker used (using
+         * {@link JsonAutoDetect} annotation)
+         * 
+         * @since 1.5
+         */
+        protected final VisibilityChecker<?> _visibilityChecker;
+
+        /**
+         * Custom property naming strategy in use, if any.
+         * 
+         * @since 1.8
+         */
+        protected final PropertyNamingStrategy _propertyNamingStrategy;
+
+        /**
+         * Specific factory used for creating {@link JavaType} instances;
+         * needed to allow modules to add more custom type handling
+         * (mostly to support types of non-Java JVM languages)
+         */
+        protected final TypeFactory _typeFactory;
+
+        /*
+        /**********************************************************
+        /* Configuration settings; type resolution
+        /**********************************************************
+         */
+
+        /**
+         * Type information handler used for "untyped" values (ones declared
+         * to have type <code>Object.class</code>)
+         * 
+         * @since 1.5
+         */
+        protected final TypeResolverBuilder<?> _typeResolverBuilder;
+
+        /**
+         * Registered concrete subtypes that can be used instead of (or
+         * in addition to) ones declared using annotations.
+         *<p>
+         * Note: this is the only property left as non-final, to allow
+         * lazy construction of the instance as necessary.
+         * 
+         * @since 1.6
+         */
+        protected SubtypeResolver _subtypeResolver;
+        
+        /*
+        /**********************************************************
+        /* Configuration settings; other
+        /**********************************************************
+         */
+        
+        /**
+         * Custom date format to use for de-serialization. If specified, will be
+         * used instead of {@link org.codehaus.jackson.map.util.StdDateFormat}.
+         *<p>
+         * Note that the configured format object will be cloned once per
+         * deserialization process (first time it is needed)
+         */
+        protected final DateFormat _dateFormat;
+
+        /**
+         * Object used for creating instances of handlers (serializers, deserializers,
+         * type and type id resolvers), given class to instantiate. This is typically
+         * used to do additional configuration (with dependency injection, for example)
+         * beyond simply construction of instances; or to use alternative constructors.
+         */
+        protected final HandlerInstantiator _handlerInstantiator;
+        
+        /*
+        /**********************************************************
+        /* Construction
+        /**********************************************************
+         */
+
+        public Base(ClassIntrospector<? extends BeanDescription> ci, AnnotationIntrospector ai,
+                VisibilityChecker<?> vc, PropertyNamingStrategy pns, TypeFactory tf,
+                TypeResolverBuilder<?> typer, SubtypeResolver str,
+                DateFormat dateFormat, HandlerInstantiator hi)
+        {
+            _classIntrospector = ci;
+            _annotationIntrospector = ai;
+            _visibilityChecker = vc;
+            _propertyNamingStrategy = pns;
+            _typeFactory = tf;
+            _typeResolverBuilder = typer;
+            _subtypeResolver = str;
+            _dateFormat = dateFormat;
+            _handlerInstantiator = hi;
+        }
+
+        /*
+        /**********************************************************
+        /* Factory methods
+        /**********************************************************
+         */
+
+        public Base withClassIntrospector(ClassIntrospector<? extends BeanDescription> ci) {
+            return new Base(ci, _annotationIntrospector, _visibilityChecker, _propertyNamingStrategy, _typeFactory,
+                    _typeResolverBuilder, _subtypeResolver, _dateFormat, _handlerInstantiator);
+        }
+        
+        public Base withAnnotationIntrospector(AnnotationIntrospector ai) {
+            return new Base(_classIntrospector, ai, _visibilityChecker, _propertyNamingStrategy, _typeFactory,
+                    _typeResolverBuilder, _subtypeResolver, _dateFormat, _handlerInstantiator);
+        }
+
+        public Base withVisibilityChecker(VisibilityChecker<?> vc) {
+            return new Base(_classIntrospector, _annotationIntrospector, vc, _propertyNamingStrategy, _typeFactory,
+                    _typeResolverBuilder, _subtypeResolver, _dateFormat, _handlerInstantiator);
+        }
+
+        public Base withPropertyNamingStrategy(PropertyNamingStrategy pns) {
+            return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, pns, _typeFactory,
+                    _typeResolverBuilder, _subtypeResolver, _dateFormat, _handlerInstantiator);
+        }
+
+        public Base withTypeFactory(TypeFactory tf) {
+            return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, _propertyNamingStrategy, tf,
+                    _typeResolverBuilder, _subtypeResolver, _dateFormat, _handlerInstantiator);
+        }
+
+        public Base withTypeResolverBuilder(TypeResolverBuilder<?> typer) {
+            return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, _propertyNamingStrategy, _typeFactory,
+                    typer, _subtypeResolver, _dateFormat, _handlerInstantiator);
+        }
+
+        public Base withSubtypeResolver(SubtypeResolver str) {
+            return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, _propertyNamingStrategy, _typeFactory,
+                    _typeResolverBuilder, str, _dateFormat, _handlerInstantiator);
+        }
+        
+        public Base withDateFormat(DateFormat df) {
+            return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, _propertyNamingStrategy, _typeFactory,
+                    _typeResolverBuilder, _subtypeResolver, df, _handlerInstantiator);
+        }
+
+        public Base withHandlerInstantiator(HandlerInstantiator hi) {
+            return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, _propertyNamingStrategy, _typeFactory,
+                    _typeResolverBuilder, _subtypeResolver, _dateFormat, hi);
+        }
+        
+        /*
+        /**********************************************************
+        /* API
+        /**********************************************************
+         */
+
+        public ClassIntrospector<? extends BeanDescription> getClassIntrospector() {
+            return _classIntrospector;
+        }
+        
+        public AnnotationIntrospector getAnnotationIntrospector() {
+            return _annotationIntrospector;
+        }
+
+
+        public VisibilityChecker<?> getVisibilityChecker() {
+            return _visibilityChecker;
+        }
+
+        public PropertyNamingStrategy getPropertyNamingStrategy() {
+            return _propertyNamingStrategy;
+        }
+
+        public TypeFactory getTypeFactory() {
+            return _typeFactory;
+        }
+
+        public TypeResolverBuilder<?> getTypeResolverBuilder() {
+            return _typeResolverBuilder;
+        }
+
+        public SubtypeResolver getSubtypeResolver() {
+            if (_subtypeResolver == null) {
+                _subtypeResolver = new StdSubtypeResolver();
+            }
+            return _subtypeResolver;
+        }
+        
+        public DateFormat getDateFormat() {
+            return _dateFormat;
+        }
+
+        public HandlerInstantiator getHandlerInstantiator() {
+            return _handlerInstantiator;
+        }
     }
 }

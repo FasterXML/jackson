@@ -434,79 +434,124 @@ public class SerializationConfig
     public SerializationConfig(ClassIntrospector<? extends BeanDescription> intr,
             AnnotationIntrospector annIntr, VisibilityChecker<?> vc,
             SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy,
-            TypeFactory typeFactory)
+            TypeFactory typeFactory, HandlerInstantiator handlerInstantiator)
     {
-        super(intr, annIntr, vc, subtypeResolver, propertyNamingStrategy, typeFactory);
-        _classIntrospector = intr;
-        _annotationIntrospector = annIntr;
-        _visibilityChecker = vc;
+        super(intr, annIntr, vc, subtypeResolver, propertyNamingStrategy, typeFactory, handlerInstantiator);
         _filterProvider = null;
     }
 
     /**
-     * Constructor used internally to construct a read-only instance to use for
-     * individual serialization operation.
-     * 
      * @since 1.8
      */
-    protected SerializationConfig(SerializationConfig src,
-            HashMap<ClassKey,Class<?>> mixins,
-            TypeResolverBuilder<?> typer, VisibilityChecker<?> vc,
-            SubtypeResolver subtypeResolver, FilterProvider filterProvider)
-    {
-        super(src, mixins, vc, subtypeResolver, typer);
-        _featureFlags = src._featureFlags;
-        _serializationInclusion = src._serializationInclusion;
-        _serializationView = src._serializationView;
-        _filterProvider = filterProvider;
+    protected SerializationConfig(SerializationConfig src) {
+        this(src, src._base);
     }
 
     /**
-     * Copy constructor used for creating a new instance that is same as
-     * this one, but with different <code>FilterProvider</code>.
+     * Constructor used to make a private copy of specific mix-in definitions.
      * 
      * @since 1.8
      */
     protected SerializationConfig(SerializationConfig src,
-            DateFormat dateFormat, PropertyNamingStrategy naming, TypeFactory typeFactory,
-            FilterProvider filterProvider)
+            HashMap<ClassKey,Class<?>> mixins, SubtypeResolver subtypeResolver)
     {
-        super(src, dateFormat, naming, typeFactory);
+        this(src, src._base.withSubtypeResolver(subtypeResolver));
+        _mixInAnnotations = mixins;
+        _mixInAnnotationsShared = false;
+    }
+    
+    /**
+     * @since 1.8
+     */
+    protected SerializationConfig(SerializationConfig src, MapperConfig.Base base) {
+        super(base);
         _featureFlags = src._featureFlags;
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
-        _filterProvider = filterProvider;
+        _filterProvider = src._filterProvider;
+    }
+
+    /**
+     * @since 1.8
+     */
+    protected SerializationConfig(SerializationConfig src, FilterProvider filters)
+    {
+        super(src);
+        _featureFlags = src._featureFlags;
+        _serializationInclusion = src._serializationInclusion;
+        _serializationView = src._serializationView;
+        _filterProvider = filters;
+    }
+
+    /**
+     * @since 1.8
+     */
+    protected SerializationConfig(SerializationConfig src, Class<?> view)
+    {
+        super(src);
+        _featureFlags = src._featureFlags;
+        _serializationInclusion = src._serializationInclusion;
+        _serializationView = view;
+        _filterProvider = src._filterProvider;
     }
     
     /*
     /**********************************************************
-    /* Life-cycle, standard factory methods (from MapperConfig)
+    /* Life-cycle, factory methods from MapperConfig
     /**********************************************************
      */
 
     @Override
-    public SerializationConfig withPropertyNamingStrategy(PropertyNamingStrategy strategy) {
-        return new SerializationConfig(this,
-                _dateFormat, strategy, _typeFactory,
-                _filterProvider);
-    }
-    
-    @Override
-    public SerializationConfig withTypeFactory(TypeFactory typeFactory) {
-        return new SerializationConfig(this,
-                _dateFormat, _propertyNamingStrategy, typeFactory,
-                _filterProvider);
+    public SerializationConfig withClassIntrospector(ClassIntrospector<? extends BeanDescription> ci) {
+        return new SerializationConfig(this, _base.withClassIntrospector(ci));
     }
 
     @Override
-    public SerializationConfig withDateFormat(DateFormat df)
-    {
-        SerializationConfig result = new SerializationConfig(this,
-                df, _propertyNamingStrategy, _typeFactory,
-                _filterProvider);
-        // better also enable/disable write-as-timestamps, depending on format
-        result.set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
-        return result;
+    public SerializationConfig withAnnotationIntrospector(AnnotationIntrospector ai) {
+        return new SerializationConfig(this, _base.withAnnotationIntrospector(ai));
+    }
+
+    @Override
+    public SerializationConfig withVisibilityChecker(VisibilityChecker<?> vc) {
+        return new SerializationConfig(this, _base.withVisibilityChecker(vc));
+    }
+
+    @Override
+    public SerializationConfig withTypeResolverBuilder(TypeResolverBuilder<?> trb) {
+        return new SerializationConfig(this, _base.withTypeResolverBuilder(trb));
+    }
+
+    @Override
+    public SerializationConfig withSubtypeResolver(SubtypeResolver str) {
+        return new SerializationConfig(this, _base.withSubtypeResolver(str));
+    }
+    
+    @Override
+    public SerializationConfig withPropertyNamingStrategy(PropertyNamingStrategy pns) {
+        return new SerializationConfig(this, _base.withPropertyNamingStrategy(pns));
+    }
+    
+    @Override
+    public SerializationConfig withTypeFactory(TypeFactory tf) {
+        return new SerializationConfig(this, _base.withTypeFactory(tf));
+    }
+
+    /**
+     * In addition to constructing instance with specified date format,
+     * will enable or disable <code>Feature.WRITE_DATES_AS_TIMESTAMPS</code>
+     * (enable if format set as null; disable if non-null)
+     */
+    @Override
+    public SerializationConfig withDateFormat(DateFormat df) {
+        SerializationConfig cfg =  new SerializationConfig(this, _base.withDateFormat(df));
+        // And also 
+        cfg.set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
+        return cfg;
+    }
+    
+    @Override
+    public SerializationConfig withHandlerInstantiator(HandlerInstantiator hi) {
+        return new SerializationConfig(this, _base.withHandlerInstantiator(hi));
     }
         
     /*
@@ -514,41 +559,19 @@ public class SerializationConfig
     /* Life-cycle, SerializationConfig specific factory methods
     /**********************************************************
      */
-
-    /**
-     * SerializationConfig-specific version for constructing unshared
-     * configuration object.
-     * 
-     * @since 1.7
-     */
-    public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
-                VisibilityChecker<?> vc, SubtypeResolver subtypeResolver,
-                PropertyNamingStrategy propertyNamingStrategy,
-                FilterProvider filterProvider)
-    {
-        HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
-        _mixInAnnotationsShared = true;
-        return new SerializationConfig(this, mixins, typer, vc, subtypeResolver, filterProvider);
-    }
     
     /**
      * @since 1.7
      */
     public SerializationConfig withFilters(FilterProvider filterProvider) {
-        return new SerializationConfig(this,
-                _dateFormat, _propertyNamingStrategy, _typeFactory,
-                filterProvider);
+        return new SerializationConfig(this, filterProvider);
     }
 
     /**
      * @since 1.8
      */
     public SerializationConfig withView(Class<?> view) {
-        SerializationConfig config = new SerializationConfig(this,
-                _dateFormat, _propertyNamingStrategy, _typeFactory,
-                _filterProvider);
-        config.setSerializationView(view);
-        return config;
+        return new SerializationConfig(this, view);
     }
 
     /*
@@ -584,39 +607,31 @@ public class SerializationConfig
          *    if Feature.USE_ANNOTATIONS was disabled, since caller
          *    specifically requested annotations to be added with this call
          */
-        AnnotatedClass ac = AnnotatedClass.construct(cls, _annotationIntrospector, null);
-        _visibilityChecker = _annotationIntrospector.findAutoDetectVisibility(ac, _visibilityChecker);
+        AnnotationIntrospector ai = getAnnotationIntrospector();
+        AnnotatedClass ac = AnnotatedClass.construct(cls, ai, null);
+        _base = _base.withVisibilityChecker(ai.findAutoDetectVisibility(ac,
+                getDefaultVisibilityChecker()));
 
         // How about writing null property values?
-        JsonSerialize.Inclusion incl = _annotationIntrospector.findSerializationInclusion(ac, null);
+        JsonSerialize.Inclusion incl = ai.findSerializationInclusion(ac, null);
         if (incl != _serializationInclusion) {
             setSerializationInclusion(incl);
     	}
 
-        JsonSerialize.Typing typing = _annotationIntrospector.findSerializationTyping(ac);
+        JsonSerialize.Typing typing = ai.findSerializationTyping(ac);
         if (typing != null) {
             set(Feature.USE_STATIC_TYPING, (typing == JsonSerialize.Typing.STATIC));
         }
     }
 
-    /**
-     * Method that is called to create a non-shared copy of the configuration
-     * to be used for a serialization operation.
-     * Note that if sub-classing
-     * and sub-class has additional instance methods,
-     * this method <b>must</b> be overridden to produce proper sub-class
-     * instance.
-     */
     @Override
-    public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
-            VisibilityChecker<?> vc, SubtypeResolver subtypeResolver)
+    public SerializationConfig createUnshared(SubtypeResolver subtypeResolver)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
         _mixInAnnotationsShared = true;
-        return new SerializationConfig(this, mixins, typer, vc, subtypeResolver,
-                _filterProvider);
+        return new SerializationConfig(this, mixins, subtypeResolver);
     }
-
+    
     @Override
     public AnnotationIntrospector getAnnotationIntrospector()
     {
@@ -624,7 +639,7 @@ public class SerializationConfig
          *   annotations; can be done using "no-op" introspector
          */
         if (isEnabled(Feature.USE_ANNOTATIONS)) {
-            return _annotationIntrospector;
+            return super.getAnnotationIntrospector();
         }
         return AnnotationIntrospector.nopInstance();
     }
@@ -638,7 +653,7 @@ public class SerializationConfig
     @SuppressWarnings("unchecked")
     @Override
     public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
-        return (T) _classIntrospector.forClassAnnotations(this, cls, this);
+        return (T) getClassIntrospector().forClassAnnotations(this, cls, this);
     }
 
     /**
@@ -651,7 +666,7 @@ public class SerializationConfig
     @SuppressWarnings("unchecked")
     @Override
     public <T extends BeanDescription> T introspectDirectClassAnnotations(Class<?> cls) {
-        return (T) _classIntrospector.forDirectClassAnnotations(this, cls, this);
+        return (T) getClassIntrospector().forDirectClassAnnotations(this, cls, this);
     }
 
     @Override
@@ -662,17 +677,6 @@ public class SerializationConfig
     @Override
     public boolean canOverrideAccessModifiers() {
         return isEnabled(Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-    }
-
-    /**
-     * One thing to note is that this will set {@link Feature#WRITE_DATES_AS_TIMESTAMPS}
-     * to false (if null format set), or true (if non-null format)
-     */
-    @SuppressWarnings("deprecation")
-    @Override
-    public final void setDateFormat(DateFormat df) {
-        super.setDateFormat(df);
-        set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
     }
     
     /*
@@ -728,7 +732,7 @@ public class SerializationConfig
      */
     @SuppressWarnings("unchecked")
     public <T extends BeanDescription> T introspect(JavaType type) {
-        return (T) _classIntrospector.forSerialization(this, type, this);
+        return (T) getClassIntrospector().forSerialization(this, type, this);
     }
     
     /*
@@ -772,17 +776,6 @@ public class SerializationConfig
             enable(Feature.WRITE_NULL_PROPERTIES);
         }
     }
-
-    /**
-     * Method for checking which serialization view is being used,
-     * if any; null if none.
-     *
-     * @since 1.4
-     */
-    public void setSerializationView(Class<?> view)
-    {
-        _serializationView = view;
-    }
     
     /**
      * Method for getting provider used for locating filters given
@@ -798,10 +791,56 @@ public class SerializationConfig
     
     /*
     /**********************************************************
-    /* Debug support
+    /* Deprecated methods
     /**********************************************************
      */
 
+    /**
+     * @deprecated Since 1.8 should use variant without arguments
+     */
+    @Deprecated
+    @Override
+    public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
+            VisibilityChecker<?> vc, SubtypeResolver str)
+    {
+        return createUnshared(str)
+            .withTypeResolverBuilder(typer)
+            .withVisibilityChecker(vc);
+    }
+    
+    /**
+     * One thing to note is that this will set {@link Feature#WRITE_DATES_AS_TIMESTAMPS}
+     * to false (if null format set), or true (if non-null format)
+     * 
+     * @deprecated Since 1.8, use {@link #withDateFormat} instead.
+     */
+    @Override
+    @Deprecated
+    public final void setDateFormat(DateFormat df) {
+        super.setDateFormat(df);
+        set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
+    }
+    
+    /**
+     * Method for checking which serialization view is being used,
+     * if any; null if none.
+     *
+     * @since 1.4
+     * 
+     * @deprecated Since 1.8, use {@link #withView} instead
+     */
+    @Deprecated
+    public void setSerializationView(Class<?> view)
+    {
+        _serializationView = view;
+    }
+    
+    /*
+    /**********************************************************
+    /* Debug support
+    /**********************************************************
+     */
+    
     @Override public String toString()
     {
         return "[SerializationConfig: flags=0x"+Integer.toHexString(_featureFlags)+"]";
