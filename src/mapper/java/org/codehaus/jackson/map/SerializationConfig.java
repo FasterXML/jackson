@@ -453,18 +453,20 @@ public class SerializationConfig
      * @since 1.8
      */
     protected SerializationConfig(SerializationConfig src,
-            HashMap<ClassKey,Class<?>> mixins, SubtypeResolver subtypeResolver)
+            HashMap<ClassKey,Class<?>> mixins, SubtypeResolver str)
     {
-        this(src, src._base.withSubtypeResolver(subtypeResolver));
+        this(src, src._base);
         _mixInAnnotations = mixins;
         _mixInAnnotationsShared = false;
+        _subtypeResolver = str;
     }
     
     /**
      * @since 1.8
      */
-    protected SerializationConfig(SerializationConfig src, MapperConfig.Base base) {
-        super(base);
+    protected SerializationConfig(SerializationConfig src, MapperConfig.Base base)
+    {
+        super(base, src._subtypeResolver);
         _featureFlags = src._featureFlags;
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
@@ -523,7 +525,9 @@ public class SerializationConfig
 
     @Override
     public SerializationConfig withSubtypeResolver(SubtypeResolver str) {
-        return new SerializationConfig(this, _base.withSubtypeResolver(str));
+        SerializationConfig cfg =  new SerializationConfig(this);
+        cfg._subtypeResolver = str;
+        return cfg;
     }
     
     @Override

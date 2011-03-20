@@ -81,6 +81,27 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.2
      */
     protected boolean _mixInAnnotationsShared;
+
+    /*
+    /**********************************************************
+    /* "Late bound" settings
+    /**********************************************************
+     */
+
+    /**
+     * Registered concrete subtypes that can be used instead of (or
+     * in addition to) ones declared using annotations.
+     * Unlike most other settings, it is not configured as early
+     * as it is set, but rather only when a non-shared instance
+     * is constructed by <code>ObjectMapper</code> (or -Reader
+     * or -Writer)
+     *<p>
+     * Note: this is the only property left as non-final, to allow
+     * lazy construction of the instance as necessary.
+     * 
+     * @since 1.6
+     */
+    protected SubtypeResolver _subtypeResolver;
     
     /*
     /**********************************************************
@@ -92,29 +113,26 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
             VisibilityChecker<?> vc, SubtypeResolver str, PropertyNamingStrategy pns, TypeFactory tf,
             HandlerInstantiator hi)
     {
-        _base = new Base(ci, ai, vc, pns, tf, null, str, DEFAULT_DATE_FORMAT, hi);
-    }
-
-    protected MapperConfig(MapperConfig<?> src, HashMap<ClassKey,Class<?>> mixins,
-            VisibilityChecker<?> vc, SubtypeResolver str,
-            TypeResolverBuilder<?> typer)
-    {
-        _base = src._base.withVisibilityChecker(vc).withSubtypeResolver(str).withTypeResolverBuilder(typer);
-        _mixInAnnotations = mixins;
+        _base = new Base(ci, ai, vc, pns, tf, null, DEFAULT_DATE_FORMAT, hi);
+        _subtypeResolver = str;
     }
 
     /**
+     * Simple copy constructor which 
+     * 
      * @since 1.8
      */
     protected MapperConfig(MapperConfig<?> src) {
         _base = src._base;
+        _subtypeResolver = src._subtypeResolver;
     }
 
     /**
      * @since 1.8
      */
-    protected MapperConfig(Base base) {
+    protected MapperConfig(Base base, SubtypeResolver str) {
         _base = base;
+        _subtypeResolver = str;
     }
     
     /*
@@ -386,7 +404,10 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.6
      */
     public final SubtypeResolver getSubtypeResolver() {
-        return _base.getSubtypeResolver();
+        if (_subtypeResolver == null) {
+            _subtypeResolver = new StdSubtypeResolver();
+        }
+        return _subtypeResolver;
     }
 
     /**
@@ -539,7 +560,7 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      */
     @Deprecated
     public final void setSubtypeResolver(SubtypeResolver str) {
-        _base = _base.withSubtypeResolver(str);
+        _subtypeResolver = str;
     }
     
     /*
@@ -551,8 +572,8 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
 
     /**
      * Immutable container class used to store simple configuration
-     * settings, to make it easier to use aggregation approach
-     * even though sub-classing is used for interface
+     * settings. Since instances are fully immutable, instances can
+     * be freely shared and used without synchronization.
      */
     public static class Base
     {
@@ -614,17 +635,6 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
          * @since 1.5
          */
         protected final TypeResolverBuilder<?> _typeResolverBuilder;
-
-        /**
-         * Registered concrete subtypes that can be used instead of (or
-         * in addition to) ones declared using annotations.
-         *<p>
-         * Note: this is the only property left as non-final, to allow
-         * lazy construction of the instance as necessary.
-         * 
-         * @since 1.6
-         */
-        protected SubtypeResolver _subtypeResolver;
         
         /*
         /**********************************************************
@@ -657,8 +667,7 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
 
         public Base(ClassIntrospector<? extends BeanDescription> ci, AnnotationIntrospector ai,
                 VisibilityChecker<?> vc, PropertyNamingStrategy pns, TypeFactory tf,
-                TypeResolverBuilder<?> typer, SubtypeResolver str,
-                DateFormat dateFormat, HandlerInstantiator hi)
+                TypeResolverBuilder<?> typer, DateFormat dateFormat, HandlerInstantiator hi)
         {
             _classIntrospector = ci;
             _annotationIntrospector = ai;
@@ -666,7 +675,6 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
             _propertyNamingStrategy = pns;
             _typeFactory = tf;
             _typeResolverBuilder = typer;
-            _subtypeResolver = str;
             _dateFormat = dateFormat;
             _handlerInstantiator = hi;
         }
@@ -679,47 +687,42 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
 
         public Base withClassIntrospector(ClassIntrospector<? extends BeanDescription> ci) {
             return new Base(ci, _annotationIntrospector, _visibilityChecker, _propertyNamingStrategy, _typeFactory,
-                    _typeResolverBuilder, _subtypeResolver, _dateFormat, _handlerInstantiator);
+                    _typeResolverBuilder, _dateFormat, _handlerInstantiator);
         }
         
         public Base withAnnotationIntrospector(AnnotationIntrospector ai) {
             return new Base(_classIntrospector, ai, _visibilityChecker, _propertyNamingStrategy, _typeFactory,
-                    _typeResolverBuilder, _subtypeResolver, _dateFormat, _handlerInstantiator);
+                    _typeResolverBuilder, _dateFormat, _handlerInstantiator);
         }
 
         public Base withVisibilityChecker(VisibilityChecker<?> vc) {
             return new Base(_classIntrospector, _annotationIntrospector, vc, _propertyNamingStrategy, _typeFactory,
-                    _typeResolverBuilder, _subtypeResolver, _dateFormat, _handlerInstantiator);
+                    _typeResolverBuilder, _dateFormat, _handlerInstantiator);
         }
 
         public Base withPropertyNamingStrategy(PropertyNamingStrategy pns) {
             return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, pns, _typeFactory,
-                    _typeResolverBuilder, _subtypeResolver, _dateFormat, _handlerInstantiator);
+                    _typeResolverBuilder, _dateFormat, _handlerInstantiator);
         }
 
         public Base withTypeFactory(TypeFactory tf) {
             return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, _propertyNamingStrategy, tf,
-                    _typeResolverBuilder, _subtypeResolver, _dateFormat, _handlerInstantiator);
+                    _typeResolverBuilder, _dateFormat, _handlerInstantiator);
         }
 
         public Base withTypeResolverBuilder(TypeResolverBuilder<?> typer) {
             return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, _propertyNamingStrategy, _typeFactory,
-                    typer, _subtypeResolver, _dateFormat, _handlerInstantiator);
-        }
-
-        public Base withSubtypeResolver(SubtypeResolver str) {
-            return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, _propertyNamingStrategy, _typeFactory,
-                    _typeResolverBuilder, str, _dateFormat, _handlerInstantiator);
+                    typer, _dateFormat, _handlerInstantiator);
         }
         
         public Base withDateFormat(DateFormat df) {
             return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, _propertyNamingStrategy, _typeFactory,
-                    _typeResolverBuilder, _subtypeResolver, df, _handlerInstantiator);
+                    _typeResolverBuilder, df, _handlerInstantiator);
         }
 
         public Base withHandlerInstantiator(HandlerInstantiator hi) {
             return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, _propertyNamingStrategy, _typeFactory,
-                    _typeResolverBuilder, _subtypeResolver, _dateFormat, hi);
+                    _typeResolverBuilder, _dateFormat, hi);
         }
         
         /*
@@ -751,13 +754,6 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
 
         public TypeResolverBuilder<?> getTypeResolverBuilder() {
             return _typeResolverBuilder;
-        }
-
-        public SubtypeResolver getSubtypeResolver() {
-            if (_subtypeResolver == null) {
-                _subtypeResolver = new StdSubtypeResolver();
-            }
-            return _subtypeResolver;
         }
         
         public DateFormat getDateFormat() {

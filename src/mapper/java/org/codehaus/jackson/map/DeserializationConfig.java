@@ -414,23 +414,26 @@ public class DeserializationConfig
     }
 
     /**
-     * Constructor used to make a private copy of specific mix-in definitions.
+     * Copy constructor used to create a non-shared instance with given mix-in
+     * annotation definitions and subtype resolver.
      * 
      * @since 1.8
      */
-    protected DeserializationConfig(DeserializationConfig src,
-            HashMap<ClassKey,Class<?>> mixins, SubtypeResolver subtypeResolver)
+    private DeserializationConfig(DeserializationConfig src,
+            HashMap<ClassKey,Class<?>> mixins, SubtypeResolver str)
     {
-        this(src, src._base.withSubtypeResolver(subtypeResolver));
+        this(src, src._base);
         _mixInAnnotations = mixins;
         _mixInAnnotationsShared = false;
+        _subtypeResolver = str;
     }
     
     /**
      * @since 1.8
      */
-    protected DeserializationConfig(DeserializationConfig src, MapperConfig.Base base) {
-        super(base);
+    protected DeserializationConfig(DeserializationConfig src, MapperConfig.Base base)
+    {
+        super(base, src._subtypeResolver);
         _featureFlags = src._featureFlags;
         _abstractTypeResolver = src._abstractTypeResolver;
         _problemHandlers = src._problemHandlers;
@@ -476,8 +479,11 @@ public class DeserializationConfig
     }
 
     @Override
-    public DeserializationConfig withSubtypeResolver(SubtypeResolver str) {
-        return new DeserializationConfig(this, _base.withSubtypeResolver(str));
+    public DeserializationConfig withSubtypeResolver(SubtypeResolver str)
+    {
+        DeserializationConfig cfg = new DeserializationConfig(this);
+        cfg._subtypeResolver = str;
+        return cfg;
     }
     
     @Override
