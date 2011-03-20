@@ -19,8 +19,7 @@ public abstract class BaseJaxbTest
      {
          ObjectMapper mapper = new ObjectMapper();
          AnnotationIntrospector intr = new JaxbAnnotationIntrospector();
-         mapper.getDeserializationConfig().setAnnotationIntrospector(intr);
-         mapper.getSerializationConfig().setAnnotationIntrospector(intr);
+         mapper.setAnnotationIntrospector(intr);
          return mapper;
      }
 
@@ -29,8 +28,7 @@ public abstract class BaseJaxbTest
          ObjectMapper mapper = new ObjectMapper();
          AnnotationIntrospector intr = new AnnotationIntrospector.Pair(new JaxbAnnotationIntrospector(),
         		 new JacksonAnnotationIntrospector());
-         mapper.getDeserializationConfig().setAnnotationIntrospector(intr);
-         mapper.getSerializationConfig().setAnnotationIntrospector(intr);
+         mapper.setAnnotationIntrospector(intr);
          return mapper;
      }
 

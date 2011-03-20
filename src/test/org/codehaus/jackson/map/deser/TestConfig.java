@@ -53,8 +53,8 @@ public class TestConfig
         ObjectMapper m = new ObjectMapper();
         DeserializationConfig cfg = m.getDeserializationConfig();
         // and finally, ensure we could override introspectors
-        cfg.setIntrospector(null); // no way to verify tho
-        cfg.setAnnotationIntrospector(null);
+        cfg = cfg.withClassIntrospector(null); // no way to verify tho
+        cfg = cfg.withAnnotationIntrospector(null);
         assertNull(cfg.getAnnotationIntrospector());
     }
 

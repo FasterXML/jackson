@@ -30,7 +30,9 @@ public class TestJaxbFieldAccess
         protected String name = "foo";
     
         @XmlElement
-        public String getName() { return name; }
+        protected String getName() { return name; }
+
+        protected void setName(String s) { name = s; }
     } 
 
     /*
@@ -45,7 +47,7 @@ public class TestJaxbFieldAccess
     public void testFieldSerialization() throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         assertEquals("{\"x\":3}", serializeAsString(mapper, new Fields(3)));
     }
 
@@ -55,7 +57,7 @@ public class TestJaxbFieldAccess
     public void testFieldDeserialization() throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         Fields result = mapper.readValue("{ \"x\":3 }", Fields.class);
         assertEquals(3, result.x);
     }
@@ -66,8 +68,7 @@ public class TestJaxbFieldAccess
     public void testJackson354Serialization() throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         assertEquals("{\"name\":\"foo\"}", mapper.writeValueAsString(new Bean354()));
     }
-
 }

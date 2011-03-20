@@ -87,7 +87,7 @@ public class TestCyclicTypes
     public void testWithJAXB() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         Map<String,Object> results = writeAndMap(mapper, new Bean(null, "abx"));
         assertEquals(2, results.size());
         assertEquals("abx", results.get("name"));

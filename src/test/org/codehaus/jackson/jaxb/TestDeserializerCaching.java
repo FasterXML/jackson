@@ -78,7 +78,7 @@ public class TestDeserializerCaching extends BaseJaxbTest
             +"\"value3\" : {\"name\" : \"size\", \"value\" : \"small\"}}"
             ;
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         mapper.registerModule(new MyBeanModule());
         mapper.readValue(JSON, MyBean.class);
         assertEquals(1, MyBeanDeserializerModifier.count);

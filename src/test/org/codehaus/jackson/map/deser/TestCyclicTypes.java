@@ -97,7 +97,7 @@ public class TestCyclicTypes
     {
         String jsonData = "{\"id\":1}";
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getDeserializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         mapper.readValue(jsonData, JaxbBean.class);
     }
 

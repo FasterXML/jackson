@@ -55,7 +55,7 @@ public class TestJaxbAutoDetect
     public void testAutoDetectDisable() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         Jackson183Bean bean = new Jackson183Bean();
         Map<String,Object> result;
 
@@ -67,7 +67,7 @@ public class TestJaxbAutoDetect
 
         // But when disabling auto-detection, just one
         mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         mapper.configure(SerializationConfig.Feature.AUTO_DETECT_GETTERS, false);
         result = writeAndMap(mapper, bean);
         assertEquals(1, result.size());
@@ -79,7 +79,7 @@ public class TestJaxbAutoDetect
     public void testIssue246() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         Identified id = new Identified();
         id.id = "123";
         assertEquals("{\"id\":\"123\"}", mapper.writeValueAsString(id));

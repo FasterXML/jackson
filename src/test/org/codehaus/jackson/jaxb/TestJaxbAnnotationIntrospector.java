@@ -278,7 +278,7 @@ public class TestJaxbAnnotationIntrospector
     public void testDetection() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
 
         Map<String,Object> result = writeAndMap(mapper, new SimpleBean());
         assertEquals(3, result.size());
@@ -299,8 +299,7 @@ public class TestJaxbAnnotationIntrospector
     public void testSerializeDeserializeWithJaxbAnnotations() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-        mapper.getDeserializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         mapper.getSerializationConfig().set(SerializationConfig.Feature.INDENT_OUTPUT, true);
         JaxbExample ex = new JaxbExample();
         QName qname = new QName("urn:hi", "hello");
@@ -384,8 +383,8 @@ public class TestJaxbAnnotationIntrospector
     public void testAdapter() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-        mapper.getDeserializationConfig().setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         mapper.getSerializationConfig().set(SerializationConfig.Feature.INDENT_OUTPUT, true);
         ParentJAXBBean parentJaxbBean = new ParentJAXBBean();
         HashMap<String, String> params = new HashMap<String, String>();
