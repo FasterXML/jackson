@@ -193,9 +193,13 @@ public final class ArrayBuilders
 
     /**
      * Helper method for constructing a new array that contains specified
-     * element followed by contents of the given array; but never contains
-     * duplicates; if element already existed, it is only moved to the head.
+     * element followed by contents of the given array but never contains
+     * duplicates.
+     * If element already existed, one of two things happens: if the element
+     * was already the first one in array, array is returned as is; but
+     * if not, a new copy is created in which element has moved as the head.
      */
+    @SuppressWarnings("unchecked")
     public static <T> T[] insertInListNoDup(T[] array, T element)
     {
         final int len = array.length;
@@ -207,16 +211,15 @@ public final class ArrayBuilders
                 if (ix == 0) {
                     return array;
                 }
-                // otherwise shuffle, return
-                T prev = array[ix];
-                System.arraycopy(array, 0, array, 1, 2);
-                array[0] = prev;
-                return array;
+                // otherwise move things around
+                T[] result = (T[]) Array.newInstance(array.getClass().getComponentType(), len);
+                System.arraycopy(array, 0, result, 1, ix);
+                array[0] = element;
+                return result;
             }
         }
 
         // but if not, allocate new array, move
-        @SuppressWarnings("unchecked")
         T[] result = (T[]) Array.newInstance(array.getClass().getComponentType(), len+1);
         if (len > 0) {
             System.arraycopy(array, 0, result, 1, len);
