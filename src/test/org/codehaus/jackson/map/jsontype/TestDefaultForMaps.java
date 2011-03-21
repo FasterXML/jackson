@@ -56,7 +56,7 @@ public class TestDefaultForMaps
 
         // Let's start by constructing something to serialize first
         MapHolder holder = new MapHolder();
-        holder.map = new HashMap<MapKey,List<Object>>();;
+        holder.map = new HashMap<MapKey,List<Object>>();
         List<Object> ints = new ArrayList<Object>();
         ints.add(Integer.valueOf(3));
         holder.map.put(new MapKey("key"), ints);

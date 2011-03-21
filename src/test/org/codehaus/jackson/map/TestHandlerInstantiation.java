@@ -53,6 +53,8 @@ public class TestHandlerInstantiation extends BaseMapTest
 
     static class MyKeyDeserializer extends KeyDeserializer
     {
+        public MyKeyDeserializer() { }
+        
         @Override
         public Object deserializeKey(String key, DeserializationContext ctxt)
                 throws IOException, JsonProcessingException
@@ -99,7 +101,6 @@ public class TestHandlerInstantiation extends BaseMapTest
         public KeyDeserializer keyDeserializerInstance(DeserializationConfig config,
                 Annotated annotated, Class<? extends KeyDeserializer> keyDeserClass)
         {
-System.err.println("DEBUG: seen "+keyDeserClass);            
             if (keyDeserClass == MyKeyDeserializer.class) {
                 return new MyKeyDeserializer();
             }

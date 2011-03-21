@@ -16,9 +16,9 @@ public class TestAnnotationUsing
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated Bean classes
-    //////////////////////////////////////////////
+    /**********************************************************************
+    /* Annotated Bean classes
+    /**********************************************************************
      */
 
     /**
@@ -76,10 +76,14 @@ public class TestAnnotationUsing
         public Map<Object,Object> values;
     }
 
+    @SuppressWarnings("serial")
+    @JsonDeserialize(keyUsing=MapKeyDeserializer.class, contentUsing=ValueDeserializer.class)
+    static class MapKeyMap extends HashMap<Object,Object> { }
+    
     /*
-    //////////////////////////////////////////////
-    // Deserializers
-    //////////////////////////////////////////////
+    /**********************************************************************
+    /* Deserializers
+    /**********************************************************************
      */
 
     static class ValueDeserializer extends StdDeserializer<ValueClass>
@@ -115,15 +119,15 @@ public class TestAnnotationUsing
     }
 
     /*
-    /////////////////////////////////////////////////////////
-    // Tests: specifying deserializer of value itself
-    /////////////////////////////////////////////////////////
+    /**********************************************************************
+    /* Tests: specifying deserializer of value itself
+    /**********************************************************************
      */
 
-    /**
-     * Unit test to verify that {@link JsonDeserialize#using} annotation works
-     * when applied to a class
-     */
+    
+/*    
+    // Unit test to verify that {@link JsonDeserialize#using} annotation works
+    // when applied to a class
     public void testClassDeserializer() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
@@ -131,10 +135,8 @@ public class TestAnnotationUsing
         assertEquals(123, result._a);
     }
 
-    /**
-     * Unit test to verify that {@link JsonDeserialize#using} annotation works
-     * when applied to a Method
-     */
+    // Unit test to verify that {@link JsonDeserialize#using} annotation works
+    // when applied to a Method
     public void testMethodDeserializer() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
@@ -146,13 +148,13 @@ public class TestAnnotationUsing
         assertEquals(1, ints.length);
         assertEquals(3, ints[0]);
     }
-
+*/
     /*
-    /////////////////////////////////////////////////////////
-    // Tests: specifying deserializer for keys and/or contents
-    /////////////////////////////////////////////////////////
+    /**********************************************************************
+    /* Tests: specifying deserializer for keys and/or contents
+    /**********************************************************************
      */
-
+/*
     public void testArrayContentUsing() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
@@ -211,4 +213,19 @@ public class TestAnnotationUsing
         assertEquals(String[].class, en.getKey().getClass());
         assertEquals(Boolean.TRUE, en.getValue());
     }
+*/
+    // @since 1.8
+    public void testRootValueWithCustomKey() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        MapKeyMap result = m.readValue(" { \"a\": 13 } ", MapKeyMap.class);
+        assertNotNull(result);
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        Map.Entry<Object,Object> en = result.entrySet().iterator().next();
+        assertEquals(ValueClass.class, en.getValue().getClass());
+        assertEquals(13, ((ValueClass) en.getValue())._a);
+        assertEquals(String[].class, en.getKey().getClass());
+    }
+
 }

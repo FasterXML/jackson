@@ -281,7 +281,7 @@ public abstract class BasicDeserializerFactory
     {
         // First: global defaulting:
         type = (MapType) mapAbstractType(config, type);
-        
+
         Class<?> mapClass = type.getRawClass();
 
         BasicBeanDescription beanDesc = config.introspectForCreation(type);
@@ -291,15 +291,14 @@ public abstract class BasicDeserializerFactory
             return deser;
         }
         // If not, any type modifiers? (@JsonDeserialize.as)
-        type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type, null);
-        
+        type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type, null);        
         JavaType keyType = type.getKeyType();
         JavaType contentType = type.getContentType();
-
+        
         // First: is there annotation-specified deserializer for values?
         @SuppressWarnings("unchecked")
         JsonDeserializer<Object> contentDeser = (JsonDeserializer<Object>) contentType.getValueHandler();
-
+        
         // Ok: need a key deserializer (null indicates 'default' here)
         KeyDeserializer keyDes = (KeyDeserializer) keyType.getValueHandler();
         if (keyDes == null) {
@@ -315,6 +314,7 @@ public abstract class BasicDeserializerFactory
         // 23-Nov-2010, tatu: Custom deserializer?
         JsonDeserializer<?> custom = _findCustomMapDeserializer(type, config, p, beanDesc, property,
                 keyDes, contentTypeDeser, contentDeser);
+
         if (custom != null) {
             return custom;
         }
@@ -651,6 +651,18 @@ public abstract class BasicDeserializerFactory
                     throw new JsonMappingException("Failed to narrow key type "+type+" with key-type annotation ("+keyClass.getName()+"): "+iae.getMessage(), null, iae);
                 }
             }
+            JavaType keyType = type.getKeyType();
+            /* 21-Mar-2011, tatu: ... and associated deserializer too (unless already assigned)
+             *   (not 100% why or how, but this does seem to get called more than once, which
+             *   is not good: for now, let's just avoid errors)
+             */
+            if (keyType != null && keyType.getValueHandler() == null) {
+                Class<? extends KeyDeserializer> kdClass = intr.findKeyDeserializer(a);
+                if (kdClass != null && kdClass != KeyDeserializer.None.class) {
+                    KeyDeserializer kd = config.keyDeserializerInstance(a, kdClass);
+                    keyType.setValueHandler(kd);
+                }
+            }            
             
             // and finally content class; only applicable to structured types
             Class<?> cc = intr.findDeserializationContentType(a, type.getContentType(), propName);
@@ -659,6 +671,15 @@ public abstract class BasicDeserializerFactory
                     type = (T) type.narrowContentsBy(cc);
                 } catch (IllegalArgumentException iae) {
                     throw new JsonMappingException("Failed to narrow content type "+type+" with content-type annotation ("+cc.getName()+"): "+iae.getMessage(), null, iae);
+                }
+            }
+            // ... as well as deserializer for contents:
+            JavaType contentType = type.getContentType();
+            if (contentType.getValueHandler() == null) { // as with above, avoid resetting (which would trigger exception)
+                Class<? extends JsonDeserializer<?>> cdClass = intr.findContentDeserializer(a);
+                if (cdClass != null && cdClass != JsonDeserializer.None.class) {
+                    JsonDeserializer<Object> cd = config.deserializerInstance(a, cdClass);
+                    type.getContentType().setValueHandler(cd);
                 }
             }
         }
