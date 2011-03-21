@@ -192,11 +192,6 @@ public class ObjectMapper
      * @since 1.5
      */
     protected final static VisibilityChecker<?> STD_VISIBILITY_CHECKER = VisibilityChecker.Std.defaultInstance();
-
-    /**
-     * @since 1.8
-     */
-    protected final static HandlerInstantiator DEFAULT_HANDLER_INSTANTIATOR = new HandlerInstantiator.DefaultImpl();
     
     /*
     /**********************************************************
@@ -379,10 +374,10 @@ public class ObjectMapper
         _typeFactory = TypeFactory.defaultInstance();
         _serializationConfig = (sconfig != null) ? sconfig :
             new SerializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, STD_VISIBILITY_CHECKER,
-                    null, null, _typeFactory, DEFAULT_HANDLER_INSTANTIATOR);
+                    null, null, _typeFactory, null);
         _deserializationConfig = (dconfig != null) ? dconfig :
             new DeserializationConfig(DEFAULT_INTROSPECTOR, DEFAULT_ANNOTATION_INTROSPECTOR, STD_VISIBILITY_CHECKER,
-                    null, null, _typeFactory, DEFAULT_HANDLER_INSTANTIATOR);
+                    null, null, _typeFactory, null);
         _serializerProvider = (sp == null) ? new StdSerializerProvider() : sp;
         _deserializerProvider = (dp == null) ? new StdDeserializerProvider() : dp;
 
@@ -946,9 +941,6 @@ public class ObjectMapper
      */
     public void setHandlerInstantiator(HandlerInstantiator hi)
     {
-        if (hi == null) {
-            hi = DEFAULT_HANDLER_INSTANTIATOR;
-        }
         _deserializationConfig = _deserializationConfig.withHandlerInstantiator(hi);
         _serializationConfig = _serializationConfig.withHandlerInstantiator(hi);
     }

@@ -6,6 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.Base64Variant;
 import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.NopAnnotationIntrospector;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
@@ -13,6 +14,7 @@ import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.LinkedNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.type.JavaType;
@@ -493,17 +495,17 @@ public class DeserializationConfig
     
     @Override
     public DeserializationConfig withTypeFactory(TypeFactory tf) {
-        return new DeserializationConfig(this, _base.withTypeFactory(tf));
+        return (tf == _base.getTypeFactory()) ? this : new DeserializationConfig(this, _base.withTypeFactory(tf));
     }
 
     @Override
     public DeserializationConfig withDateFormat(DateFormat df) {
-        return new DeserializationConfig(this, _base.withDateFormat(df));
+        return (df == _base.getDateFormat()) ? this : new DeserializationConfig(this, _base.withDateFormat(df));
     }
     
     @Override
     public DeserializationConfig withHandlerInstantiator(HandlerInstantiator hi) {
-        return new DeserializationConfig(this, _base.withHandlerInstantiator(hi));
+        return (hi == _base.getHandlerInstantiator()) ? this : new DeserializationConfig(this, _base.withHandlerInstantiator(hi));
     }
     
     /*
@@ -712,6 +714,29 @@ public class DeserializationConfig
 
     /*
     /**********************************************************
+    /* Other configuration
+    /**********************************************************
+     */
+
+    /**
+     * Method called during deserialization if Base64 encoded content
+     * needs to be decoded. Default version just returns default Jackson
+     * uses, which is modified-mime which does not add linefeeds (because
+     * those would have to be escaped in JSON strings).
+     */
+    public Base64Variant getBase64Variant() {
+        return Base64Variants.getDefaultVariant();
+    }
+
+    /**
+     * @since 1.6
+     */
+    public final JsonNodeFactory getNodeFactory() {
+        return _nodeFactory;
+    }
+    
+    /*
+    /**********************************************************
     /* Introspection methods
     /**********************************************************
      */
@@ -738,27 +763,37 @@ public class DeserializationConfig
     
     /*
     /**********************************************************
-    /* Other configuration
+    /* Extended API: handler instantiation
     /**********************************************************
      */
 
-    /**
-     * Method called during deserialization if Base64 encoded content
-     * needs to be decoded. Default version just returns default Jackson
-     * uses, which is modified-mime which does not add linefeeds (because
-     * those would have to be escaped in JSON strings).
-     */
-    public Base64Variant getBase64Variant() {
-        return Base64Variants.getDefaultVariant();
+    @SuppressWarnings("unchecked")
+    public JsonDeserializer<Object> deserializerInstance(Annotated annotated,
+            Class<? extends JsonDeserializer<?>> deserClass)
+    {
+        HandlerInstantiator hi = getHandlerInstantiator();
+        if (hi != null) {
+            JsonDeserializer<?> deser = hi.deserializerInstance(this, annotated, deserClass);
+            if (deser != null) {
+                return (JsonDeserializer<Object>) deser;
+            }
+        }
+        return (JsonDeserializer<Object>) ClassUtil.createInstance(deserClass, canOverrideAccessModifiers());
     }
 
-    /**
-     * @since 1.6
-     */
-    public final JsonNodeFactory getNodeFactory() {
-        return _nodeFactory;
+    public KeyDeserializer keyDeserializerInstance(Annotated annotated,
+            Class<? extends KeyDeserializer> keyDeserClass)
+    {
+        HandlerInstantiator hi = getHandlerInstantiator();
+        if (hi != null) {
+            KeyDeserializer keyDeser = hi.keyDeserializerInstance(this, annotated, keyDeserClass);
+            if (keyDeser != null) {
+                return (KeyDeserializer) keyDeser;
+            }
+        }
+        return (KeyDeserializer) ClassUtil.createInstance(keyDeserClass, canOverrideAccessModifiers());
     }
-
+    
     /*
     /**********************************************************
     /* Deprecated methods

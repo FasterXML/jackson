@@ -312,6 +312,13 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
         return _base.getPropertyNamingStrategy();
     }
 
+    /**
+     * @since 1.8
+     */
+    public final HandlerInstantiator getHandlerInstantiator() {
+        return _base.getHandlerInstantiator();
+    }
+    
     /*
     /**********************************************************
     /* Configuration: mix-in annotations

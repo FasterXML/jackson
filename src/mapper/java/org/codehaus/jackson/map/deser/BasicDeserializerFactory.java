@@ -573,17 +573,18 @@ public abstract class BasicDeserializerFactory
      * has annotation that tells which class to use for deserialization.
      * Returns null if no such annotation found.
      */
-    protected JsonDeserializer<Object> findDeserializerFromAnnotation(DeserializationConfig config, Annotated a, BeanProperty property)
+    protected JsonDeserializer<Object> findDeserializerFromAnnotation(DeserializationConfig config,
+            Annotated ann, BeanProperty property)
     {
-        Object deserDef = config.getAnnotationIntrospector().findDeserializer(a);
+        Object deserDef = config.getAnnotationIntrospector().findDeserializer(ann);
         if (deserDef != null) {
-            return _constructDeserializer(config, deserDef);
+            return _constructDeserializer(config, ann, deserDef);
         }
         return null;
     }
     
     @SuppressWarnings("unchecked")
-    JsonDeserializer<Object> _constructDeserializer(DeserializationConfig config, Object deserDef)
+    JsonDeserializer<Object> _constructDeserializer(DeserializationConfig config, Annotated ann, Object deserDef)
     {
         if (deserDef instanceof JsonDeserializer) {
             return (JsonDeserializer<Object>) deserDef;
@@ -594,11 +595,11 @@ public abstract class BasicDeserializerFactory
         if (!(deserDef instanceof Class)) {
             throw new IllegalStateException("AnnotationIntrospector returned deserializer definition of type "+deserDef.getClass().getName()+"; expected type JsonDeserializer or Class<JsonDeserializer> instead");
         }
-        Class<?> cls = (Class<?>) deserDef;
-        if (!JsonDeserializer.class.isAssignableFrom(cls)) {
-            throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonDeserializer>");
+        Class<? extends JsonDeserializer<?>> deserClass = (Class<? extends JsonDeserializer<?>>) deserDef;
+        if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
+            throw new IllegalStateException("AnnotationIntrospector returned Class "+deserClass.getName()+"; expected Class<JsonDeserializer>");
         }
-        /*[JACKSON-521]*/ return (JsonDeserializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+        return config.deserializerInstance(ann, deserClass);
     }
 
     /**
@@ -681,19 +682,18 @@ public abstract class BasicDeserializerFactory
         // [JACKSON-154]: Also need to handle keyUsing, contentUsing
         if (type.isContainerType()) {
             AnnotationIntrospector intr = config.getAnnotationIntrospector();
-            boolean canForceAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
             JavaType keyType = type.getKeyType();
             if (keyType != null) {
                 Class<? extends KeyDeserializer> kdClass = intr.findKeyDeserializer(member);
                 if (kdClass != null && kdClass != KeyDeserializer.None.class) {
-                    /*[JACKSON-521]*/ KeyDeserializer kd = ClassUtil.createInstance(kdClass, canForceAccess);
+                    KeyDeserializer kd = config.keyDeserializerInstance(member, kdClass);
                     keyType.setValueHandler(kd);
                 }
             }
             // and all container types have content types...
             Class<? extends JsonDeserializer<?>> cdClass = intr.findContentDeserializer(member);
             if (cdClass != null && cdClass != JsonDeserializer.None.class) {
-                /*[JACKSON-521]*/ JsonDeserializer<?> cd = ClassUtil.createInstance(cdClass, canForceAccess);
+                JsonDeserializer<Object> cd = config.deserializerInstance(member, cdClass);
                 type.getContentType().setValueHandler(cd);
             }
             /* 04-Feb-2010, tatu: Need to figure out JAXB annotations that indicate type

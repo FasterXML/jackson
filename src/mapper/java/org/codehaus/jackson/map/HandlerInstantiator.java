@@ -3,7 +3,6 @@ package org.codehaus.jackson.map;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
-import org.codehaus.jackson.map.util.ClassUtil;
 
 /**
  * Helper class used for handling details of creating handler instances (things
@@ -14,6 +13,10 @@ import org.codehaus.jackson.map.util.ClassUtil;
  * recycling a shared instance. One use case is that of allowing
  * dependency injection, which would otherwise be difficult to do.
  *<p>
+ * Custom instances are allowed to return null to indicate that caller should
+ * use the default instantiation handling (which just means calling no-argument
+ * constructor via reflection).
+ *<p>
  * Care has to be taken to ensure that if instance returned is shared, it will
  * be thread-safe; caller will not synchronize access to returned instances.
  * 
@@ -21,14 +24,6 @@ import org.codehaus.jackson.map.util.ClassUtil;
  */
 public abstract class HandlerInstantiator
 {
-    /**
-     * Accessor for obtaining default instantiator instance
-     * (see {@link DefaultImpl} for details.
-     */
-    public static HandlerInstantiator defaultImplementation() {
-        return new DefaultImpl();
-    }
-    
     /*
     /**********************************************************
     /* Public API
@@ -47,8 +42,22 @@ public abstract class HandlerInstantiator
      * @return Deserializer instance to use
      */
     public abstract JsonDeserializer<?> deserializerInstance(DeserializationConfig config,
-            Annotated annotated, Class<JsonDeserializer<?>> deserClass);
+            Annotated annotated, Class<? extends JsonDeserializer<?>> deserClass);
 
+    /**
+     * Method called to get an instance of key deserializer of specified type.
+     * 
+     * @param config Deserialization configuration in effect
+     * @param annotated Element (Class, Method, Field, constructor parameter) that
+     *    had annotation defining class of key deserializer to construct (to allow
+     *    implementation use information from other annotations)
+     * @param keyDeserClass Class of key deserializer instance to return
+     * 
+     * @return Key deserializer instance to use
+     */
+    public abstract KeyDeserializer keyDeserializerInstance(DeserializationConfig config,
+            Annotated annotated, Class<? extends KeyDeserializer> keyDeserClass);
+    
     /**
      * Method called to get an instance of serializer of specified type.
      * 
@@ -61,7 +70,7 @@ public abstract class HandlerInstantiator
      * @return Serializer instance to use
      */
     public abstract JsonSerializer<?> serializerInstance(SerializationConfig config,
-            Annotated annotated, Class<JsonSerializer<?>> serClass);
+            Annotated annotated, Class<? extends JsonSerializer<?>> serClass);
 
     /**
      * Method called to get an instance of TypeResolverBuilder of specified type.
@@ -93,34 +102,15 @@ public abstract class HandlerInstantiator
     public abstract TypeIdResolver typeIdResolverInstance(MapperConfig<?> config,
             Annotated annotated, Class<? extends TypeIdResolver> resolverClass);
 
-    /*
-    /**********************************************************
-    /* Defaul implementation
-    /**********************************************************
-     */
-
     /**
      * Default implementation which simply uses reflection to locate
      * zero-argument constructor of given type, and create instance
      * using that (possibly forcing access if constructor is not
      * public; this can be prevented via configuration)
      */
-    public static class DefaultImpl extends HandlerInstantiator
+    /*
+    public static class DefaultImpl
     {
-        @Override
-        public JsonDeserializer<?> deserializerInstance(DeserializationConfig config,
-                Annotated annotated, Class<JsonDeserializer<?>> deserClass)
-        {
-            return ClassUtil.createInstance(deserClass, config.canOverrideAccessModifiers());
-        }
-
-        @Override
-        public JsonSerializer<?> serializerInstance(SerializationConfig config,
-                Annotated annotated, Class<JsonSerializer<?>> serClass)
-        {
-            return ClassUtil.createInstance(serClass, config.canOverrideAccessModifiers());
-        }
-
         @Override
         public TypeResolverBuilder<?> typeResolverBuilderInstance(MapperConfig<?> config,
                 Annotated annotated, Class<? extends TypeResolverBuilder<?>> builderClass)
@@ -135,4 +125,5 @@ public abstract class HandlerInstantiator
             return ClassUtil.createInstance(resolverClass, config.canOverrideAccessModifiers());
         }
     }
+    */
 }

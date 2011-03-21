@@ -9,10 +9,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.ext.OptionalHandlerFactory;
-import org.codehaus.jackson.map.introspect.Annotated;
-import org.codehaus.jackson.map.introspect.AnnotatedClass;
-import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.ser.impl.IndexedStringListSerializer;
@@ -22,7 +19,6 @@ import org.codehaus.jackson.map.ser.impl.StringCollectionSerializer;
 import org.codehaus.jackson.map.ser.impl.TimeZoneSerializer;
 import org.codehaus.jackson.map.type.MapType;
 import org.codehaus.jackson.map.type.TypeFactory;
-import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
@@ -490,7 +486,7 @@ public abstract class BasicSerializerFactory
         if (!JsonSerializer.class.isAssignableFrom(cls)) {
             throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonSerializer>");
         }
-        /*[JACKSON-521]*/ return (JsonSerializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+        return config.serializerInstance(a, (Class<? extends JsonSerializer<?>>) cls);
     }
 
     /*
@@ -696,7 +692,6 @@ public abstract class BasicSerializerFactory
         return type;
     }
 
-    @SuppressWarnings("unchecked")
     protected static JsonSerializer<Object> findKeySerializer(SerializationConfig config,
             Annotated a, BeanProperty property)
     {
@@ -708,13 +703,11 @@ public abstract class BasicSerializerFactory
             }
         }
         if (serClass != null && serClass != JsonSerializer.None.class) {
-            boolean canForceAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-            /*[JACKSON-521]*/ return (JsonSerializer<Object>) ClassUtil.createInstance(serClass, canForceAccess);
+            return config.serializerInstance(a, serClass);
         }
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     protected static JsonSerializer<Object> findContentSerializer(SerializationConfig config,
             Annotated a, BeanProperty property)
     {
@@ -726,8 +719,7 @@ public abstract class BasicSerializerFactory
             }
         }
         if (serClass != null && serClass != JsonSerializer.None.class) {
-            boolean canForceAccess = config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-            /*[JACKSON-521]*/ return (JsonSerializer<Object>) ClassUtil.createInstance(serClass, canForceAccess);
+            return config.serializerInstance(a, serClass);
         }
         return null;
     }

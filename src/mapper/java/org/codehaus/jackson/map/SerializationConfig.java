@@ -6,6 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion; // for javadocs
+import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.SubtypeResolver;
@@ -13,6 +14,7 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.ser.FilterProvider;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -726,21 +728,6 @@ public class SerializationConfig
     
     /*
     /**********************************************************
-    /* Introspection methods
-    /**********************************************************
-     */
-
-    /**
-     * Method that will introspect full bean properties for the purpose
-     * of building a bean serializer
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends BeanDescription> T introspect(JavaType type) {
-        return (T) getClassIntrospector().forSerialization(this, type, this);
-    }
-    
-    /*
-    /**********************************************************
     /* Configuration: other
     /**********************************************************
      */
@@ -791,6 +778,40 @@ public class SerializationConfig
      */
     public FilterProvider getFilterProvider() {
         return _filterProvider;
+    }
+
+    /*
+    /**********************************************************
+    /* Introspection methods
+    /**********************************************************
+     */
+
+    /**
+     * Method that will introspect full bean properties for the purpose
+     * of building a bean serializer
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends BeanDescription> T introspect(JavaType type) {
+        return (T) getClassIntrospector().forSerialization(this, type, this);
+    }
+
+    /*
+    /**********************************************************
+    /* Extended API: handler instantiation
+    /**********************************************************
+     */
+
+    @SuppressWarnings("unchecked")
+    public JsonSerializer<Object> serializerInstance(Annotated annotated, Class<? extends JsonSerializer<?>> serClass)
+    {
+        HandlerInstantiator hi = getHandlerInstantiator();
+        if (hi != null) {
+            JsonSerializer<?> ser = hi.serializerInstance(this, annotated, serClass);
+            if (ser != null) {
+                return (JsonSerializer<Object>) ser;
+            }
+        }
+        return (JsonSerializer<Object>) ClassUtil.createInstance(serClass, canOverrideAccessModifiers());
     }
     
     /*
