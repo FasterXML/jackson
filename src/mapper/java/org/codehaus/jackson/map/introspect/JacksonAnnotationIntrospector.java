@@ -11,20 +11,12 @@ import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.MapperConfig;
-import org.codehaus.jackson.map.annotate.JsonCachable;
-import org.codehaus.jackson.map.annotate.JsonDeserialize;
-import org.codehaus.jackson.map.annotate.JsonFilter;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.annotate.JsonTypeIdResolver;
-import org.codehaus.jackson.map.annotate.JsonTypeResolver;
-import org.codehaus.jackson.map.annotate.JsonView;
-import org.codehaus.jackson.map.annotate.NoClass;
+import org.codehaus.jackson.map.annotate.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.ser.impl.RawSerializer;
-import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -734,7 +726,7 @@ public class JacksonAnnotationIntrospector
              * settings through if we did, since that's not doable on some
              * platforms)
              */
-            b = /*[JACKSON-521]*/ ClassUtil.createInstance(resAnn.value(), false);
+            b = config.typeResolverBuilderInstance(ann, resAnn.value());
         } else { // if not, use standard one, if indicated by annotations
             if (info == null || info.use() == JsonTypeInfo.Id.NONE) {
                 return null;
@@ -744,7 +736,7 @@ public class JacksonAnnotationIntrospector
         // Does it define a custom type id resolver?
         JsonTypeIdResolver idResInfo = ann.getAnnotation(JsonTypeIdResolver.class);
         TypeIdResolver idRes = (idResInfo == null) ? null
-                : /*[JACKSON-521]*/ ClassUtil.createInstance(idResInfo.value(), true);
+                : config.typeIdResolverInstance(ann, idResInfo.value());
         if (idRes != null) { // [JACKSON-359]
             idRes.init(baseType);
         }

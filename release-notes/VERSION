@@ -38,6 +38,10 @@ Description:
   * [JACKSON-526]: Add DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY
     which allows implicit conversion from JSON scalars and Objects into single-element
     collections/arrays (for interoperability with XML-to-JSON converers like Jettison)
+  * [JACKSON-527]: Add 'HandlerInstantiator' abstraction, which can be implemented and
+    registered with ObjectMapper to get more control over how handlers (serializers,
+    deserializers, type id resolver) are constructed.
+    (requested by Sven J)
 
   Improvements:
 

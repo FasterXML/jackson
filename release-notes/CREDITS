@@ -575,4 +575,10 @@ David Yu:
 Bryce McKinlay:
   * Suggested [JACKSON-358]: Allow parsing numbers with leading zeroes
    [1.8.0]
+
+Sven Jacobs:
+  * Suggested [JACKSON-527]: Add 'HandlerInstantiator' abstraction, which can be implemented
+    and registered with ObjectMapper to get more control over how handlers (serializers,
+    deserializers, type id resolver) are constructed.
+   [1.8.0]
  

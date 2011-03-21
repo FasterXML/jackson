@@ -4,20 +4,24 @@ import java.io.IOException;
 import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
+import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.type.TypeFactory;
 
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonTypeIdResolver;
-import org.codehaus.jackson.map.annotate.JsonTypeResolver;
+import org.codehaus.jackson.type.JavaType;
 
 public class TestHandlerInstantiation extends BaseMapTest
 {
     /*
     /**********************************************************************
-    /* Helper classes
+    /* Helper classes, beans
     /**********************************************************************
      */
 
@@ -34,6 +38,28 @@ public class TestHandlerInstantiation extends BaseMapTest
     @SuppressWarnings("serial")
     @JsonDeserialize(keyUsing=MyKeyDeserializer.class)
     static class MyMap extends HashMap<String,String> { }
+
+    @JsonTypeInfo(use=Id.CUSTOM, include=As.WRAPPER_ARRAY)
+    @JsonTypeIdResolver(CustomIdResolver.class)
+    static class TypeIdBean {
+        public int x;
+        
+        public TypeIdBean() { }
+        public TypeIdBean(int x) { this.x = x; }
+    }
+
+    static class TypeIdBeanWrapper {
+        public TypeIdBean bean;
+        
+        public TypeIdBeanWrapper() { this(null); }
+        public TypeIdBeanWrapper(TypeIdBean b) { bean = b; }
+    }
+    
+    /*
+    /**********************************************************************
+    /* Helper classes, serializers/deserializers/resolvers
+    /**********************************************************************
+     */
     
     static class MyBeanDeserializer extends JsonDeserializer<MyBean>
     {
@@ -79,6 +105,59 @@ public class TestHandlerInstantiation extends BaseMapTest
         }
     }
     
+    // copied from "TestCustomTypeIdResolver"
+    static class CustomIdResolver implements TypeIdResolver
+    {
+        static List<JavaType> initTypes;
+
+        final String _id;
+        
+        public CustomIdResolver(String idForBean) {
+            _id = idForBean;
+        }
+        
+        @Override
+        public Id getMechanism() {
+            return Id.CUSTOM;
+        }
+
+        @Override
+        public String idFromValue(Object value)
+        {
+            if (value.getClass() == TypeIdBean.class) {
+                return _id;
+            }
+            return "unknown";
+        }
+
+        @Override
+        public String idFromValueAndType(Object value, Class<?> type) {
+            return idFromValue(value);
+        }
+        
+        @Override
+        public void init(JavaType baseType) {
+            if (initTypes != null) {
+                initTypes.add(baseType);
+            }
+        }
+
+        @Override
+        public JavaType typeFromId(String id)
+        {
+            if (id.equals(_id)) {
+                return TypeFactory.defaultInstance().constructType(TypeIdBean.class);
+            }
+            return null;
+        }
+    }
+
+    /*
+    /**********************************************************************
+    /* Helper classes, handler instantiator
+    /**********************************************************************
+     */
+    
     static class MyInstantiator extends HandlerInstantiator
     {
         private final String _prefix;
@@ -122,6 +201,9 @@ public class TestHandlerInstantiation extends BaseMapTest
         public TypeIdResolver typeIdResolverInstance(MapperConfig<?> config,
                 Annotated annotated, Class<? extends TypeIdResolver> resolverClass)
         {
+            if (resolverClass == CustomIdResolver.class) {
+                return new CustomIdResolver("!!!");
+            }
             return null;
         }
 
@@ -162,4 +244,18 @@ public class TestHandlerInstantiation extends BaseMapTest
         mapper.setHandlerInstantiator(new MyInstantiator("xyz:"));
         assertEquals(quote("xyz:456"), mapper.writeValueAsString(new MyBean("456")));
     }
+
+    public void testTypeIdResolver() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setHandlerInstantiator(new MyInstantiator("foobar"));
+        String json = mapper.writeValueAsString(new TypeIdBeanWrapper(new TypeIdBean(123)));
+        // should now use our custom id scheme:
+        assertEquals("{\"bean\":[\"!!!\",{\"x\":123}]}", json);
+        // and bring it back too:
+        TypeIdBeanWrapper result = mapper.readValue(json, TypeIdBeanWrapper.class);
+        TypeIdBean bean = result.bean;
+        assertEquals(123, bean.x);
+    }
+
 }

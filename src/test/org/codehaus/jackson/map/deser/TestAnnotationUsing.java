@@ -124,8 +124,6 @@ public class TestAnnotationUsing
     /**********************************************************************
      */
 
-    
-/*    
     // Unit test to verify that {@link JsonDeserialize#using} annotation works
     // when applied to a class
     public void testClassDeserializer() throws Exception
@@ -148,13 +146,13 @@ public class TestAnnotationUsing
         assertEquals(1, ints.length);
         assertEquals(3, ints[0]);
     }
-*/
+
     /*
     /**********************************************************************
     /* Tests: specifying deserializer for keys and/or contents
     /**********************************************************************
      */
-/*
+
     public void testArrayContentUsing() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
@@ -213,7 +211,7 @@ public class TestAnnotationUsing
         assertEquals(String[].class, en.getKey().getClass());
         assertEquals(Boolean.TRUE, en.getValue());
     }
-*/
+    
     // @since 1.8
     public void testRootValueWithCustomKey() throws Exception
     {

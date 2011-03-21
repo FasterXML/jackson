@@ -797,7 +797,7 @@ public class SerializationConfig
 
     /*
     /**********************************************************
-    /* Extended API: handler instantiation
+    /* Extended API: serializer instantiation
     /**********************************************************
      */
 

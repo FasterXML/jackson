@@ -5,12 +5,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.SubtypeResolver;
+import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdSubtypeResolver;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.type.JavaType;
 
@@ -502,6 +505,50 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      */
     public abstract boolean canOverrideAccessModifiers();
 
+    /*
+    /**********************************************************
+    /* Methods for instantiating handlers
+    /**********************************************************
+     */
+
+    /**
+     * Method that can be called to obtain an instance of <code>TypeIdResolver</code> of
+     * specified type.
+     * 
+     * @since 1.8
+     */
+    public TypeResolverBuilder<?> typeResolverBuilderInstance(Annotated annotated,
+            Class<? extends TypeResolverBuilder<?>> builderClass)
+    {
+        HandlerInstantiator hi = getHandlerInstantiator();
+        if (hi != null) {
+            TypeResolverBuilder<?> builder = hi.typeResolverBuilderInstance(this, annotated, builderClass);
+            if (builder != null) {
+                return builder;
+            }
+        }
+        return (TypeResolverBuilder<?>) ClassUtil.createInstance(builderClass, canOverrideAccessModifiers());
+    }
+
+    /**
+     * Method that can be called to obtain an instance of <code>TypeIdResolver</code> of
+     * specified type.
+     * 
+     * @since 1.8
+     */
+    public TypeIdResolver typeIdResolverInstance(Annotated annotated,
+            Class<? extends TypeIdResolver> resolverClass)
+    {
+        HandlerInstantiator hi = getHandlerInstantiator();
+        if (hi != null) {
+            TypeIdResolver builder = hi.typeIdResolverInstance(this, annotated, resolverClass);
+            if (builder != null) {
+                return builder;
+            }
+        }
+        return (TypeIdResolver) ClassUtil.createInstance(resolverClass, canOverrideAccessModifiers());
+    }
+    
     /*
     /**********************************************************
     /* Deprecated methods
