@@ -19,7 +19,7 @@ public class TestUntouchables
      * remains overridable.
      */
     public static class MyJacksonJsonProvider extends JacksonJsonProvider {
-         // ensure isJsonType remains "protected" Ð this is a compile-time check.
+         // ensure isJsonType remains "protected" ï¿½ this is a compile-time check.
          // Some users of JacksonJsonProvider override this method;
          // changing to "private" would regress them.
          @Override
