@@ -29,7 +29,7 @@ public class TestSerializationToAtomContent extends TestCase
         mapper.writeValue(jsonGenerator, content);
         sw.close();
         //System.out.println(sw.getBuffer().toString());
-        Content content2 = mapper.readValue(sw.getBuffer().toString(), Content.class); // deserialize
+//        Content content2 = mapper.readValue(sw.getBuffer().toString(), Content.class); // deserialize
 
     }
 }
