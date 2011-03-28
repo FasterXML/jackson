@@ -433,7 +433,9 @@ public abstract class AnnotationIntrospector
      * @return Enumerated value indicating which properties to include
      *   in serialization
      */
-    public abstract JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue);
+    public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue) {
+        return defValue;
+    }
 
     /**
      * Method for accessing annotated type definition that a

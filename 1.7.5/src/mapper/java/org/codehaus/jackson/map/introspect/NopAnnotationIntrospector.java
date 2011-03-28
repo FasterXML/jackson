@@ -123,11 +123,6 @@ public class NopAnnotationIntrospector
     }
 
     @Override
-    public Inclusion findSerializationInclusion(Annotated a, Inclusion defValue) {
-        return Inclusion.ALWAYS;
-    }
-
-    @Override
     public Class<?> findSerializationType(Annotated a) {
         return null;
     }

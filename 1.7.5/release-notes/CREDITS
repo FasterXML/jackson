@@ -588,3 +588,8 @@ Maik Jorra:
   * Reported [JACKSON-540] Side-effects with ObjectMapper.canSerialize(),
     canDeserialize()
    [1.7.5]
+
+Suchema Oyetey
+  * Reported [JACKSON-530] Default SerializationInclusion value not properly
+    passed when "USE_ANNOTATION" set to false
+   [1.7.5]
