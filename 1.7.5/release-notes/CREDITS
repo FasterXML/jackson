@@ -578,3 +578,8 @@ David Yu:
 Christopher Berner: 
   * [JACKSON-508] Type information lost when serializing List<List<X>>
    [1.7.4]
+
+Pascal Gélinas:
+  * Suggested [JACKSON-541] with patch: Remove the need for @JsonCreator on
+    multi-arg constructor iff all parameters have @JsonProperty
+   [1.7.5]
