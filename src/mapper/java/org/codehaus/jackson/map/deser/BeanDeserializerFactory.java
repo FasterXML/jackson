@@ -703,59 +703,70 @@ public class BeanDeserializerFactory
                 continue;
             }
             boolean isCreator = intr.hasCreatorAnnotation(ctor);
+            boolean isVisible =  vchecker.isCreatorVisible(ctor);
             // some single-arg constructors (String, number) are auto-detected
             if (argCount == 1) {
                 /* but note: if we do have parameter name, it'll be
                  * "property constructor", and needs to be skipped for now
                  */
-                String name = intr.findPropertyNameForParam(ctor.getParameter(0));
+                AnnotatedParameter param = ctor.getParameter(0);
+				String name = intr.findPropertyNameForParam(param);
                 if (name == null || name.length() == 0) { // not property based
                     Class<?> type = ctor.getParameterClass(0);
                     if (type == String.class) {
-                        if (isCreator || vchecker.isCreatorVisible(ctor)) {
+                        if (isCreator || isVisible) {
                             creators.addStringConstructor(ctor);
                         }
                         continue;
                     }
                     if (type == int.class || type == Integer.class) {
-                        if (isCreator || vchecker.isCreatorVisible(ctor)) {
+                        if (isCreator || isVisible) {
                             creators.addIntConstructor(ctor);
                         }
                         continue;
                     }
                     if (type == long.class || type == Long.class) {
-                        if (isCreator || vchecker.isCreatorVisible(ctor)) {
+                        if (isCreator || isVisible) {
                             creators.addLongConstructor(ctor);
                         }
                         continue;
                     }
                     // Delegating constructor ok iff it has @JsonCreator (etc)
-                    if (intr.hasCreatorAnnotation(ctor)) {
+                    if (isCreator) {
                         creators.addDelegatingConstructor(ctor);
                     }
                     // otherwise just ignored
                     continue;
                 }
-                // fall through if there's name
-            } else {
-                // more than 2 args, must be @JsonCreator
-                if (!intr.hasCreatorAnnotation(ctor)) {
-                    continue;
-                }
+                // We know there's a name and it's only 1 parameter.
+                SettableBeanProperty[] properties = new SettableBeanProperty[1];
+                properties[0] = constructCreatorProperty(config, beanDesc, name, 0, param);
+                creators.addPropertyConstructor(ctor, properties);
+                continue;
+            } else if (!isCreator && !isVisible) {
+            	continue;
             }
-
-            // 1 or more args; all params must have name annotations
+            // [JACKSON-541] improved handling a bit so:
+            // 2 or more args; all params must have name annotations.
+            // But if it was auto-detected and there's no annotations, keep silent (was not meant to be a creator?)
+            boolean annotationFound = false;
+            boolean notAnnotatedParamFound = false;
             SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
             for (int i = 0; i < argCount; ++i) {
                 AnnotatedParameter param = ctor.getParameter(i);
                 String name = (param == null) ? null : intr.findPropertyNameForParam(param);
-                // At this point, name annotation is NOT optional
-                if (name == null || name.length() == 0) {
+                // If some parameters are annotated and others not, it's invalid.
+                // If the constructor is annotated with @JsonCreator, all params must have annotation
+                notAnnotatedParamFound |= (name == null || name.length() == 0);
+                annotationFound |= !notAnnotatedParamFound;
+                if (notAnnotatedParamFound && (annotationFound || isCreator)) {
                     throw new IllegalArgumentException("Argument #"+i+" of constructor "+ctor+" has no property name annotation; must have name when multiple-paramater constructor annotated as Creator");
                 }
                 properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
             }
-            creators.addPropertyConstructor(ctor, properties);
+            if (annotationFound) {
+            	creators.addPropertyConstructor(ctor, properties);
+            }
         }
     }
 

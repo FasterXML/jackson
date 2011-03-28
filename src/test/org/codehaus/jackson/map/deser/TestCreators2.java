@@ -107,6 +107,18 @@ public class TestCreators2
         }
     }
     
+    // For [JACKSON-541]: should not need @JsonCreator if Feature.AUTO_DETECT_CREATORS is on.
+    static class AutoDetectConstructorBean
+    {
+    	protected final String foo;
+    	protected final String bar;
+
+		public AutoDetectConstructorBean(@JsonProperty("bar") String bar, @JsonProperty("foo") String foo){
+			this.bar = bar;
+			this.foo = foo;
+    	}
+    }
+    
     /*
     /**********************************************************
     /* Unit tests
@@ -199,4 +211,11 @@ public class TestCreators2
             verifyException(e, "duplicate creator property \"bar\"");
         }
     }
+    
+    public void testCreatorMultipleArgumentWithoutAnnotation() throws Exception {
+    	ObjectMapper mapper = new ObjectMapper();
+    	AutoDetectConstructorBean value = mapper.readValue("{\"bar\":\"bar\",\"foo\":\"foo\"}", AutoDetectConstructorBean.class);
+    	assertEquals("bar", value.bar);
+    	assertEquals("foo", value.foo);
+	}
 }
