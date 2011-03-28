@@ -7,7 +7,6 @@ import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Typing;
 
 /**
