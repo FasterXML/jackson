@@ -495,7 +495,6 @@ public class BasicBeanDescription extends BeanDescription
             	/* [JACKSON-255] Only throw exception if they are in same class. Must
             	 *   be careful to choose "correct" one; first one should actually
             	 *   have priority
-            	 * 
             	 */
             	if (old.getDeclaringClass() == am.getDeclaringClass()) {
 	                String oldDesc = old.getFullName();

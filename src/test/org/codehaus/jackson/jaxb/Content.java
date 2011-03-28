@@ -1,22 +1,12 @@
 package org.codehaus.jackson.jaxb;
 
-import org.w3c.dom.Element;
-
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlMixed;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.annotation.*;
+
+import org.w3c.dom.Element;
 
 /**
  * <p>Represents an atom:content element.</p>
@@ -82,7 +72,7 @@ public class Content extends CommonAttributes
 
    private List<Object> value;
 
-   private Object jaxbObject;
+   protected Object jaxbObject;
 
    @XmlAnyElement
    @XmlMixed
@@ -174,7 +164,7 @@ public class Content extends CommonAttributes
     */
    public void setText(String text)
    {
-      if (value == null) value = new ArrayList();
+      if (value == null) value = new ArrayList<Object>();
       if (this.text != null && value != null) value.clear();
       this.text = text;
       value.add(text);
@@ -208,7 +198,7 @@ public class Content extends CommonAttributes
     */
    public void setElement(Element element)
    {
-      if (value == null) value = new ArrayList();
+      if (value == null) value = new ArrayList<Object>();
       if (this.element != null && value != null) value.clear();
       this.element = element;
       value.add(element);
