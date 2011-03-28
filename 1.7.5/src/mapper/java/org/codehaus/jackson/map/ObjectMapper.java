@@ -1313,7 +1313,8 @@ public class ObjectMapper
      */
     public boolean canSerialize(Class<?> type)
     {
-        return _serializerProvider.hasSerializerFor(_serializationConfig, type, _serializerFactory);
+        return _serializerProvider.hasSerializerFor(copySerializationConfig(),
+		type, _serializerFactory);
     }
 
     /**
@@ -1328,7 +1329,7 @@ public class ObjectMapper
      */
     public boolean canDeserialize(JavaType type)
     {
-        return _deserializerProvider.hasValueDeserializerFor(_deserializationConfig, type);
+        return _deserializerProvider.hasValueDeserializerFor(copyDeserializationConfig(), type);
     }
 
     /*

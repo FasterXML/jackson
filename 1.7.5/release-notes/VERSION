@@ -10,6 +10,9 @@ Description:
 
   * [JACKSON-533] Failed to serialize LinkedHashMap.value()
     (reported by Linghu C)
+  * [JACKSON-540] Side-effects with ObjectMapper.canSerialize(),
+    canDeserialize()
+    (reported by Maik J)
   * [JACKSON-541] Remove the need for @JsonCreator on multi-arg constructor
     iff all parameters have @JsonProperty
     (suggested by Pascal Gélinas)

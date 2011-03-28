@@ -583,3 +583,8 @@ Pascal Gélinas:
   * Suggested [JACKSON-541] with patch: Remove the need for @JsonCreator on
     multi-arg constructor iff all parameters have @JsonProperty
    [1.7.5]
+
+Maik Jorra:
+  * Reported [JACKSON-540] Side-effects with ObjectMapper.canSerialize(),
+    canDeserialize()
+   [1.7.5]
