@@ -72,17 +72,6 @@ public class NopAnnotationIntrospector
     public Boolean findIgnoreUnknownProperties(AnnotatedClass ac) {
         return null;
     }
-
-    /*
-    /**********************************************************
-    /* Property auto-detection
-    /**********************************************************
-     */
-    
-    @Override
-    public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac, VisibilityChecker<?> checker) {
-        return checker;
-    }
     
     /*
     /**********************************************************
@@ -120,11 +109,6 @@ public class NopAnnotationIntrospector
     @Override
     public Object findSerializer(Annotated am, BeanProperty property) {
         return null;
-    }
-
-    @Override
-    public Inclusion findSerializationInclusion(Annotated a, Inclusion defValue) {
-        return Inclusion.ALWAYS;
     }
 
     @Override

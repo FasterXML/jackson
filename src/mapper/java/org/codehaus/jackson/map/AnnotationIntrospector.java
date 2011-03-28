@@ -241,8 +241,9 @@ public abstract class AnnotationIntrospector
      *
      *  @since 1.5
      */
-    public abstract VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac,
-            VisibilityChecker<?> baseChecker);
+    public VisibilityChecker<?> findAutoDetectVisibility(AnnotatedClass ac, VisibilityChecker<?> checker) {
+        return checker;
+    }
     
     /*
     /**********************************************************
@@ -468,7 +469,9 @@ public abstract class AnnotationIntrospector
      * @return Enumerated value indicating which properties to include
      *   in serialization
      */
-    public abstract JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue);
+    public JsonSerialize.Inclusion findSerializationInclusion(Annotated a, JsonSerialize.Inclusion defValue) {
+        return defValue;
+    }
 
     /**
      * Method for accessing annotated type definition that a
