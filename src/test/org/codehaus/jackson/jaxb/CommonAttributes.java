@@ -21,7 +21,7 @@ public class CommonAttributes
    private URI base;
 
 
-   private Map extensionAttributes = new HashMap();
+   private Map<?,?> extensionAttributes = new HashMap<String,String>();
 
    @XmlAttribute(name = "lang", namespace = "http://www.w3.org/XML/1998/namespace")
    public String getLanguage()
@@ -46,7 +46,7 @@ public class CommonAttributes
    }
 
    @XmlAnyAttribute
-   public Map getExtensionAttributes()
+   public Map<?,?> getExtensionAttributes()
    {
       return extensionAttributes;
    }

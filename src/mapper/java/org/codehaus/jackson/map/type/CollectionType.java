@@ -6,13 +6,8 @@ import org.codehaus.jackson.type.JavaType;
  * Type that represents Java Collection types (Lists, Sets).
  */
 public final class CollectionType
-    extends TypeBase
+    extends CollectionLikeType
 {
-    /**
-     * Type of elements in collection
-     */
-    final JavaType _elementType;
-
     /*
     /**********************************************************
     /* Life-cycle
@@ -21,8 +16,7 @@ public final class CollectionType
 
     private CollectionType(Class<?> collT, JavaType elemT)
     {
-        super(collT,  elemT.hashCode());
-        _elementType = elemT;
+        super(collT,  elemT);
     }
 
     @Override
@@ -71,66 +65,6 @@ public final class CollectionType
     {
         return new CollectionType(_class, _elementType.withTypeHandler(h));
     }
-    
-    @Override
-    protected String buildCanonicalName() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(_class.getName());
-        if (_elementType != null) {
-            sb.append('<');
-            sb.append(_elementType.toCanonical());
-            sb.append('>');
-        }
-        return sb.toString();
-    }
-    
-    /*
-    /**********************************************************
-    /* Public API
-    /**********************************************************
-     */
-    
-    @Override
-    public JavaType getContentType() { return _elementType; }
-    @Override
-    public int containedTypeCount() { return 1; }
-    @Override
-    public JavaType containedType(int index) {
-            return (index == 0) ? _elementType : null;
-    }
-
-    /**
-     * Not sure if we should count on this, but type names
-     * for core interfaces use "E" for element type
-     */
-    @Override
-    public String containedTypeName(int index) {
-        if (index == 0) return "E";
-        return null;
-    }
-
-    @Override
-    public StringBuilder getErasedSignature(StringBuilder sb) {
-        return _classSignature(_class, sb, true);
-    }
-    
-    @Override
-    public StringBuilder getGenericSignature(StringBuilder sb) {
-        _classSignature(_class, sb, false);
-        sb.append('<');
-        _elementType.getGenericSignature(sb);
-        sb.append(">;");
-        return sb;
-    }
-    
-    /*
-    /**********************************************************
-    /* Extended API
-    /**********************************************************
-     */
-
-    @Override
-    public boolean isContainerType() { return true; }
 
     /*
     /**********************************************************
@@ -139,20 +73,8 @@ public final class CollectionType
      */
 
     @Override
-        public String toString()
+    public String toString()
     {
         return "[collection type; class "+_class.getName()+", contains "+_elementType+"]";
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (o == this) return true;
-        if (o == null) return false;
-        if (o.getClass() != getClass()) return false;
-
-        CollectionType other = (CollectionType) o;
-        return  (_class == other._class)
-            && _elementType.equals(other._elementType);
     }
 }

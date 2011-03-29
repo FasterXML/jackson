@@ -206,7 +206,7 @@ public abstract class JavaType
     
     /*
     /**********************************************************
-    /* Public API
+    /* Public API, simple accessors
     /**********************************************************
      */
 
@@ -220,12 +220,6 @@ public abstract class JavaType
     public final boolean hasRawClass(Class<?> clz) {
         return _class == clz;
     }
-
-    /**
-     * @return True if type represented is a container type; this includes
-     *    array, Map and Collection types.
-     */
-    public abstract boolean isContainerType();
 
     public boolean isAbstract() {
         return Modifier.isAbstract(_class.getModifiers());
@@ -262,6 +256,36 @@ public abstract class JavaType
 
     public final boolean isFinal() { return Modifier.isFinal(_class.getModifiers()); }
 
+    /**
+     * @return True if type represented is a container type; this includes
+     *    array, Map and Collection types.
+     */
+    public abstract boolean isContainerType();
+
+    /**
+     * @return True if type is either true {@link java.util.Collection} type,
+     *    or something similar (meaning it has at least one type parameter,
+     *    which describes type of contents)
+     * 
+     * @since 1.8
+     */
+    public boolean isCollectionLikeType() { return false; }
+
+    /**
+     * @return True if type is either true {@link java.util.Map} type,
+     *    or something similar (meaning it has at least two type parameter;
+     *    first one describing key type, second value type)
+     * 
+     * @since 1.8
+     */
+    public boolean isMapLikeType() { return false; }
+    
+    /*
+    /**********************************************************
+    /* Public API, type parameter access
+    /**********************************************************
+     */
+    
     /**
      * Method that can be used to find out if the type directly declares generic
      * parameters (for its direct super-class and/or super-interfaces).
@@ -323,6 +347,12 @@ public abstract class JavaType
      */
     public String containedTypeName(int index) { return null; }
 
+    /*
+    /**********************************************************
+    /* Semi-public API, accessing handlers
+    /**********************************************************
+     */
+    
     /**
      * Method for accessing value handler associated with this type, if any
      * 
@@ -338,6 +368,12 @@ public abstract class JavaType
      */
     @SuppressWarnings("unchecked")
     public <T> T getTypeHandler() { return (T) _typeHandler; }
+
+    /*
+    /**********************************************************
+    /* Support for producing signatures (1.6+)
+    /**********************************************************
+     */
     
     /**
      * Method that can be used to serialize type into form from which
@@ -350,12 +386,6 @@ public abstract class JavaType
      * @since 1.5
      */
     public abstract String toCanonical();
-
-    /*
-    /**********************************************************
-    /* Support for producing signatures (1.6+)
-    /**********************************************************
-     */
 
     /**
      * Method for accessing signature that contains generic

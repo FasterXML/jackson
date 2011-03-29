@@ -625,6 +625,20 @@ public final class TypeFactory
         return CollectionType.construct(collectionClass, elementType);
     }
 
+    /**
+     * @since 1.8
+     */
+    public CollectionLikeType constructCollectionLikeType(Class<?> collectionClass, Class<?> elementClass) {
+        return CollectionLikeType.construct(collectionClass, constructType(elementClass));
+    }
+    
+    /**
+     * @since 1.8
+     */
+    public CollectionLikeType constructCollectionLikeType(Class<?> collectionClass, JavaType elementType) {
+        return CollectionLikeType.construct(collectionClass, elementType);
+    }
+    
     @SuppressWarnings("unchecked")
     public MapType constructMapType(Class<? extends Map> mapClass, JavaType keyType, JavaType valueType) {
         return MapType.construct(mapClass, keyType, valueType);
@@ -632,6 +646,20 @@ public final class TypeFactory
 
     @SuppressWarnings("unchecked")
     public MapType constructMapType(Class<? extends Map> mapClass, Class<?> keyClass, Class<?> valueClass) {
+        return MapType.construct(mapClass, constructType(keyClass), constructType(valueClass));
+    }
+
+    /**
+     * @since 1.8
+     */
+    public MapLikeType constructMapLikeType(Class<?> mapClass, JavaType keyType, JavaType valueType) {
+        return MapLikeType.construct(mapClass, keyType, valueType);
+    }
+
+    /**
+     * @since 1.8
+     */
+    public MapLikeType constructMapLikeType(Class<?> mapClass, Class<?> keyClass, Class<?> valueClass) {
         return MapType.construct(mapClass, constructType(keyClass), constructType(valueClass));
     }
     
