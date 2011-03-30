@@ -497,7 +497,7 @@ public final class Utf8StreamParser
             c = (int) _inputBuffer[_inputPtr++] & 0xFF;
             // Note: must be followed by a digit
             if (c < INT_0 || c > INT_9) {
-                reportInvalidNumber("Missing integer part (next char "+_getCharDesc(c)+")");
+                return _handleInvalidNumberStart(c, true);
             }
         }
 
@@ -539,7 +539,7 @@ public final class Utf8StreamParser
         // And there we have it!
         return resetInt(negative, intLen);
     }
-
+    
     /**
      * Method called to handle parsing when input is split across buffer boundary
      * (or output is longer than segment used to store it)
@@ -1557,12 +1557,13 @@ public final class Utf8StreamParser
         throws IOException, JsonParseException
     {
         // Most likely an error, unless we are to allow single-quote-strings
-        if (c == INT_APOSTROPHE) {
+        switch (c) {
+        case '\'':
             if (isEnabled(Feature.ALLOW_SINGLE_QUOTES)) {
                 return _handleApostropheValue();
             }
-        }
-        if (c == 'N') {
+            break;
+        case 'N':
             if (_matchToken("NaN", 1)) {
                 if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
                     return resetAsNaN("NaN", Double.NaN);
@@ -1570,43 +1571,18 @@ public final class Utf8StreamParser
                 _reportError("Non-standard token 'NaN': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
             }
             _reportUnexpectedChar(_inputBuffer[_inputPtr++] & 0xFF, "expected 'NaN' or a valid value");
-//            } else if (i == '+' || i == '-') {
+            break;
+        case '+': // note: '-' is taken as number
+            if (_inputPtr >= _inputEnd) {
+                if (!loadMore()) {
+                    _reportInvalidEOFInValue();
+                }
+            }
+            return _handleInvalidNumberStart(_inputBuffer[_inputPtr++] & 0xFF, false);
         }
 
         _reportUnexpectedChar(c, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
         return null;
-    }
-
-    protected final boolean _matchToken(String matchStr, int i)
-        throws IOException, JsonParseException
-    {
-        final int len = matchStr.length();
-    
-        do {
-            if (_inputPtr >= _inputEnd) {
-                if (!loadMore()) {
-                    _reportInvalidEOF(" in a value");
-                }
-            }
-            if (_inputBuffer[_inputPtr] != matchStr.charAt(i)) {
-                _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
-            }
-            ++_inputPtr;
-        } while (++i < len);
-    
-        // but let's also ensure we either get EOF, or non-alphanum char...
-        if (_inputPtr >= _inputEnd) {
-            if (!loadMore()) {
-                return true;
-            }
-        }
-        char c = (char) _decodeCharForError(_inputBuffer[_inputPtr] & 0xFF);
-        // if Java letter, it's a problem tho
-        if (Character.isJavaIdentifierPart(c)) {
-            ++_inputPtr;
-            _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
-        }
-        return true;
     }
     
     protected JsonToken _handleApostropheValue()
@@ -1701,12 +1677,42 @@ public final class Utf8StreamParser
         return JsonToken.VALUE_STRING;
     }
 
-    /*
-    /**********************************************************
-    /* Internal methods, other parsing helper methods
-    /**********************************************************
+    /**
+     * Method called if expected numeric value (due to leading sign) does not
+     * look like a number
      */
-
+    protected JsonToken _handleInvalidNumberStart(int ch, boolean negative)
+        throws IOException, JsonParseException
+    {
+        if (ch == 'I') {
+            if (_inputPtr >= _inputEnd) {
+                if (!loadMore()) {
+                    _reportInvalidEOFInValue();
+                }
+            }
+            ch = _inputBuffer[_inputPtr++];
+            if (ch == 'N') {
+                String match = negative ? "-INF" :"+INF";
+                if (_matchToken(match, 3)) {
+                    if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
+                        return resetAsNaN(match, negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY);
+                    }
+                    _reportError("Non-standard token '"+match+"': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
+                }
+            } else if (ch == 'n') {
+                String match = negative ? "-Infinity" :"+Infinity";
+                if (_matchToken(match, 3)) {
+                    if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
+                        return resetAsNaN(match, negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY);
+                    }
+                    _reportError("Non-standard token '"+match+"': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
+                }
+            }
+        }
+        reportUnexpectedNumberChar(ch, "expected digit (0-9) to follow minus sign, for valid numeric value");
+        return null;
+    }
+    
     protected void _matchToken(JsonToken token)
         throws IOException, JsonParseException
     {
@@ -1729,7 +1735,39 @@ public final class Utf8StreamParser
          */
     }
 
-    private void _reportInvalidToken(String matchedPart, String msg)
+    protected final boolean _matchToken(String matchStr, int i)
+        throws IOException, JsonParseException
+    {
+        final int len = matchStr.length();
+    
+        do {
+            if (_inputPtr >= _inputEnd) {
+                if (!loadMore()) {
+                    _reportInvalidEOF(" in a value");
+                }
+            }
+            if (_inputBuffer[_inputPtr] != matchStr.charAt(i)) {
+                _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
+            }
+            ++_inputPtr;
+        } while (++i < len);
+    
+        // but let's also ensure we either get EOF, or non-alphanum char...
+        if (_inputPtr >= _inputEnd) {
+            if (!loadMore()) {
+                return true;
+            }
+        }
+        char c = (char) _decodeCharForError(_inputBuffer[_inputPtr] & 0xFF);
+        // if Java letter, it's a problem tho
+        if (Character.isJavaIdentifierPart(c)) {
+            ++_inputPtr;
+            _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
+        }
+        return true;
+    }
+    
+    protected void _reportInvalidToken(String matchedPart, String msg)
         throws IOException, JsonParseException
     {
         StringBuilder sb = new StringBuilder(matchedPart);
@@ -1751,7 +1789,7 @@ public final class Utf8StreamParser
         }
         _reportError("Unrecognized token '"+sb.toString()+"': was expecting "+msg);
     }
-
+    
     /*
     /**********************************************************
     /* Internal methods, ws skipping, escape/unescape

@@ -20,6 +20,8 @@ Description:
     registered with JsonFactory, JsonGenerator, to add fully customized
     character escaping handling
     (suggested by Scott A)
+  * [JACKSON-142]: Add 'JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS' to allow
+    non-standard use of 'NaN', '+INF'/'+Infinite', '-INF'/'-Infinite' as numbers
   * [JACKSON-178]: Add support for custom property name strategies (with
     PropertyNamingStrategy)
   * [JACKSON-204]: Add DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT

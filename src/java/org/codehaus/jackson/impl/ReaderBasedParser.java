@@ -595,7 +595,8 @@ public final class ReaderBasedParser
         throws IOException, JsonParseException
     {
         // Most likely an error, unless we are to allow single-quote-strings
-        if (i == INT_APOSTROPHE) {
+        switch (i) {
+        case '\'':
             /* [JACKSON-173]: allow single quotes. Unlike with regular
              * Strings, we'll eagerly parse contents; this so that there's
              * no need to store information on quote char used.
@@ -606,8 +607,8 @@ public final class ReaderBasedParser
             if (isEnabled(Feature.ALLOW_SINGLE_QUOTES)) {
                 return _handleApostropheValue();
             }
-        }
-        if (i == 'N') {
+            break;
+        case 'N':
             if (_matchToken("NaN", 1)) {
                 if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
                     return resetAsNaN("NaN", Double.NaN);
@@ -615,47 +616,17 @@ public final class ReaderBasedParser
                 _reportError("Non-standard token 'NaN': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
             }
             _reportUnexpectedChar(_inputBuffer[_inputPtr++], "expected 'NaN' or a valid value");
-//            } else if (i == '+' || i == '-') {
+            break;
+        case '+': // note: '-' is taken as number
+            if (_inputPtr >= _inputEnd) {
+                if (!loadMore()) {
+                    _reportInvalidEOFInValue();
+                }
+            }
+            return _handleInvalidNumberStart(_inputBuffer[_inputPtr++], false);
         }
         _reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
         return null;
-    }
-
-    /**
-     * Helper method for checking whether input 
-     * 
-     * @since 1.8
-     */
-    protected final boolean _matchToken(String matchStr, int i)
-        throws IOException, JsonParseException
-    {
-        final int len = matchStr.length();
-
-        do {
-            if (_inputPtr >= _inputEnd) {
-                if (!loadMore()) {
-                    _reportInvalidEOF(" in a value");
-                }
-            }
-            if (_inputBuffer[_inputPtr] != matchStr.charAt(i)) {
-                _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
-            }
-            ++_inputPtr;
-        } while (++i < len);
-
-        // but let's also ensure we either get EOF, or non-alphanum char...
-        if (_inputPtr >= _inputEnd) {
-            if (!loadMore()) {
-                return true;
-            }
-        }
-        char c = _inputBuffer[_inputPtr];
-        // if Java letter, it's a problem tho
-        if (Character.isJavaIdentifierPart(c)) {
-            ++_inputPtr;
-            _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
-        }
-        return true;
     }
     
     /**
@@ -906,30 +877,6 @@ public final class ReaderBasedParser
          * error later on.
          */
         return;
-    }
-
-    private void _reportInvalidToken(String matchedPart, String msg)
-        throws IOException, JsonParseException
-    {
-        StringBuilder sb = new StringBuilder(matchedPart);
-        /* Let's just try to find what appears to be the token, using
-         * regular Java identifier character rules. It's just a heuristic,
-         * nothing fancy here.
-         */
-        while (true) {
-            if (_inputPtr >= _inputEnd) {
-                if (!loadMore()) {
-                    break;
-                }
-            }
-            char c = _inputBuffer[_inputPtr];
-            if (!Character.isJavaIdentifierPart(c)) {
-                break;
-            }
-            ++_inputPtr;
-            sb.append(c);
-        }
-        _reportError("Unrecognized token '"+sb.toString()+"': was expecting ");
     }
 
     /*

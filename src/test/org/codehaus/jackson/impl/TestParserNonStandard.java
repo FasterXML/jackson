@@ -352,6 +352,15 @@ public class TestParserNonStandard
         assertEquals("NaN", jp.getText());
         assertToken(JsonToken.END_ARRAY, jp.nextToken());
         jp.close();
+
+        // finally, should also work with skipping
+        f.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
+        jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")
+                : createParserUsingReader(f, JSON);
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        jp.close();
     }
 
     private void _testAllowInf(boolean useStream) throws Exception
@@ -369,7 +378,7 @@ public class TestParserNonStandard
             jp.nextToken();
             fail("Expected exception");
         } catch (Exception e) {
-            verifyException(e, "unexpected character");
+            verifyException(e, "Non-standard token '-INF'");
         }
 
         f.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
@@ -401,6 +410,21 @@ public class TestParserNonStandard
         assertEquals("-Infinity", jp.getText());
         assertTrue(Double.isInfinite(d));
         assertTrue(d == Double.NEGATIVE_INFINITY);
+
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        jp.close();
+
+        // finally, should also work with skipping
+        f.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
+        jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")
+                : createParserUsingReader(f, JSON);
+
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
         
         jp.close();
     }

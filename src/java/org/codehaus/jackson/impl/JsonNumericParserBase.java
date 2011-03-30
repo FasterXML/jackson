@@ -2,7 +2,6 @@ package org.codehaus.jackson.impl;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-
 import java.io.*;
 
 import org.codehaus.jackson.*;
@@ -614,6 +613,5 @@ public abstract class JsonNumericParserBase
         throws IOException, JsonParseException
     {
         _reportError("Numeric value ("+getText()+") out of range of long ("+Long.MIN_VALUE+" - "+Long.MAX_VALUE+")");
-    }
-
+    }    
 }

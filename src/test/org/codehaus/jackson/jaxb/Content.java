@@ -99,8 +99,6 @@ public class Content extends CommonAttributes
 
    /**
     * Mime type of the content
-    *
-    * @return
     */
    @XmlTransient
    public MediaType getType()
@@ -139,8 +137,6 @@ public class Content extends CommonAttributes
 
    /**
     * If content is text, return it as a String.  Otherwise, if content is not text this will return null.
-    *
-    * @return
     */
    @XmlTransient
    public String getText()
@@ -172,8 +168,6 @@ public class Content extends CommonAttributes
 
    /**
     * Get content as an XML Element if the content is XML.  Otherwise, this will just return null.
-    *
-    * @return
     */
    @XmlTransient
    public Element getElement()

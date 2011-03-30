@@ -149,4 +149,71 @@ public abstract class ReaderBasedParserBase
             _ioContext.releaseTokenBuffer(buf);
         }
     }
+
+    /*
+    /**********************************************************
+    /* Helper methods for subclasses
+    /**********************************************************
+     */
+
+    /**
+     * Helper method for checking whether input matches expected token
+     * 
+     * @since 1.8
+     */
+    protected final boolean _matchToken(String matchStr, int i)
+        throws IOException, JsonParseException
+    {
+        final int len = matchStr.length();
+
+        do {
+            if (_inputPtr >= _inputEnd) {
+                if (!loadMore()) {
+                    _reportInvalidEOFInValue();
+                }
+            }
+            if (_inputBuffer[_inputPtr] != matchStr.charAt(i)) {
+                _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
+            }
+            ++_inputPtr;
+        } while (++i < len);
+
+        // but let's also ensure we either get EOF, or non-alphanum char...
+        if (_inputPtr >= _inputEnd) {
+            if (!loadMore()) {
+                return true;
+            }
+        }
+        char c = _inputBuffer[_inputPtr];
+        // if Java letter, it's a problem tho
+        if (Character.isJavaIdentifierPart(c)) {
+            ++_inputPtr;
+            _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
+        }
+        return true;
+    }
+
+    protected void _reportInvalidToken(String matchedPart, String msg)
+        throws IOException, JsonParseException
+    {
+        StringBuilder sb = new StringBuilder(matchedPart);
+        /* Let's just try to find what appears to be the token, using
+         * regular Java identifier character rules. It's just a heuristic,
+         * nothing fancy here.
+         */
+        while (true) {
+            if (_inputPtr >= _inputEnd) {
+                if (!loadMore()) {
+                    break;
+                }
+            }
+            char c = _inputBuffer[_inputPtr];
+            if (!Character.isJavaIdentifierPart(c)) {
+                break;
+            }
+            ++_inputPtr;
+            sb.append(c);
+        }
+        _reportError("Unrecognized token '"+sb.toString()+"': was expecting ");
+    }
 }

@@ -46,6 +46,7 @@ public final class MapType extends MapLikeType
         return new MapType(_class, _keyType, _valueType.widenBy(contentClass)).copyHandlers(this);
     }
     
+    @Override
     public JavaType narrowKey(Class<?> keySubclass)
     {
         // Can do a quick check first:
@@ -58,6 +59,7 @@ public final class MapType extends MapLikeType
     /**
      * @since 1.8
      */
+    @Override
     public JavaType widenKey(Class<?> keySubclass)
     {
         // Can do a quick check first:

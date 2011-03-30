@@ -318,6 +318,11 @@ public abstract class JsonParserMinimalBase
         _reportError("Unexpected end-of-input"+msg);
     }
 
+    protected void _reportInvalidEOFInValue() throws JsonParseException
+    {
+        _reportInvalidEOF(" in a value");
+    }
+    
     protected void _throwInvalidSpace(int i)
         throws JsonParseException
     {
