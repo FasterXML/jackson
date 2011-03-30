@@ -171,6 +171,14 @@ public abstract class JsonNumericParserBase
         _numTypesValid = NR_UNKNOWN; // to force parsing
         return JsonToken.VALUE_NUMBER_FLOAT;
     }
+
+    protected final JsonToken resetAsNaN(String valueStr, double value)
+    {
+        _textBuffer.resetWithString(valueStr);
+        _numberDouble = value;
+        _numTypesValid = NR_DOUBLE;
+        return JsonToken.VALUE_NUMBER_FLOAT;
+    }
     
     /*
     /**********************************************************

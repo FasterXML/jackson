@@ -595,17 +595,75 @@ public final class ReaderBasedParser
         throws IOException, JsonParseException
     {
         // Most likely an error, unless we are to allow single-quote-strings
-        if (i != INT_APOSTROPHE || !isEnabled(Feature.ALLOW_SINGLE_QUOTES)) {
-            _reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
+        if (i == INT_APOSTROPHE) {
+            /* [JACKSON-173]: allow single quotes. Unlike with regular
+             * Strings, we'll eagerly parse contents; this so that there's
+             * no need to store information on quote char used.
+             *
+             * Also, no separation to fast/slow parsing; we'll just do
+             * one regular (~= slowish) parsing, to keep code simple
+             */
+            if (isEnabled(Feature.ALLOW_SINGLE_QUOTES)) {
+                return _handleApostropheValue();
+            }
         }
+        if (i == 'N') {
+            if (_matchToken("NaN", 1)) {
+                if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
+                    return resetAsNaN("NaN", Double.NaN);
+                }
+                _reportError("Non-standard token 'NaN': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
+            }
+            _reportUnexpectedChar(_inputBuffer[_inputPtr++], "expected 'NaN' or a valid value");
+//            } else if (i == '+' || i == '-') {
+        }
+        _reportUnexpectedChar(i, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
+        return null;
+    }
 
-        /* [JACKSON-173]: allow single quotes. Unlike with regular
-         * Strings, we'll eagerly parse contents; this so that there's
-         * no need to store information on quote char used.
-         *
-         * Also, no separation to fast/slow parsing; we'll just do
-         * one regular (~= slow) parsing, to keep code simple
-         */
+    /**
+     * Helper method for checking whether input 
+     * 
+     * @since 1.8
+     */
+    protected final boolean _matchToken(String matchStr, int i)
+        throws IOException, JsonParseException
+    {
+        final int len = matchStr.length();
+
+        do {
+            if (_inputPtr >= _inputEnd) {
+                if (!loadMore()) {
+                    _reportInvalidEOF(" in a value");
+                }
+            }
+            if (_inputBuffer[_inputPtr] != matchStr.charAt(i)) {
+                _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
+            }
+            ++_inputPtr;
+        } while (++i < len);
+
+        // but let's also ensure we either get EOF, or non-alphanum char...
+        if (_inputPtr >= _inputEnd) {
+            if (!loadMore()) {
+                return true;
+            }
+        }
+        char c = _inputBuffer[_inputPtr];
+        // if Java letter, it's a problem tho
+        if (Character.isJavaIdentifierPart(c)) {
+            ++_inputPtr;
+            _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
+        }
+        return true;
+    }
+    
+    /**
+     * @since 1.8
+     */
+    protected final JsonToken _handleApostropheValue()
+        throws IOException, JsonParseException
+    {
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
         int outPtr = _textBuffer.getCurrentSegmentSize();
 
@@ -616,7 +674,7 @@ public final class ReaderBasedParser
                 }
             }
             char c = _inputBuffer[_inputPtr++];
-            i = (int) c;
+            int i = (int) c;
             if (i <= INT_BACKSLASH) {
                 if (i == INT_BACKSLASH) {
                     /* Although chars outside of BMP are to be escaped as
@@ -644,7 +702,7 @@ public final class ReaderBasedParser
         _textBuffer.setCurrentLength(outPtr);
         return JsonToken.VALUE_STRING;
     }
-
+    
     /**
      * @since 1.2
      */
@@ -839,7 +897,7 @@ public final class ReaderBasedParser
             }
             char c = _inputBuffer[_inputPtr];
             if (c != matchStr.charAt(i)) {
-                _reportInvalidToken(matchStr.substring(0, i));
+                _reportInvalidToken(matchStr.substring(0, i), "'null', 'true' or 'false'");
             }
             ++_inputPtr;
         }
@@ -850,7 +908,7 @@ public final class ReaderBasedParser
         return;
     }
 
-    private void _reportInvalidToken(String matchedPart)
+    private void _reportInvalidToken(String matchedPart, String msg)
         throws IOException, JsonParseException
     {
         StringBuilder sb = new StringBuilder(matchedPart);
@@ -871,8 +929,7 @@ public final class ReaderBasedParser
             ++_inputPtr;
             sb.append(c);
         }
-
-        _reportError("Unrecognized token '"+sb.toString()+"': was expecting 'null', 'true' or 'false'");
+        _reportError("Unrecognized token '"+sb.toString()+"': was expecting ");
     }
 
     /*

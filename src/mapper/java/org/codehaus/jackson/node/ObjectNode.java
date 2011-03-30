@@ -76,6 +76,40 @@ public class ObjectNode
         return MissingNode.getInstance();
     }
 
+    /**
+     * Method to use for accessing all fields (with both names
+     * and values) of this JSON Object.
+     */
+    @Override
+    public Iterator<Map.Entry<String, JsonNode>> getFields()
+    {
+        if (_children == null) {
+            return NoFieldsIterator.instance;
+        }
+        return _children.entrySet().iterator();
+    }
+
+    @Override
+    public ObjectNode with(String propertyName)
+    {
+        if (_children == null) {
+            _children = new LinkedHashMap<String, JsonNode>();
+        } else {
+            JsonNode n = _children.get(propertyName);
+            if (n != null) {
+                if (n instanceof ObjectNode) {
+                    return (ObjectNode) n;
+                }
+                throw new UnsupportedOperationException("Property '"+propertyName
+                        +"' has value that is not of type ObjectNode (but "
+                        +n.getClass().getName()+")");
+            }
+        }
+        ObjectNode result = objectNode();
+        _children.put(propertyName, result);
+        return result;
+    }
+    
     /*
     /**********************************************************
     /* Public API, finding value nodes
@@ -212,24 +246,6 @@ public class ObjectNode
             }
         }
         typeSer.writeTypeSuffixForObject(this, jg);
-    }
-    
-    /*
-    /**********************************************************
-    /* Extended ObjectNode API, accessors
-    /**********************************************************
-     */
-
-    /**
-     * Method to use for accessing all fields (with both names
-     * and values) of this Json Object.
-     */
-    public Iterator<Map.Entry<String, JsonNode>> getFields()
-    {
-        if (_children == null) {
-            return NoFieldsIterator.instance;
-        }
-        return _children.entrySet().iterator();
     }
 
     /*

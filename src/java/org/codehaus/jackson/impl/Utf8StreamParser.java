@@ -1553,14 +1553,66 @@ public final class Utf8StreamParser
      *
      * @since 1.3
      */
-    protected final JsonToken _handleUnexpectedValue(int c)
+    protected JsonToken _handleUnexpectedValue(int c)
         throws IOException, JsonParseException
     {
         // Most likely an error, unless we are to allow single-quote-strings
-        if (c != INT_APOSTROPHE || !isEnabled(Feature.ALLOW_SINGLE_QUOTES)) {
-            _reportUnexpectedChar(c, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
+        if (c == INT_APOSTROPHE) {
+            if (isEnabled(Feature.ALLOW_SINGLE_QUOTES)) {
+                return _handleApostropheValue();
+            }
+        }
+        if (c == 'N') {
+            if (_matchToken("NaN", 1)) {
+                if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
+                    return resetAsNaN("NaN", Double.NaN);
+                }
+                _reportError("Non-standard token 'NaN': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
+            }
+            _reportUnexpectedChar(_inputBuffer[_inputPtr++] & 0xFF, "expected 'NaN' or a valid value");
+//            } else if (i == '+' || i == '-') {
         }
 
+        _reportUnexpectedChar(c, "expected a valid value (number, String, array, object, 'true', 'false' or 'null')");
+        return null;
+    }
+
+    protected final boolean _matchToken(String matchStr, int i)
+        throws IOException, JsonParseException
+    {
+        final int len = matchStr.length();
+    
+        do {
+            if (_inputPtr >= _inputEnd) {
+                if (!loadMore()) {
+                    _reportInvalidEOF(" in a value");
+                }
+            }
+            if (_inputBuffer[_inputPtr] != matchStr.charAt(i)) {
+                _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
+            }
+            ++_inputPtr;
+        } while (++i < len);
+    
+        // but let's also ensure we either get EOF, or non-alphanum char...
+        if (_inputPtr >= _inputEnd) {
+            if (!loadMore()) {
+                return true;
+            }
+        }
+        char c = (char) _decodeCharForError(_inputBuffer[_inputPtr] & 0xFF);
+        // if Java letter, it's a problem tho
+        if (Character.isJavaIdentifierPart(c)) {
+            ++_inputPtr;
+            _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
+        }
+        return true;
+    }
+    
+    protected JsonToken _handleApostropheValue()
+        throws IOException, JsonParseException
+    {
+        int c = 0;
         // Otherwise almost verbatim copy of _finishString()
         int outPtr = 0;
         char[] outBuf = _textBuffer.emptyAndGetCurrentSegment();
@@ -1667,7 +1719,7 @@ public final class Utf8StreamParser
                 loadMoreGuaranteed();
             }
             if (matchBytes[i] != _inputBuffer[_inputPtr]) {
-                _reportInvalidToken(token.asString().substring(0, i));
+                _reportInvalidToken(token.asString().substring(0, i), "'null', 'true' or 'false'");
             }
             ++_inputPtr;
         }
@@ -1675,10 +1727,9 @@ public final class Utf8StreamParser
          * If there's something wrong there, it'll cause a parsing
          * error later on.
          */
-        return;
     }
 
-    private void _reportInvalidToken(String matchedPart)
+    private void _reportInvalidToken(String matchedPart, String msg)
         throws IOException, JsonParseException
     {
         StringBuilder sb = new StringBuilder(matchedPart);
@@ -1698,8 +1749,7 @@ public final class Utf8StreamParser
             ++_inputPtr;
             sb.append(c);
         }
-
-        _reportError("Unrecognized token '"+sb.toString()+"': was expecting 'null', 'true' or 'false'");
+        _reportError("Unrecognized token '"+sb.toString()+"': was expecting "+msg);
     }
 
     /*

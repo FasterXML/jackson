@@ -55,6 +55,18 @@ public class TestParserNonStandard
         _testLeadingZeroes(false, false);
         _testLeadingZeroes(false, true);
     }
+
+    // [JACKSON-142]: allow NaN
+    public void testAllowNaN() throws Exception {
+        _testAllowNaN(false);
+        _testAllowNaN(true);
+    }
+
+    // [JACKSON-142]: allow +Inf/-Inf
+    public void testAllowInfinity() throws Exception {
+        _testAllowInf(false);
+        _testAllowInf(true);
+    }
     
     /*
     /****************************************************************
@@ -309,5 +321,87 @@ public class TestParserNonStandard
         assertSame(Integer.class, nr.getClass());
         jp.close();
     }
-    
+
+    private void _testAllowNaN(boolean useStream) throws Exception
+    {
+        final String JSON = "[ NaN]";
+        JsonFactory f = new JsonFactory();
+        assertFalse(f.isEnabled(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS));
+
+        // without enabling, should get an exception
+        JsonParser jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")
+            : createParserUsingReader(f, JSON);
+
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        try {
+            jp.nextToken();
+            fail("Expected exception");
+        } catch (Exception e) {
+            verifyException(e, "non-standard");
+        }
+
+        // we can enable it dynamically (impl detail)
+        f.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
+        jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")
+                : createParserUsingReader(f, JSON);
+        
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        double d = jp.getDoubleValue();
+        assertTrue(Double.isNaN(d));
+        assertEquals("NaN", jp.getText());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
+        jp.close();
+    }
+
+    private void _testAllowInf(boolean useStream) throws Exception
+    {
+        final String JSON = "[ -INF, +INF, +Infinity,-Infinity ]";
+        JsonFactory f = new JsonFactory();
+        assertFalse(f.isEnabled(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS));
+
+        // without enabling, should get an exception
+        JsonParser jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")
+            : createParserUsingReader(f, JSON);
+
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        try {
+            jp.nextToken();
+            fail("Expected exception");
+        } catch (Exception e) {
+            verifyException(e, "unexpected character");
+        }
+
+        f.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
+        jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")
+                : createParserUsingReader(f, JSON);
+        
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        double d = jp.getDoubleValue();
+        assertEquals("-INF", jp.getText());
+        assertTrue(Double.isInfinite(d));
+        assertTrue(d == Double.NEGATIVE_INFINITY);
+
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        d = jp.getDoubleValue();
+        assertEquals("+INF", jp.getText());
+        assertTrue(Double.isInfinite(d));
+        assertTrue(d == Double.POSITIVE_INFINITY);
+
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        d = jp.getDoubleValue();
+        assertEquals("+Infinity", jp.getText());
+        assertTrue(Double.isInfinite(d));
+        assertTrue(d == Double.POSITIVE_INFINITY);
+        
+        assertToken(JsonToken.VALUE_NUMBER_FLOAT, jp.nextToken());
+        d = jp.getDoubleValue();
+        assertEquals("-Infinity", jp.getText());
+        assertTrue(Double.isInfinite(d));
+        assertTrue(d == Double.NEGATIVE_INFINITY);
+        
+        jp.close();
+    }
 }

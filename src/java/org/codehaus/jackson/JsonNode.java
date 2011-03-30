@@ -630,6 +630,17 @@ public abstract class JsonNode
      */
     public Iterator<String> getFieldNames() { return NO_STRINGS.iterator(); }
 
+    /**
+     * @return Iterator that can be used to traverse all key/value pairs for
+     *   object nodes; empty iterator (no contents) for other types
+     * 
+     * @since 1.8 (although existed in ObjectNode since 1.0 or so)
+     */
+    public Iterator<Map.Entry<String, JsonNode>> getFields() {
+        Collection<Map.Entry<String, JsonNode>> coll = Collections.emptyList();
+        return coll.iterator();
+    }
+    
     /*
     /**********************************************************
     /* Public API, path handling
@@ -673,6 +684,21 @@ public abstract class JsonNode
     @Deprecated
     public final JsonNode getPath(int index) { return path(index); }
 
+    /**
+     * Method that can be called on object nodes, to access a property
+     * that has object value; or if no such property exists, to create and
+     * return such object node.
+     * If node method is called on is not Object node,
+     * or if property exists and has value that is not object node,
+     * {@link UnsupportedOperationException} is thrown
+     * 
+     * @since 1.8
+     */
+    public JsonNode with(String propertyName) {
+        throw new UnsupportedOperationException("JsonNode not of type ObjectNode (but "
+                +getClass().getName()+"), can not call with() on it");
+    }
+    
     /*
     /**********************************************************
     /* Public API, serialization
@@ -696,7 +722,6 @@ public abstract class JsonNode
     /* Public API: converting to/from Streaming API
     /**********************************************************
      */
-
 
     /**
      * Method for constructing a {@link JsonParser} instance for

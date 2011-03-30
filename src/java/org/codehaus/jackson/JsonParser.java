@@ -166,8 +166,7 @@ public abstract class JsonParser
          */
         ALLOW_NUMERIC_LEADING_ZEROS(false),
         
-        // 14-Sep-2009, Tatu: This would be [JACKSON-142] implementation:
-        /*
+        /**
          * Feature that allows parser to recognize set of
          * "Not-a-Number" (NaN) tokens as legal floating number
          * values (similar to how many other data formats and
@@ -177,13 +176,13 @@ public abstract class JsonParser
          * (see section 3.2.4.1, Lexical Representation)
          * allows (tokens are quoted contents, not including quotes):
          *<ul>
-         *  <li>"INF" (for positive infinity)
-         *  <li>"-INF" (for negative infinity)
+         *  <li>"INF" (for positive infinity), as well as alias of "Infinity"
+         *  <li>"-INF" (for negative infinity), alias "-Infinity"
          *  <li>"NaN" (for other not-a-numbers, like result of division by zero)
          *</ul>
+         */
 
          ALLOW_NON_NUMERIC_NUMBERS(false),
-         */
         
         // // // Controlling canonicalization (interning etc)
         

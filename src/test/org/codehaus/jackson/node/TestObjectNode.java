@@ -128,5 +128,36 @@ public class TestObjectNode
         assertNull(ob.get("b"));
         assertEquals("c", ob.get("c").getTextValue());
     }
-    
+
+    // @since 1.8
+    public void testValidWith() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode root = mapper.createObjectNode();
+        assertEquals("{}", mapper.writeValueAsString(root));
+        JsonNode child = root.with("prop");
+        assertTrue(child instanceof ObjectNode);
+        assertEquals("{\"prop\":{}}", mapper.writeValueAsString(root));
+    }
+
+    public void testInvalidWith() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.createArrayNode();
+        try { // should not work for non-ObjectNode nodes:
+            root.with("prop");
+            fail("Expected exception");
+        } catch (UnsupportedOperationException e) {
+            verifyException(e, "not of type ObjectNode");
+        }
+        // also: should fail of we already have non-object property
+        ObjectNode root2 = mapper.createObjectNode();
+        root2.put("prop", 13);
+        try { // should not work for non-ObjectNode nodes:
+            root2.with("prop");
+            fail("Expected exception");
+        } catch (UnsupportedOperationException e) {
+            verifyException(e, "has value that is not");
+        }
+    }
 }
