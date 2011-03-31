@@ -8,7 +8,7 @@ import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.NullNode;
 
 /**
- * This mapper (or, codec) provides mapping between Json,
+ * This mapper (or, codec) provides mapping between JSON,
  * and Tree-like structure that consists of child-linked 
  * nodes that can be traversed with simple path operations
  * (indexing arrays by element, objects by field name).
@@ -21,7 +21,7 @@ import org.codehaus.jackson.node.NullNode;
  * to {@link JsonNodeFactory} implementation which allows constructing
  * typed {@link JsonNode} instances.
  *
- * @deprecated Use {@link org.codehaus.jackson.map.ObjectMapper} instead
+ * @deprecated since 1.0, use {@link org.codehaus.jackson.map.ObjectMapper} instead
  */
 @Deprecated
 public class TreeMapper
@@ -49,11 +49,11 @@ public class TreeMapper
     }
 
     /**
-     * Method that can be used to get hold of Json factory that this
-     * mapper uses if it needs to construct Json parsers and/or generators.
+     * Method that can be used to get hold of JSON factory that this
+     * mapper uses if it needs to construct JSON parsers and/or generators.
      *
-     * @return Json factory that this mapper uses when it needs to
-     *   construct Json parser and generators
+     * @return JSON factory that this mapper uses when it needs to
+     *   construct JSON parser and generators
      */
     public JsonFactory getJsonFactory() { return objectMapper().getJsonFactory(); }
 

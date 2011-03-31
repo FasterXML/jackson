@@ -6,8 +6,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.node.*;
 
-public class TestObjectMapper
-    extends BaseMapTest
+public class TestObjectMapper extends BaseMapTest
 {
     public void testProps()
     {

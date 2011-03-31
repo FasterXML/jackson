@@ -1252,6 +1252,44 @@ public class ObjectMapper
         return (n == null) ? NullNode.instance : n;
     }
 
+    /**
+     * Method for reading sequence of Objects from parser stream.
+     *<p>
+     * Note that {@link ObjectReader} has more complete set of variants,
+     * 
+     * @since 1.8
+     */
+    public <T> MappingIterator<T> readValues(JsonParser jp, JavaType valueType)
+        throws IOException, JsonProcessingException
+    {
+        DeserializationConfig config = copyDeserializationConfig();
+        DeserializationContext ctxt = _createDeserializationContext(jp, config);
+        JsonDeserializer<?> deser = _findRootDeserializer(config, valueType);
+        return new MappingIterator<T>(valueType, jp, ctxt, deser);
+    }
+
+    /**
+     * Method for reading sequence of Objects from parser stream.
+     * 
+     * @since 1.8
+     */
+    public <T> MappingIterator<T> readValues(JsonParser jp, Class<?> valueType)
+        throws IOException, JsonProcessingException
+    {
+        return readValue(jp, _typeFactory.constructType(valueType));
+    }
+
+    /**
+     * Method for reading sequence of Objects from parser stream.
+     * 
+     * @since 1.8
+     */
+    public <T> MappingIterator<T> readValues(JsonParser jp, TypeReference<?> valueTypeRef)
+        throws IOException, JsonProcessingException
+    {
+        return readValue(jp, _typeFactory.constructType(valueTypeRef));
+    }
+
     /*
     /**********************************************************
     /* Public API (from ObjectCodec): serialization

@@ -281,6 +281,96 @@ public class ObjectReader
     {
         return _bindAndCloseAsTree(_jsonFactory.createJsonParser(content));
     }
+
+    /**
+     * Method for reading sequence of Objects from parser stream.
+     * 
+     * @since 1.8
+     */
+    public <T> MappingIterator<T> readValues(JsonParser jp)
+        throws IOException, JsonProcessingException
+    {
+        DeserializationContext ctxt = _createDeserializationContext(jp, _config);
+        return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
+    }
+    
+    /**
+     * Method for reading sequence of Objects from parser stream.
+     * 
+     * @since 1.8
+     */
+    public <T> MappingIterator<T> readValues(InputStream src)
+        throws IOException, JsonProcessingException
+    {
+        JsonParser jp = _jsonFactory.createJsonParser(src);
+        DeserializationContext ctxt = _createDeserializationContext(jp, _config);
+        return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
+    }
+
+    /**
+     * Method for reading sequence of Objects from parser stream.
+     * 
+     * @since 1.8
+     */
+    public <T> MappingIterator<T> readValues(Reader src)
+        throws IOException, JsonProcessingException
+    {
+        JsonParser jp = _jsonFactory.createJsonParser(src);
+        DeserializationContext ctxt = _createDeserializationContext(jp, _config);
+        return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
+    }
+    
+    /**
+     * Method for reading sequence of Objects from parser stream.
+     * 
+     * @since 1.8
+     */
+    public <T> MappingIterator<T> readValues(String json)
+        throws IOException, JsonProcessingException
+    {
+        JsonParser jp = _jsonFactory.createJsonParser(json);
+        DeserializationContext ctxt = _createDeserializationContext(jp, _config);
+        return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
+    }
+
+    /**
+     * Method for reading sequence of Objects from parser stream.
+     * 
+     * @since 1.8
+     */
+    public <T> MappingIterator<T> readValues(byte[] src, int offset, int length)
+        throws IOException, JsonProcessingException
+    {
+        JsonParser jp = _jsonFactory.createJsonParser(src, offset, length);
+        DeserializationContext ctxt = _createDeserializationContext(jp, _config);
+        return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
+    }
+
+    /**
+     * Method for reading sequence of Objects from parser stream.
+     * 
+     * @since 1.8
+     */
+    public <T> MappingIterator<T> readValues(File src)
+        throws IOException, JsonProcessingException
+    {
+        JsonParser jp = _jsonFactory.createJsonParser(src);
+        DeserializationContext ctxt = _createDeserializationContext(jp, _config);
+        return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
+    }
+
+    /**
+     * Method for reading sequence of Objects from parser stream.
+     * 
+     * @since 1.8
+     */
+    public <T> MappingIterator<T> readValues(URL src)
+        throws IOException, JsonProcessingException
+    {
+        JsonParser jp = _jsonFactory.createJsonParser(src);
+        DeserializationContext ctxt = _createDeserializationContext(jp, _config);
+        return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
+    }
     
     /*
     /**********************************************************
