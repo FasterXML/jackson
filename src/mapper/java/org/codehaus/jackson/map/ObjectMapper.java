@@ -705,10 +705,13 @@ public class ObjectMapper
     /**
      * Method for changing {@link AnnotationIntrospector} used by this
      * mapper instance for both serialization and deserialization
+     * 
+     * @since 1.8
      */
-    public void setAnnotationIntrospector(AnnotationIntrospector ai) {
+    public ObjectMapper setAnnotationIntrospector(AnnotationIntrospector ai) {
         _serializationConfig = _serializationConfig.withAnnotationIntrospector(ai);
         _deserializationConfig = _deserializationConfig.withAnnotationIntrospector(ai);
+        return this;
     }
     
     /**
@@ -716,9 +719,10 @@ public class ObjectMapper
      * 
      * @since 1.8
      */
-    public void setPropertyNamingStrategy(PropertyNamingStrategy s) {
+    public ObjectMapper setPropertyNamingStrategy(PropertyNamingStrategy s) {
         _serializationConfig = _serializationConfig.withPropertyNamingStrategy(s);
         _deserializationConfig = _deserializationConfig.withPropertyNamingStrategy(s);
+        return this;
     }
 
     /*
