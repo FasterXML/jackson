@@ -589,7 +589,11 @@ Maik Jorra:
     canDeserialize()
    [1.7.5]
 
-Suchema Oyetey
+Suchema Oyetey:
   * Reported [JACKSON-530] Default SerializationInclusion value not properly
     passed when "USE_ANNOTATION" set to false
+   [1.7.5]
+
+Michel Goldstein:
+  * Reported [JACKSON-545] UTF8Writer getting NPE if flush() called after close()
    [1.7.5]

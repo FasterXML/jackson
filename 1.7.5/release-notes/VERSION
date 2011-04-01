@@ -19,6 +19,8 @@ Description:
   * [JACKSON-541] Remove the need for @JsonCreator on multi-arg constructor
     iff all parameters have @JsonProperty
     (suggested by Pascal Gélinas)
+  * [JACKSON-545] UTF8Writer.flush() should check against NPE
+    (reported by Michel G)
 
 ------------------------------------------------------------------------
 === History: ===
