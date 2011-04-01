@@ -12,6 +12,8 @@ Description:
    (reported by Jax L)
   * [JACKSON-518] Problems with JAX-RS, type variables
    (reported by Kirill S)
+  * [JACKSON-545] UTF8Writer.flush() should check against NPE
+    (reported by Michel G)
 
 ------------------------------------------------------------------------
 == History: ==

@@ -85,11 +85,13 @@ public final class UTF8Writer
     public void flush()
         throws IOException
     {
-        if (_outPtr > 0) {
-            _out.write(_outBuffer, 0, _outPtr);
-            _outPtr = 0;
+        if (_out != null) {
+            if (_outPtr > 0) {
+                _out.write(_outBuffer, 0, _outPtr);
+                _outPtr = 0;
+            }
+            _out.flush();
         }
-        _out.flush();
     }
 
     @Override

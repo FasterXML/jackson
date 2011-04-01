@@ -36,4 +36,23 @@ public class TestUTF8Writer
         assertEquals(3 * str.length(), act.length());
         assertEquals(str+str+str, act);
     }
+
+    public void testFlushAfterClose() throws Exception
+    {
+        BufferRecycler rec = new BufferRecycler();
+        IOContext ctxt = new IOContext(rec, null, false);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        UTF8Writer w = new UTF8Writer(ctxt, out);
+        
+        w.write('X');
+        
+        w.close();
+        assertEquals(1, out.size());
+
+        // and this ought to be fine...
+        w.flush();
+        // as well as some more...
+        w.close();
+        w.flush();
+    }
 }
