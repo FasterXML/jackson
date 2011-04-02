@@ -14,6 +14,8 @@ Description:
 
   New features:
   
+  * [JACKSON-43]: Add "ObjectMapper.readValues()", "ObjectReader.readValues()" for
+    more convenient binding of arrays (and root-level sequences) of homogenous types
   * [JACKSON-102]: Ability to force escaping of non-ASCII characters; using
     JsonGenerator.Feature.ESCAPE_NON_ASCII and JsonGenerator.setHighestNonEscapedChar
   * [JACKSON-106]: Add 'org.codehaus.jackson.io.CharacterEscapes' which can be

@@ -1280,7 +1280,7 @@ public class ObjectMapper
     public <T> MappingIterator<T> readValues(JsonParser jp, Class<?> valueType)
         throws IOException, JsonProcessingException
     {
-        return readValue(jp, _typeFactory.constructType(valueType));
+        return readValues(jp, _typeFactory.constructType(valueType));
     }
 
     /**
@@ -1291,7 +1291,7 @@ public class ObjectMapper
     public <T> MappingIterator<T> readValues(JsonParser jp, TypeReference<?> valueTypeRef)
         throws IOException, JsonProcessingException
     {
-        return readValue(jp, _typeFactory.constructType(valueTypeRef));
+        return readValues(jp, _typeFactory.constructType(valueTypeRef));
     }
 
     /*
