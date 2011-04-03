@@ -4,6 +4,7 @@ import org.codehaus.jackson.Version;
 import org.codehaus.jackson.Versioned;
 import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
 import org.codehaus.jackson.map.ser.BeanSerializerModifier;
+import org.codehaus.jackson.map.type.TypeModifier;
 
 /**
  * Simple interface for extensions that can be registered with {@link ObjectMapper}
@@ -159,6 +160,17 @@ public abstract class Module
          * @since 1.8
          */
         public void addAbstractTypeResolver(AbstractTypeResolver resolver);
+
+        /**
+         * Method that module can use to register additional
+         * {@link TypeModifier} instance, which can augment {@link org.codehaus.jackson.type.JavaType}
+         * instances constructed by {@link org.codehaus.jackson.map.type.TypeFactory}.
+         * 
+         * @param modifier to add
+         * 
+         * @since 1.8
+         */
+        public void addTypeModifier(TypeModifier modifier);
         
         /**
          * Method for registering specified {@link AnnotationIntrospector} as the highest

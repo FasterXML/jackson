@@ -40,8 +40,8 @@ public final class SimpleType
         this(cls, null, null);
     }
 
-    protected SimpleType(Class<?> cls,
-                         String[] typeNames, JavaType[] typeParams) {
+    protected SimpleType(Class<?> cls, String[] typeNames, JavaType[] typeParams)
+    {
         super(cls, 0);
         if (typeNames == null || typeNames.length == 0) {
             _typeNames = null;
@@ -50,6 +50,16 @@ public final class SimpleType
             _typeNames = typeNames;
             _typeParameters = typeParams;
         }
+    }
+
+    /**
+     * Method used by core Jackson classes: NOT to be used by application code.
+     *<p>
+     * NOTE: public only because it is called by <code>ObjectMapper</code> which is
+     * not in same package
+     */
+    public static SimpleType constructUnsafe(Class<?> raw) {
+        return new SimpleType(raw, null, null);
     }
     
     @Override

@@ -437,7 +437,7 @@ public class TestTypeFactory
      * 
      * @since 1.7
      */
-    public void testSneakyBeamProperties() throws Exception
+    public void testSneakyBeanProperties() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         StringLongMapBean bean = mapper.readValue("{\"value\":{\"a\":123}}", StringLongMapBean.class);

@@ -131,6 +131,9 @@ public class MapLikeType extends TypeBase
     public boolean isContainerType() { return true; }
 
     @Override
+    public boolean isMapLikeType() { return true; }
+    
+    @Override
     public JavaType getKeyType() { return _keyType; }
 
     @Override

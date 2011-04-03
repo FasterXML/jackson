@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
-import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.type.SimpleType;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.NullNode;
 import org.codehaus.jackson.type.JavaType;
@@ -28,7 +28,7 @@ import org.codehaus.jackson.util.VersionUtil;
 public class ObjectReader
     implements Versioned
 {
-    private final static JavaType JSON_NODE_TYPE = TypeFactory.defaultInstance().uncheckedSimpleType(JsonNode.class);
+    private final static JavaType JSON_NODE_TYPE = SimpleType.constructUnsafe(JsonNode.class);
 
     /*
     /**********************************************************

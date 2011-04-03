@@ -25,7 +25,9 @@ import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdSubtypeResolver;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
+import org.codehaus.jackson.map.type.SimpleType;
 import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.map.type.TypeModifier;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.TreeTraversingParser;
@@ -178,7 +180,8 @@ public class ObjectMapper
     /**********************************************************
      */
     
-    private final static JavaType JSON_NODE_TYPE = TypeFactory.defaultInstance().uncheckedSimpleType(JsonNode.class);
+    // Quick little shortcut, to avoid having to use global TypeFactory instance...
+    private final static JavaType JSON_NODE_TYPE = SimpleType.constructUnsafe(JsonNode.class);
 
     /* !!! 03-Apr-2009, tatu: Should try to avoid direct reference... but not
      *   sure what'd be simple and elegant way. So until then:
@@ -487,7 +490,14 @@ public class ObjectMapper
             public void addAbstractTypeResolver(AbstractTypeResolver resolver) {
                 mapper._deserializerProvider = mapper._deserializerProvider.withAbstractTypeResolver(resolver);
             }
-                        
+
+            @Override
+            public void addTypeModifier(TypeModifier modifier) {
+                TypeFactory f = mapper._typeFactory;
+                f = f.withModifier(modifier);
+                mapper.setTypeFactory(f);
+            }
+            
             @Override
             public void insertAnnotationIntrospector(AnnotationIntrospector ai) {
                 mapper._deserializationConfig.insertAnnotationIntrospector(ai);
@@ -853,6 +863,21 @@ public class ObjectMapper
      */
     public TypeFactory getTypeFactory() {
         return _typeFactory;
+    }
+
+    /**
+     * Method that can be used to override {@link TypeFactory} instance
+     * used by this mapper.
+     *<p>
+     * Note: will also set {@link TypeFactory} that deserialization and
+     * serialization config objects use.
+     */
+    public ObjectMapper setTypeFactory(TypeFactory f)
+    {
+        _typeFactory = f;
+        _deserializationConfig = _deserializationConfig.withTypeFactory(f);
+        _serializationConfig = _serializationConfig.withTypeFactory(f);
+        return this;
     }
     
     /**

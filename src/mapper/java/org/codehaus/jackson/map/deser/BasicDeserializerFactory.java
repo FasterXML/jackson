@@ -29,10 +29,6 @@ import org.codehaus.jackson.type.JavaType;
 public abstract class BasicDeserializerFactory
     extends DeserializerFactory
 {
-    // // Can cache some types
-
-    final static JavaType TYPE_STRING = TypeFactory.defaultInstance().uncheckedSimpleType(String.class);
-
     /**
      * We will pre-create serializers for common non-structured
      * (that is things other than Collection, Map or array)
