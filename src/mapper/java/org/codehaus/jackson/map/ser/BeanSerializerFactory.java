@@ -7,7 +7,9 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
-import org.codehaus.jackson.map.type.TypeBindings;
+import org.codehaus.jackson.map.ser.impl.IndexedStringListSerializer;
+import org.codehaus.jackson.map.ser.impl.StringCollectionSerializer;
+import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
@@ -241,45 +243,93 @@ public class BeanSerializerFactory
      */
     @Override
     @SuppressWarnings("unchecked")
-    public JsonSerializer<Object> createSerializer(SerializationConfig config, JavaType type,
+    public JsonSerializer<Object> createSerializer(SerializationConfig config, JavaType origType,
             BeanProperty property)
     {
         /* [JACKSON-220]: Very first thing, let's check annotations to
          * see if we have explicit definition
          */
-        BasicBeanDescription beanDesc = config.introspect(type);
+        BasicBeanDescription beanDesc = config.introspect(origType);
         JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
-        if (ser == null) {
-            // First: do we have module-provided serializers to consider?
-            for (Serializers serializers : _factoryConfig.serializers()) {
-                ser = serializers.findSerializer(config, type, beanDesc, property);
-                if (ser != null) {
-                    break;
-                }
+        if (ser != null) {
+            return (JsonSerializer<Object>) ser;
+        }
+        // Then we may have annotations that further define types to use...
+        JavaType type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), origType);
+        // and if so, we consider it implicit "force static typing" instruction
+        boolean staticTyping = (type != origType);
+        
+        // Then: do we have module-provided serializers to consider?
+        for (Serializers serializers : _factoryConfig.serializers()) {
+            ser = serializers.findSerializer(config, type, beanDesc, property);
+            if (ser != null) {
+                return (JsonSerializer<Object>) ser;
             }
-            // If not, let's check default set of serializers
-            if (ser == null) {
-                // First, fast lookup for exact type:
-                ser = super.findSerializerByLookup(type, config, beanDesc, property);
-                if (ser == null) {
-                    // and then introspect for some safe (?) JDK types
-                    ser = super.findSerializerByPrimaryType(type, config, beanDesc, property);
-                    if (ser == null) {
-                        /* And this is where this class comes in: if type is
-                         * not a known "primary JDK type", perhaps it's a bean?
-                         * We can still get a null, if we can't find a single
-                         * suitable bean property.
-                         */
-                        ser = this.findBeanSerializer(config, type, beanDesc, property);
-                        /* Finally: maybe we can still deal with it as an
-                         * implementation of some basic JDK interface?
-                         */
-                        if (ser == null) {
-                            ser = super.findSerializerByAddonType(config, type, beanDesc, property);
-                        }
+        }
+        
+        /* Otherwise, we will check "primary types"; both marker types that
+         * indicate specific handling (JsonSerializable), or main types that have
+         * precedence over container types
+         */
+        ser = findSerializerByLookup(type, config, beanDesc, property, staticTyping);
+        if (ser != null) {
+            return (JsonSerializer<Object>) ser;
+        }
+        ser = findSerializerByPrimaryType(type, config, beanDesc, property, staticTyping);
+        if (ser != null) {
+            return (JsonSerializer<Object>) ser;
+        }
+
+        // If not, let's check container types
+        final Class<?> raw = type.getRawClass();
+        if (type.isContainerType()) {
+            if (type.isMapLikeType()) { // implements java.util.Map
+                MapLikeType mlt = (MapLikeType) type;
+                if (mlt.isTrueMapType()) {
+                    if (EnumMap.class.isAssignableFrom(raw)) {
+                        return (JsonSerializer<Object>) buildEnumMapSerializer(config, type, beanDesc, property, staticTyping);
                     }
+                    return (JsonSerializer<Object>) buildMapSerializer(config, type, beanDesc, property, staticTyping);
                 }
+                //[JACKSON-521]: If only Map-like, need custom serializer...
+                return null;
             }
+            if (type.isCollectionLikeType()) {
+                CollectionLikeType clt = (CollectionLikeType) type;
+                if (clt.isTrueCollectionType()) {
+                    JavaType elemType = type.getContentType();
+                    if (EnumSet.class.isAssignableFrom(raw)) {
+                        return (JsonSerializer<Object>)(JsonSerializer<?>)
+                            buildEnumSetSerializer(config, type, beanDesc, property, staticTyping);
+                    }
+                    if (isIndexedList(raw)) {
+                        if (elemType.getRawClass() == String.class) {
+                            return (JsonSerializer<Object>)(JsonSerializer<?>) new IndexedStringListSerializer(property);
+                        }
+                        return (JsonSerializer<Object>)(JsonSerializer<?>) buildIndexedListSerializer(config, type, beanDesc, property, staticTyping);
+                    }
+                    if (elemType.getRawClass() == String.class) {
+                        return (JsonSerializer<Object>)(JsonSerializer<?>) new StringCollectionSerializer(property);
+                    }
+                    return (JsonSerializer<Object>)(JsonSerializer<?>) buildCollectionSerializer(config, type, beanDesc, property, staticTyping);
+                }
+                //[JACKSON-521]: If only Collection-like, need custom serializer...
+                return null;
+            }
+            if (type.isArrayType()) {
+                return (JsonSerializer<Object>) buildObjectArraySerializer(config, type, beanDesc, property, staticTyping);
+            }
+        }
+        /* And this is where this class comes in: if type is not a
+         * known "primary JDK type", perhaps it's a bean? We can still
+         * get a null, if we can't find a single suitable bean property.
+         */
+        ser = this.findBeanSerializer(config, type, beanDesc, property);
+        /* Finally: maybe we can still deal with it as an
+         * implementation of some basic JDK interface?
+         */
+        if (ser == null) {
+            ser = super.findSerializerByAddonType(config, type, beanDesc, property, staticTyping);
         }
         return (JsonSerializer<Object>) ser;
     }

@@ -15,7 +15,7 @@ import org.codehaus.jackson.type.JavaType;
 public interface Serializers
 {
     /**
-     * Method called serialization framework first time a serializer is needed for
+     * Method called by serialization framework first time a serializer is needed for
      * specified type. Implementation should return a serializer instance if it supports
      * specified type; or null if it does not.
      * 
