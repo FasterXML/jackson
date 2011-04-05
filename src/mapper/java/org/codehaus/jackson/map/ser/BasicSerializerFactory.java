@@ -11,8 +11,10 @@ import org.codehaus.jackson.map.ext.OptionalHandlerFactory;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.ser.impl.IndexedStringListSerializer;
 import org.codehaus.jackson.map.ser.impl.InetAddressSerializer;
 import org.codehaus.jackson.map.ser.impl.ObjectArraySerializer;
+import org.codehaus.jackson.map.ser.impl.StringCollectionSerializer;
 import org.codehaus.jackson.map.ser.impl.TimeZoneSerializer;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.EnumValues;
@@ -200,14 +202,6 @@ public abstract class BasicSerializerFactory
     /* Overridable secondary serializer accessor methods
     /**********************************************************
      */
-
-    /**
-     * @since 1.8
-     */
-    protected boolean isIndexedList(Class<?> cls)
-    {
-        return RandomAccess.class.isAssignableFrom(cls);
-    }
     
     /**
      * Method that will use fast lookup (and identity comparison) methods to
@@ -372,6 +366,28 @@ public abstract class BasicSerializerFactory
     /* Factory methods
     /**********************************************************
      */
+
+    /**
+     * Helper method that handles configuration details when constructing serializers for
+     * all "Map-like" types; both ones that implement {@link java.util.Map} and
+     * ones that do not (but that have been indicated to behave like Maps).
+     * 
+     * @since 1.8
+     */
+    protected JsonSerializer<?> buildMapLikeSerializer(SerializationConfig config, JavaType type,
+            BasicBeanDescription beanDesc, BeanProperty property,
+            boolean staticTyping)
+    {
+        MapLikeType mlt = (MapLikeType) type;
+        if (mlt.isTrueMapType()) {
+            if (EnumMap.class.isAssignableFrom(type.getRawClass())) {
+                return buildEnumMapSerializer(config, type, beanDesc, property, staticTyping);
+            }
+            return buildMapSerializer(config, type, beanDesc, property, staticTyping);
+        }
+        //[JACKSON-521]: If only Map-like, need custom serializer...
+        return null;
+    }
     
     /**
      * Helper method that handles configuration details when constructing serializers for
@@ -441,6 +457,39 @@ public abstract class BasicSerializerFactory
         return new ObjectArraySerializer(valueType, staticTyping, vts, property, valueSerializer);
     }
 
+    /**
+     * Helper method that handles configuration details when constructing serializers for
+     * all "Map-like" types; both ones that implement {@link java.util.Map} and
+     * ones that do not (but that have been indicated to behave like Maps).
+     * 
+     * @since 1.8
+     */
+    protected JsonSerializer<?> buildCollectionLikeSerializer(SerializationConfig config, JavaType type,
+            BasicBeanDescription beanDesc, BeanProperty property,
+            boolean staticTyping)
+    {
+        CollectionLikeType clt = (CollectionLikeType) type;
+        Class<?> raw = type.getRawClass();
+        if (clt.isTrueCollectionType()) {
+            JavaType elemType = type.getContentType();
+            if (EnumSet.class.isAssignableFrom(raw)) {
+                return buildEnumSetSerializer(config, type, beanDesc, property, staticTyping);
+            }
+            if (isIndexedList(raw)) {
+                if (elemType.getRawClass() == String.class) {
+                    return new IndexedStringListSerializer(property);
+                }
+                return buildIndexedListSerializer(config, type, beanDesc, property, staticTyping);
+            }
+            if (elemType.getRawClass() == String.class) {
+                return new StringCollectionSerializer(property);
+            }
+            return buildCollectionSerializer(config, type, beanDesc, property, staticTyping);
+        }
+        //[JACKSON-521]: If only Collection-like, need custom serializer...
+        return null;
+    }
+    
     /**
      * Helper method that handles configuration details when constructing serializers for
      * {@link java.util.List} types that support efficient by-index access
@@ -522,6 +571,14 @@ public abstract class BasicSerializerFactory
         return ContainerSerializers.enumSetSerializer(enumType, property);
     }
 
+    /**
+     * @since 1.8
+     */
+    protected boolean isIndexedList(Class<?> cls)
+    {
+        return RandomAccess.class.isAssignableFrom(cls);
+    }
+    
     /*
     /**********************************************************
     /* Other helper methods

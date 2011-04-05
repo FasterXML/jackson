@@ -56,6 +56,9 @@ Description:
   * [JACKSON-502]: Convert mr Bean functionality to be basic Module
   * [JACKSON-503]: Allow registering AbstractTypeResolvers via Module API
   * [JACKSON-519]: Add support for contextual key serializers, deserializers
+  * [JACKSON-548]: enabling ALLOW_SINGLE_QUOTES should allow backslash-escaping
+    of apostrophes
+   (suggested by Tim W)
 
   Fixes:
 

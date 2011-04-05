@@ -29,6 +29,8 @@ public class TestParserNonStandard
     {
         _testSingleQuotesEnabled(false);
         _testSingleQuotesEnabled(true);
+        _testSingleQuotesEscaped(false);
+        _testSingleQuotesEscaped(true);
     }
 
     // Test for [JACKSON-267], allowing '@' as name char, for unquoted names
@@ -214,6 +216,22 @@ public class TestParserNonStandard
         assertEquals("", jp.getText());
 
         assertToken(JsonToken.END_OBJECT, jp.nextToken());
+    }
+
+    // test to verify that we implicitly allow escaping of apostrophe [JACKSON-548]
+    private void _testSingleQuotesEscaped(boolean useStream) throws Exception
+    {
+        JsonFactory f = new JsonFactory();
+        f.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+
+        String JSON = "[ '16\\'' ]";
+        JsonParser jp = useStream ? createParserUsingStream(f, JSON, "UTF-8")
+            : createParserUsingReader(f, JSON);
+
+        assertToken(JsonToken.START_ARRAY, jp.nextToken());
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        assertEquals("16'", jp.getText());
+        assertToken(JsonToken.END_ARRAY, jp.nextToken());
     }
     
     private void _testNonStandardNameChars(boolean useStream) throws Exception

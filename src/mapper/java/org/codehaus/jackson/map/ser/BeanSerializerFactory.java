@@ -7,8 +7,6 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
-import org.codehaus.jackson.map.ser.impl.IndexedStringListSerializer;
-import org.codehaus.jackson.map.ser.impl.StringCollectionSerializer;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -281,40 +279,12 @@ public class BeanSerializerFactory
         }
 
         // If not, let's check container types
-        final Class<?> raw = type.getRawClass();
         if (type.isContainerType()) {
             if (type.isMapLikeType()) { // implements java.util.Map
-                MapLikeType mlt = (MapLikeType) type;
-                if (mlt.isTrueMapType()) {
-                    if (EnumMap.class.isAssignableFrom(raw)) {
-                        return (JsonSerializer<Object>) buildEnumMapSerializer(config, type, beanDesc, property, staticTyping);
-                    }
-                    return (JsonSerializer<Object>) buildMapSerializer(config, type, beanDesc, property, staticTyping);
-                }
-                //[JACKSON-521]: If only Map-like, need custom serializer...
-                return null;
+                return (JsonSerializer<Object>) buildMapLikeSerializer(config, type, beanDesc, property, staticTyping);
             }
             if (type.isCollectionLikeType()) {
-                CollectionLikeType clt = (CollectionLikeType) type;
-                if (clt.isTrueCollectionType()) {
-                    JavaType elemType = type.getContentType();
-                    if (EnumSet.class.isAssignableFrom(raw)) {
-                        return (JsonSerializer<Object>)(JsonSerializer<?>)
-                            buildEnumSetSerializer(config, type, beanDesc, property, staticTyping);
-                    }
-                    if (isIndexedList(raw)) {
-                        if (elemType.getRawClass() == String.class) {
-                            return (JsonSerializer<Object>)(JsonSerializer<?>) new IndexedStringListSerializer(property);
-                        }
-                        return (JsonSerializer<Object>)(JsonSerializer<?>) buildIndexedListSerializer(config, type, beanDesc, property, staticTyping);
-                    }
-                    if (elemType.getRawClass() == String.class) {
-                        return (JsonSerializer<Object>)(JsonSerializer<?>) new StringCollectionSerializer(property);
-                    }
-                    return (JsonSerializer<Object>)(JsonSerializer<?>) buildCollectionSerializer(config, type, beanDesc, property, staticTyping);
-                }
-                //[JACKSON-521]: If only Collection-like, need custom serializer...
-                return null;
+                return (JsonSerializer<Object>)buildCollectionLikeSerializer(config, type, beanDesc, property, staticTyping);
             }
             if (type.isArrayType()) {
                 return (JsonSerializer<Object>) buildObjectArraySerializer(config, type, beanDesc, property, staticTyping);

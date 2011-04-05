@@ -519,6 +519,8 @@ Tim Williamson:
   * Reported [JACKSON-470] ArrayIndexOutOfBoundsException if @JsonCreator
     constructor has @JsonParameter parameters with same name
    [1.6.5]
+  * Suggested [JACKSON-548]: enabling ALLOW_SINGLE_QUOTES should allow backslash-escaping
+   [1.8.0]
 
 Christian Naeger:
   * [JACKSON-468] Method-bound type variables (public <T> T getValue()) not handled
