@@ -2,6 +2,11 @@ package org.codehaus.jackson.smile;
 
 import java.io.ByteArrayOutputStream;
 
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonToken;
+
 public class TestSmileGeneratorSymbols extends SmileTestBase
 {
 	/**
@@ -46,4 +51,53 @@ public class TestSmileGeneratorSymbols extends SmileTestBase
         byte[] result = out.toByteArray();
         assertEquals(83, result.length);
     }
+
+    public void testLongNamesNonShared() throws Exception
+    {
+        _testLongNames(false);
+    }
+    
+    public void testLongNamesShared() throws Exception
+    {
+        _testLongNames(true);
+    }
+
+    /*
+    /**********************************************************
+    /* Secondary methods
+    /**********************************************************
+     */
+    
+    // For issue [JACKSON-552]
+    public void _testLongNames(boolean shareNames) throws Exception
+    {
+        final String FIELD_NAME = "dossier.domaine.supportsDeclaratifsForES.SupportDeclaratif.reference";
+        final String VALUE = "11111";
+
+        SmileFactory factory = new SmileFactory();
+        factory.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, shareNames);
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        JsonGenerator gen = factory.createJsonGenerator(os);
+        gen.writeStartObject();
+        gen.writeObjectFieldStart("query");
+        gen.writeStringField(FIELD_NAME, VALUE);
+        gen.writeEndObject();
+        gen.writeEndObject();
+        gen.close();
+
+        JsonParser parser = factory.createJsonParser(os.toByteArray());
+        assertNull(parser.getCurrentToken());
+        assertToken(JsonToken.START_OBJECT, parser.nextToken());
+        assertToken(JsonToken.FIELD_NAME, parser.nextToken());
+        assertEquals("query", parser.getCurrentName());
+        assertToken(JsonToken.START_OBJECT, parser.nextToken());
+        assertToken(JsonToken.FIELD_NAME, parser.nextToken());
+        assertEquals(FIELD_NAME, parser.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, parser.nextToken());
+        assertEquals(VALUE, parser.getText());
+        assertToken(JsonToken.END_OBJECT, parser.nextToken());
+        assertToken(JsonToken.END_OBJECT, parser.nextToken());
+    }
+
 }
