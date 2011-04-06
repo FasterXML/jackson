@@ -5,6 +5,7 @@ import java.util.*;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.type.TypeReference;
 
 import static org.codehaus.jackson.annotate.JsonTypeInfo.*;
 
@@ -66,7 +67,12 @@ public class TestTypedSerialization
     @JsonTypeInfo(use=Id.NAME)
     @JsonTypeName("empty")
     public class Empty { }
-    
+
+    @JsonTypeInfo(include=As.PROPERTY, use=Id.CLASS)
+    public class Super {}
+    public class A extends Super {}
+    public class B extends Super {}
+
     /*
     /**********************************************************
     /* Unit tests
@@ -176,6 +182,21 @@ public class TestTypedSerialization
         ObjectMapper m = new ObjectMapper();
         m.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
         assertEquals("{\"@type\":\"empty\"}", m.writeValueAsString(new Empty()));
+    }
+
+    /**
+     * Unit test for [JACKSON-543]
+     */
+    public void testTypedMaps() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+
+        Map<Long, Collection<Super>> map = new HashMap<Long, Collection<Super>>();
+        List<Super> list = new ArrayList<Super>();
+        list.add(new A());
+        map.put(1L, list);
+        String json = mapper.typedWriter(new TypeReference<Map<Long, Collection<Super>>>() {}).writeValueAsString(map);
+        assertTrue(json, json.contains("@class"));
     }
 }
 
