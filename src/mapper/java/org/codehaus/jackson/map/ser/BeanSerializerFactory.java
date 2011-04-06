@@ -281,14 +281,15 @@ public class BeanSerializerFactory
         // If not, let's check container types
         if (type.isContainerType()) {
             if (type.isMapLikeType()) { // implements java.util.Map
-                return (JsonSerializer<Object>) buildMapLikeSerializer(config, type, beanDesc, property, staticTyping);
+                return (JsonSerializer<Object>) buildMapLikeSerializer(config, (MapLikeType) type, beanDesc, property, staticTyping);
             }
             if (type.isCollectionLikeType()) {
-                return (JsonSerializer<Object>)buildCollectionLikeSerializer(config, type, beanDesc, property, staticTyping);
+                return (JsonSerializer<Object>)buildCollectionLikeSerializer(config, (CollectionLikeType) type, beanDesc, property, staticTyping);
             }
             if (type.isArrayType()) {
-                return (JsonSerializer<Object>) buildObjectArraySerializer(config, type, beanDesc, property, staticTyping);
+                return (JsonSerializer<Object>) buildArraySerializer(config, (ArrayType) type, beanDesc, property, staticTyping);
             }
+            throw new IllegalStateException("Should never get here"); // sanity check
         }
         /* And this is where this class comes in: if type is not a
          * known "primary JDK type", perhaps it's a bean? We can still

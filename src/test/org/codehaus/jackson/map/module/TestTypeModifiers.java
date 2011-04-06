@@ -21,7 +21,6 @@ public class TestTypeModifiers extends BaseMapTest
      */
 
     static class ModifierModule extends SimpleModule
-        implements Serializers
     {
         public ModifierModule() {
             super("test", Version.unknownVersion());
@@ -30,26 +29,33 @@ public class TestTypeModifiers extends BaseMapTest
         @Override
         public void setupModule(SetupContext context)
         {
-            context.addSerializers(new Serializers() {
+            context.addSerializers(new Serializers.None() {
                 @Override
                 public JsonSerializer<?> findSerializer(SerializationConfig config, JavaType type,
                         BeanDescription beanDesc, BeanProperty property)
                 {
+                    if (MapMarker.class.isAssignableFrom(type.getRawClass())) {
+                        return new MyMapSerializer();
+                    }
+                    if (CollectionMarker.class.isAssignableFrom(type.getRawClass())) {
+                        return new MyCollectionSerializer();
+                    }
                     return null;
                 }
                 
             });
-        }
-
-        @Override
-        public JsonSerializer<?> findSerializer(SerializationConfig config,
-                JavaType type, BeanDescription beanDesc, BeanProperty property) {
-            return null;
+            context.addDeserializers(new SimpleDeserializers() {
+            });
         }
     }
 
-    interface MapMarker<K,V> { }
-    interface CollectionMarker<V> { }
+    interface MapMarker<K,V> {
+        public K getKey();
+        public V getValue();
+    }
+    interface CollectionMarker<V> {
+        public V getValue();
+    }
     
     static class MyMapLikeType implements MapMarker<String,Integer> {
         public String key;
@@ -60,6 +66,9 @@ public class TestTypeModifiers extends BaseMapTest
             key = k;
             value = v;
         }
+
+        public String getKey() { return key; }
+        public Integer getValue() { return value; }
     }
 
     static class MyCollectionLikeType implements CollectionMarker<Integer>
@@ -70,21 +79,23 @@ public class TestTypeModifiers extends BaseMapTest
         public MyCollectionLikeType(int v) {
             value = v;
         }
+
+        public Integer getValue() { return value; }
     }
 
-    static class MyMapSerializer extends JsonSerializer<MyMapLikeType>
+    static class MyMapSerializer extends JsonSerializer<MapMarker<?,?>>
     {
         @Override
-        public void serialize(MyMapLikeType value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+        public void serialize(MapMarker<?,?> value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
             jgen.writeStartObject();
-            jgen.writeNumberField(value.key, value.value);
+            jgen.writeNumberField((String) value.getKey(), ((Number) value.getValue()).intValue());
             jgen.writeEndObject();
         }
     }
-    static class MyMapDeserializer extends JsonDeserializer<MyMapLikeType>
+    static class MyMapDeserializer extends JsonDeserializer<MapMarker<?,?>>
     {
         @Override
-        public MyMapLikeType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+        public MapMarker<?,?> deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
             if (jp.getCurrentToken() != JsonToken.START_OBJECT) throw new IOException("Wrong token: "+jp.getCurrentToken());
             if (jp.nextToken() != JsonToken.FIELD_NAME) throw new IOException("Wrong token: "+jp.getCurrentToken());
             String key = jp.getCurrentName();
@@ -164,17 +175,41 @@ public class TestTypeModifiers extends BaseMapTest
         assertSame(Integer.class, param.getRawClass());
     }
 
-    public void testCollectionLikeHandling() throws Exception
+    public void testCollectionLikeSerialization() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setTypeFactory(mapper.getTypeFactory().withModifier(new MyTypeModifier()));
+        mapper.registerModule(new ModifierModule());
         assertEquals("[19]", mapper.writeValueAsString(new MyCollectionLikeType(19)));
     }
 
-    public void testMapLikeHandling() throws Exception
+    public void testMapLikeSerialization() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setTypeFactory(mapper.getTypeFactory().withModifier(new MyTypeModifier()));
+        mapper.registerModule(new ModifierModule());
         assertEquals("{\"x\":3}", mapper.writeValueAsString(new MyMapLikeType("x", 3)));
+    }
+
+
+    public void testCollectionLikeDeserialization() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setTypeFactory(mapper.getTypeFactory().withModifier(new MyTypeModifier()));
+        mapper.registerModule(new ModifierModule());
+        // !!! TBI
+        MyMapLikeType result = mapper.readValue("{\"a\":13}", MyMapLikeType.class);
+        assertEquals("a", result.getKey());
+        assertEquals(Integer.valueOf(13), result.getValue());
+    }
+
+    public void testMapLikeDeserialization() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setTypeFactory(mapper.getTypeFactory().withModifier(new MyTypeModifier()));
+        mapper.registerModule(new ModifierModule());
+        // !!! TBI
+        MyCollectionLikeType result = mapper.readValue("[-37]", MyCollectionLikeType.class);
+        assertEquals(Integer.valueOf(-37), result.getValue());
     }
 }

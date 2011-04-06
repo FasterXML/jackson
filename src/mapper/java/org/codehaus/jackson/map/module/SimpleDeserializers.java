@@ -4,10 +4,7 @@ import java.util.*;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.type.ArrayType;
-import org.codehaus.jackson.map.type.ClassKey;
-import org.codehaus.jackson.map.type.CollectionType;
-import org.codehaus.jackson.map.type.MapType;
+import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -78,6 +75,16 @@ public class SimpleDeserializers implements Deserializers
     }
 
     @Override
+    public JsonDeserializer<?> findCollectionLikeDeserializer(CollectionLikeType type,
+            DeserializationConfig config, DeserializerProvider provider,
+            BeanDescription beanDesc, BeanProperty property,
+            TypeDeserializer elementTypeDeserializer,
+            JsonDeserializer<?> elementDeserializer)
+    {
+        return (_classMappings == null) ? null : _classMappings.get(new ClassKey(type.getRawClass()));
+    }
+    
+    @Override
     public JsonDeserializer<?> findEnumDeserializer(Class<?> type,
             DeserializationConfig config, BeanDescription beanDesc, BeanProperty property)
     {
@@ -95,6 +102,17 @@ public class SimpleDeserializers implements Deserializers
         return (_classMappings == null) ? null : _classMappings.get(new ClassKey(type.getRawClass()));
     }
 
+    @Override
+    public JsonDeserializer<?> findMapLikeDeserializer(MapLikeType type,
+            DeserializationConfig config, DeserializerProvider provider,
+            BeanDescription beanDesc, BeanProperty property,
+            KeyDeserializer keyDeserializer,
+            TypeDeserializer elementTypeDeserializer,
+            JsonDeserializer<?> elementDeserializer)
+    {
+        return (_classMappings == null) ? null : _classMappings.get(new ClassKey(type.getRawClass()));
+    }
+    
     @Override
     public JsonDeserializer<?> findTreeNodeDeserializer(Class<? extends JsonNode> nodeType,
             DeserializationConfig config, BeanProperty property)

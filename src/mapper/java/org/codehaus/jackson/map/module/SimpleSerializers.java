@@ -3,7 +3,12 @@ package org.codehaus.jackson.map.module;
 import java.util.*;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.type.ArrayType;
 import org.codehaus.jackson.map.type.ClassKey;
+import org.codehaus.jackson.map.type.CollectionLikeType;
+import org.codehaus.jackson.map.type.CollectionType;
+import org.codehaus.jackson.map.type.MapLikeType;
+import org.codehaus.jackson.map.type.MapType;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -125,6 +130,36 @@ public class SimpleSerializers implements Serializers
             return _findInterfaceMapping(cls, key);
         }
         return null;
+    }
+
+    @Override
+    public JsonSerializer<?> findArraySerializer(SerializationConfig config,
+            ArrayType type, BeanDescription beanDesc, BeanProperty property) {
+        return findSerializer(config, type, beanDesc, property);
+    }
+
+    @Override
+    public JsonSerializer<?> findCollectionSerializer(SerializationConfig config,
+            CollectionType type, BeanDescription beanDesc, BeanProperty property) {
+        return findSerializer(config, type, beanDesc, property);
+    }
+
+    @Override
+    public JsonSerializer<?> findCollectionLikeSerializer(SerializationConfig config,
+            CollectionLikeType type, BeanDescription beanDesc, BeanProperty property) {
+        return findSerializer(config, type, beanDesc, property);
+    }
+        
+    @Override
+    public JsonSerializer<?> findMapSerializer(SerializationConfig config,
+            MapType type, BeanDescription beanDesc, BeanProperty property) {
+        return findSerializer(config, type, beanDesc, property);
+    }
+
+    @Override
+    public JsonSerializer<?> findMapLikeSerializer(SerializationConfig config,
+            MapLikeType type, BeanDescription beanDesc, BeanProperty property) {
+        return findSerializer(config, type, beanDesc, property);
     }
     
     /*

@@ -59,6 +59,8 @@ Description:
   * [JACKSON-548]: enabling ALLOW_SINGLE_QUOTES should allow backslash-escaping
     of apostrophes
    (suggested by Tim W)
+  * [JACKSON-551]: Add new methods to 'Serializers' and 'Deserializers' interfaces to
+    support CollectionLikeType, MapLikeType.
 
   Fixes:
 
@@ -78,6 +80,9 @@ Description:
   * [JACKSON-523]: Added method "idFromValueAndType()" in TypeIdResolver interface,
     which is needed to properly handle types such as InetAddress, TimeZone -- unfortunately
     this would break custom TypeIdResolver instances.
+  * [JACKSON-551]: Addition of new methods to 'Serializers' and 'Deserializers' interfaces
+    means that existing code (1.7 only) that directly implements interfaces will not compile
+    (i.e. source and binary incompatible change)
 
   Issues handled by new external projects:
 

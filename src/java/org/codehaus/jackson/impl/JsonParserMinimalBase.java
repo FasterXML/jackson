@@ -350,9 +350,11 @@ public abstract class JsonParserMinimalBase
     protected char _handleUnrecognizedCharacterEscape(char ch) throws JsonProcessingException
     {
         // as per [JACKSON-300]
-        if (isEnabled(Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER)
-                // and [JACKSON-548]
-                || (ch == '\'' && isEnabled(Feature.ALLOW_SINGLE_QUOTES))) {
+        if (isEnabled(Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER)) {
+            return ch;
+        }
+        // and [JACKSON-548]
+        if (ch == '\'' && isEnabled(Feature.ALLOW_SINGLE_QUOTES)) {
             return ch;
         }
         _reportError("Unrecognized character escape "+_getCharDesc(ch));
