@@ -1346,10 +1346,7 @@ public final class Utf8StreamParser
             cbuf[cix++] = (char) ch;
         }
 
-        /* Ok. Now we have the character array, and can construct the
-         * String (as well as check proper composition of semicolons
-         * for ns-aware mode...)
-         */
+        // Ok. Now we have the character array, and can construct the String
         String baseName = new String(cbuf, 0, cix);
         // And finally, un-align if necessary
         if (lastQuadBytes < 4) {
