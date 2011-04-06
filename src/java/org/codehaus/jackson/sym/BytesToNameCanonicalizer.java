@@ -437,8 +437,7 @@ public final class BytesToNameCanonicalizer
      * @param qlen Number of int32s, starting from index 0, in quads
      *   parameter
      *
-     * @return Name matching the symbol passed (or constructed for
-     *   it)
+     * @return Name matching the symbol passed (or constructed for it)
      */
     public Name findName(int[] quads, int qlen)
     {
