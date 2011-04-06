@@ -4,9 +4,13 @@ Release date:
   xx-May-2011
 
 Description:
-  Fifth patch release for 1.7.
+  Sixth patch release for 1.7.
 
   Fixes:
+
+  * [JACKSON-550] Registration of serializers was not completely working
+    with SimpleModule (interfaces implemented by superclasses skipped)
+   (reported by Andrei P)
 
 ------------------------------------------------------------------------
 === History: ===

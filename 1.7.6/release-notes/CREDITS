@@ -597,3 +597,8 @@ Suchema Oyetey:
 Michel Goldstein:
   * Reported [JACKSON-545] UTF8Writer getting NPE if flush() called after close()
    [1.7.5]
+
+Andrei Pozolotin:
+  * Reported [JACKSON-550] Registration of serializers was not completely
+    working with SimpleModule (interfaces implemented by superclasses skipped)
+   [1.7.6]
