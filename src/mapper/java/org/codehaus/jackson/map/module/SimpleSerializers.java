@@ -127,7 +127,19 @@ public class SimpleSerializers implements Serializers
         }
         // No direct match? How about super-interfaces?
         if (_interfaceMappings != null) {
-            return _findInterfaceMapping(cls, key);
+            ser = _findInterfaceMapping(cls, key);
+            if (ser != null) {
+                return ser;
+            }
+            // still no matches? Maybe interfaces of super classes
+            if (!cls.isInterface()) {
+                while ((cls = cls.getSuperclass()) != null) {
+                    ser = _findInterfaceMapping(cls, key);
+                    if (ser != null) {
+                        return ser;
+                    }
+                }
+            }
         }
         return null;
     }

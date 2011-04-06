@@ -9,6 +9,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.ser.ScalarSerializerBase;
 import org.codehaus.jackson.map.ser.SerializerBase;
 
 public class TestSimpleModule extends BaseMapTest
@@ -97,6 +98,29 @@ public class TestSimpleModule extends BaseMapTest
             return SimpleEnum.valueOf(jp.getText().toUpperCase());
         }
     }
+
+    interface Base {
+        public String getText();
+    }
+    
+    static class Impl1 implements Base {
+        public String getText() { return "1"; }
+    }
+
+    static class Impl2 extends Impl1 {
+        @Override
+        public String getText() { return "2"; }
+    }
+
+    static class BaseSerializer extends ScalarSerializerBase<Base>
+    {
+        public BaseSerializer() { super(Base.class); }
+        
+        @Override
+        public void serialize(Base value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+            jgen.writeString("Base:"+value.getText());
+        }
+    }
     
     /*
     /**********************************************************
@@ -166,6 +190,17 @@ public class TestSimpleModule extends BaseMapTest
         mod.addSerializer(new SimpleEnumSerializer());
         mapper.registerModule(mod);
         assertEquals(quote("b"), mapper.writeValueAsString(SimpleEnum.B));
+    }
+
+    // for [JACKSON-550]
+    public void testSimpleInterfaceSerializer() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule mod = new SimpleModule("test", new Version(1, 0, 0, null));
+        mod.addSerializer(new BaseSerializer());
+        mapper.registerModule(mod);
+        assertEquals(quote("Base:1"), mapper.writeValueAsString(new Impl1()));
+        assertEquals(quote("Base:2"), mapper.writeValueAsString(new Impl2()));
     }
     
     /*
