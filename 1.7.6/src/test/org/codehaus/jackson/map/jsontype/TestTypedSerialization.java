@@ -196,7 +196,6 @@ public class TestTypedSerialization
         list.add(new A());
         map.put(1L, list);
         String json = mapper.typedWriter(new TypeReference<Map<Long, Collection<Super>>>() {}).writeValueAsString(map);
-System.err.println("DEBUG: json == "+json);        
         assertTrue(json, json.contains("@class"));
     }
 }
