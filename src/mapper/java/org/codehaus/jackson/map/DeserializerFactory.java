@@ -218,16 +218,30 @@ public abstract class DeserializerFactory
             ArrayType type, BeanProperty property)
         throws JsonMappingException;
 
-    public abstract JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, DeserializerProvider p,
-            CollectionType type, BeanProperty property)
+    public abstract JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config,
+            DeserializerProvider p, CollectionType type, BeanProperty property)
         throws JsonMappingException;
 
-    public abstract JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config,DeserializerProvider p,
-            JavaType type, BeanProperty property)
+    /**
+     * @since 1.8
+     */
+    public abstract JsonDeserializer<?> createCollectionLikeDeserializer(DeserializationConfig config,
+            DeserializerProvider p, CollectionLikeType type, BeanProperty property)
+        throws JsonMappingException;
+    
+    public abstract JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config,
+            DeserializerProvider p, JavaType type, BeanProperty property)
         throws JsonMappingException;
 
-    public abstract JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, DeserializerProvider p,
-            MapType type, BeanProperty property)
+    public abstract JsonDeserializer<?> createMapDeserializer(DeserializationConfig config,
+            DeserializerProvider p, MapType type, BeanProperty property)
+        throws JsonMappingException;
+
+    /**
+     * @since 1.8
+     */
+    public abstract JsonDeserializer<?> createMapLikeDeserializer(DeserializationConfig config,
+            DeserializerProvider p, MapLikeType type, BeanProperty property)
         throws JsonMappingException;
 
     /**

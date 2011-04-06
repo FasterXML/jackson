@@ -285,6 +285,39 @@ public abstract class BasicDeserializerFactory
         return new CollectionDeserializer(type, contentDeser, contentTypeDeser, ctor);
     }
 
+    // Copied almost verbatim from "createCollectionDeserializer" -- should try to share more code
+    @Override
+    public JsonDeserializer<?> createCollectionLikeDeserializer(DeserializationConfig config,
+            DeserializerProvider p, CollectionLikeType type, BeanProperty property)
+        throws JsonMappingException
+    {
+        // First: global defaulting:
+        type = (CollectionLikeType) mapAbstractType(config, type);
+
+        Class<?> collectionClass = type.getRawClass();
+        BasicBeanDescription beanDesc = config.introspectClassAnnotations(collectionClass);
+        // Explicit deserializer to use? (@JsonDeserialize.using)
+        JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, beanDesc.getClassInfo(), property);
+        if (deser != null) {
+            return deser;
+        }
+        // If not, any type modifiers? (@JsonDeserialize.as)
+        type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type, null);
+
+        JavaType contentType = type.getContentType();
+        // Very first thing: is deserializer hard-coded for elements?
+        JsonDeserializer<Object> contentDeser = contentType.getValueHandler();
+
+        // Then optional type info (1.5): if type has been resolved, we may already know type deserializer:
+        TypeDeserializer contentTypeDeser = contentType.getTypeHandler();
+        // but if not, may still be possible to find:
+        if (contentTypeDeser == null) {
+            contentTypeDeser = findTypeDeserializer(config, contentType, property);
+        }
+        return _findCustomCollectionLikeDeserializer(type, config, p, beanDesc, property,
+                contentTypeDeser, contentDeser);
+    }
+    
     @Override
     public JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, DeserializerProvider p,
             MapType type, BeanProperty property)
@@ -292,8 +325,6 @@ public abstract class BasicDeserializerFactory
     {
         // First: global defaulting:
         type = (MapType) mapAbstractType(config, type);
-
-        Class<?> mapClass = type.getRawClass();
 
         BasicBeanDescription beanDesc = config.introspectForCreation(type);
         // Explicit deserializer to use? (@JsonDeserialize.using)
@@ -337,6 +368,7 @@ public abstract class BasicDeserializerFactory
         /* Value handling is identical for all,
          * but EnumMap requires special handling for keys
          */
+        Class<?> mapClass = type.getRawClass();
         if (EnumMap.class.isAssignableFrom(mapClass)) {
             Class<?> kt = keyType.getRawClass();
             if (kt == null || !kt.isEnum()) {
@@ -384,6 +416,44 @@ public abstract class BasicDeserializerFactory
         return md;
     }
 
+    // Copied almost verbatim from "createMapDeserializer" -- should try to share more code
+    @Override
+    public JsonDeserializer<?> createMapLikeDeserializer(DeserializationConfig config,
+            DeserializerProvider p, MapLikeType type, BeanProperty property)
+        throws JsonMappingException
+    {
+        // First: global defaulting:
+        type = (MapLikeType) mapAbstractType(config, type);
+        BasicBeanDescription beanDesc = config.introspectForCreation(type);
+        // Explicit deserializer to use? (@JsonDeserialize.using)
+        JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, beanDesc.getClassInfo(), property);
+        if (deser != null) {
+            return deser;
+        }
+        // If not, any type modifiers? (@JsonDeserialize.as)
+        type = modifyTypeByAnnotation(config, beanDesc.getClassInfo(), type, null);        
+        JavaType keyType = type.getKeyType();
+        JavaType contentType = type.getContentType();
+        
+        // First: is there annotation-specified deserializer for values?
+        @SuppressWarnings("unchecked")
+        JsonDeserializer<Object> contentDeser = (JsonDeserializer<Object>) contentType.getValueHandler();
+        
+        // Ok: need a key deserializer (null indicates 'default' here)
+        KeyDeserializer keyDes = (KeyDeserializer) keyType.getValueHandler();
+        if (keyDes == null) {
+            keyDes = p.findKeyDeserializer(config, keyType, property);
+        }
+        // Then optional type info (1.5); either attached to type, or resolve separately:
+        TypeDeserializer contentTypeDeser = contentType.getTypeHandler();
+        // but if not, may still be possible to find:
+        if (contentTypeDeser == null) {
+            contentTypeDeser = findTypeDeserializer(config, contentType, property);
+        }
+        return _findCustomMapLikeDeserializer(type, config, p, beanDesc, property,
+                keyDes, contentTypeDeser, contentDeser);
+    }
+    
     /**
      * Factory method for constructing serializers of {@link Enum} types.
      */

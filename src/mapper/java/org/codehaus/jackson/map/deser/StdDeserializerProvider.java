@@ -367,17 +367,27 @@ public class StdDeserializerProvider
             return (JsonDeserializer<Object>) _factory.createEnumDeserializer(config, this, type, property);
         }
         if (type.isContainerType()) {
-            if (type instanceof ArrayType) {
+            if (type.isArrayType()) {
                 return (JsonDeserializer<Object>)_factory.createArrayDeserializer(config, this,
                         (ArrayType) type, property);
             }
-            if (type instanceof MapType) {
-                return (JsonDeserializer<Object>)_factory.createMapDeserializer(config, this,
-                        (MapType) type, property);
+            if (type.isMapLikeType()) {
+                MapLikeType mlt = (MapLikeType) type;
+                if (mlt.isTrueMapType()) {
+                    return (JsonDeserializer<Object>)_factory.createMapDeserializer(config, this,
+                            (MapType) mlt, property);
+                }
+                return (JsonDeserializer<Object>)_factory.createMapLikeDeserializer(config, this,
+                        mlt, property);
             }
-            if (type instanceof CollectionType) {
-                return (JsonDeserializer<Object>)_factory.createCollectionDeserializer(config, this,
-                        (CollectionType) type, property);
+            if (type.isCollectionLikeType()) {
+                CollectionLikeType clt = (CollectionLikeType) type;
+                if (clt.isTrueCollectionType()) {
+                    return (JsonDeserializer<Object>)_factory.createCollectionDeserializer(config, this,
+                            (CollectionType) clt, property);
+                }
+                return (JsonDeserializer<Object>)_factory.createCollectionLikeDeserializer(config, this,
+                        clt, property);
             }
         }
 

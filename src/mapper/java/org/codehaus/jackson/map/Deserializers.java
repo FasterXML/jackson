@@ -275,15 +275,6 @@ public interface Deserializers
         {
             return null;
         }
-            
-        @Override
-        public JsonDeserializer<?> findEnumDeserializer(Class<?> type, DeserializationConfig config,
-                BeanDescription beanDesc,
-                BeanProperty property)
-            throws JsonMappingException
-        {
-            return null;
-        }
 
         @Override
         public JsonDeserializer<?> findMapDeserializer(MapType type, DeserializationConfig config,
@@ -299,6 +290,15 @@ public interface Deserializers
                 DeserializerProvider provider, BeanDescription beanDesc, BeanProperty property,
                 KeyDeserializer keyDeserializer,
                 TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+            throws JsonMappingException
+        {
+            return null;
+        }
+
+        @Override
+        public JsonDeserializer<?> findEnumDeserializer(Class<?> type, DeserializationConfig config,
+                BeanDescription beanDesc,
+                BeanProperty property)
             throws JsonMappingException
         {
             return null;

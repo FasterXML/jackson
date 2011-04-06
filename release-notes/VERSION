@@ -39,6 +39,8 @@ Description:
     support for basic JSON, Smile (and as many modules as possible)
   * [JACKSON-513]: Add methods for registering key serializers, deserializers,
     via Module API
+  * [JACKSON-521]: Add support for new 'MapLikeType' and 'CollectionLikeType', to
+    support Map/Collection types of languages like Scala
   * [JACKSON-523]: Allow passing actual type for TypeSerializer to use, to
     force specific super type to be used (instead of a concrete sub type)
   * [JACKSON-526]: Add DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY

@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.type.CollectionLikeType;
 import org.codehaus.jackson.map.type.MapLikeType;
 import org.codehaus.jackson.map.type.TypeBindings;
@@ -31,24 +32,64 @@ public class TestTypeModifiers extends BaseMapTest
         {
             context.addSerializers(new Serializers.None() {
                 @Override
-                public JsonSerializer<?> findSerializer(SerializationConfig config, JavaType type,
-                        BeanDescription beanDesc, BeanProperty property)
+                public JsonSerializer<?> findMapLikeSerializer(SerializationConfig config,
+                        MapLikeType type, BeanDescription beanDesc, BeanProperty property,
+                        JsonSerializer<Object> keySerializer,
+                        TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
                 {
                     if (MapMarker.class.isAssignableFrom(type.getRawClass())) {
-                        return new MyMapSerializer();
+                        return new MyMapSerializer(keySerializer, elementValueSerializer);
                     }
+                    return null;
+                }
+
+                @Override
+                public JsonSerializer<?> findCollectionLikeSerializer(SerializationConfig config,
+                        CollectionLikeType type, BeanDescription beanDesc, BeanProperty property,
+                        TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer)
+                {
                     if (CollectionMarker.class.isAssignableFrom(type.getRawClass())) {
                         return new MyCollectionSerializer();
                     }
                     return null;
                 }
-                
             });
             context.addDeserializers(new SimpleDeserializers() {
+                @Override
+                public JsonDeserializer<?> findCollectionLikeDeserializer(CollectionLikeType type, DeserializationConfig config,
+                        DeserializerProvider provider, BeanDescription beanDesc, BeanProperty property,
+                        TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+                    throws JsonMappingException
+                {
+                    if (CollectionMarker.class.isAssignableFrom(type.getRawClass())) {
+                        return new MyCollectionDeserializer();
+                    }
+                    return null;
+                }
+                @Override
+                public JsonDeserializer<?> findMapLikeDeserializer(MapLikeType type, DeserializationConfig config,
+                        DeserializerProvider provider, BeanDescription beanDesc, BeanProperty property,
+                        KeyDeserializer keyDeserializer,
+                        TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
+                    throws JsonMappingException
+                {
+                    if (MapMarker.class.isAssignableFrom(type.getRawClass())) {
+                        return new MyMapDeserializer();
+                    }
+                    return null;
+                }
             });
         }
     }
 
+    static class XxxSerializer extends JsonSerializer<Object>
+    {
+        @Override
+        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+            jgen.writeString("xxx:"+value);
+        }
+    }
+    
     interface MapMarker<K,V> {
         public K getKey();
         public V getValue();
@@ -56,7 +97,8 @@ public class TestTypeModifiers extends BaseMapTest
     interface CollectionMarker<V> {
         public V getValue();
     }
-    
+
+    @JsonSerialize(contentUsing=XxxSerializer.class)
     static class MyMapLikeType implements MapMarker<String,Integer> {
         public String key;
         public int value;
@@ -85,10 +127,27 @@ public class TestTypeModifiers extends BaseMapTest
 
     static class MyMapSerializer extends JsonSerializer<MapMarker<?,?>>
     {
+        protected final JsonSerializer<Object> _keySerializer;
+        protected final JsonSerializer<Object> _valueSerializer;
+        
+        public MyMapSerializer(JsonSerializer<Object> keySer, JsonSerializer<Object> valueSer) {
+            _keySerializer = keySer;
+            _valueSerializer = valueSer;
+        }
+        
         @Override
         public void serialize(MapMarker<?,?> value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
             jgen.writeStartObject();
-            jgen.writeNumberField((String) value.getKey(), ((Number) value.getValue()).intValue());
+            if (_keySerializer == null) {
+                jgen.writeFieldName((String) value.getKey());
+            } else {
+                _keySerializer.serialize(value.getKey(), jgen, provider);
+            }
+            if (_valueSerializer == null) {
+                jgen.writeNumber(((Number) value.getValue()).intValue());
+            } else {
+                _valueSerializer.serialize(value.getValue(), jgen, provider);
+            }
             jgen.writeEndObject();
         }
     }
@@ -188,7 +247,8 @@ public class TestTypeModifiers extends BaseMapTest
         ObjectMapper mapper = new ObjectMapper();
         mapper.setTypeFactory(mapper.getTypeFactory().withModifier(new MyTypeModifier()));
         mapper.registerModule(new ModifierModule());
-        assertEquals("{\"x\":3}", mapper.writeValueAsString(new MyMapLikeType("x", 3)));
+        // Due to custom serializer, should get:
+        assertEquals("{\"x\":\"xxx:3\"}", mapper.writeValueAsString(new MyMapLikeType("x", 3)));
     }
 
 

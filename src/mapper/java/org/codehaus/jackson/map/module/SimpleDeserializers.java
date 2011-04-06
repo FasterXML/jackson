@@ -52,6 +52,7 @@ public class SimpleDeserializers implements Deserializers
             BeanProperty property,
             TypeDeserializer elementTypeDeserializer,
             JsonDeserializer<?> elementDeserializer)
+        throws JsonMappingException
     {
         return (_classMappings == null) ? null : _classMappings.get(new ClassKey(type.getRawClass()));
     }
@@ -60,6 +61,7 @@ public class SimpleDeserializers implements Deserializers
     public JsonDeserializer<?> findBeanDeserializer(JavaType type,
             DeserializationConfig config, DeserializerProvider provider,
             BeanDescription beanDesc, BeanProperty property)
+        throws JsonMappingException
     {
         return (_classMappings == null) ? null : _classMappings.get(new ClassKey(type.getRawClass()));
     }
@@ -70,6 +72,7 @@ public class SimpleDeserializers implements Deserializers
             BeanDescription beanDesc, BeanProperty property,
             TypeDeserializer elementTypeDeserializer,
             JsonDeserializer<?> elementDeserializer)
+        throws JsonMappingException
     {
         return (_classMappings == null) ? null : _classMappings.get(new ClassKey(type.getRawClass()));
     }
@@ -80,6 +83,7 @@ public class SimpleDeserializers implements Deserializers
             BeanDescription beanDesc, BeanProperty property,
             TypeDeserializer elementTypeDeserializer,
             JsonDeserializer<?> elementDeserializer)
+        throws JsonMappingException
     {
         return (_classMappings == null) ? null : _classMappings.get(new ClassKey(type.getRawClass()));
     }
@@ -87,6 +91,7 @@ public class SimpleDeserializers implements Deserializers
     @Override
     public JsonDeserializer<?> findEnumDeserializer(Class<?> type,
             DeserializationConfig config, BeanDescription beanDesc, BeanProperty property)
+        throws JsonMappingException
     {
         return (_classMappings == null) ? null : _classMappings.get(new ClassKey(type));
     }
@@ -98,6 +103,7 @@ public class SimpleDeserializers implements Deserializers
             KeyDeserializer keyDeserializer,
             TypeDeserializer elementTypeDeserializer,
             JsonDeserializer<?> elementDeserializer)
+        throws JsonMappingException
     {
         return (_classMappings == null) ? null : _classMappings.get(new ClassKey(type.getRawClass()));
     }
@@ -109,6 +115,7 @@ public class SimpleDeserializers implements Deserializers
             KeyDeserializer keyDeserializer,
             TypeDeserializer elementTypeDeserializer,
             JsonDeserializer<?> elementDeserializer)
+        throws JsonMappingException
     {
         return (_classMappings == null) ? null : _classMappings.get(new ClassKey(type.getRawClass()));
     }
@@ -116,6 +123,7 @@ public class SimpleDeserializers implements Deserializers
     @Override
     public JsonDeserializer<?> findTreeNodeDeserializer(Class<? extends JsonNode> nodeType,
             DeserializationConfig config, BeanProperty property)
+        throws JsonMappingException
     {
         return (_classMappings == null) ? null : _classMappings.get(new ClassKey(nodeType));
     }

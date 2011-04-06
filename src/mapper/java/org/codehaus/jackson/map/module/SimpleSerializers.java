@@ -134,31 +134,38 @@ public class SimpleSerializers implements Serializers
 
     @Override
     public JsonSerializer<?> findArraySerializer(SerializationConfig config,
-            ArrayType type, BeanDescription beanDesc, BeanProperty property) {
+            ArrayType type, BeanDescription beanDesc, BeanProperty property,
+            TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer) {
         return findSerializer(config, type, beanDesc, property);
     }
 
     @Override
     public JsonSerializer<?> findCollectionSerializer(SerializationConfig config,
-            CollectionType type, BeanDescription beanDesc, BeanProperty property) {
+            CollectionType type, BeanDescription beanDesc, BeanProperty property,
+            TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer) {
         return findSerializer(config, type, beanDesc, property);
     }
 
     @Override
     public JsonSerializer<?> findCollectionLikeSerializer(SerializationConfig config,
-            CollectionLikeType type, BeanDescription beanDesc, BeanProperty property) {
+            CollectionLikeType type, BeanDescription beanDesc, BeanProperty property,
+            TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer) {
         return findSerializer(config, type, beanDesc, property);
     }
         
     @Override
     public JsonSerializer<?> findMapSerializer(SerializationConfig config,
-            MapType type, BeanDescription beanDesc, BeanProperty property) {
+            MapType type, BeanDescription beanDesc, BeanProperty property,
+            JsonSerializer<Object> keySerializer,
+            TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer) {
         return findSerializer(config, type, beanDesc, property);
     }
 
     @Override
     public JsonSerializer<?> findMapLikeSerializer(SerializationConfig config,
-            MapLikeType type, BeanDescription beanDesc, BeanProperty property) {
+            MapLikeType type, BeanDescription beanDesc, BeanProperty property,
+            JsonSerializer<Object> keySerializer,
+            TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer) {
         return findSerializer(config, type, beanDesc, property);
     }
     
