@@ -685,6 +685,7 @@ public class SmileParser
     protected byte[] _decodeBase64(Base64Variant b64variant)
         throws IOException, JsonParseException
     {
+        // Should never get called, but must be defined for base class
         _throwInternal();
         return null;
     }
@@ -729,7 +730,7 @@ public class SmileParser
 	        }
                 return JsonToken.FIELD_NAME;
             case 0x34: // long ASCII/Unicode name
-                if (true) _throwInternal();
+                _handleLongFieldName();
                 return JsonToken.FIELD_NAME;            	
             }
             break;
@@ -921,6 +922,175 @@ public class SmileParser
         return _textBuffer.contentsAsString();
     }
 
+    // note: slightly edited copy of UTF8StreamParser.addName()
+    private final Name _decodeLongUnicodeName(int[] quads, int byteLen, int quadLen)
+        throws IOException, JsonParseException
+    {
+        int lastQuadBytes = byteLen & 3;
+        // Ok: must decode UTF-8 chars. No other validation SHOULD be needed (except bounds checks?)
+        /* Note: last quad is not correctly aligned (leading zero bytes instead
+         * need to shift a bit, instead of trailing). Only need to shift it
+         * for UTF-8 decoding; need revert for storage (since key will not
+         * be aligned, to optimize lookup speed)
+         */
+        int lastQuad;
+    
+        if (lastQuadBytes < 4) {
+            lastQuad = quads[quadLen-1];
+            // 8/16/24 bit left shift
+            quads[quadLen-1] = (lastQuad << ((4 - lastQuadBytes) << 3));
+        } else {
+            lastQuad = 0;
+        }
+
+        char[] cbuf = _textBuffer.emptyAndGetCurrentSegment();
+        int cix = 0;
+    
+        for (int ix = 0; ix < byteLen; ) {
+            int ch = quads[ix >> 2]; // current quad, need to shift+mask
+            int byteIx = (ix & 3);
+            ch = (ch >> ((3 - byteIx) << 3)) & 0xFF;
+            ++ix;
+    
+            if (ch > 127) { // multi-byte
+                int needed;
+                if ((ch & 0xE0) == 0xC0) { // 2 bytes (0x0080 - 0x07FF)
+                    ch &= 0x1F;
+                    needed = 1;
+                } else if ((ch & 0xF0) == 0xE0) { // 3 bytes (0x0800 - 0xFFFF)
+                    ch &= 0x0F;
+                    needed = 2;
+                } else if ((ch & 0xF8) == 0xF0) { // 4 bytes; double-char with surrogates and all...
+                    ch &= 0x07;
+                    needed = 3;
+                } else { // 5- and 6-byte chars not valid chars
+                    _reportInvalidInitial(ch);
+                    needed = ch = 1; // never really gets this far
+                }
+                if ((ix + needed) > byteLen) {
+                    _reportInvalidEOF(" in long field name");
+                }
+                
+                // Ok, always need at least one more:
+                int ch2 = quads[ix >> 2]; // current quad, need to shift+mask
+                byteIx = (ix & 3);
+                ch2 = (ch2 >> ((3 - byteIx) << 3));
+                ++ix;
+                
+                if ((ch2 & 0xC0) != 0x080) {
+                    _reportInvalidOther(ch2);
+                }
+                ch = (ch << 6) | (ch2 & 0x3F);
+                if (needed > 1) {
+                    ch2 = quads[ix >> 2];
+                    byteIx = (ix & 3);
+                    ch2 = (ch2 >> ((3 - byteIx) << 3));
+                    ++ix;
+                    
+                    if ((ch2 & 0xC0) != 0x080) {
+                        _reportInvalidOther(ch2);
+                    }
+                    ch = (ch << 6) | (ch2 & 0x3F);
+                    if (needed > 2) { // 4 bytes? (need surrogates on output)
+                        ch2 = quads[ix >> 2];
+                        byteIx = (ix & 3);
+                        ch2 = (ch2 >> ((3 - byteIx) << 3));
+                        ++ix;
+                        if ((ch2 & 0xC0) != 0x080) {
+                            _reportInvalidOther(ch2 & 0xFF);
+                        }
+                        ch = (ch << 6) | (ch2 & 0x3F);
+                    }
+                }
+                if (needed > 2) { // surrogate pair? once again, let's output one here, one later on
+                    ch -= 0x10000; // to normalize it starting with 0x0
+                    if (cix >= cbuf.length) {
+                        cbuf = _textBuffer.expandCurrentSegment();
+                    }
+                    cbuf[cix++] = (char) (0xD800 + (ch >> 10));
+                    ch = 0xDC00 | (ch & 0x03FF);
+                }
+            }
+            if (cix >= cbuf.length) {
+                cbuf = _textBuffer.expandCurrentSegment();
+            }
+            cbuf[cix++] = (char) ch;
+        }
+
+        // Ok. Now we have the character array, and can construct the String
+        String baseName = new String(cbuf, 0, cix);
+        // And finally, un-align if necessary
+        if (lastQuadBytes < 4) {
+            quads[quadLen-1] = lastQuad;
+        }
+        return _symbols.addName(baseName, quads, quadLen);
+    }
+    
+    private final void _handleLongFieldName() throws IOException, JsonParseException
+    {
+        // First: gather quads we need, looking for end marker
+        final byte[] inBuf = _inputBuffer;
+        int quads = 0;
+        int bytes = 0;
+        int q = 0;
+
+        while (true) {
+            byte b = inBuf[_inputPtr++];
+            if (BYTE_MARKER_END_OF_STRING == b) {
+                bytes = 0;
+                break;
+            }
+            q = ((int) b) & 0xFF;
+            b = inBuf[_inputPtr++];
+            if (BYTE_MARKER_END_OF_STRING == b) {
+                bytes = 1;
+                break;
+            }
+            q = (q << 8) | (b & 0xFF);
+            b = inBuf[_inputPtr++];
+            if (BYTE_MARKER_END_OF_STRING == b) {
+                bytes = 2;
+                break;
+            }
+            q = (q << 8) | (b & 0xFF);
+            b = inBuf[_inputPtr++];
+            if (BYTE_MARKER_END_OF_STRING == b) {
+                bytes = 3;
+                break;
+            }
+            q = (q << 8) | (b & 0xFF);
+            if (quads >= _quadBuffer.length) {
+                _quadBuffer = _growArrayTo(_quadBuffer, _quadBuffer.length + 256); // grow by 1k
+            }
+            _quadBuffer[quads++] = q;
+        }
+        // and if we have more bytes, append those too
+        int byteLen = (quads << 2);
+        if (bytes > 0) {
+            if (quads >= _quadBuffer.length) {
+                _quadBuffer = _growArrayTo(_quadBuffer, _quadBuffer.length + 256);
+            }
+            _quadBuffer[quads++] = q;
+            byteLen += bytes;
+        }
+        
+        // Know this name already?
+        String name;
+        Name n = _symbols.findName(_quadBuffer, quads);
+        if (n != null) {
+            name = n.getName();
+        } else {
+            name = _decodeLongUnicodeName(_quadBuffer, byteLen, quads).getName();
+        }
+        if (_seenNames != null) {
+           if (_seenNameCount >= _seenNames.length) {
+               _seenNames = _expandSeenNames(_seenNames);
+           }
+           _seenNames[_seenNameCount++] = name;
+        }
+        _parsingContext.setCurrentName(name);
+    }
+    
     /**
      * Helper method for trying to find specified encoded UTF-8 byte sequence
      * from symbol table; if successful avoids actual decoding to String
@@ -935,13 +1105,13 @@ public class SmileParser
 	if (len < 5) {
 	    int inPtr = _inputPtr;
 	    final byte[] inBuf = _inputBuffer;
-	    int q = inBuf[inPtr];
+	    int q = inBuf[inPtr] & 0xFF;
 	    if (--len > 0) {
-	        q = (q << 8) + inBuf[++inPtr];
+	        q = (q << 8) + (inBuf[++inPtr] & 0xFF);
 	        if (--len > 0) {
-	            q = (q << 8) + inBuf[++inPtr];
+	            q = (q << 8) + (inBuf[++inPtr] & 0xFF);
 	            if (--len > 0) {
-	                q = (q << 8) + inBuf[++inPtr];
+	                q = (q << 8) + (inBuf[++inPtr] & 0xFF);
 	            }
 	        }
 	    }
@@ -953,19 +1123,19 @@ public class SmileParser
             final byte[] inBuf = _inputBuffer;
             // First quadbyte is easy
             int q1 = inBuf[inPtr++] << 8;
-            q1 += inBuf[inPtr++];
+            q1 += (inBuf[inPtr++] & 0xFF);
             q1 <<= 8;
-            q1 += inBuf[inPtr++];
+            q1 += (inBuf[inPtr++] & 0xFF);
             q1 <<= 8;
-            q1 += inBuf[inPtr++];
-            int q2 = inBuf[inPtr++];
+            q1 += (inBuf[inPtr++] & 0xFF);
+            int q2 = (inBuf[inPtr++] & 0xFF);
             len -= 5;
             if (len > 0) {
-                q2 = (q2 << 8) + inBuf[inPtr++];				
+                q2 = (q2 << 8) + (inBuf[inPtr++] & 0xFF);
                 if (--len >= 0) {
-                    q2 = (q2 << 8) + inBuf[inPtr++];				
+                    q2 = (q2 << 8) + (inBuf[inPtr++] & 0xFF);
                     if (--len >= 0) {
-                        q2 = (q2 << 8) + inBuf[inPtr++];				
+                        q2 = (q2 << 8) + (inBuf[inPtr++] & 0xFF);
                     }
                 }
             }
@@ -973,10 +1143,13 @@ public class SmileParser
             _quad2 = q2;
             return _symbols.findName(q1, q2);
         }
-        return _findDecodedLong(len);
+        return _findDecodedMedium(len);
     }
 
-    private final Name _findDecodedLong(int len)
+    /**
+     * Method for locating names longer than 8 bytes (in UTF-8)
+     */
+    private final Name _findDecodedMedium(int len)
         throws IOException, JsonParseException
     {
     	// first, need enough buffer to store bytes as ints:
@@ -991,21 +1164,21 @@ public class SmileParser
     	int inPtr = _inputPtr;
     	final byte[] inBuf = _inputBuffer;
         do {
-            int q = inBuf[inPtr++] << 8;
-            q |= inBuf[inPtr++];
+            int q = (inBuf[inPtr++] << 8) & 0xFF;
+            q |= inBuf[inPtr++] & 0xFF;
             q <<= 8;
-            q |= inBuf[inPtr++];
+            q |= inBuf[inPtr++] & 0xFF;
             q <<= 8;
-            q |= inBuf[inPtr++];
+            q |= inBuf[inPtr++] & 0xFF;
             _quadBuffer[offset++] = q;
         } while ((len -= 4) > 3);
         // and then leftovers
         if (len > 0) {
-            int q = inBuf[inPtr++];
+            int q = inBuf[inPtr++] & 0xFF;
             if (--len >= 0) {
-                q = (q << 8) + inBuf[inPtr++];				
+                q = (q << 8) + (inBuf[inPtr++] & 0xFF);
                 if (--len >= 0) {
-                    q = (q << 8) + inBuf[inPtr++];				
+                    q = (q << 8) + (inBuf[inPtr++] & 0xFF);
                 }
             }
             _quadBuffer[offset++] = q;
@@ -1086,6 +1259,7 @@ public class SmileParser
                 return;
             }
         }
+        // sanity check
     	_throwInternal();
     }
 

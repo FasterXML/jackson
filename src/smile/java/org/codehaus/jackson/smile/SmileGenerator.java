@@ -625,7 +625,7 @@ public class SmileGenerator
         if (byteLen == len) {
             if (byteLen <= MAX_SHORT_NAME_ASCII_BYTES) { // yes, is short indeed
                 typeToken = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
-            } else { // longer albeit Ascii
+            } else { // longer albeit ASCII
                 typeToken = TOKEN_KEY_LONG_STRING;
                 // and we will need String end marker byte
                 _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
