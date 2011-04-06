@@ -11,6 +11,9 @@ Description:
   * [JACKSON-550] Registration of serializers was not completely working
     with SimpleModule (interfaces implemented by superclasses skipped)
    (reported by Andrei P)
+  * [JACKSON-552] SmileParser not handling long field names properly,
+    failed with "this code path should never get executed" exception
+   (reported by Shay B)
 
 ------------------------------------------------------------------------
 === History: ===
