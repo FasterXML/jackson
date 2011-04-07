@@ -559,7 +559,7 @@ public class BeanDeserializer
     	    try {
     	        return _delegatingCreator.deserialize(jp, ctxt);
             } catch (Exception e) {
-                wrapAndThrow(e, _beanType.getRawClass(), null, ctxt);
+                wrapInstantiationProblem(e, ctxt);
             }
     	}
     	throw ctxt.mappingException(getBeanClass());
@@ -645,7 +645,7 @@ public class BeanDeserializer
         try {
             bean =  creator.build(buffer);
         } catch (Exception e) {
-            wrapAndThrow(e, _beanType.getRawClass(), null, ctxt);
+            wrapInstantiationProblem(e, ctxt);
             return null; // never gets here
         }
         if (unknown != null) {
@@ -881,6 +881,28 @@ public class BeanDeserializer
         throw JsonMappingException.wrapWithPath(t, bean, index);
     }
 
+    protected void wrapInstantiationProblem(Throwable t, DeserializationContext ctxt)
+        throws IOException
+    {
+        while (t instanceof InvocationTargetException && t.getCause() != null) {
+            t = t.getCause();
+        }
+        // Errors and "plain" IOExceptions to be passed as is
+        if (t instanceof Error) {
+            throw (Error) t;
+        }
+        boolean wrap = (ctxt == null) || ctxt.isEnabled(DeserializationConfig.Feature.WRAP_EXCEPTIONS);
+        if (t instanceof IOException) {
+            // Since we have no more information to add, let's not actually wrap..
+            throw (IOException) t;
+        } else if (!wrap) { // [JACKSON-407] -- allow disabling wrapping for unchecked exceptions
+            if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            }
+        }
+        throw ctxt.instantiationException(_beanType.getRawClass(), t);
+    }
+    
     /**
      * @deprecated Since 1.7 use variant that takes {@link DeserializationContext}
      */
