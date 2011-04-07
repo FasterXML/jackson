@@ -1,3 +1,4 @@
+
 package org.codehaus.jackson.map.deser;
 
 import java.io.IOException;
@@ -113,10 +114,17 @@ public class TestCreators2
     	protected final String foo;
     	protected final String bar;
 
-		public AutoDetectConstructorBean(@JsonProperty("bar") String bar, @JsonProperty("foo") String foo){
-			this.bar = bar;
-			this.foo = foo;
+    	public AutoDetectConstructorBean(@JsonProperty("bar") String bar, @JsonProperty("foo") String foo){
+    	    this.bar = bar;
+    	    this.foo = foo;
     	}
+    }
+
+    static class BustedCtor {
+        @JsonCreator
+        BustedCtor(@JsonProperty("a") String value) {
+            throw new IllegalArgumentException("foobar");
+        }
     }
     
     /*
@@ -125,6 +133,17 @@ public class TestCreators2
     /**********************************************************
      */
 
+    public void testExceptionFromConstructor() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        try {
+            m.readValue("{}", BustedCtor.class);
+            fail("Expected exception");
+        } catch (JsonMappingException e) {
+            verifyException(e, "problem: foobar");
+        }
+    }
+    
     public void testSimpleConstructor() throws Exception
     {
         ObjectMapper m = new ObjectMapper();

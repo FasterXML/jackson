@@ -545,9 +545,11 @@ Elliot Barlas:
    [1.6.6]
 
 Gili (cowwoc):
-  * Reported [JACKSON-495] NPE at JaxbAnnotationIntrospector, with @JsonCreator
+  * Reported [JACKSON-495]: NPE at JaxbAnnotationIntrospector, with @JsonCreator
    annotations
    [1.6.6]
+  * Reported [JACKSON-547]: Problems relaying exceptions from creator methods
+   [1.6.7]
 
 Jax Law:
   * Reported [JACKSON-499]  Problems serializing HashMap.keySet(), values()

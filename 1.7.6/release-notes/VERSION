@@ -8,6 +8,8 @@ Description:
 
   Fixes:
 
+  * [JACKSON-547] Problems relaying exceptions from creator methods
+    (reported by Gili)
   * [JACKSON-550] Registration of serializers was not completely working
     with SimpleModule (interfaces implemented by superclasses skipped)
    (reported by Andrei P)
