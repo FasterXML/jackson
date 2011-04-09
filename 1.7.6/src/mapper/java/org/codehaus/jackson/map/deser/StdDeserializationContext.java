@@ -201,7 +201,7 @@ public class StdDeserializationContext
     @Override
     public JsonMappingException instantiationException(Class<?> instClass, Exception e)
     {
-        return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+", problem: "+e.getMessage());
+        return JsonMappingException.from(_parser, "Can not construct instance of "+instClass.getName()+", problem: "+e.getMessage(), e);
     }
 
     @Override

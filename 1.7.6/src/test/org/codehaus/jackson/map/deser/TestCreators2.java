@@ -133,6 +133,7 @@ public class TestCreators2
     /**********************************************************
      */
 
+    // for [JACKSON-547]
     public void testExceptionFromConstructor() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
