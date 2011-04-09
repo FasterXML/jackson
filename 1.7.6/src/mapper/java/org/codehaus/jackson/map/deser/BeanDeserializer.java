@@ -895,7 +895,7 @@ public class BeanDeserializer
                 throw (RuntimeException) t;
             }
         }
-	throw JsonMappingException.from(ctxt.getParser(), "Can not construct instance of "+_beanType.getRawClass().getName()+", problem: "+t.getMessage());
+	throw JsonMappingException.from(ctxt.getParser(), "Can not construct instance of "+_beanType.getRawClass().getName()+", problem: "+t.getMessage(), t);
     }
     
     /**
