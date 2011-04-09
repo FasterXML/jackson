@@ -133,6 +133,7 @@ public class TestCreators2
     /**********************************************************
      */
 
+    // for [JACKSON-547]
     public void testExceptionFromConstructor() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
@@ -141,6 +142,11 @@ public class TestCreators2
             fail("Expected exception");
         } catch (JsonMappingException e) {
             verifyException(e, "problem: foobar");
+            // also: should have nested exception
+            Throwable t = e.getCause();
+            assertNotNull(t);
+            assertEquals(IllegalArgumentException.class, t.getClass());
+            assertEquals("foobar", t.getMessage());
         }
     }
     
