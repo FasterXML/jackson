@@ -8,6 +8,9 @@ Description:
 
   Fixes:
 
+  * [JACKSON-543] Root-level static type information incorrectly handled
+    with Maps (losing parameterization)
+   (reported by Steven S)
   * [JACKSON-553] SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION
     did not work correctly
    (reported by Xun W)

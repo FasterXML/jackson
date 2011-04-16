@@ -243,7 +243,13 @@ public class MapSerializer
                 if (cc == prevValueClass) {
                     currSerializer = prevValueSerializer;
                 } else {
-                    currSerializer = provider.findValueSerializer(cc, _property);
+		    // [JACKSON-543]: should not lose generic type information
+                    if (_valueType.hasGenericTypes()) {
+			JavaType t = _valueType.forcedNarrowBy(cc);
+			currSerializer = provider.findValueSerializer(t, _property);
+                    } else {
+			currSerializer = provider.findValueSerializer(cc, _property);
+		    }
                     prevValueSerializer = currSerializer;
                     prevValueClass = cc;
                 }

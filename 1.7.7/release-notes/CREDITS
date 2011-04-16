@@ -539,6 +539,9 @@ Christian Naeger:
 Steven Schlansker:
   * [JACKSON-473] JsonMapping$Reference not Serializable
    [1.6.5]
+  * [JACKSON-543] Root-level static type information incorrectly handled
+    with Maps (losing parameterization)
+   [1.7.7]
 
 Elliot Barlas:
   * Reported [JACKSON-491]: Bug in NumberInput.inLongRange, causing false overflows
