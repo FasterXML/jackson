@@ -7,6 +7,34 @@ import org.codehaus.jackson.map.annotate.*;
 
 public class TestViews2 extends BaseMapTest
 {
+
+    /*
+    /************************************************************************ 
+    /* Tests
+    /************************************************************************ 
+     */
+    
+  public void testDataBindingUsage( ) throws Exception
+  {
+    ObjectMapper objectMapper = createObjectMapper( null );
+    String result = serializeWithObjectMapper(new ComplexTestData( ), Views.View.class, objectMapper );
+    assertEquals(-1, result.indexOf( "nameHidden" ));
+  }
+
+  public void testDataBindingUsageWithoutView( ) throws Exception
+  {
+    ObjectMapper objectMapper = createObjectMapper( null );
+    String json = serializeWithObjectMapper(new ComplexTestData( ), null, objectMapper);
+    System.out.println(json);
+    assertTrue(json.indexOf( "nameHidden" ) > 0);
+  }
+
+  /*
+  /************************************************************************ 
+  /* Helper  methods
+  /************************************************************************ 
+   */
+
   private ObjectMapper createObjectMapper(Class<?> viewClass)
   {
     ObjectMapper objectMapper = new ObjectMapper( );
@@ -17,38 +45,14 @@ public class TestViews2 extends BaseMapTest
 //    objectMapper.getSerializationConfig( ).setSerializationView( viewClass );
     return objectMapper;
   }
-
-  public void testDataBindingUsage( ) throws Exception
-  {
-    ObjectMapper objectMapper = createObjectMapper( null );
-//    Map map  = new HashMap( );
-//    map.put( "complexTestData", new ComplexTestData( ) );
-    final OutputStream output = new ByteArrayOutputStream( );
-    serializeWithObjectMapper( output, new ComplexTestData( ), Views.View.class, objectMapper );
-    String result = output.toString( );
-    System.out.println( output );
-    assert( result.indexOf( "nameHidden" ) == -1 );
-  }
-
-  public void testDataBindingUsageWithoutView( ) throws Exception
-  {
-    ObjectMapper objectMapper = createObjectMapper( null );
-//    Map map  = new HashMap( );
-//    map.put( "complexTestData", new ComplexTestData( ) );
-    final OutputStream output = new ByteArrayOutputStream( );
-    serializeWithObjectMapper( output, new ComplexTestData( ), null, objectMapper );
-    String result = output.toString( );
-    System.out.println( output );
-    assert( result.indexOf( "nameHidden" ) > 0 );
-  }
-
+  
+  
   @SuppressWarnings("deprecation")
-  private void serializeWithObjectMapper( OutputStream output, Object object, Class<? extends Views.View> view, ObjectMapper objectMapper ) throws IOException
+  private String serializeWithObjectMapper(Object object, Class<? extends Views.View> view, ObjectMapper objectMapper )
+      throws IOException
   {
     objectMapper.getSerializationConfig( ).setSerializationView( view );
-    objectMapper.writeValue( output, object );
-//    ObjectWriter objectWriter = objectMapper.viewWriter( view ).withDefaultPrettyPrinter();
-//    writeValue( output, object, objectWriter );
+    return objectMapper.writeValueAsString(object );
   }
 
   /*
