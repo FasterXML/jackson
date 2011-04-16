@@ -22,7 +22,7 @@ public class TestViews
     /**********************************************************
      */
 
-	// Classes that represent views
+    // Classes that represent views
     static class ViewA { }
     static class ViewAA extends ViewA { }
     static class ViewB { }
@@ -139,11 +139,10 @@ public class TestViews
 
         // but can also change (but not necessarily on the fly...)
         mapper = new ObjectMapper();
-        sw = new StringWriter();
         mapper.configure(SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION, false);
         // with this setting, only explicit inclusions count:
-        mapper.viewWriter(ViewA.class).writeValue(sw, bean);
-        map = mapper.readValue(sw.toString(), Map.class);
+        String json = mapper.viewWriter(ViewA.class).writeValueAsString(bean);
+        map = mapper.readValue(json, Map.class);
         assertEquals(1, map.size());
         assertEquals("1", map.get("a"));
         assertNull(map.get("b"));

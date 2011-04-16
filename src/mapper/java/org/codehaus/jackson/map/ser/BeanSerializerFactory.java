@@ -686,41 +686,27 @@ public class BeanSerializerFactory
         // [JACKSON-232]: whether non-annotated fields are included by default or not is configurable
         List<BeanPropertyWriter> props = builder.getProperties();
         boolean includeByDefault = config.isEnabled(SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION);
-        if (includeByDefault) { // non-annotated are included
-            final int propCount = props.size();
-            BeanPropertyWriter[] filtered = null;        
-            // Simple: view information is stored within individual writers, need to combine:
-            for (int i = 0; i < propCount; ++i) {
-                BeanPropertyWriter bpw = props.get(i);
-                Class<?>[] views = bpw.getViews();
-                if (views != null) {
-                    if (filtered == null) {
-                        filtered = new BeanPropertyWriter[props.size()];
-                    }
-                    filtered[i] = constructFilteredBeanWriter(bpw, views);
+        final int propCount = props.size();
+        int viewsFound = 0;
+        BeanPropertyWriter[] filtered = new BeanPropertyWriter[propCount];
+        // Simple: view information is stored within individual writers, need to combine:
+        for (int i = 0; i < propCount; ++i) {
+            BeanPropertyWriter bpw = props.get(i);
+            Class<?>[] views = bpw.getViews();
+            if (views == null) { // no view info? include or exclude by default?
+                if (includeByDefault) {
+                    filtered[i] = bpw;
                 }
-            }        
-            // Anything missing? Need to fill in
-            if (filtered != null) {
-                for (int i = 0; i < propCount; ++i) {
-                    if (filtered[i] == null) {
-                        filtered[i] = props.get(i);
-                    }
-                }
-                builder.setFilteredProperties(filtered);
-            }        
-            // No views, return
+            } else {
+                ++viewsFound;
+                filtered[i] = constructFilteredBeanWriter(bpw, views);
+            }
+        }
+        // minor optimization: if no view info, include-by-default, can leave out filtering info altogether:
+        if (includeByDefault && viewsFound == 0) {
             return;
         }
-        // Otherwise: only include fields with view definitions
-        ArrayList<BeanPropertyWriter> explicit = new ArrayList<BeanPropertyWriter>(props.size());
-        for (BeanPropertyWriter bpw : props) {
-            Class<?>[] views = bpw.getViews();
-            if (views != null) {
-                explicit.add(constructFilteredBeanWriter(bpw, views));
-            }            
-        }
-        builder.setFilteredProperties(explicit.toArray(new BeanPropertyWriter[explicit.size()]));
+        builder.setFilteredProperties(filtered);
     }
 
     /**
