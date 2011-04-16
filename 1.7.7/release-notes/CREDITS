@@ -611,3 +611,9 @@ Andrei Pozolotin:
   * Reported [JACKSON-550] Registration of serializers was not completely
     working with SimpleModule (interfaces implemented by superclasses skipped)
    [1.7.6]
+
+Xyn Wang:
+  * Reported [JACKSON-553] SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION
+    did not work correctly
+   [1.7.7]
+

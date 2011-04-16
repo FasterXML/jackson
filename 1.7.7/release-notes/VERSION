@@ -8,6 +8,10 @@ Description:
 
   Fixes:
 
+  * [JACKSON-553] SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION
+    did not work correctly
+   (reported by Xun W)
+
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
