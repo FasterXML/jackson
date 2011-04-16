@@ -25,7 +25,6 @@ public class TestViews2 extends BaseMapTest
   {
     ObjectMapper objectMapper = createObjectMapper( null );
     String json = serializeWithObjectMapper(new ComplexTestData( ), null, objectMapper);
-    System.out.println(json);
     assertTrue(json.indexOf( "nameHidden" ) > 0);
   }
 
