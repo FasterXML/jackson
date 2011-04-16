@@ -480,8 +480,13 @@ public class BeanPropertyWriter
         sb.append("property '").append(getName()).append("' (");
         if (_accessorMethod != null) {
             sb.append("via method ").append(_accessorMethod.getDeclaringClass().getName()).append("#").append(_accessorMethod.getName());
-               } else {
+        } else {
             sb.append("field \"").append(_field.getDeclaringClass().getName()).append("#").append(_field.getName());
+        }
+        if (_serializer == null) {
+            sb.append(", no static serializer");
+        } else {
+            sb.append(", static serializer of type "+_serializer.getClass().getName());
         }
         sb.append(')');
         return sb.toString();
