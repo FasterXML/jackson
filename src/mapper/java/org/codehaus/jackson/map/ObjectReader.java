@@ -79,6 +79,14 @@ public class ObjectReader
      * types can not be modified because array size is immutable.
      */
     protected final Object _valueToUpdate;
+
+    /**
+     * When using data format that uses a schema, schema is passed
+     * to parser.
+     * 
+     * @since 1.8
+     */
+    protected final FormatSchema _schema;
     
     /*
     /**********************************************************
@@ -93,11 +101,11 @@ public class ObjectReader
      */
     protected ObjectReader(ObjectMapper mapper, DeserializationConfig config)
     {
-        this(mapper, config, null, null);
+        this(mapper, config, null, null, null);
     }
 
     protected ObjectReader(ObjectMapper mapper, DeserializationConfig config,
-            JavaType valueType, Object valueToUpdate)
+            JavaType valueType, Object valueToUpdate, FormatSchema schema)
     {
         _config = config;
         _rootDeserializers = mapper._rootDeserializers;
@@ -108,13 +116,14 @@ public class ObjectReader
         if (valueToUpdate != null && valueType.isArrayType()) {
             throw new IllegalArgumentException("Can not update an array value");
         }
+        _schema = schema;
     }
     
     /**
      * Copy constructor used for building variations.
      */
     protected ObjectReader(ObjectReader base, DeserializationConfig config,
-            JavaType valueType, Object valueToUpdate)
+            JavaType valueType, Object valueToUpdate, FormatSchema schema)
     {
         _config = config;
 
@@ -127,6 +136,7 @@ public class ObjectReader
         if (valueToUpdate != null && valueType.isArrayType()) {
             throw new IllegalArgumentException("Can not update an array value");
         }
+        _schema = schema;
     }
 
     /**
@@ -143,7 +153,7 @@ public class ObjectReader
     {
         if (valueType == _valueType) return this;
         // type is stored here, no need to make a copy of config
-        return new ObjectReader(this, _config, valueType, _valueToUpdate);
+        return new ObjectReader(this, _config, valueType, _valueToUpdate, _schema);
     }    
 
     public ObjectReader withType(Class<?> valueType)
@@ -160,7 +170,7 @@ public class ObjectReader
     {
         // node factory is stored within config, so need to copy that first
         if (f == _config.getNodeFactory()) return this;
-        return new ObjectReader(this, _config.withNodeFactory(f), _valueType, _valueToUpdate);
+        return new ObjectReader(this, _config.withNodeFactory(f), _valueType, _valueToUpdate, _schema);
     }
     
     public ObjectReader withValueToUpdate(Object value)
@@ -170,9 +180,20 @@ public class ObjectReader
             throw new IllegalArgumentException("cat not update null value");
         }
         JavaType t = _config.constructType(value.getClass());
-        return new ObjectReader(this, _config, t, value);
+        return new ObjectReader(this, _config, t, value, _schema);
     }    
 
+    /**
+     * @since 1.8
+     */
+    public ObjectReader withSchema(FormatSchema schema)
+    {
+        if (_schema == schema) {
+            return this;
+        }
+        return new ObjectReader(this, _config, _valueType, _valueToUpdate, schema);
+    }
+    
     /*
     /**********************************************************
     /* Deserialization methods; basic ones to support ObjectCodec first
@@ -282,6 +303,12 @@ public class ObjectReader
         return _bindAndCloseAsTree(_jsonFactory.createJsonParser(content));
     }
 
+    /*
+    /**********************************************************
+    /* Deserialization methods; reading sequence of values
+    /**********************************************************
+     */
+    
     /**
      * Method for reading sequence of Objects from parser stream.
      * 
@@ -303,6 +330,9 @@ public class ObjectReader
         throws IOException, JsonProcessingException
     {
         JsonParser jp = _jsonFactory.createJsonParser(src);
+        if (_schema != null) {
+            jp.setSchema(_schema);
+        }
         DeserializationContext ctxt = _createDeserializationContext(jp, _config);
         return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
     }
@@ -316,6 +346,9 @@ public class ObjectReader
         throws IOException, JsonProcessingException
     {
         JsonParser jp = _jsonFactory.createJsonParser(src);
+        if (_schema != null) {
+            jp.setSchema(_schema);
+        }
         DeserializationContext ctxt = _createDeserializationContext(jp, _config);
         return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
     }
@@ -329,6 +362,9 @@ public class ObjectReader
         throws IOException, JsonProcessingException
     {
         JsonParser jp = _jsonFactory.createJsonParser(json);
+        if (_schema != null) {
+            jp.setSchema(_schema);
+        }
         DeserializationContext ctxt = _createDeserializationContext(jp, _config);
         return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
     }
@@ -342,6 +378,9 @@ public class ObjectReader
         throws IOException, JsonProcessingException
     {
         JsonParser jp = _jsonFactory.createJsonParser(src, offset, length);
+        if (_schema != null) {
+            jp.setSchema(_schema);
+        }
         DeserializationContext ctxt = _createDeserializationContext(jp, _config);
         return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
     }
@@ -355,6 +394,9 @@ public class ObjectReader
         throws IOException, JsonProcessingException
     {
         JsonParser jp = _jsonFactory.createJsonParser(src);
+        if (_schema != null) {
+            jp.setSchema(_schema);
+        }
         DeserializationContext ctxt = _createDeserializationContext(jp, _config);
         return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
     }
@@ -368,6 +410,9 @@ public class ObjectReader
         throws IOException, JsonProcessingException
     {
         JsonParser jp = _jsonFactory.createJsonParser(src);
+        if (_schema != null) {
+            jp.setSchema(_schema);
+        }
         DeserializationContext ctxt = _createDeserializationContext(jp, _config);
         return new MappingIterator<T>(_valueType, jp, ctxt, _findRootDeserializer(_config, _valueType));
     }
@@ -408,6 +453,9 @@ public class ObjectReader
     protected Object _bindAndClose(JsonParser jp)
         throws IOException, JsonParseException, JsonMappingException
     {
+        if (_schema != null) {
+            jp.setSchema(_schema);
+        }
         try {
             Object result;
             JsonToken t = _initForReading(jp);
@@ -450,6 +498,9 @@ public class ObjectReader
     protected JsonNode _bindAndCloseAsTree(JsonParser jp)
         throws IOException, JsonParseException, JsonMappingException
     {
+        if (_schema != null) {
+            jp.setSchema(_schema);
+        }
         try {
             return _bindAsTree(jp);
         } finally {

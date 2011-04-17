@@ -2009,9 +2009,28 @@ public class ObjectMapper
                 /*root type*/ null, _defaultPrettyPrinter());
     }
     
+    /**
+     * Factory method for constructing {@link ObjectWriter} that will
+     * serialize objects using specified filter provider.
+     * 
+     * @since 1.7
+     */
     public ObjectWriter filteredWriter(FilterProvider filterProvider) {
         return new ObjectWriter(this,
                 copySerializationConfig().withFilters(filterProvider));
+    }
+
+    /**
+     * Factory method for constructing {@link ObjectWriter} that will
+     * pass specific schema object to {@link JsonGenerator} used for
+     * writing content.
+     * 
+     * @param schema Schema to pass to generator
+     * 
+     * @since 1.8
+     */
+    public ObjectWriter schemaBasedWriter(FormatSchema schema) {
+        return new ObjectWriter(this, copySerializationConfig(), schema);
     }
     
     /*
@@ -2046,7 +2065,7 @@ public class ObjectMapper
     public ObjectReader updatingReader(Object valueToUpdate)
     {
         JavaType t = _typeFactory.constructType(valueToUpdate.getClass());
-        return new ObjectReader(this, copyDeserializationConfig(), t, valueToUpdate);
+        return new ObjectReader(this, copyDeserializationConfig(), t, valueToUpdate, null);
     }
 
     /**
@@ -2057,7 +2076,7 @@ public class ObjectMapper
      */
     public ObjectReader reader(JavaType type)
     {
-        return new ObjectReader(this, copyDeserializationConfig(), type, null);
+        return new ObjectReader(this, copyDeserializationConfig(), type, null, null);
     }
 
     /**
@@ -2091,6 +2110,19 @@ public class ObjectMapper
     public ObjectReader reader(JsonNodeFactory f)
     {        
         return new ObjectReader(this, copyDeserializationConfig()).withNodeFactory(f);
+    }
+
+    /**
+     * Factory method for constructing {@link ObjectReader} that will
+     * pass specific schema object to {@link JsonParser} used for
+     * reading content.
+     * 
+     * @param schema Schema to pass to parser
+     * 
+     * @since 1.8
+     */
+    public ObjectReader schemaBasedReader(FormatSchema schema) {
+        return new ObjectReader(this, copyDeserializationConfig(), null, null, schema);
     }
     
     /*

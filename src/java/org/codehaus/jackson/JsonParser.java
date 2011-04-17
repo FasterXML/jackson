@@ -279,7 +279,7 @@ public abstract class JsonParser
 
     /*
     /**********************************************************
-    /* Construction, init
+    /* Construction, configuration, initialization
     /**********************************************************
      */
 
@@ -306,6 +306,42 @@ public abstract class JsonParser
      */
     public abstract void setCodec(ObjectCodec c);
 
+    /**
+     * Method to call to make this parser use specified schema. Method must
+     * be called before trying to parse any content, right after parser instance
+     * has been created.
+     * Note that not all parsers support schemas; and those that do usually only
+     * accept specific types of schemas: ones defined for data format parser can read.
+     *<p>
+     * If parser does not support specified schema, {@link UnsupportedOperationException}
+     * is thrown.
+     * 
+     * @param schema Schema to use
+     * 
+     * @throws UnsupportedOperationException if parser does not support schema
+     * 
+     * @since 1.8
+     */
+    public void setSchema(FormatSchema schema)
+    {
+        throw new UnsupportedOperationException("Parser of type "+getClass().getName()+" does not support schema of type '"
+                +schema.getSchemaType()+"'");
+    }
+    
+    /**
+     * Method that can be used to verify that given schema can be used with
+     * this parser (using {@link #setSchema}).
+     * 
+     * @param schema Schema to check
+     * 
+     * @return True if this parser can use given schema; false if not
+     * 
+     * @since 1.8
+     */
+    public boolean canUseSchema(FormatSchema schema) {
+        return false;
+    }
+    
     /**
      * @since 1.6
      */

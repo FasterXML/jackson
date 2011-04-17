@@ -70,6 +70,14 @@ public class ObjectWriter
      * as well
      */
     protected final PrettyPrinter _prettyPrinter;
+
+    /**
+     * When using data format that uses a schema, schema is passed
+     * to generator.
+     * 
+     * @since 1.8
+     */
+    protected final FormatSchema _schema;
     
     /*
     /**********************************************************
@@ -91,11 +99,11 @@ public class ObjectWriter
 
         _rootType = rootType;
         _prettyPrinter = pp;
+        _schema = null;
     }
 
     /**
-     * Alternative constructor for initial instantiation; used when a filter provider
-     * is given.
+     * Alternative constructor for initial instantiation.
      * 
      * @since 1.7
      */
@@ -109,13 +117,33 @@ public class ObjectWriter
 
         _rootType = null;
         _prettyPrinter = null;
+        _schema = null;
+    }
+
+    /**
+     * Alternative constructor for initial instantiation.
+     * 
+     * @since 1.7
+     */
+    protected ObjectWriter(ObjectMapper mapper, SerializationConfig config,
+            FormatSchema s)
+    {
+        _config = config;
+
+        _provider = mapper._serializerProvider;
+        _serializerFactory = mapper._serializerFactory;
+        _jsonFactory = mapper._jsonFactory;
+
+        _rootType = null;
+        _prettyPrinter = null;
+        _schema = s;
     }
     
     /**
      * Copy constructor used for building variations.
      */
     protected ObjectWriter(ObjectWriter base, SerializationConfig config,
-            JavaType rootType, PrettyPrinter pp)
+            JavaType rootType, PrettyPrinter pp, FormatSchema s)
     {
         _config = config;
 
@@ -125,6 +153,7 @@ public class ObjectWriter
         
         _rootType = rootType;
         _prettyPrinter = pp;
+        _schema = s;
     }
 
     /**
@@ -139,10 +168,10 @@ public class ObjectWriter
         _provider = base._provider;
         _serializerFactory = base._serializerFactory;
         _jsonFactory = base._jsonFactory;
+        _schema = base._schema;
         
         _rootType = base._rootType;
         _prettyPrinter = base._prettyPrinter;
-        
     }
     
     /**
@@ -181,7 +210,7 @@ public class ObjectWriter
     {
         if (rootType == _rootType) return this;
         // type is stored here, no need to make a copy of config
-        return new ObjectWriter(this, _config, rootType, _prettyPrinter);
+        return new ObjectWriter(this, _config, rootType, _prettyPrinter, _schema);
     }    
 
     /**
@@ -210,11 +239,14 @@ public class ObjectWriter
      */
     public ObjectWriter withPrettyPrinter(PrettyPrinter pp)
     {
+        if (pp == _prettyPrinter) {
+            return this;
+        }
         // since null would mean "don't care", need to use placeholder to indicate "disable"
         if (pp == null) {
             pp = NULL_PRETTY_PRINTER;
         }
-        return new ObjectWriter(this, _config, _rootType, pp);
+        return new ObjectWriter(this, _config, _rootType, pp, _schema);
     }
 
     /**
@@ -234,11 +266,23 @@ public class ObjectWriter
      * 
      * @since 1.7
      */
-    public ObjectWriter withFilters(FilterProvider filterProvider) {
+    public ObjectWriter withFilters(FilterProvider filterProvider)
+    {
         if (filterProvider == _config.getFilterProvider()) { // no change?
             return this;
         }
         return new ObjectWriter(this, _config.withFilters(filterProvider));
+    }
+
+    /**
+     * @since 1.8
+     */
+    public ObjectWriter withSchema(FormatSchema schema)
+    {
+        if (_schema == schema) {
+            return this;
+        }
+        return new ObjectWriter(this, _config, _rootType, _prettyPrinter, schema);
     }
     
     /*
@@ -379,6 +423,10 @@ public class ObjectWriter
         } else if (_config.isEnabled(SerializationConfig.Feature.INDENT_OUTPUT)) {
             jgen.useDefaultPrettyPrinter();
         }
+        // [JACKSON-520]: add support for pass-through schema:
+        if (_schema != null) {
+            jgen.setSchema(_schema);
+        }
         // [JACKSON-282]: consider Closeable
         if (_config.isEnabled(SerializationConfig.Feature.CLOSE_CLOSEABLE) && (value instanceof Closeable)) {
             _configAndWriteCloseable(jgen, value, _config);
@@ -418,6 +466,10 @@ public class ObjectWriter
                 _provider.serializeValue(cfg, jgen, value, _serializerFactory);
             } else {
                 _provider.serializeValue(cfg, jgen, value, _rootType, _serializerFactory);
+            }
+            // [JACKSON-520]: add support for pass-through schema:
+            if (_schema != null) {
+                jgen.setSchema(_schema);
             }
             JsonGenerator tmpJgen = jgen;
             jgen = null;

@@ -176,12 +176,49 @@ public abstract class JsonGenerator
 
     /*
     /**********************************************************
-    /* Construction
+    /* Construction, configuration, initialization
     /**********************************************************
      */
     
     protected JsonGenerator() { }
 
+    /**
+     * Method to call to make this generator use specified schema.
+     * Method must be called before generating any content, right after instance
+     * has been created.
+     * Note that not all generators support schemas; and those that do usually only
+     * accept specific types of schemas: ones defined for data format this generator
+     * produces.
+     *<p>
+     * If generator does not support specified schema, {@link UnsupportedOperationException}
+     * is thrown.
+     * 
+     * @param schema Schema to use
+     * 
+     * @throws UnsupportedOperationException if generator does not support schema
+     * 
+     * @since 1.8
+     */
+    public void setSchema(FormatSchema schema)
+    {
+        throw new UnsupportedOperationException("Generator of type "+getClass().getName()+" does not support schema of type '"
+                +schema.getSchemaType()+"'");
+    }
+    
+    /**
+     * Method that can be used to verify that given schema can be used with
+     * this generator (using {@link #setSchema}).
+     * 
+     * @param schema Schema to check
+     * 
+     * @return True if this generator can use given schema; false if not
+     * 
+     * @since 1.8
+     */
+    public boolean canUseSchema(FormatSchema schema) {
+        return false;
+    }
+    
     /**
      * @since 1.6
      */

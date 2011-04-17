@@ -15,6 +15,8 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
  * {@link org.codehaus.jackson.map.TypeSerializer}s
  * and {@link org.codehaus.jackson.map.TypeDeserializer}s
  * for converting between java types and type id included in JSON content.
+ * In simplest cases this can be a simple class with static mapping between
+ * type names and matching classes.
  * 
  * @author tatu
  * @since 1.5
@@ -24,5 +26,10 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 @JacksonAnnotation
 public @interface JsonTypeIdResolver
 {
+    /**
+     * Defines implementation class of {@link TypeIdResolver} to use for
+     * converting between external type id (type name) and actual
+     * type of object.
+     */
     public Class<? extends TypeIdResolver> value();
 }
