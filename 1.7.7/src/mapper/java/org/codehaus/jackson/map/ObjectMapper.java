@@ -1260,8 +1260,7 @@ public class ObjectMapper
     public <T> T treeToValue(JsonNode n, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        JsonParser jp = treeAsTokens(n);
-        return readValue(jp, valueType);
+	return readValue(treeAsTokens(n), valueType);
     }
 
     /**
@@ -1495,7 +1494,7 @@ public class ObjectMapper
     {
      // !!! TODO
 //    	_setupClassLoaderForDeserialization(valueType);
-        return (T) _readValue(copyDeserializationConfig(), root.traverse(), TypeFactory.type(valueType));
+        return (T) _readValue(copyDeserializationConfig(), treeAsTokens(root), TypeFactory.type(valueType));
     } 
 
     /**
@@ -1511,7 +1510,7 @@ public class ObjectMapper
     public <T> T readValue(JsonNode root, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(copyDeserializationConfig(), root.traverse(), TypeFactory.type(valueTypeRef));
+        return (T) _readValue(copyDeserializationConfig(), treeAsTokens(root), TypeFactory.type(valueTypeRef));
     } 
     
     /**
@@ -1527,7 +1526,7 @@ public class ObjectMapper
     public <T> T readValue(JsonNode root, JavaType valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(copyDeserializationConfig(), root.traverse(), valueType);
+        return (T) _readValue(copyDeserializationConfig(), treeAsTokens(root), valueType);
     } 
     
     /*
