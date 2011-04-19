@@ -9,7 +9,9 @@ import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.type.SimpleType;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.NullNode;
+import org.codehaus.jackson.node.TreeTraversingParser;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.type.TypeReference;
 import org.codehaus.jackson.util.VersionUtil;
 
 /**
@@ -26,6 +28,7 @@ import org.codehaus.jackson.util.VersionUtil;
  * @since 1.6
  */
 public class ObjectReader
+    extends ObjectCodec
     implements Versioned
 {
     private final static JavaType JSON_NODE_TYPE = SimpleType.constructUnsafe(JsonNode.class);
@@ -166,6 +169,14 @@ public class ObjectReader
         return withType(_config.getTypeFactory().constructType(valueType));
     }    
 
+    /**
+     * @since 1.8
+     */
+    public ObjectReader withType(TypeReference<?> valueTypeRef)
+    {
+        return withType(_config.getTypeFactory().constructType(valueTypeRef.getType()));
+    }    
+    
     public ObjectReader withNodeFactory(JsonNodeFactory f)
     {
         // node factory is stored within config, so need to copy that first
@@ -208,6 +219,7 @@ public class ObjectReader
         return (T) _bind(jp);
     }
 
+    @Override // from ObjectCodec
     public JsonNode readTree(JsonParser jp)
         throws IOException, JsonProcessingException
     {
@@ -275,14 +287,12 @@ public class ObjectReader
      *<pre>
      *   objectReader.readValue(src.traverse())
      *</pre>
-     *
-     * @since 1.6
      */
     @SuppressWarnings("unchecked")
     public <T> T readValue(JsonNode src)
         throws IOException, JsonProcessingException
     {
-        return (T) _bindAndClose(src.traverse());
+        return (T) _bindAndClose(treeAsTokens(src));
     }
     
     public JsonNode readTree(InputStream in)
@@ -551,5 +561,69 @@ public class ObjectReader
     protected DeserializationContext _createDeserializationContext(JsonParser jp, DeserializationConfig cfg) {
         // 04-Jan-2010, tatu: we do actually need the provider too... (for polymorphic deser)
         return new StdDeserializationContext(cfg, jp, _provider);
-    }    
+    }
+
+    /*
+    /**********************************************************
+    /* Implementation of rest of ObjectCodec methods
+    /**********************************************************
+     */
+    
+    @Override
+    public JsonNode createArrayNode() {
+        return _config.getNodeFactory().arrayNode();
+    }
+
+    @Override
+    public JsonNode createObjectNode() {
+        return _config.getNodeFactory().objectNode();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T readValue(JsonParser jp, Class<T> valueType)
+            throws IOException, JsonProcessingException
+    {
+        return (T) withType(valueType).readValue(jp);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T readValue(JsonParser jp, TypeReference<?> valueTypeRef) throws IOException, JsonProcessingException
+    {            
+        return (T) withType(valueTypeRef).readValue(jp);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T readValue(JsonParser jp, JavaType valueType) throws IOException, JsonProcessingException {
+        return (T) withType(valueType).readValue(jp);
+    }
+
+    @Override
+    public JsonParser treeAsTokens(JsonNode n) {
+        return new TreeTraversingParser(n, this);
+    }
+
+    @Override
+    public <T> T treeToValue(JsonNode n, Class<T> valueType)
+            throws IOException, JsonProcessingException
+    {
+        return readValue(treeAsTokens(n), valueType);
+    }
+
+    /**
+     * NOTE: NOT implemented for {@link ObjectReader}.
+     */
+    @Override
+    public void writeTree(JsonGenerator jgen, JsonNode rootNode) throws IOException, JsonProcessingException
+    {
+        throw new UnsupportedOperationException("Not implemented for ObjectReader");
+    }
+
+    @Override
+    public void writeValue(JsonGenerator jgen, Object value) throws IOException, JsonProcessingException
+    {
+        throw new UnsupportedOperationException("Not implemented for ObjectReader");
+    }
 }

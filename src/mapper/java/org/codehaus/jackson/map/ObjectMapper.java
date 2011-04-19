@@ -1458,8 +1458,7 @@ public class ObjectMapper
     public <T> T treeToValue(JsonNode n, Class<T> valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        JsonParser jp = treeAsTokens(n);
-        return readValue(jp, valueType);
+        return readValue(treeAsTokens(n), valueType);
     }
 
     /**
@@ -1714,7 +1713,7 @@ public class ObjectMapper
      * Convenience method for converting results from given JSON tree into given
      * value type. Basically short-cut for:
      *<pre>
-     *   mapper.readValue(root.traverse(), valueType);
+     *   mapper.readValue(mapper.treeAsTokens(root), valueType);
      *</pre>
      *
      * @since 1.6
@@ -1725,14 +1724,14 @@ public class ObjectMapper
     {
      // !!! TODO
 //    	_setupClassLoaderForDeserialization(valueType);
-        return (T) _readValue(copyDeserializationConfig(), root.traverse(), _typeFactory.constructType(valueType));
+        return (T) _readValue(copyDeserializationConfig(), treeAsTokens(root), _typeFactory.constructType(valueType));
     } 
 
     /**
      * Convenience method for converting results from given JSON tree into given
      * value type. Basically short-cut for:
      *<pre>
-     *   mapper.readValue(root.traverse(), valueType);
+     *   mapper.readValue(mapper.treeAsTokens(root), valueType);
      *</pre>
      *
      * @since 1.6
@@ -1741,14 +1740,14 @@ public class ObjectMapper
     public <T> T readValue(JsonNode root, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(copyDeserializationConfig(), root.traverse(), _typeFactory.constructType(valueTypeRef));
+        return (T) _readValue(copyDeserializationConfig(), treeAsTokens(root), _typeFactory.constructType(valueTypeRef));
     } 
     
     /**
      * Convenience method for converting results from given JSON tree into given
      * value type. Basically short-cut for:
      *<pre>
-     *   mapper.readValue(root.traverse(), valueType);
+     *   mapper.readValue(mapper.treeAsTokens(root), valueType);
      *</pre>
      *
      * @since 1.6
@@ -1757,7 +1756,7 @@ public class ObjectMapper
     public <T> T readValue(JsonNode root, JavaType valueType)
         throws IOException, JsonParseException, JsonMappingException
     {
-        return (T) _readValue(copyDeserializationConfig(), root.traverse(), valueType);
+        return (T) _readValue(copyDeserializationConfig(), treeAsTokens(root), valueType);
     } 
     
     /*

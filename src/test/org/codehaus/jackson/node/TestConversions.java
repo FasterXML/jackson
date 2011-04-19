@@ -11,6 +11,20 @@ import org.codehaus.jackson.map.*;
  */
 public class TestConversions extends BaseMapTest
 {
+    static class Root {
+        public Leaf leaf;
+    }
+
+    static class Leaf {
+        public int value;
+    }
+    
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+    
     public void testAsInt() throws Exception
     {
         assertEquals(9, IntNode.valueOf(9).getValueAsInt());
@@ -35,5 +49,19 @@ public class TestConversions extends BaseMapTest
         assertEquals(true, new TextNode("barf").getValueAsBoolean(true));
 
         assertEquals(true, new POJONode(Boolean.TRUE).getValueAsBoolean());
+    }
+
+    // Test for [JACKSON-554]
+    public void testTreeToValue() throws Exception
+    {
+        String JSON = "{\"leaf\":{\"value\":13}}";
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(JSON);
+        // Ok, try converting to bean using two mechanisms
+        Root r1 = mapper.treeToValue(root, Root.class);
+        assertNotNull(r1);
+        assertEquals(13, r1.leaf.value);
+        Root r2 = mapper.readValue(root, Root.class);
+        assertEquals(13, r2.leaf.value);
     }
 }
