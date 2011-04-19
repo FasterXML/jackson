@@ -39,6 +39,8 @@ Description:
     support for basic JSON, Smile (and as many modules as possible)
   * [JACKSON-513]: Add methods for registering key serializers, deserializers,
     via Module API
+  * [JACKSON-520]: Add minimal FormatSchema abstraction, passed through by ObjectMapper
+    to JsonGenerator, JsonParser; needed for supporting schema-based formats.
   * [JACKSON-521]: Add support for new 'MapLikeType' and 'CollectionLikeType', to
     support Map/Collection types of languages like Scala
   * [JACKSON-523]: Allow passing actual type for TypeSerializer to use, to
