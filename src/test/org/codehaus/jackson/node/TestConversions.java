@@ -1,7 +1,10 @@
 package org.codehaus.jackson.node;
 
+import java.io.IOException;
+
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
 /**
  * Unit tests for verifying functionality of {@link JsonNode} methods that
@@ -50,12 +53,33 @@ public class TestConversions extends BaseMapTest
 
         assertEquals(true, new POJONode(Boolean.TRUE).getValueAsBoolean());
     }
+    
+    // Deserializer to trigger the problem described in [JACKSON-554]
+    public static class LeafDeserializer extends JsonDeserializer<Leaf>
+    {
+        @Override
+        public Leaf deserialize(JsonParser jp, DeserializationContext ctxt)
+                throws IOException, JsonProcessingException
+        {
+            JsonNode tree = jp.readValueAsTree();
+            Leaf leaf = new Leaf();
+            leaf.value = tree.get("value").getIntValue();
+            return leaf;
+        }
+    }
+
+    // MixIn for [JACKSON-554]
+    @JsonDeserialize(using = LeafDeserializer.class)
+    public static class LeafMixIn
+    {
+    }
 
     // Test for [JACKSON-554]
     public void testTreeToValue() throws Exception
     {
         String JSON = "{\"leaf\":{\"value\":13}}";
         ObjectMapper mapper = new ObjectMapper();
+        mapper.getDeserializationConfig().addMixInAnnotations(Leaf.class, LeafMixIn.class);
         JsonNode root = mapper.readTree(JSON);
         // Ok, try converting to bean using two mechanisms
         Root r1 = mapper.treeToValue(root, Root.class);
