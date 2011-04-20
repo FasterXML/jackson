@@ -133,6 +133,22 @@ public class JsonFactory implements Versioned
      * @since 1.8
      */
     protected CharacterEscapes _characterEscapes;
+
+    /**
+     * Optional helper object that may decorate input sources, to do
+     * additional processing on input during parsing.
+     * 
+     * @since 1.8
+     */
+    protected InputDecorator _inputDecorator;
+
+    /**
+     * Optional helper object that may decorate output object, to do
+     * additional processing on output during content generation.
+     * 
+     * @since 1.8
+     */
+    protected OutputDecorator _outputDecorator;
     
     /*
     /**********************************************************
@@ -294,6 +310,26 @@ public class JsonFactory implements Versioned
         return (_parserFeatures & f.getMask()) != 0;
     }
 
+    /**
+     * Method for getting currently configured input decorator (if any;
+     * there is no default decorator).
+     * 
+     * @since 1.8
+     */
+    public InputDecorator getInputDecorator() {
+        return _inputDecorator;
+    }
+
+    /**
+     * Method for overriding currently configured input decorator
+     * 
+     * @since 1.8
+     */
+    public JsonFactory setInputDecorator(InputDecorator d) {
+        _inputDecorator = d;
+        return this;
+    }
+    
     /*
     /**********************************************************
     /* Configuration, generator settings
@@ -401,6 +437,26 @@ public class JsonFactory implements Versioned
         _characterEscapes = esc;
         return this;
     }
+
+    /**
+     * Method for getting currently configured output decorator (if any;
+     * there is no default decorator).
+     * 
+     * @since 1.8
+     */
+    public OutputDecorator getOutputDecorator() {
+        return _outputDecorator;
+    }
+
+    /**
+     * Method for overriding currently configured output decorator
+     * 
+     * @since 1.8
+     */
+    public JsonFactory setOutputDecorator(OutputDecorator d) {
+        _outputDecorator = d;
+        return this;
+    }
     
     /*
     /**********************************************************
@@ -443,7 +499,14 @@ public class JsonFactory implements Versioned
     public JsonParser createJsonParser(File f)
         throws IOException, JsonParseException
     {
-        return _createJsonParser(new FileInputStream(f), _createContext(f, true));
+        // true, since we create InputStream from File
+        IOContext ctxt = _createContext(f, true);
+        InputStream in = new FileInputStream(f);
+        // [JACKSON-512]: allow wrapping with InputDecorator
+        if (_inputDecorator != null) {
+            in = _inputDecorator.decorate(ctxt, in);
+        }
+        return _createJsonParser(in, ctxt);
     }
 
     /**
@@ -462,7 +525,14 @@ public class JsonFactory implements Versioned
     public JsonParser createJsonParser(URL url)
         throws IOException, JsonParseException
     {
-        return _createJsonParser(_optimizedStreamFromURL(url), _createContext(url, true));
+        // true, since we create InputStream from URL
+        IOContext ctxt = _createContext(url, true);
+        InputStream in = _optimizedStreamFromURL(url);
+        // [JACKSON-512]: allow wrapping with InputDecorator
+        if (_inputDecorator != null) {
+            in = _inputDecorator.decorate(ctxt, in);
+        }
+        return _createJsonParser(in, ctxt);
     }
 
     /**
@@ -483,7 +553,12 @@ public class JsonFactory implements Versioned
     public JsonParser createJsonParser(InputStream in)
         throws IOException, JsonParseException
     {
-        return _createJsonParser(in, _createContext(in, false));
+        IOContext ctxt = _createContext(in, false);
+        // [JACKSON-512]: allow wrapping with InputDecorator
+        if (_inputDecorator != null) {
+            in = _inputDecorator.decorate(ctxt, in);
+        }
+        return _createJsonParser(in, ctxt);
     }
 
     /**
@@ -502,7 +577,13 @@ public class JsonFactory implements Versioned
     public JsonParser createJsonParser(Reader r)
         throws IOException, JsonParseException
     {
-	return _createJsonParser(r, _createContext(r, false));
+        // false -> we do NOT own Reader (did not create it)
+        IOContext ctxt = _createContext(r, false);
+        // [JACKSON-512]: allow wrapping with InputDecorator
+        if (_inputDecorator != null) {
+            r = _inputDecorator.decorate(ctxt, r);
+        }
+	return _createJsonParser(r, ctxt);
     }
 
     /**
@@ -512,7 +593,15 @@ public class JsonFactory implements Versioned
     public JsonParser createJsonParser(byte[] data)
         throws IOException, JsonParseException
     {
-        return _createJsonParser(data, 0, data.length, _createContext(data, true));
+        IOContext ctxt = _createContext(data, true);
+        // [JACKSON-512]: allow wrapping with InputDecorator
+        if (_inputDecorator != null) {
+            InputStream in = _inputDecorator.decorate(ctxt, data, 0, data.length);
+            if (in != null) {
+                return _createJsonParser(in, ctxt);
+            }
+        }
+        return _createJsonParser(data, 0, data.length, ctxt);
     }
 
     /**
@@ -526,7 +615,15 @@ public class JsonFactory implements Versioned
     public JsonParser createJsonParser(byte[] data, int offset, int len)
         throws IOException, JsonParseException
     {
-	return _createJsonParser(data, offset, len, _createContext(data, true));
+        IOContext ctxt = _createContext(data, true);
+        // [JACKSON-512]: allow wrapping with InputDecorator
+        if (_inputDecorator != null) {
+            InputStream in = _inputDecorator.decorate(ctxt, data, offset, len);
+            if (in != null) {
+                return _createJsonParser(in, ctxt);
+            }
+        }
+	return _createJsonParser(data, offset, len, ctxt);
     }
 
     /**
@@ -536,9 +633,14 @@ public class JsonFactory implements Versioned
     public JsonParser createJsonParser(String content)
         throws IOException, JsonParseException
     {
-	// true -> we own the Reader (and must close); not a big deal
 	Reader r = new StringReader(content);
-	return _createJsonParser(r, _createContext(r, true));
+        // true -> we own the Reader (and must close); not a big deal
+        IOContext ctxt = _createContext(r, true);
+        // [JACKSON-512]: allow wrapping with InputDecorator
+        if (_inputDecorator != null) {
+            r = _inputDecorator.decorate(ctxt, r);
+        }
+	return _createJsonParser(r, ctxt);
     }
 
     /*
@@ -574,9 +676,18 @@ public class JsonFactory implements Versioned
         IOContext ctxt = _createContext(out, false);
         ctxt.setEncoding(enc);
         if (enc == JsonEncoding.UTF8) {
+            // [JACKSON-512]: allow wrapping with _outputDecorator
+            if (_outputDecorator != null) {
+                out = _outputDecorator.decorate(ctxt, out);
+            }
             return _createUTF8JsonGenerator(out, ctxt);
         }
-	return _createJsonGenerator(_createWriter(out, enc, ctxt), ctxt);
+        Writer w = _createWriter(out, enc, ctxt);
+        // [JACKSON-512]: allow wrapping with _outputDecorator
+        if (_outputDecorator != null) {
+            w = _outputDecorator.decorate(ctxt, w);
+        }
+	return _createJsonGenerator(w, ctxt);
     }
 
     /**
@@ -596,6 +707,10 @@ public class JsonFactory implements Versioned
         throws IOException
     {
         IOContext ctxt = _createContext(out, false);
+        // [JACKSON-512]: allow wrapping with _outputDecorator
+        if (_outputDecorator != null) {
+            out = _outputDecorator.decorate(ctxt, out);
+        }
 	return _createJsonGenerator(out, ctxt);
     }
 
@@ -633,39 +748,53 @@ public class JsonFactory implements Versioned
         IOContext ctxt = _createContext(out, true);
         ctxt.setEncoding(enc);
         if (enc == JsonEncoding.UTF8) {
+            // [JACKSON-512]: allow wrapping with _outputDecorator
+            if (_outputDecorator != null) {
+                out = _outputDecorator.decorate(ctxt, out);
+            }
             return _createUTF8JsonGenerator(out, ctxt);
         }
-	return _createJsonGenerator(_createWriter(out, enc, ctxt), ctxt);
+        Writer w = _createWriter(out, enc, ctxt);
+        // [JACKSON-512]: allow wrapping with _outputDecorator
+        if (_outputDecorator != null) {
+            w = _outputDecorator.decorate(ctxt, w);
+        }
+	return _createJsonGenerator(w, ctxt);
     }
 
     /*
     /**********************************************************
-    /* Internal factory methods, overridable
+    /* Factory methods used by factory for creating parser instances,
+    /* overridable by sub-classes
     /**********************************************************
      */
 
     /**
-     * Overridable factory method that actually instantiates desired
-     * context object.
-     */
-    protected IOContext _createContext(Object srcRef, boolean resourceManaged)
-    {
-        return new IOContext(_getBufferRecycler(), srcRef, resourceManaged);
-    }
-
-    /**
-     * Overridable factory method that actually instantiates desired
-     * parser.
+     * Overridable factory method that actually instantiates desired parser
+     * given {@link InputStream} and context object.
+     *<p>
+     * This method is specifically designed to remain
+     * compatible between minor versions so that sub-classes can count
+     * on it being called as expected. That is, it is part of official
+     * interface from sub-class perspective, although not a public
+     * method available to users of factory implementations.
      */
     protected JsonParser _createJsonParser(InputStream in, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
+        return new ByteSourceBootstrapper(ctxt, in).constructParser(_parserFeatures,
+                _objectCodec, _rootByteSymbols, _rootCharSymbols);
     }
 
     /**
-     * Overridable factory method that actually instantiates desired
-     * parser.
+     * Overridable factory method that actually instantiates parser
+     * using given {@link Reader} object for reading content.
+     *<p>
+     * This method is specifically designed to remain
+     * compatible between minor versions so that sub-classes can count
+     * on it being called as expected. That is, it is part of official
+     * interface from sub-class perspective, although not a public
+     * method available to users of factory implementations.
      */
     protected JsonParser _createJsonParser(Reader r, IOContext ctxt)
 	throws IOException, JsonParseException
@@ -676,19 +805,39 @@ public class JsonFactory implements Versioned
     }
 
     /**
-     * Overridable factory method that actually instantiates desired
-     * parser.
+     * Overridable factory method that actually instantiates parser
+     * using given {@link Reader} object for reading content
+     * passed as raw byte array.
+     *<p>
+     * This method is specifically designed to remain
+     * compatible between minor versions so that sub-classes can count
+     * on it being called as expected. That is, it is part of official
+     * interface from sub-class perspective, although not a public
+     * method available to users of factory implementations.
      */
     protected JsonParser _createJsonParser(byte[] data, int offset, int len, IOContext ctxt)
         throws IOException, JsonParseException
     {
-        // true -> managed (doesn't really matter; we have no stream!)
-        return new ByteSourceBootstrapper(ctxt, data, offset, len).constructParser(_parserFeatures, _objectCodec, _rootByteSymbols, _rootCharSymbols);
+        return new ByteSourceBootstrapper(ctxt, data, offset, len).constructParser(_parserFeatures,
+                _objectCodec, _rootByteSymbols, _rootCharSymbols);
     }
 
+    /*
+    /**********************************************************
+    /* Factory methods used by factory for creating generator instances,
+    /* overridable by sub-classes
+    /**********************************************************
+     */
+    
     /**
-     * Overridable factory method that actually instantiates desired
-     * generator.
+     * Overridable factory method that actually instantiates generator for
+     * given {@link Writer} and context object.
+     *<p>
+     * This method is specifically designed to remain
+     * compatible between minor versions so that sub-classes can count
+     * on it being called as expected. That is, it is part of official
+     * interface from sub-class perspective, although not a public
+     * method available to users of factory implementations.
      */
     protected JsonGenerator _createJsonGenerator(Writer out, IOContext ctxt)
         throws IOException
@@ -701,9 +850,14 @@ public class JsonFactory implements Versioned
     }
 
     /**
-     * Overridable factory method that actually instantiates desired
-     * generator that is specifically to output content using specified
-     * output stream and using UTF-8 encoding.
+     * Overridable factory method that actually instantiates generator for
+     * given {@link OutputStream} and context object, using UTF-8 encoding.
+     *<p>
+     * This method is specifically designed to remain
+     * compatible between minor versions so that sub-classes can count
+     * on it being called as expected. That is, it is part of official
+     * interface from sub-class perspective, although not a public
+     * method available to users of factory implementations.
      */
     protected JsonGenerator _createUTF8JsonGenerator(OutputStream out, IOContext ctxt)
         throws IOException
@@ -713,24 +867,6 @@ public class JsonFactory implements Versioned
             gen.setCharacterEscapes(_characterEscapes);
         }
         return gen;
-    }
-    
-    /**
-     * Method used by factory to create buffer recycler instances
-     * for parsers and generators.
-     *<p>
-     * Note: only public to give access for <code>ObjectMapper</code>
-     */
-    public BufferRecycler _getBufferRecycler()
-    {
-        SoftReference<BufferRecycler> ref = _recyclerRef.get();
-        BufferRecycler br = (ref == null) ? null : ref.get();
-
-        if (br == null) {
-            br = new BufferRecycler();
-            _recyclerRef.set(new SoftReference<BufferRecycler>(br));
-        }
-        return br;
     }
 
     protected Writer _createWriter(OutputStream out, JsonEncoding enc, IOContext ctxt) throws IOException
@@ -749,6 +885,33 @@ public class JsonFactory implements Versioned
     /**********************************************************
      */
 
+    /**
+     * Overridable factory method that actually instantiates desired
+     * context object.
+     */
+    protected IOContext _createContext(Object srcRef, boolean resourceManaged)
+    {
+        return new IOContext(_getBufferRecycler(), srcRef, resourceManaged);
+    }
+
+    /**
+     * Method used by factory to create buffer recycler instances
+     * for parsers and generators.
+     *<p>
+     * Note: only public to give access for <code>ObjectMapper</code>
+     */
+    public BufferRecycler _getBufferRecycler()
+    {
+        SoftReference<BufferRecycler> ref = _recyclerRef.get();
+        BufferRecycler br = (ref == null) ? null : ref.get();
+
+        if (br == null) {
+            br = new BufferRecycler();
+            _recyclerRef.set(new SoftReference<BufferRecycler>(br));
+        }
+        return br;
+    }
+    
     /**
      * Helper methods used for constructing an optimal stream for
      * parsers to use, when input is to be read from an URL.
