@@ -348,6 +348,27 @@ public abstract class JsonParser
     public Version version() {
         return Version.unknownVersion();
     }
+
+    /**
+     * Method that can be used to get access to object that is used
+     * to access input being parsed; this is usually either
+     * {@link InputStream} or {@link Reader}, depending on what
+     * parser was constructed with.
+     * Note that returned value may be null in some cases; including
+     * case where parser implementation does not want to exposed raw
+     * source to caller.
+     * In cases where input has been decorated, object returned here
+     * is the decorated version; this allows some level of interaction
+     * between users of parser and decorator object.
+     *<p>
+     * In general use of this accessor should be considered as
+     * "last effort", i.e. only used if no other mechanism is applicable.
+     * 
+     * @since 1.8
+     */
+    public Object getInputSource() {
+        return null;
+    }
     
     /*
     /**********************************************************
@@ -532,8 +553,6 @@ public abstract class JsonParser
      *   or null to indicate end-of-input (or, for non-blocking
      *   parsers, {@link JsonToken#NOT_AVAILABLE} if no tokens were
      *   available yet)
-     *
-     * @since 0.9.7
      */
     public JsonToken nextValue()
         throws IOException, JsonParseException

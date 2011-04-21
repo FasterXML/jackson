@@ -1,16 +1,17 @@
 Version: 1.8.0
 
 Release date:
-  xx-Mar-2011
+  20-Apr-2011
 
 Description:
 
-  Another minor release; which adds things like:
+  Another minor release. Main improvements are:
   
   - Proper configurability for key serializers, deserializers
   - Ability to control details of low-level character escaping
   - Pluggable format auto-detection (for JSON and Smile in core packages)
   - Fully configurable type-defaulting (abstract-to-concrete) for deserialization
+  - Pass-through FormatSchema abstraction to help support schema-based formats
 
   New features:
   
@@ -55,6 +56,8 @@ Description:
     registered with ObjectMapper to get more control over how handlers (serializers,
     deserializers, type id resolver) are constructed.
     (requested by Sven J)
+  * [JACKSON-555]: Add 'JsonParser.getInputSource()' and 'JsonGenerator.getOutputTarget()'
+    to give direct access to low-level stream/reader/writer instances
 
   Improvements:
 

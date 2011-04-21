@@ -239,6 +239,11 @@ public class Utf8Generator
     public CharacterEscapes getCharacterEscapes() {
         return _characterEscapes;
     }
+
+    @Override
+    public Object getOutputTarget() {
+        return _outputStream;
+    }
     
     /*
     /**********************************************************

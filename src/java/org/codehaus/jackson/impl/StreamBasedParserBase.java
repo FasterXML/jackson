@@ -89,6 +89,11 @@ public abstract class StreamBasedParserBase
         out.write(_inputBuffer, origPtr, count);
         return count;
     }
+
+    @Override
+    public Object getInputSource() {
+        return _inputStream;
+    }
     
     /*
     /**********************************************************

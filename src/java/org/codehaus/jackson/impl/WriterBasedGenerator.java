@@ -171,6 +171,11 @@ public final class WriterBasedGenerator
     public CharacterEscapes getCharacterEscapes() {
         return _characterEscapes;
     }
+
+    @Override
+    public Object getOutputTarget() {
+        return _writer;
+    }
     
     /*
     /**********************************************************

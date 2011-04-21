@@ -59,6 +59,26 @@ public class JsonGeneratorDelegate extends JsonGenerator
     }
 
     @Override
+    public void setSchema(FormatSchema schema) {
+        delegate.setSchema(schema);
+    }
+    
+    @Override
+    public boolean canUseSchema(FormatSchema schema) {
+        return delegate.canUseSchema(schema);
+    }
+    
+    @Override
+    public Version version() {
+        return delegate.version();
+    }
+    
+    @Override
+    public Object getOutputTarget() {
+        return delegate.getOutputTarget();
+    }
+    
+    @Override
     public boolean isClosed() {
         return delegate.isClosed();
     }

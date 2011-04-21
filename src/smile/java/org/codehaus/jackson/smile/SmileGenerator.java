@@ -422,6 +422,11 @@ public class SmileGenerator
         return this;
     }
 
+    @Override
+    public Object getOutputTarget() {
+        return _out;
+    }
+    
     /*
     /**********************************************************
     /* Overridden methods, write methods

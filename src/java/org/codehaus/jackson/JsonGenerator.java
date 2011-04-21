@@ -225,6 +225,27 @@ public abstract class JsonGenerator
     public Version version() {
         return Version.unknownVersion();
     }
+
+    /**
+     * Method that can be used to get access to object that is used
+     * as target for generated output; this is usually either
+     * {@link OutputStream} or {@link Writer}, depending on what
+     * generator was constructed with.
+     * Note that returned value may be null in some cases; including
+     * case where implementation does not want to exposed raw
+     * source to caller.
+     * In cases where output has been decorated, object returned here
+     * is the decorated version; this allows some level of interaction
+     * between users of generator and decorator object.
+     *<p>
+     * In general use of this accessor should be considered as
+     * "last effort", i.e. only used if no other mechanism is applicable.
+     * 
+     * @since 1.8
+     */
+    public Object getOutputTarget() {
+        return null;
+    }
     
     /*
     /**********************************************************
