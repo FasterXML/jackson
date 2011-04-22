@@ -181,7 +181,16 @@ Shay Banon:
    [1.3.0]
   * Reported [JACKSON-376] writing binary data as object field value with Smile fails
    [1.6.1]
-
+  * Reported [JACKSON-424] ArrayIndexOutOfBounds with SmileGenerator, long Unicode
+    Strings
+   [1.6.3]
+  * Reported [JACKSON-525]: Problem with SmileGenerator, recycling of shared-names
+    buffer
+   [1.7.4]
+  * Reported [JACKSON-552] SmileParser not handling long field names properly,
+    failed with "this code path should never get executed" exception
+   [1.7.6]
+   
 Brian McCallister:
   * Suggested [JACKSON-173]: Add "JsonParser.Feature.ALLOW_SINGLE_QUOTES"
     to handle commonly encountered invalid JSON content
@@ -381,6 +390,14 @@ Kirill Stokoz:
    [1.6.1]
   * Reported [JACKSON-456], provided unit tests: Type check issues with Jackson JAX-RS provider
    [1.7.1]
+  * Reported [JACKSON-504]: FilterProvider registration directly via
+    SerializationConfig was not working
+   [1.7.4]
+  * Reported [506]: problems with type handling for java.util.Date
+    when using @JsonTypeInfo on field/method
+   [1.7.4]
+  * Reported [JACKSON-518]: Problems with JAX-RS, type variables
+   [1.7.4]
 
 Brian Oberman:
   * Requested [JACKSON-289] Ability to serialize char[] values as JSON Arrays
@@ -529,6 +546,9 @@ Christian Naeger:
 Steven Schlansker:
   * [JACKSON-473] JsonMapping$Reference not Serializable
    [1.6.5]
+  * [JACKSON-543] Root-level static type information incorrectly handled
+    with Maps (losing parameterization)
+   [1.7.7]
 
 Elliot Barlas:
   * Reported [JACKSON-491]: Bug in NumberInput.inLongRange, causing false overflows
@@ -567,12 +587,50 @@ Chris Winters:
 Coda Hale:
   * Reported [JACKSON-462]: Buffer overflow in Utf8Generator#writeFieldName(String)
    [1.7.1]
+  * [JACKSON-557] CollectionLikeType#equals() casts parameter to CollectionType
+   [1.8.1]
   
 David Yu:
   * Suggested [JACKSON-474]: Add ability to pass externally allocated buffer for Utf8Generator, SmileGenerator
    [1.7.2]
   * Reported [JACKSON-492], contributed unit test: problem encoding 1 byte length "raw" UTF8 Strings
    [1.7.3]
+
+Christopher Berner: 
+  * [JACKSON-508] Type information lost when serializing List<List<X>>
+   [1.7.4]
+
+Pascal GŽlinas:
+  * Suggested [JACKSON-541] with patch: Remove the need for @JsonCreator on
+    multi-arg constructor iff all parameters have @JsonProperty
+   [1.7.5]
+  * Reported [JACKSON-554] ObjectMapper.readValue(JsonNode) was not properly
+    passing itself as ObjectCodec, making secondary conversions fail
+   [1.7.7]
+
+Maik Jorra:
+  * Reported [JACKSON-540] Side-effects with ObjectMapper.canSerialize(),
+    canDeserialize()
+   [1.7.5]
+
+Suchema Oyetey:
+  * Reported [JACKSON-530] Default SerializationInclusion value not properly
+    passed when "USE_ANNOTATION" set to false
+   [1.7.5]
+
+Michel Goldstein:
+  * Reported [JACKSON-545] UTF8Writer getting NPE if flush() called after close()
+   [1.7.5]
+
+Andrei Pozolotin:
+  * Reported [JACKSON-550] Registration of serializers was not completely
+    working with SimpleModule (interfaces implemented by superclasses skipped)
+   [1.7.6]
+
+Xyn Wang:
+  * Reported [JACKSON-553] SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION
+    did not work correctly
+   [1.7.7]
 
 Bryce McKinlay:
   * Suggested [JACKSON-358]: Allow parsing numbers with leading zeroes

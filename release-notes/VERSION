@@ -1,9 +1,21 @@
-Version: 1.8.0
+Version: 1.8.1
 
 Release date:
-  20-Apr-2011
+  xx-xxx-2011
 
 Description:
+  First patch release for 1.8.
+
+  Fixes:
+  
+  * [JACKSON-557] CollectionLikeType#equals() casts parameter to CollectionType
+   (reported by Coda H)
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.8.0 [20-Apr-2011]
 
   Another minor release. Main improvements are:
   
@@ -98,10 +110,6 @@ Description:
 
   * [JACKSON-532]: Add support for org.json.JSONObject, org.json.JSONArray;
     created "jackson-module-json-org" at [https://github.com/FasterXML/jackson-module-json-org]
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.7.4 [04-Mar-2011]
 
