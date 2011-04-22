@@ -1,0 +1,4 @@
+This directory contains source code that has been in use at some point,
+but not used or needed any more. However, there is a chance that such code
+might be useful for some other use later on, and as such it is still retained
+in a somewhat visible place (not just SCM system version history).
