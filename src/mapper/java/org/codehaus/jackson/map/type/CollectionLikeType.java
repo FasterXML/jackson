@@ -169,7 +169,7 @@ public class CollectionLikeType extends TypeBase
         if (o == null) return false;
         if (o.getClass() != getClass()) return false;
 
-        CollectionType other = (CollectionType) o;
+        CollectionLikeType other = (CollectionLikeType) o;
         return  (_class == other._class) && _elementType.equals(other._elementType);
     }
 

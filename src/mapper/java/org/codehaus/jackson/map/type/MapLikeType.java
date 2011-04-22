@@ -214,7 +214,7 @@ public class MapLikeType extends TypeBase
         if (o == null) return false;
         if (o.getClass() != getClass()) return false;
 
-        MapType other = (MapType) o;
+        MapLikeType other = (MapLikeType) o;
         return (_class == other._class)
             && _keyType.equals(other._keyType)
             && _valueType.equals(other._valueType);
