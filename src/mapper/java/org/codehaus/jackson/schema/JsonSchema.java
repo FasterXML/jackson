@@ -74,7 +74,8 @@ public class JsonSchema
     {
         ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
         objectNode.put("type", "any");
-        objectNode.put("optional", true);
+        // "required" is false by default, no need to include
+        //objectNode.put("required", false);
         return objectNode;
     }
 
