@@ -132,6 +132,9 @@ Christoph Strebin:
     means value of a property when bean is constructed using the default
     no-arg constructor
    [1.1.0]
+  * Reported [JACKSON-568] Package 'org.codehaus.jackson.util' missing from
+    core/lgpl jar
+   [1.8.1]
 
 Peter Harris:
   * Reported [JACKSON-139], provided patch for fixing it: Non-numeric
