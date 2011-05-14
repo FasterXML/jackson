@@ -393,6 +393,39 @@ public class TestSmileParserSymbolHandling
         String actual = plain.writeValueAsString(result);
         assertEquals(exp, actual);
     }
+
+    /**
+     * Reproducing [JACKSON-561] (and [JACKSON-562])
+     */
+    public void testIssue562() throws IOException
+    {
+        JsonFactory factory = new SmileFactory();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        JsonGenerator gen = factory.createJsonGenerator(bos);
+        gen.writeStartObject();
+        gen.writeFieldName("z_aaaabbbbccccddddee");
+        gen.writeString("end");
+        gen.writeFieldName("a_aaaabbbbccccddddee");
+        gen.writeString("start");
+        gen.writeEndObject();
+        gen.close();
+
+        JsonParser parser = factory.createJsonParser(bos.toByteArray());
+        assertToken(JsonToken.START_OBJECT, parser.nextToken());
+
+        assertToken(JsonToken.FIELD_NAME, parser.nextToken());
+        assertEquals("z_aaaabbbbccccddddee", parser.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, parser.nextToken());
+        assertEquals("end", parser.getText());
+
+        // This one fails...
+        assertToken(JsonToken.FIELD_NAME, parser.nextToken());
+        assertEquals("a_aaaabbbbccccddddee", parser.getCurrentName());
+        assertToken(JsonToken.VALUE_STRING, parser.nextToken());
+        assertEquals("start", parser.getText());
+
+        assertToken(JsonToken.END_OBJECT, parser.nextToken());
+    }
     
     /*
     /**********************************************************

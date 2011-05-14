@@ -1164,7 +1164,7 @@ public class SmileParser
     	int inPtr = _inputPtr;
     	final byte[] inBuf = _inputBuffer;
         do {
-            int q = (inBuf[inPtr++] << 8) & 0xFF;
+            int q = (inBuf[inPtr++] & 0xFF) << 8;
             q |= inBuf[inPtr++] & 0xFF;
             q <<= 8;
             q |= inBuf[inPtr++] & 0xFF;
