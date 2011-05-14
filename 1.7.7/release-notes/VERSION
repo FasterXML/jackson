@@ -1,4 +1,4 @@
-Version: 1.7.6
+Version: 1.7.7
 
 Release date:
   xx-May-2011
@@ -17,6 +17,8 @@ Description:
   * [JACKSON-554] ObjectMapper.readValue(JsonNode) was not properly passing
     itself as ObjectCodec, making secondary conversions fail
    (reported by Pascal G)
+  * [JACKSON-562] Smile property name decoding issue
+   (reported by Jeffrey Damick, Shay Banon)
 
 ------------------------------------------------------------------------
 === History: ===
