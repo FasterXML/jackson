@@ -10,6 +10,9 @@ Description:
   
   * [JACKSON-557] CollectionLikeType#equals() casts parameter to CollectionType
    (reported by Coda H)
+  * [JACKSON-568] Package 'org.codehaus.jackson.util' missing from
+    core/lgpl jar
+   (reported by Christoph S)
   * [JACKSON-573] Failure to serialize certain Unicode Strings
    (reported by Young J-P)
 
