@@ -19,6 +19,8 @@ Description:
    (reported by Pascal G)
   * [JACKSON-562] Smile property name decoding issue
    (reported by Jeffrey Damick, Shay Banon)
+  * [JACKSON-563] JSON Schema uses "required" (not "optional")
+   (reported by Oleg E)
 
 ------------------------------------------------------------------------
 === History: ===

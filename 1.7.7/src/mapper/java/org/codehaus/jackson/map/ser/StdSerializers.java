@@ -495,7 +495,8 @@ public class StdSerializers
                     throw new IllegalStateException(e);
                 }
             }
-            objectNode.put("optional", true);
+            // always optional, no need to specify:
+            //objectNode.put("required", false);
             return objectNode;
         }
     }
@@ -567,7 +568,8 @@ public class StdSerializers
                     throw new IllegalStateException(e);
                 }
             }
-            objectNode.put("optional", true);
+            // always optional, no need to specify:
+            //objectNode.put("required", false);
             return objectNode;
         }
     }

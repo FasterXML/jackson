@@ -97,26 +97,26 @@ public class TestGenerateJsonSchema
 
 	ObjectNode root = jsonSchema.getSchemaNode();
         assertEquals("object", root.get("type").getValueAsText());
-        assertEquals(true, root.get("optional").getBooleanValue());
+        assertEquals(false, root.path("required").getBooleanValue());
         JsonNode propertiesSchema = root.get("properties");
         assertNotNull(propertiesSchema);
         JsonNode property1Schema = propertiesSchema.get("property1");
         assertNotNull(property1Schema);
         assertEquals("integer", property1Schema.get("type").getValueAsText());
-        assertEquals(true, property1Schema.get("optional").getBooleanValue());
+        assertEquals(false, property1Schema.path("required").getBooleanValue());
         JsonNode property2Schema = propertiesSchema.get("property2");
         assertNotNull(property2Schema);
         assertEquals("string", property2Schema.get("type").getValueAsText());
-        assertEquals(true, property2Schema.get("optional").getBooleanValue());
+        assertEquals(false, property2Schema.path("required").getBooleanValue());
         JsonNode property3Schema = propertiesSchema.get("property3");
         assertNotNull(property3Schema);
         assertEquals("array", property3Schema.get("type").getValueAsText());
-        assertEquals(true, property3Schema.get("optional").getBooleanValue());
+        assertEquals(false, property3Schema.path("required").getBooleanValue());
         assertEquals("string", property3Schema.get("items").get("type").getValueAsText());
         JsonNode property4Schema = propertiesSchema.get("property4");
         assertNotNull(property4Schema);
         assertEquals("array", property4Schema.get("type").getValueAsText());
-        assertEquals(true, property4Schema.get("optional").getBooleanValue());
+        assertEquals(false, property4Schema.path("required").getBooleanValue());
         assertEquals("number", property4Schema.get("items").get("type").getValueAsText());
     }
 
@@ -135,7 +135,8 @@ public class TestGenerateJsonSchema
 	assertNotNull(result);
 	// no need to check out full structure, just basics...
 	assertEquals("object", result.get("type"));
-	assertEquals(Boolean.TRUE, result.get("optional"));
+	// only add 'required' if it is true...
+	assertNull(result.get("required"));
 	assertNotNull(result.get("properties"));
     }
 
@@ -158,7 +159,8 @@ public class TestGenerateJsonSchema
         JsonSchema jsonSchema = mapper.generateJsonSchema(TrivialBean.class);
         String json = jsonSchema.toString().replaceAll("\"", "'");
         // can we count on ordering being stable? I think this is true with current ObjectNode impl
-        assertEquals("{'type':'object','optional':true,'properties':{'name':{'type':'string','optional':true}}}",
+        // as perh [JACKSON-563]; 'required' is only included if true
+        assertEquals("{'type':'object','properties':{'name':{'type':'string'}}}",
                 json);
     }
 }
