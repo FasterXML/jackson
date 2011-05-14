@@ -69,7 +69,10 @@ public abstract class SerializerBase<T>
     protected ObjectNode createSchemaNode(String type, boolean isOptional)
     {
         ObjectNode schema = createSchemaNode(type);
-        schema.put("optional", isOptional);
+        // as per [JACKSON-563]. Note that 'required' defaults to false
+        if (!isOptional) {
+            schema.put("required", !isOptional);
+        }
         return schema;
     }
 
