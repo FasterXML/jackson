@@ -10,6 +10,8 @@ Description:
   
   * [JACKSON-557] CollectionLikeType#equals() casts parameter to CollectionType
    (reported by Coda H)
+  * [JACKSON-573] Failure to serialize certain Unicode Strings
+   (reported by Young J-P)
 
 ------------------------------------------------------------------------
 === History: ===

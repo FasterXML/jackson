@@ -641,4 +641,8 @@ Sven Jacobs:
     and registered with ObjectMapper to get more control over how handlers (serializers,
     deserializers, type id resolver) are constructed.
    [1.8.0]
- 
+
+Young Jin Park:
+  * Failure to serialize certain Unicode Strings
+   [1.8.1]
+

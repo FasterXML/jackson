@@ -1258,7 +1258,7 @@ public final class WriterBasedGenerator
                 }
             }
             ++ptr;
-            start = _prependOrWriteCharacterEscape(_outputBuffer, ptr, end, c, escCodes[c]);
+            start = _prependOrWriteCharacterEscape(_outputBuffer, ptr, end, c, escCode);
         }
     }
 
