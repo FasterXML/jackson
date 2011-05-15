@@ -539,10 +539,12 @@ Christian Naeger:
    [1.6.5]
 
 Steven Schlansker:
-  * [JACKSON-473] JsonMapping$Reference not Serializable
+  * Reported [JACKSON-473] JsonMapping$Reference not Serializable
    [1.6.5]
-  * [JACKSON-543] Root-level static type information incorrectly handled
+  * Reported [JACKSON-543] Root-level static type information incorrectly handled
     with Maps (losing parameterization)
+   [1.7.7]
+  * Reported [JACKSON-572] Problems serializing generic non-static inner classes
    [1.7.7]
 
 Elliot Barlas:

@@ -21,6 +21,8 @@ Description:
    (reported by Jeffrey Damick, Shay Banon)
   * [JACKSON-563] JSON Schema uses "required" (not "optional")
    (reported by Oleg E)
+  * [JACKSON-572] Problems serializing generic non-static inner classes
+   (reported by Steven S)
 
 ------------------------------------------------------------------------
 === History: ===

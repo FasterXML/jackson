@@ -81,6 +81,18 @@ public class TestGenericTypes extends BaseMapTest
             this.accounts = accounts;
         }
     }
+
+    static class GenericBogusWrapper<T> {
+        public Element wrapped;
+
+        public GenericBogusWrapper(T v) { wrapped = new Element(v); }
+
+        class Element {
+            public T value;
+    
+            public Element(T v) { value = v; }
+        }
+    }
     
     /*
     /**********************************************************
@@ -133,6 +145,17 @@ public class TestGenericTypes extends BaseMapTest
         List<?> acctList = (List<?>) ob;
         assertEquals(3, acctList.size());
         // ... might want to verify more, but for now that should suffice
+    }
+
+    /**
+     * Issue [JACKSON-572] is about unbound type variables, usually resulting
+     * from inner classes of generic classes (like Sets).
+     */
+    public void testUnboundIssue572() throws Exception
+    {
+        GenericBogusWrapper<Integer> list = new GenericBogusWrapper<Integer>(Integer.valueOf(7));
+        String json = new ObjectMapper().writeValueAsString(list);
+        assertEquals("{\"wrapped\":{\"value\":7}}", json);
     }
 }
 
