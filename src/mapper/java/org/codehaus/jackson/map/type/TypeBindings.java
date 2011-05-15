@@ -158,6 +158,14 @@ public class TypeBindings
         if (_contextClass != null) {
             Class<?> enclosing = _contextClass.getEnclosingClass();
             if (enclosing != null) {
+                // [JACKSON-572]: Actually, let's skip this for all non-static inner classes
+                //   (which will also cover 'java.util' type cases...
+                if (!Modifier.isStatic(_contextClass.getModifiers())) {
+                    return UNBOUND;
+                }
+
+                // ... so this piece of code should not be needed any more
+                /*
                 Package pkg = enclosing.getPackage();
                 if (pkg != null) {
                     // as per [JACKSON-533], also include "java.util.concurrent":
@@ -165,6 +173,7 @@ public class TypeBindings
                         return UNBOUND;
                     }
                 }
+                */
             }
         }
         
