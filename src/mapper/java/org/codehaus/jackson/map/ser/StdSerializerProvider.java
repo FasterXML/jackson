@@ -376,7 +376,7 @@ public class StdSerializerProvider
                         ser = getUnknownTypeSerializer(valueType);
                         // Should this be added to lookups?
                         if (CACHE_UNKNOWN_MAPPINGS) {
-                            _serializerCache.addNonTypedSerializer(valueType, ser);
+                            _serializerCache.addAndResolveNonTypedSerializer(valueType, ser, this);
                         }
                         return ser;
                     }
@@ -416,7 +416,7 @@ public class StdSerializerProvider
                     ser = getUnknownTypeSerializer(valueType.getRawClass());
                     // Should this be added to lookups?
                     if (CACHE_UNKNOWN_MAPPINGS) {
-                        _serializerCache.addNonTypedSerializer(valueType, ser);
+                        _serializerCache.addAndResolveNonTypedSerializer(valueType, ser, this);
                     }
                     return ser;
                 }
@@ -711,9 +711,16 @@ public class StdSerializerProvider
         }
     }
 
+    /*
+    /**********************************************************
+    /* Low-level methods for actually constructing and initializing
+    /* serializers
+    /**********************************************************
+     */
+    
     /**
      * Method that will try to construct a value serializer; and if
-     * one is succesfully created, cache it for reuse.
+     * one is successfully created, cache it for reuse.
      */
     protected JsonSerializer<Object> _createAndCacheUntypedSerializer(Class<?> type,
             BeanProperty property)
@@ -730,13 +737,7 @@ public class StdSerializerProvider
         }
 
         if (ser != null) {
-            _serializerCache.addNonTypedSerializer(type, ser);
-            /* Finally: some serializers want to do post-processing, after
-             * getting registered (to handle cyclic deps).
-             */
-            if (ser instanceof ResolvableSerializer) {
-                _resolveSerializer((ResolvableSerializer)ser);
-            }
+            _serializerCache.addAndResolveNonTypedSerializer(type, ser, this);
         }
         return ser;
     }
@@ -759,13 +760,7 @@ public class StdSerializerProvider
         }
     
         if (ser != null) {
-            _serializerCache.addNonTypedSerializer(type, ser);
-            /* Finally: some serializers want to do post-processing, after
-             * getting registered (to handle cyclic deps).
-             */
-            if (ser instanceof ResolvableSerializer) {
-                _resolveSerializer((ResolvableSerializer)ser);
-            }
+            _serializerCache.addAndResolveNonTypedSerializer(type, ser, this);
         }
         return ser;
     }
@@ -781,12 +776,6 @@ public class StdSerializerProvider
          *   easy to do, but won't add yet since it seems unnecessary.
          */
         return (JsonSerializer<Object>)_serializerFactory.createSerializer(_config, type, property);
-    }
-
-    protected void _resolveSerializer(ResolvableSerializer ser)
-        throws JsonMappingException
-    {
-        ser.resolve(this);
     }
     
     /*
