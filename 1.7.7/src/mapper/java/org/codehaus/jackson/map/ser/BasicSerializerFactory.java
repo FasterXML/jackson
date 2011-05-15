@@ -460,26 +460,44 @@ public abstract class BasicSerializerFactory
      * Returns null if no such annotation found.
      */
     @SuppressWarnings("unchecked")
-    protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a, BeanProperty property)
+    protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a,
+            BeanProperty property)
     {
-        Object serDef = config.getAnnotationIntrospector().findSerializer(a, property);
-        if (serDef != null) {
-            if (serDef instanceof JsonSerializer) {
-                return (JsonSerializer<Object>) serDef;
-            }
-            /* Alas, there's no way to force return type of "either class
-             * X or Y" -- need to throw an exception after the fact
-             */
-            if (!(serDef instanceof Class)) {
-                throw new IllegalStateException("AnnotationIntrospector returned value of type "+serDef.getClass().getName()+"; expected type JsonSerializer or Class<JsonSerializer> instead");
-            }
-            Class<?> cls = (Class<?>) serDef;
-            if (!JsonSerializer.class.isAssignableFrom(cls)) {
-                throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonSerializer>");
-            }
-            return (JsonSerializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+        Object serDef = config.getAnnotationIntrospector().findSerializer(a);
+        if (serDef == null) {
+            return null;
         }
-        return null;
+        if (serDef instanceof JsonSerializer) {
+            JsonSerializer<Object> ser = (JsonSerializer<Object>) serDef;
+            if (ser instanceof ContextualSerializer<?>) {
+		try {
+		    return ((ContextualSerializer<Object>) ser).createContextual(config, property);
+		} catch (JsonMappingException e) { // sub-optimal but:
+		    throw new RuntimeJsonMappingException(e);
+		}
+            }
+            return ser;
+        }
+        /* Alas, there's no way to force return type of "either class
+         * X or Y" -- need to throw an exception after the fact
+         */
+        if (!(serDef instanceof Class)) {
+            throw new IllegalStateException("AnnotationIntrospector returned value of type "+serDef.getClass().getName()+"; expected type JsonSerializer or Class<JsonSerializer> instead");
+        }
+        Class<?> cls = (Class<?>) serDef;
+        if (!JsonSerializer.class.isAssignableFrom(cls)) {
+            throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonSerializer>");
+        }
+        JsonSerializer<Object> ser = (JsonSerializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+
+        if (ser instanceof ContextualSerializer<?>) {
+	    try {
+		return ((ContextualSerializer<Object>) ser).createContextual(config, property);
+	    } catch (JsonMappingException e) { // sub-optimal but:
+		throw new RuntimeJsonMappingException(e);
+	    }
+        }
+        return ser;
     }
 
     /**

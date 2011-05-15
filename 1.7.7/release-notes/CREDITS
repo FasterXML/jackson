@@ -627,3 +627,7 @@ Xyn Wang:
     did not work correctly
    [1.7.7]
 
+Gregor Ottman:
+  * Reported [JACKSON-569] ContextualSerializer not resolved for serializers
+    defined with @JsonSerialize annotation
+   [1.7.7]
