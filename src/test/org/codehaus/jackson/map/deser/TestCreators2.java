@@ -126,6 +126,17 @@ public class TestCreators2
             throw new IllegalArgumentException("foobar");
         }
     }
+
+    // As per [JACKSON-575]
+    static class IgnoredCtor
+    {
+        @JsonIgnore
+        public IgnoredCtor(String arg) {
+            throw new RuntimeException("Should never use this constructor");
+        }
+
+        public IgnoredCtor() { }
+    }
     
     /*
     /**********************************************************
@@ -242,5 +253,17 @@ public class TestCreators2
     	AutoDetectConstructorBean value = mapper.readValue("{\"bar\":\"bar\",\"foo\":\"foo\"}", AutoDetectConstructorBean.class);
     	assertEquals("bar", value.bar);
     	assertEquals("foo", value.foo);
-	}
+    }
+
+    // for [JACKSON-575]
+    public void testIgnoredSingleArgCtor() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            mapper.readValue(quote("abc"), IgnoredCtor.class);
+            fail("Should have caught missing constructor problem");
+        } catch (JsonMappingException e) {
+            verifyException(e, "no suitable creator");
+        }
+    }
 }
