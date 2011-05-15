@@ -163,7 +163,8 @@ public abstract class BasicSerializerFactory
     // Implemented by sub-classes
     @Override
     public abstract JsonSerializer<Object> createSerializer(SerializationConfig config, JavaType type,
-            BeanProperty property);
+            BeanProperty property)
+        throws JsonMappingException;
 
     /**
      * Method called to construct a type serializer for values with given declared
@@ -246,6 +247,7 @@ public abstract class BasicSerializerFactory
     public final JsonSerializer<?> findSerializerByPrimaryType(JavaType type, SerializationConfig config,
             BasicBeanDescription beanDesc, BeanProperty property,
             boolean staticTyping)
+        throws JsonMappingException
     {
         Class<?> raw = type.getRawClass();
         // First: JsonSerializable and related
@@ -258,7 +260,7 @@ public abstract class BasicSerializerFactory
         // Second: as per [JACKSON-193] consider @JsonValue for any types:
         AnnotatedMethod valueMethod = beanDesc.findJsonValueMethod();
         if (valueMethod != null) {
-            JsonSerializer<Object> ser = findSerializerFromAnnotation(config, valueMethod);
+            JsonSerializer<Object> ser = findSerializerFromAnnotation(config, valueMethod, property);
             return new JsonValueSerializer(valueMethod.getAnnotated(), ser, property);
         }
         
@@ -305,6 +307,7 @@ public abstract class BasicSerializerFactory
     public final JsonSerializer<?> findSerializerByAddonType(SerializationConfig config, JavaType javaType,
             BasicBeanDescription beanDesc, BeanProperty property,
             boolean staticTyping)
+        throws JsonMappingException
     {
         Class<?> type = javaType.getRawClass();
 
@@ -329,14 +332,20 @@ public abstract class BasicSerializerFactory
      * Returns null if no such annotation found.
      */
     @SuppressWarnings("unchecked")
-    protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a)
+    protected JsonSerializer<Object> findSerializerFromAnnotation(SerializationConfig config, Annotated a,
+            BeanProperty property)
+        throws JsonMappingException
     {
         Object serDef = config.getAnnotationIntrospector().findSerializer(a);
         if (serDef == null) {
             return null;
         }
         if (serDef instanceof JsonSerializer) {
-            return (JsonSerializer<Object>) serDef;
+            JsonSerializer<Object> ser = (JsonSerializer<Object>) serDef;
+            if (ser instanceof ContextualSerializer<?>) {
+                return ((ContextualSerializer<Object>) ser).createContextual(config, property);
+            }
+            return ser;
         }
         /* Alas, there's no way to force return type of "either class
          * X or Y" -- need to throw an exception after the fact
@@ -348,7 +357,11 @@ public abstract class BasicSerializerFactory
         if (!JsonSerializer.class.isAssignableFrom(cls)) {
             throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonSerializer>");
         }
-        return config.serializerInstance(a, (Class<? extends JsonSerializer<?>>) cls);
+        JsonSerializer<Object> ser = config.serializerInstance(a, (Class<? extends JsonSerializer<?>>) cls);
+        if (ser instanceof ContextualSerializer<?>) {
+            return ((ContextualSerializer<Object>) ser).createContextual(config, property);
+        }
+        return ser;
     }
 
     /*
