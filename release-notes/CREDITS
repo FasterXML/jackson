@@ -649,3 +649,6 @@ Young Jin Park:
   * Failure to serialize certain Unicode Strings
    [1.8.1]
 
+Oleg Estekhin:
+  * Reported [JACKSON-563] JSON Schema uses "required" (not "optional")
+   [1.8.1]
