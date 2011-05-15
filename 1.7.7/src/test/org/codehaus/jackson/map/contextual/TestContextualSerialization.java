@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.lang.annotation.*;
 import java.util.*;
 
-import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JacksonAnnotation;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.module.SimpleModule;
 
 /**
@@ -45,6 +45,17 @@ public class TestContextualSerialization extends BaseMapTest
         public String getValue() { return _value; }
     }
 
+    // For [JACKSON-569]
+    static class AnnotatedContextualBean
+    {
+        @Prefix("prefix->")
+        @JsonSerialize(using=AnnotatedContextualSerializer.class)
+        protected final String value;
+
+        public AnnotatedContextualBean(String s) { value = s; }
+    }
+
+    
     @Prefix("wrappedBean:")
     static class ContextualBeanWrapper
     {
@@ -211,5 +222,12 @@ public class TestContextualSerialization extends BaseMapTest
         ContextualMapBean map = new ContextualMapBean();
         map.beans.put("first", "In Map");
         assertEquals("{\"beans\":{\"first\":\"map->In Map\"}}", mapper.writeValueAsString(map));
+    }
+
+    public void testContextualViaAnnotation() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        AnnotatedContextualBean bean = new AnnotatedContextualBean("abc");
+        assertEquals("{\"value\":\"prefix->abc\"}", mapper.writeValueAsString(bean));
     }
 }
