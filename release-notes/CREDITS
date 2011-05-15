@@ -655,3 +655,7 @@ Young Jin Park:
 Oleg Estekhin:
   * Reported [JACKSON-563] JSON Schema uses "required" (not "optional")
    [1.8.1]
+
+Jamie Reilly:
+  * Reported [JACKSON-570] Caching of MapSerializer not thread-safe
+   [1.8.1]

@@ -3,7 +3,10 @@ package org.codehaus.jackson.map.ser;
 import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
+import org.codehaus.jackson.map.ResolvableSerializer;
+import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.ser.impl.ReadOnlyClassToSerializerMap;
 
 /**
@@ -55,6 +58,19 @@ public final class SerializerCache
         return m.instance();
     }
 
+    /*
+    /**********************************************************
+    /* Lookup methods for accessing shared (slow) cache
+    /**********************************************************
+     */
+
+    /**
+     * @since 1.4
+     */
+    public synchronized int size() {
+        return _sharedMap.size();
+    }
+    
     /**
      * Method that checks if the shared (and hence, synchronized) lookup Map might have
      * untyped serializer for given type.
@@ -89,6 +105,12 @@ public final class SerializerCache
             return _sharedMap.get(new TypeKey(cls, true));
         }
     }
+
+    /*
+    /**********************************************************
+    /* Methods for adding shared serializer instances
+    /**********************************************************
+     */
     
     /**
      * Method called if none of lookups succeeded, and caller had to construct
@@ -115,36 +137,60 @@ public final class SerializerCache
         }
     }
     
-    public void addNonTypedSerializer(Class<?> type, JsonSerializer<Object> ser)
+    /**
+     * @since 1.8
+     */
+    public void addAndResolveNonTypedSerializer(Class<?> type, JsonSerializer<Object> ser,
+            SerializerProvider provider)
+        throws JsonMappingException
     {
         synchronized (this) {
             if (_sharedMap.put(new TypeKey(type, false), ser) == null) {
                 // let's invalidate the read-only copy, too, to get it updated
                 _readOnlyMap = null;
             }
+            /* Finally: some serializers want to do post-processing, after
+             * getting registered (to handle cyclic deps).
+             */
+            /* 14-May-2011, tatu: As per [JACKSON-570], resolving needs to be done
+             *   in synchronized manner; this because while we do need to register
+             *   instance first, we also must keep lock until resolution is complete
+             */
+            if (ser instanceof ResolvableSerializer) {
+                ((ResolvableSerializer) ser).resolve(provider);
+            }
         }
     }
 
     /**
-     * @since 1.5
+     * @since 1.8
      */
-    public void addNonTypedSerializer(JavaType type, JsonSerializer<Object> ser)
+    public void addAndResolveNonTypedSerializer(JavaType type, JsonSerializer<Object> ser,
+            SerializerProvider provider)
+        throws JsonMappingException
     {
         synchronized (this) {
             if (_sharedMap.put(new TypeKey(type, false), ser) == null) {
                 // let's invalidate the read-only copy, too, to get it updated
                 _readOnlyMap = null;
             }
+            /* Finally: some serializers want to do post-processing, after
+             * getting registered (to handle cyclic deps).
+             */
+            /* 14-May-2011, tatu: As per [JACKSON-570], resolving needs to be done
+             *   in synchronized manner; this because while we do need to register
+             *   instance first, we also must keep lock until resolution is complete
+             */
+            if (ser instanceof ResolvableSerializer) {
+                ((ResolvableSerializer) ser).resolve(provider);
+            }
         }
     }
-    
-    /**
-     * @since 1.4
-     */
-    public synchronized int size() {
-        return _sharedMap.size();
-    }
 
+    /**
+     * Method called by StdSerializerProvider#flushCachedSerializers() to
+     * clear all cached serializers
+     */
     public synchronized void flush() {
         _sharedMap.clear();
     }
