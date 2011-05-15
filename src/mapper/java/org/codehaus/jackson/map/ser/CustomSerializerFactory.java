@@ -208,6 +208,7 @@ public class CustomSerializerFactory
     @SuppressWarnings("unchecked")    
     public JsonSerializer<Object> createSerializer(SerializationConfig config, JavaType type,
             BeanProperty property)
+        throws JsonMappingException
     {
         JsonSerializer<?> ser = findCustomSerializer(type.getRawClass(), config);
         if (ser != null) {

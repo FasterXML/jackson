@@ -248,10 +248,11 @@ public class BeanSerializerFactory
     @SuppressWarnings("unchecked")
     public JsonSerializer<Object> createSerializer(SerializationConfig config, JavaType origType,
             BeanProperty property)
+        throws JsonMappingException
     {
         // Very first thing, let's check if there is explicit serializer annotation:
         BasicBeanDescription beanDesc = config.introspect(origType);
-        JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo());
+        JsonSerializer<?> ser = findSerializerFromAnnotation(config, beanDesc.getClassInfo(), property);
         if (ser != null) {
             return (JsonSerializer<Object>) ser;
         }
@@ -339,6 +340,7 @@ public class BeanSerializerFactory
     @SuppressWarnings("unchecked")
     public JsonSerializer<Object> findBeanSerializer(SerializationConfig config, JavaType type,
             BasicBeanDescription beanDesc, BeanProperty property)
+        throws JsonMappingException
     {
         // First things first: we know some types are not beans...
         if (!isPotentialBeanType(type.getRawClass())) {
@@ -368,6 +370,7 @@ public class BeanSerializerFactory
      */
     public TypeSerializer findPropertyTypeSerializer(JavaType baseType, SerializationConfig config,
             AnnotatedMember accessor, BeanProperty property)
+        throws JsonMappingException
     {
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
         TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(config, accessor, baseType);        
@@ -393,6 +396,7 @@ public class BeanSerializerFactory
      */    
     public TypeSerializer findPropertyContentTypeSerializer(JavaType containerType, SerializationConfig config,
             AnnotatedMember accessor, BeanProperty property)
+        throws JsonMappingException
     {
         JavaType contentType = containerType.getContentType();
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
@@ -419,6 +423,7 @@ public class BeanSerializerFactory
     @SuppressWarnings("unchecked")
     protected JsonSerializer<Object> constructBeanSerializer(SerializationConfig config,
             BasicBeanDescription beanDesc, BeanProperty property)
+        throws JsonMappingException
     {
         // 13-Oct-2010, tatu: quick sanity check: never try to create bean serializer for plain Object
         if (beanDesc.getBeanClass() == Object.class) {
@@ -548,6 +553,7 @@ public class BeanSerializerFactory
      * Can be overridden to implement custom detection schemes.
      */
     protected List<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc)
+        throws JsonMappingException
     {
         // Ok: let's aggregate visibility settings: first, baseline:
         VisibilityChecker<?> vchecker = config.getDefaultVisibilityChecker();
@@ -756,15 +762,16 @@ public class BeanSerializerFactory
      */
     protected BeanPropertyWriter _constructWriter(SerializationConfig config, TypeBindings typeContext,
             PropertyBuilder pb, boolean staticTyping, String name, AnnotatedMember accessor)
+        throws JsonMappingException
     {
         if (config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
             accessor.fixAccess();
         }
         JavaType type = accessor.getType(typeContext);
         BeanProperty.Std property = new BeanProperty.Std(name, type, pb.getClassAnnotations(), accessor);
-        
+
         // Does member specify a serializer? If so, let's use it.
-        JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, accessor);
+        JsonSerializer<Object> annotatedSerializer = findSerializerFromAnnotation(config, accessor, property);
         // And how about polymorphic typing? First special to cover JAXB per-field settings:
         TypeSerializer contentTypeSer = null;
         if (ClassUtil.isCollectionMapOrArray(type.getRawClass())) {

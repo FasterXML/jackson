@@ -108,6 +108,7 @@ public class TestWithGenerics extends BaseMapTest
         @Override
         protected JsonSerializer<Object> constructBeanSerializer( SerializationConfig config, BasicBeanDescription beanDesc,
                 BeanProperty property)
+            throws JsonMappingException
         {                
             return new CustomJsonSerializer( super.constructBeanSerializer( config, beanDesc, property) );
         }

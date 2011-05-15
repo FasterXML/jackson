@@ -120,7 +120,8 @@ public abstract class SerializerFactory
       * Method called to create (or, for immutable serializers, reuse) a serializer for given type. 
       */
     public abstract JsonSerializer<Object> createSerializer(SerializationConfig config, JavaType baseType,
-            BeanProperty property);
+            BeanProperty property)
+        throws JsonMappingException;
     
     /**
      * Method called to create a type information serializer for given base type,
@@ -134,7 +135,8 @@ public abstract class SerializerFactory
      * @since 1.7
      */
     public abstract TypeSerializer createTypeSerializer(SerializationConfig config, JavaType baseType,
-            BeanProperty property);
+            BeanProperty property)
+        throws JsonMappingException;
 
     /**
      * Method called to create serializer to use for serializing JSON property names (which must
@@ -151,7 +153,8 @@ public abstract class SerializerFactory
      * @since 1.8
      */
     public abstract JsonSerializer<Object> createKeySerializer(SerializationConfig config, JavaType baseType,
-            BeanProperty property);
+            BeanProperty property)
+        throws JsonMappingException;
     
     /*
     /**********************************************************
@@ -169,7 +172,11 @@ public abstract class SerializerFactory
      */
     @Deprecated
     public final JsonSerializer<Object> createSerializer(JavaType type, SerializationConfig config) {
-        return createSerializer(config, type, null);
+        try {
+            return createSerializer(config, type, null);
+        } catch (JsonMappingException e) { // not optimal but:
+            throw new RuntimeJsonMappingException(e);
+        }
     }
     
     /**
@@ -182,6 +189,10 @@ public abstract class SerializerFactory
      */
     @Deprecated
     public final TypeSerializer createTypeSerializer(JavaType baseType, SerializationConfig config) {
-        return createTypeSerializer(config, baseType, null);
+        try {
+            return createTypeSerializer(config, baseType, null);
+        } catch (JsonMappingException e) { // not optimal but:
+            throw new RuntimeException(e);
+        }
     }
 }
