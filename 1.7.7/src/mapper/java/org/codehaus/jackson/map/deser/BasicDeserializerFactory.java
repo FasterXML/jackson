@@ -554,16 +554,27 @@ public abstract class BasicDeserializerFactory
     {
         Object deserDef = config.getAnnotationIntrospector().findDeserializer(a, property);
         if (deserDef != null) {
-            return _constructDeserializer(config, deserDef);
+            try {
+                return _constructDeserializer(config, property, deserDef);
+            } catch (JsonMappingException e) {
+                throw new RuntimeJsonMappingException(e);
+            }
         }
         return null;
     }
 
     @SuppressWarnings("unchecked")
-    JsonDeserializer<Object> _constructDeserializer(DeserializationConfig config, Object deserDef)
+    JsonDeserializer<Object> _constructDeserializer(DeserializationConfig config, BeanProperty property,
+						    Object deserDef)
+	throws JsonMappingException
     {
         if (deserDef instanceof JsonDeserializer) {
-            return (JsonDeserializer<Object>) deserDef;
+            JsonDeserializer<Object> deser = (JsonDeserializer<Object>) deserDef;
+            // related to [JACKSON-569], need contextualization:
+            if (deser instanceof ContextualDeserializer<?>) {
+                deser = (JsonDeserializer<Object>)((ContextualDeserializer<?>) deser).createContextual(config, property);
+            }
+            return deser;
         }
         /* Alas, there's no way to force return type of "either class
          * X or Y" -- need to throw an exception after the fact
@@ -575,7 +586,12 @@ public abstract class BasicDeserializerFactory
         if (!JsonDeserializer.class.isAssignableFrom(cls)) {
             throw new IllegalStateException("AnnotationIntrospector returned Class "+cls.getName()+"; expected Class<JsonDeserializer>");
         }
-        return (JsonDeserializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+        JsonDeserializer<Object> deser = (JsonDeserializer<Object>) ClassUtil.createInstance(cls, config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS));
+        // related to [JACKSON-569], need contextualization:
+        if (deser instanceof ContextualDeserializer<?>) {
+            deser = (JsonDeserializer<Object>)((ContextualDeserializer<?>) deser).createContextual(config, property);
+        }
+        return deser;
     }
 
     /**
