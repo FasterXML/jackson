@@ -656,19 +656,27 @@ public abstract class BasicDeserializerFactory
      */
     protected JsonDeserializer<Object> findDeserializerFromAnnotation(DeserializationConfig config,
             Annotated ann, BeanProperty property)
+        throws JsonMappingException
     {
         Object deserDef = config.getAnnotationIntrospector().findDeserializer(ann);
         if (deserDef != null) {
-            return _constructDeserializer(config, ann, deserDef);
+            return _constructDeserializer(config, ann, property, deserDef);
         }
         return null;
     }
     
     @SuppressWarnings("unchecked")
-    JsonDeserializer<Object> _constructDeserializer(DeserializationConfig config, Annotated ann, Object deserDef)
+    JsonDeserializer<Object> _constructDeserializer(DeserializationConfig config, Annotated ann, BeanProperty property,
+            Object deserDef)
+        throws JsonMappingException
     {
         if (deserDef instanceof JsonDeserializer) {
-            return (JsonDeserializer<Object>) deserDef;
+            JsonDeserializer<Object> deser = (JsonDeserializer<Object>) deserDef;
+            // related to [JACKSON-569], need contextualization:
+            if (deser instanceof ContextualDeserializer<?>) {
+                deser = (JsonDeserializer<Object>)((ContextualDeserializer<?>) deser).createContextual(config, property);
+            }
+            return deser;
         }
         /* Alas, there's no way to force return type of "either class
          * X or Y" -- need to throw an exception after the fact
@@ -680,7 +688,12 @@ public abstract class BasicDeserializerFactory
         if (!JsonDeserializer.class.isAssignableFrom(deserClass)) {
             throw new IllegalStateException("AnnotationIntrospector returned Class "+deserClass.getName()+"; expected Class<JsonDeserializer>");
         }
-        return config.deserializerInstance(ann, deserClass);
+        JsonDeserializer<Object> deser = config.deserializerInstance(ann, deserClass);
+        // related to [JACKSON-569], need contextualization:
+        if (deser instanceof ContextualDeserializer<?>) {
+            deser = (JsonDeserializer<Object>)((ContextualDeserializer<?>) deser).createContextual(config, property);
+        }
+        return deser;
     }
 
     /**
