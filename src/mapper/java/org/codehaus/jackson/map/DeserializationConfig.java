@@ -426,7 +426,6 @@ public class DeserializationConfig
     {
         this(src, src._base);
         _mixInAnnotations = mixins;
-        _mixInAnnotationsShared = false;
         _subtypeResolver = str;
     }
     
@@ -435,7 +434,7 @@ public class DeserializationConfig
      */
     protected DeserializationConfig(DeserializationConfig src, MapperConfig.Base base)
     {
-        super(base, src._subtypeResolver);
+        super(src, base, src._subtypeResolver);
         _featureFlags = src._featureFlags;
         _abstractTypeResolver = src._abstractTypeResolver;
         _problemHandlers = src._problemHandlers;
@@ -617,6 +616,7 @@ public class DeserializationConfig
     public DeserializationConfig createUnshared(SubtypeResolver subtypeResolver)
     {
         HashMap<ClassKey,Class<?>> mixins = _mixInAnnotations;
+        // ensure that we assume sharing at this point:
         _mixInAnnotationsShared = true;
         return new DeserializationConfig(this, mixins, subtypeResolver);
     }

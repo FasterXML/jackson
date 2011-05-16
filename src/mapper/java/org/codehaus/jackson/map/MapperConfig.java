@@ -118,24 +118,29 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
     {
         _base = new Base(ci, ai, vc, pns, tf, null, DEFAULT_DATE_FORMAT, hi);
         _subtypeResolver = str;
+        // by default, assumed to be shared; only cleared when explicit copy is made
+        _mixInAnnotationsShared = true;
     }
 
     /**
-     * Simple copy constructor which 
+     * Simple copy constructor
      * 
      * @since 1.8
      */
     protected MapperConfig(MapperConfig<?> src) {
-        _base = src._base;
-        _subtypeResolver = src._subtypeResolver;
+        this(src, src._base, src._subtypeResolver);
     }
 
     /**
      * @since 1.8
      */
-    protected MapperConfig(Base base, SubtypeResolver str) {
+    protected MapperConfig(MapperConfig<?> src, MapperConfig.Base base, SubtypeResolver str)
+    {
         _base = base;
         _subtypeResolver = str;
+        // by default, assumed to be shared; only cleared when explicit copy is made
+        _mixInAnnotationsShared = true;
+        _mixInAnnotations = src._mixInAnnotations;
     }
     
     /*
@@ -369,9 +374,12 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      */
     public final void addMixInAnnotations(Class<?> target, Class<?> mixinSource)
     {
-        if (_mixInAnnotations == null || _mixInAnnotationsShared) {
+        if (_mixInAnnotations == null) {
             _mixInAnnotationsShared = false;
             _mixInAnnotations = new HashMap<ClassKey,Class<?>>();
+        } else if (_mixInAnnotationsShared) {
+            _mixInAnnotationsShared = false;
+            _mixInAnnotations = new HashMap<ClassKey,Class<?>>(_mixInAnnotations);
         }
         _mixInAnnotations.put(new ClassKey(target), mixinSource);
     }
@@ -388,6 +396,13 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
         return (_mixInAnnotations == null) ? null : _mixInAnnotations.get(new ClassKey(cls));
     }
 
+    /**
+     * @since 1.8.1
+     */
+    public final int mixInCount() {
+        return (_mixInAnnotations == null) ? 0 : _mixInAnnotations.size();
+    }
+    
     /*
     /**********************************************************
     /* Configuration: type and subtype handling

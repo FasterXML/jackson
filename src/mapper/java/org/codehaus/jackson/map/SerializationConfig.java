@@ -459,7 +459,6 @@ public class SerializationConfig
     {
         this(src, src._base);
         _mixInAnnotations = mixins;
-        _mixInAnnotationsShared = false;
         _subtypeResolver = str;
     }
     
@@ -468,7 +467,7 @@ public class SerializationConfig
      */
     protected SerializationConfig(SerializationConfig src, MapperConfig.Base base)
     {
-        super(base, src._subtypeResolver);
+        super(src, base, src._subtypeResolver);
         _featureFlags = src._featureFlags;
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
