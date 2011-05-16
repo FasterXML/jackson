@@ -13,6 +13,7 @@ import org.codehaus.jackson.annotate.JacksonAnnotation;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.module.SimpleModule;
 
 /**
@@ -77,6 +78,13 @@ public class TestContextualDeserialization extends BaseMapTest
         public ContextualType b;
     }
 
+    static class AnnotatedContextualClassBean
+    {
+        @Name("xyz")
+        @JsonDeserialize(using=AnnotatedContextualDeserializer.class)
+        public ContextualType value;
+    }
+    
     static class ContextualArrayBean
     {
         @Name("array")
@@ -261,6 +269,17 @@ public class TestContextualDeserialization extends BaseMapTest
         assertEquals("map=2", entry.getValue().value);
     }
 
+    // ensure that direct associations also work
+    public void testAnnotatedContextual() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        AnnotatedContextualClassBean bean = mapper.readValue(
+                "{\"value\":\"a\"}",
+              AnnotatedContextualClassBean.class);
+        assertNotNull(bean);
+        assertEquals("xyz=a", bean.value.value);
+    }
+    
     /*
     /**********************************************************
     /* Helper methods
