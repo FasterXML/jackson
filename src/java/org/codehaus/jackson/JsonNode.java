@@ -14,7 +14,9 @@ import java.util.*;
  * As a general design rule, most accessors ("getters") are included
  * in this base class, to allow for traversing structure without
  * type casts. Most mutators, however, need to be accessed through
- * specific sub-classes. This seems sensible because proper type
+ * specific sub-classes (such as <code>org.codehaus.jackson.node.ObjectNode</code>
+ * and <code>org.codehaus.jackson.node.ArrayNode</code>).
+ * This seems sensible because proper type
  * information is generally available when building or modifying
  * trees, but less often when reading a tree (newly built from
  * parsed JSON content).
@@ -22,7 +24,7 @@ import java.util.*;
  * Actual concrete sub-classes can be found from package
  * {@link org.codehaus.jackson.node}, which is in 'mapper' jar
  * (whereas this class is in 'core' jar, since it is declared as
- * nominal type for operations in {@link ObjectCodec}
+ * nominal type for operations in {@link ObjectCodec})
  */
 public abstract class JsonNode
     implements Iterable<JsonNode>

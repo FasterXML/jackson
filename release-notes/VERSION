@@ -10,6 +10,8 @@ Description:
   
   * [JACKSON-557] CollectionLikeType#equals() casts parameter to CollectionType
    (reported by Coda H)
+  * [JACKSON-560] Mix-in annotations ignored when used with views
+   (reported by Ruben E-G)
   * [JACKSON-568] Package 'org.codehaus.jackson.util' missing from
     core/lgpl jar
    (reported by Christoph S)
