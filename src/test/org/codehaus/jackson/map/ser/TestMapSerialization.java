@@ -44,6 +44,16 @@ public class TestMapSerialization
         }
     }
 
+    // For [JACKSON-574]
+    static class DefaultKeySerializer extends JsonSerializer<Object>
+    {
+        @Override
+        public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider) throws IOException
+        {
+            jgen.writeFieldName("DEFAULT:"+value);
+        }
+    }
+    
     /*
     /**********************************************************
     /* Test methods
@@ -92,5 +102,13 @@ public class TestMapSerialization
         assertEquals("[\"f\"]", m.writeValueAsString(map.values()));
     }
 
-    
+    // For [JACKSON-574]
+    public void testDefaultKeySerializer() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.getSerializerProvider().setDefaultKeySerializer(new DefaultKeySerializer());
+        Map<String,String> map = new HashMap<String,String>();
+        map.put("a", "b");
+        assertEquals("{\"DEFAULT:a\":\"b\"}", m.writeValueAsString(map));
+    }
 }
