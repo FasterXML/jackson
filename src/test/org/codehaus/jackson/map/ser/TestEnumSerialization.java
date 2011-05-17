@@ -84,6 +84,14 @@ public class TestEnumSerialization
         public String toString() { return name().toLowerCase(); }
     }
 
+    static class MapBean {
+        public Map<TestEnum,Integer> map = new HashMap<TestEnum,Integer>();
+        
+        public void add(TestEnum key, int value) {
+            map.put(key, Integer.valueOf(value));
+        }
+    }
+    
     /*
     /**********************************************************
     /* Tests
@@ -202,5 +210,14 @@ public class TestEnumSerialization
         m.put(LowerCaseEnum.C, "value");
         mapper.configure(SerializationConfig.Feature.WRITE_ENUMS_USING_TO_STRING, true);
         assertEquals("{\"c\":\"value\"}", mapper.writeValueAsString(m));
+    }
+
+    // [JACKSON-576]
+    public void testMapWithEnumKeys() throws Exception
+    {
+        MapBean bean = new MapBean();
+        bean.add(TestEnum.B, 3);
+        String json = new ObjectMapper().writeValueAsString(bean);
+        assertEquals("{\"map\":{\"b\":3}}", json);
     }
 }
