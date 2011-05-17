@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map.ser;
 
-import java.io.*;
 import java.util.*;
 
 import org.codehaus.jackson.annotate.JsonProperty;

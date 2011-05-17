@@ -1274,8 +1274,19 @@ public class JaxbAnnotationIntrospector
                 Map<String,PropertyDescriptor> partials = null;
                 for (PropertyDescriptor pd : beanInfo.getPropertyDescriptors()) {
                     Method read = pd.getReadMethod();
+                    // 16-May-2011, tatu: Need to ignore @XmlTransient ones
+                    if (read != null && read.getAnnotation(XmlTransient.class) != null) {
+                        read = null;
+                    }
                     String readName = (read == null) ? null : findJaxbPropertyName(read, pd.getPropertyType(), null);
                     Method write = pd.getWriteMethod();
+                    if (write != null && write.getAnnotation(XmlTransient.class) != null) {
+                        write = null;
+                    }
+                    // after resolving transient ones, might have nothing to go on:
+                    if (read == null && write == null) {
+                        continue;
+                    }
                     String writeName = (write == null) ? null : findJaxbPropertyName(write, pd.getPropertyType(), null);
                     if (write == null) { // only read method
                         if (readName == null) {
@@ -1326,7 +1337,8 @@ public class JaxbAnnotationIntrospector
                     }
                 } 
             }
-            partials.put(propertyName, new PropertyDescriptor(propertyName, method, null));
+            PropertyDescriptor pd = new PropertyDescriptor(propertyName, method, null);
+            partials.put(propertyName, pd);
             return partials;
         }
 
