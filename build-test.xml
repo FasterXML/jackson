@@ -95,7 +95,8 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
         </junitreport>
     </target>
 
-    <target name="test.run" depends="test.run.main, test.run.interop, test.run.jaxrs, test.run.versions"
+    <target name="test.run" depends="test.run.main,
+test.run.interop, test.run.jaxrs, test.run.failing, test.run.versions"
     />
     <target name="test.run.main" depends="test.compile">
        <!-- showoutput 'yes' to allow outputting debug msgs... -->
@@ -106,6 +107,7 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
                     <exclude name="**/*$*.class"/>
                     <!-- and also interop tests, run later on -->
                     <exclude name="org/codehaus/jackson/jaxrs/*.class"/>
+                    <exclude name="org/codehaus/jackson/failing/*.class"/>
                     <exclude name="org/codehaus/jackson/map/ext/Test*.class"/>
                     <exclude name="org/codehaus/jackson/map/interop/Test*.class"/>
                     <exclude name="org/codehaus/jackson/version/*.class"/>
@@ -167,6 +169,32 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
                 <pathelement path="${dir.build.classes.xc}" />
                 <pathelement location="${dir.test.classes}" /> 
                 <path refid="test-libs"/>
+                <fileset dir="${dir.lib}/jaxrs">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>
+        </junit>
+    </target>
+
+    <!-- failing tests run during dev, disabled for maintenance versions -->
+    <target name="test.run.failing" depends="test.compile">
+        <junit fork="no" printsummary="yes" haltonfailure="no" showoutput="yes">
+            <batchtest fork="no" todir="${dir.test.xmlresults}">
+                <fileset dir="${dir.test.classes}">
+                    <exclude name="**/*$*.class"/>
+                    <include name="org/codehaus/jackson/failing/Test*.class"/>
+                </fileset>
+            </batchtest>
+            <formatter type="xml" />
+            <classpath>
+                <pathelement path="${dir.build.classes.core}" />
+                <pathelement path="${dir.build.classes.mapper}" />
+                <pathelement path="${dir.build.classes.mrbean}" />
+                <pathelement path="${dir.build.classes.jaxrs}" />
+                <pathelement path="${dir.build.classes.xc}" />
+                <pathelement location="${dir.test.classes}" /> 
+                <path refid="test-libs"/>
+                <path refid="test-libs-ext"/>
                 <fileset dir="${dir.lib}/jaxrs">
                     <include name="*.jar" />
                 </fileset>
