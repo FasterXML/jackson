@@ -17,6 +17,8 @@ Description:
   * [JACKSON-554] ObjectMapper.readValue(JsonNode) was not properly passing
     itself as ObjectCodec, making secondary conversions fail
    (reported by Pascal G)
+  * [JACKSON-556] @XmlElement.name property ignored in some cases
+   (reported by Alex P)
   * [JACKSON-562] Smile property name decoding issue
    (reported by Jeffrey Damick, Shay Banon)
   * [JACKSON-563] JSON Schema uses "required" (not "optional")

@@ -627,6 +627,10 @@ Xyn Wang:
     did not work correctly
    [1.7.7]
 
+Alex Porras:
+  * Reported [JACKSON-556] @XmlElement.name property ignored in some cases
+   [1.7.7]
+
 Gregor Ottman:
   * Reported [JACKSON-569] ContextualSerializer not resolved for serializers
     defined with @JsonSerialize annotation
