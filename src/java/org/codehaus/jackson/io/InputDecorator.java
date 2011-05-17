@@ -17,7 +17,10 @@ public abstract class InputDecorator
      * creating parser given an {@link InputStream}, when this decorator
      * has been registered.
      * 
-     * @param ctxt IO context in use (provides access to declared encoding)
+     * @param ctxt IO context in use (provides access to declared encoding).
+     *   NOTE: at this point context may not have all information initialized;
+     *   specifically auto-detected encoding is only available once parsing starts,
+     *   which may occur only after this method is called.
      * @param in Original input source
      * 
      * @return InputStream to use; either passed in argument, or something that
@@ -33,10 +36,15 @@ public abstract class InputDecorator
      * null to indicate that no wrapping should occur.
      * 
      * @param ctxt IO context in use (provides access to declared encoding)
+     *   NOTE: at this point context may not have all information initialized;
+     *   specifically auto-detected encoding is only available once parsing starts,
+     *   which may occur only after this method is called.
      * @param src Input buffer that contains contents to parse
+     * @param offset Offset of the first available byte in the input buffer
+     * @param length Number of bytes available in the input buffer
      * 
      * @return Either {@link InputStream} to use as input source; or null to indicate
-     *   that contents are to be processed as is by caller
+     *   that contents are to be processed as-is by caller
      */
     public abstract InputStream decorate(IOContext ctxt, byte[] src, int offset, int length)
         throws IOException;
@@ -47,10 +55,13 @@ public abstract class InputDecorator
      * has been registered.
      * 
      * @param ctxt IO context in use (provides access to declared encoding)
+     *   NOTE: at this point context may not have all information initialized;
+     *   specifically auto-detected encoding is only available once parsing starts,
+     *   which may occur only after this method is called.
      * @param src Original input source
      * 
      * @return Reader to use; either passed in argument, or something that
-     *   calls it (for example, a {@link FilterReader}
+     *   calls it (for example, a {@link FilterReader})
      */
     public abstract Reader decorate(IOContext ctxt, Reader src) throws IOException;
 }
