@@ -1,5 +1,7 @@
-package org.codehaus.jackson.jaxb;
+package org.codehaus.jackson.failing;
 
+import org.codehaus.jackson.jaxb.BaseJaxbTest;
+import org.codehaus.jackson.jaxb.Content;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -16,7 +18,6 @@ public class TestSerializationToAtomContent extends BaseJaxbTest
         content.setRawType("application/json");
         ObjectMapper mapper = getJaxbMapper();
         String json = mapper.writeValueAsString(content);
-System.out.println(json);
         Content content2 = mapper.readValue(json, Content.class); // deserialize
         assertNotNull(content2);
     }

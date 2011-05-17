@@ -109,7 +109,6 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
                     <exclude name="org/codehaus/jackson/map/ext/Test*.class"/>
                     <exclude name="org/codehaus/jackson/map/interop/Test*.class"/>
                     <exclude name="org/codehaus/jackson/version/*.class"/>
-                    <exclude name="org/codehaus/jackson/xml/*.class"/>
                     <include name="**/Test*.class"/>
                 </fileset>
             </batchtest>
@@ -157,9 +156,7 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
             <batchtest fork="no" todir="${dir.test.xmlresults}">
                 <fileset dir="${dir.test.classes}">
                     <exclude name="**/*$*.class"/>
-                    <exclude name="org/codehaus/jackson/xml/XmlTestBase.class"/>
                     <include name="org/codehaus/jackson/jaxrs/*.class"/>
-                    <include name="org/codehaus/jackson/xml/*.class"/>
                 </fileset>
             </batchtest>
             <formatter type="xml" />
@@ -171,9 +168,6 @@ compile.xc, compile.jaxrs, compile.smile, compile.mrbean">
                 <pathelement location="${dir.test.classes}" /> 
                 <path refid="test-libs"/>
                 <fileset dir="${dir.lib}/jaxrs">
-                    <include name="*.jar" />
-                </fileset>
-                <fileset dir="${dir.lib}/xml">
                     <include name="*.jar" />
                 </fileset>
             </classpath>
