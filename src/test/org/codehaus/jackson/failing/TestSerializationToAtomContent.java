@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  */
 public class TestSerializationToAtomContent extends BaseJaxbTest
 {
+    // For [JACKSON-539]
     public void testJacksonSerialization()
             throws Exception
     {
