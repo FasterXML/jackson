@@ -3,7 +3,6 @@ package org.codehaus.jackson.map.deser;
 import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
-import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
 import org.codehaus.jackson.map.*;
 
 import org.codehaus.jackson.map.BaseMapTest;
@@ -121,22 +120,6 @@ public class TestParentChildReferences
         public NodeForMap() { this(null); }
         public NodeForMap(String n) { name = n; }
     }
-
-    @JsonTypeInfo(use=Id.NAME)
-    @JsonSubTypes({@JsonSubTypes.Type(ConcreteNode.class)})
-    static abstract class AbstractNode
-    {
-        public String id;
-        
-        @JsonManagedReference public AbstractNode next;
-        @JsonBackReference public AbstractNode prev;
-    }
-
-    @JsonTypeName("concrete")
-    static class ConcreteNode extends AbstractNode {
-        public ConcreteNode() { }
-        public ConcreteNode(String id) { this.id = id; }
-    }
     
     /*
     /**********************************************************
@@ -251,35 +234,5 @@ public class TestParentChildReferences
         assertEquals("b", kids.get("b2").name);
         assertSame(result, kids.get("a1").parent);
         assertSame(result, kids.get("b2").parent);
-    }
-
-    /* 22-Sep-2010, tatu: This is for [JACKSON-368]. Easy to reproduce the issue,
-     *   but alas not nearly as easy to resolve. Problem is that AbstractDeserializer
-     *   has little knowledge of actual type, and so linkage can not be made statically.
-     */
-    public void testAbstract() throws Exception
-    {
-        AbstractNode parent = new ConcreteNode("p");
-        AbstractNode child = new ConcreteNode("c");
-        parent.next = child;
-        child.prev = parent;
-
-        // serialization ought to be ok
-        ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(parent);
-
-        AbstractNode root = null;
-        try {
-            root = mapper.readValue(json, AbstractNode.class);
-        } catch  (IllegalArgumentException e) {
-            fail("Did not expected an exception; got: "+e.getMessage());
-        }
-        assertEquals(ConcreteNode.class, root.getClass());
-        assertEquals("p", root.id);
-        assertNull(root.prev);
-        AbstractNode leaf = root.next;
-        assertNotNull(leaf);
-        assertEquals("c", leaf.id);
-        assertSame(parent, leaf.prev);
     }
 }

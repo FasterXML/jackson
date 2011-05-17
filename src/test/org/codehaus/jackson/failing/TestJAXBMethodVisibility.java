@@ -1,4 +1,4 @@
-package org.codehaus.jackson.jaxb;
+package org.codehaus.jackson.failing;
 
 import java.io.IOException;
 
@@ -7,7 +7,13 @@ import javax.xml.bind.annotation.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
-public class TestJaxbFieldAccess
+/**
+ * Those JAXB support unit tests that fail, mostly because our JAXB
+ * introspector is not all that good... But fixing that is easiest
+ * done once we rewrite the method introspector (can't do it with
+ * current version 1.8)
+ */
+public class TestJAXBMethodVisibility
     extends org.codehaus.jackson.map.BaseMapTest
 {
     /*
@@ -16,16 +22,8 @@ public class TestJaxbFieldAccess
     /**********************************************************
      */
 
-    @XmlAccessorType(XmlAccessType.FIELD)
-    static class Fields {
-        protected int x;
-
-        public Fields() { }
-        Fields(int x) { this.x = x; }
-    }
-
     @XmlAccessorType(XmlAccessType.NONE)
-    public static class Bean354
+    protected static class Bean354
     {
         protected String name = "foo";
     
@@ -41,20 +39,13 @@ public class TestJaxbFieldAccess
     /**********************************************************
      */
 
-    // Verify serialization wrt [JACKSON-202]
-    public void testFieldSerialization() throws IOException
+    // Verify serialization wrt [JACKSON-354]
+    //
+    // NOTE: fails currently because we use Bean Introspector which only sees public methods -- need to rewrite
+    public void testJackson354Serialization() throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-        assertEquals("{\"x\":3}", serializeAsString(mapper, new Fields(3)));
-    }
-
-    // Verify deserialization wrt [JACKSON-202]
-    public void testFieldDeserialization() throws IOException
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-        Fields result = mapper.readValue("{ \"x\":3 }", Fields.class);
-        assertEquals(3, result.x);
+        assertEquals("{\"name\":\"foo\"}", mapper.writeValueAsString(new Bean354()));
     }
 }

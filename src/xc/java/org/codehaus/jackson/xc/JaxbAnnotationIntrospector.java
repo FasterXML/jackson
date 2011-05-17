@@ -253,6 +253,7 @@ public class JaxbAnnotationIntrospector
      * @param ac The annotated class.
      * @return Whether properties are accessible to this class.
      */
+    /*
     protected boolean isPropertiesAccessible(Annotated ac)
     {
         XmlAccessType accessType = findAccessType(ac);
@@ -262,6 +263,7 @@ public class JaxbAnnotationIntrospector
         }
         return (accessType == XmlAccessType.PUBLIC_MEMBER) || (accessType == XmlAccessType.PROPERTY);
     }
+    */
 
     /**
      * Method for locating JAXB {@link XmlAccessType} annotation value
