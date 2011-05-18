@@ -1,7 +1,7 @@
 Version: 1.8.1
 
 Release date:
-  xx-xxx-2011
+  17-May-2011
 
 Description:
   First patch release for 1.8.
@@ -19,6 +19,7 @@ Description:
    (reported by Jamie R)
   * [JACKSON-573] Failure to serialize certain Unicode Strings
    (reported by Young J-P)
+  (plus all 1.7 fixes up to 1.7.7)
 
 ------------------------------------------------------------------------
 === History: ===
