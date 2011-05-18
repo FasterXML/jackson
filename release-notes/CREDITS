@@ -633,9 +633,21 @@ Andrei Pozolotin:
     working with SimpleModule (interfaces implemented by superclasses skipped)
    [1.7.6]
 
+Luis Neves:
+  * Reported [JACKSON-542] Base64 decoder couldn't handle escaped characters
+
 Xyn Wang:
   * Reported [JACKSON-553] SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION
     did not work correctly
+   [1.7.7]
+
+Alex Porras:
+  * Reported [JACKSON-556] @XmlElement.name property ignored in some cases
+   [1.7.7]
+
+Gregor Ottman:
+  * Reported [JACKSON-569] ContextualSerializer not resolved for serializers
+    defined with @JsonSerialize annotation
    [1.7.7]
 
 Bryce McKinlay:
@@ -662,4 +674,3 @@ Jamie Reilly:
 
 Ruben Errejon Garcia:
   * Reported [JACKSON-560] Mix-in annotations ignored when used with views
-   
