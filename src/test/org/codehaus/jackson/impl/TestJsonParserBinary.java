@@ -12,6 +12,12 @@ import static org.junit.Assert.*;
 public class TestJsonParserBinary
     extends main.BaseTest
 {
+    /*
+    /**********************************************************************
+    /* Unit tests
+    /**********************************************************************
+     */
+
     public void testSimple()
         throws IOException
     {
@@ -28,10 +34,17 @@ public class TestJsonParserBinary
         _testInArray(true);
     }
 
+    public void testWithEscaped() throws IOException
+    {
+        // let's test reader (char) based first, then stream (byte)
+        _testEscaped(false);
+        _testEscaped(true);
+    }
+    
     /*
-    //////////////////////////////////////////////
-    // Main test methods
-    //////////////////////////////////////////////
+    /**********************************************************************
+    /* Actual test methods
+    /**********************************************************************
      */
 
     private void _testSimple(boolean useStream)
@@ -97,6 +110,26 @@ public class TestJsonParserBinary
         assertToken(JsonToken.END_ARRAY, jp.nextToken());
     }
 
+    private void _testEscaped(boolean useStream) throws IOException
+    {
+        // Input: "Test!" -> "VGVzdCE="
+
+        // First, try with embedded linefeed half-way through:
+
+        final String DOC = quote("VGVz\\ndCE="); // note: must double-quote to get linefeed
+        JsonParser jp = _getParser(DOC, useStream);
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        byte[] b = jp.getBinaryValue();
+        assertEquals("Test!", new String(b, "US-ASCII"));
+        assertNull(jp.nextToken());
+    }
+    
+    /*
+    /**********************************************************************
+    /* Other helper methods
+    /**********************************************************************
+     */
+    
     private JsonParser _getParser(String doc, boolean useStream)
         throws IOException
     {
