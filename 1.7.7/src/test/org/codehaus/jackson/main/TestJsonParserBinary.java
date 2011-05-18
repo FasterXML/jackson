@@ -116,12 +116,23 @@ public class TestJsonParserBinary
 
         // First, try with embedded linefeed half-way through:
 
-        final String DOC = quote("VGVz\\ndCE="); // note: must double-quote to get linefeed
+        String DOC = quote("VGVz\\ndCE="); // note: must double-quote to get linefeed
         JsonParser jp = _getParser(DOC, useStream);
         assertToken(JsonToken.VALUE_STRING, jp.nextToken());
         byte[] b = jp.getBinaryValue();
         assertEquals("Test!", new String(b, "US-ASCII"));
         assertNull(jp.nextToken());
+        jp.close();
+
+        // and then with escaped chars
+//        DOC = quote("V\\u0047V\\u007AdCE="); // note: must escape backslash...
+        DOC = quote("V\\u0047V\\u007AdCE="); // note: must escape backslash...
+        jp = _getParser(DOC, useStream);
+        assertToken(JsonToken.VALUE_STRING, jp.nextToken());
+        b = jp.getBinaryValue();
+        assertEquals("Test!", new String(b, "US-ASCII"));
+        assertNull(jp.nextToken());
+        jp.close();
     }
     
     /*

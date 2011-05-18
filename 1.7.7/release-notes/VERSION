@@ -8,6 +8,8 @@ Description:
 
   Fixes:
 
+  * [JACKSON-542] Base64 decoder couldn't handle escaped characters
+    (reported by Luis N)
   * [JACKSON-543] Root-level static type information incorrectly handled
     with Maps (losing parameterization)
    (reported by Steven S)
