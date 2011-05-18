@@ -1092,12 +1092,6 @@ public final class ReaderBasedParser
     {
         ByteArrayBuilder builder = _getByteArrayBuilder();
 
-        /* !!! 23-Jan-2009, tatu: There are some potential problems
-         *   with this:
-         *
-         * - Escaped chars are not handled. Should they?
-         */
-
         //main_loop:
         while (true) {
             // first, we'll skip preceding white space, if any
@@ -1109,11 +1103,14 @@ public final class ReaderBasedParser
                 ch = _inputBuffer[_inputPtr++];
             } while (ch <= INT_SPACE);
             int bits = b64variant.decodeBase64Char(ch);
-            if (bits < 0) { // reached the end, fair and square?
-                if (ch == '"') {
+            if (bits < 0) {
+                if (ch == '"') { // reached the end, fair and square?
                     return builder.toByteArray();
                 }
-                throw reportInvalidChar(b64variant, ch, 0);
+                bits = _decodeBase64Escape(b64variant, ch, 0);
+                if (bits < 0) { // white space to skip
+                    continue;
+                }
             }
             int decodedData = bits;
             
@@ -1125,7 +1122,7 @@ public final class ReaderBasedParser
             ch = _inputBuffer[_inputPtr++];
             bits = b64variant.decodeBase64Char(ch);
             if (bits < 0) {
-                throw reportInvalidChar(b64variant, ch, 1);
+                bits = _decodeBase64Escape(b64variant, ch, 1);
             }
             decodedData = (decodedData << 6) | bits;
             
@@ -1139,20 +1136,23 @@ public final class ReaderBasedParser
             // First branch: can get padding (-> 1 byte)
             if (bits < 0) {
                 if (bits != Base64Variant.BASE64_VALUE_PADDING) {
-                    throw reportInvalidChar(b64variant, ch, 2);
+                    bits = _decodeBase64Escape(b64variant, ch, 2);
                 }
-                // Ok, must get padding
-                if (_inputPtr >= _inputEnd) {
-                    loadMoreGuaranteed();
+                if (bits == Base64Variant.BASE64_VALUE_PADDING) {
+                    // Ok, must get more padding chars, then
+                    if (_inputPtr >= _inputEnd) {
+                        loadMoreGuaranteed();
+                    }
+                    ch = _inputBuffer[_inputPtr++];
+                    if (!b64variant.usesPaddingChar(ch)) {
+                        throw reportInvalidChar(b64variant, ch, 3, "expected padding character '"+b64variant.getPaddingChar()+"'");
+                    }
+                    // Got 12 bits, only need 8, need to shift
+                    decodedData >>= 4;
+                    builder.append(decodedData);
+                    continue;
                 }
-                ch = _inputBuffer[_inputPtr++];
-                if (!b64variant.usesPaddingChar(ch)) {
-                    throw reportInvalidChar(b64variant, ch, 3, "expected padding character '"+b64variant.getPaddingChar()+"'");
-                }
-                // Got 12 bits, only need 8, need to shift
-                decodedData >>= 4;
-                builder.append(decodedData);
-                continue;
+                // otherwise we got escaped other char, to be processed below
             }
             // Nope, 2 or 3 bytes
             decodedData = (decodedData << 6) | bits;
@@ -1164,24 +1164,49 @@ public final class ReaderBasedParser
             bits = b64variant.decodeBase64Char(ch);
             if (bits < 0) {
                 if (bits != Base64Variant.BASE64_VALUE_PADDING) {
-                    throw reportInvalidChar(b64variant, ch, 3);
+                    bits = _decodeBase64Escape(b64variant, ch, 3);
                 }
-                /* With padding we only get 2 bytes; but we have
-                 * to shift it a bit so it is identical to triplet
-                 * case with partial output.
-                 * 3 chars gives 3x6 == 18 bits, of which 2 are
-                 * dummies, need to discard:
-                 */
-                decodedData >>= 2;
-                builder.appendTwoBytes(decodedData);
-            } else {
-                // otherwise, our triple is now complete
-                decodedData = (decodedData << 6) | bits;
-                builder.appendThreeBytes(decodedData);
+                if (bits == Base64Variant.BASE64_VALUE_PADDING) {
+                    /* With padding we only get 2 bytes; but we have
+                     * to shift it a bit so it is identical to triplet
+                     * case with partial output.
+                     * 3 chars gives 3x6 == 18 bits, of which 2 are
+                     * dummies, need to discard:
+                     */
+                    decodedData >>= 2;
+                    builder.appendTwoBytes(decodedData);
+                    continue;
+                }
+                // otherwise we got escaped other char, to be processed below
             }
+            // otherwise, our triplet is now complete
+            decodedData = (decodedData << 6) | bits;
+            builder.appendThreeBytes(decodedData);
         }
     }
 
+    private final int _decodeBase64Escape(Base64Variant b64variant, char ch, int index)
+        throws IOException, JsonParseException
+    {
+        // 17-May-2011, tatu: As per [JACKSON-xxx], need to handle escaped chars
+        if (ch != '\\') {
+            throw reportInvalidChar(b64variant, ch, index);
+        }
+        char unescaped = _decodeEscaped();
+        // if white space, skip if first triplet; otherwise errors
+        if (unescaped <= INT_SPACE) {
+            if (index == 0) { // whitespace only allowed to be skipped between triplets
+                return -1;
+            }
+        }
+        // otherwise try to find actual triplet value
+        int bits = b64variant.decodeBase64Char(unescaped);
+        if (bits < 0) {
+            throw reportInvalidChar(b64variant, unescaped, index);
+        }
+        return bits;
+    }
+    
     protected IllegalArgumentException reportInvalidChar(Base64Variant b64variant, char ch, int bindex)
         throws IllegalArgumentException
     {
