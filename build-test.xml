@@ -251,9 +251,6 @@ test.run.interop, test.run.jaxrs, test.run.failing, test.run.versions"
                 <fileset dir="${dir.lib}/jaxrs">
                     <include name="*.jar" />
                 </fileset>
-                <fileset dir="${dir.lib}/xml">
-                    <include name="*.jar" />
-                </fileset>
           </classpath>     
         </junit>
     </target>
