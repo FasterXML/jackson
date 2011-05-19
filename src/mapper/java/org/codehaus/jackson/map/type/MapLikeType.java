@@ -6,7 +6,7 @@ import org.codehaus.jackson.type.JavaType;
 
 /**
  * Type that represents Map-like types; things that consist of key/value pairs but that
- * do not necessarily implement {@like java.util.Map}, but that do not have enough
+ * do not necessarily implement {@link java.util.Map}, but that do not have enough
  * introspection functionality to allow for some level of generic handling.
  * This specifically allows framework to check for configuration and annotation
  * settings used for Map types, and pass these to custom handlers that may be more
