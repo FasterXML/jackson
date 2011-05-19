@@ -202,9 +202,6 @@ compile.smile, compile.mrbean" />
                <fileset dir="${dir.lib}/jaxb">
                     <include name="*.jar" />
                </fileset>
-               <fileset dir="${dir.lib}/xml">
-                    <include name="*.jar" />
-               </fileset>
             </classpath>
         </javac>
     	<!-- 1.6, [JACKSON-278]: need to copy VERSION info along (so unit tests see it) -->
@@ -307,10 +304,6 @@ compile.smile, compile.mrbean" />
                <pathelement path="${dir.build.classes.mapper}"/>  
                <pathelement path="${dir.build.classes.smile}"/>  
                <pathelement path="${dir.build.classes.xc}"/>
-                <pathelement path="${dir.lib}/xml"/>
-                <fileset dir="${dir.lib}/xml">
-                     <include name="*.jar" />
-                </fileset>
             </classpath>
             <include name="perf/**/*.java" />
         </javac>
