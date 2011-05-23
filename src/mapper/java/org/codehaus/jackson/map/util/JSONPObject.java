@@ -50,7 +50,7 @@ public class JSONPObject
     }
 
     /**
-     * @deprected Since 1.8; instead use variant that takes JavaType: this ensures
+     * @deprecated Since 1.8; instead use variant that takes JavaType: this ensures
      *    that type information is properly resolved
      */
     @Deprecated
