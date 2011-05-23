@@ -213,6 +213,7 @@ public class BeanPropertyWriter
         _field = base._field;
         _suppressNulls = base._suppressNulls;
         _suppressableValue = base._suppressableValue;
+        _includeInViews = base._includeInViews;
         // one more thing: copy internal settings, if any (since 1.7)
         if (base._internalSettings != null) {
             _internalSettings = new HashMap<Object,Object>(base._internalSettings);
