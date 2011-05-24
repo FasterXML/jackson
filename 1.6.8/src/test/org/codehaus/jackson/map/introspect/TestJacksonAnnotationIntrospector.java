@@ -5,8 +5,6 @@ import java.io.StringWriter;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import junit.framework.TestCase;
-
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
@@ -26,7 +24,7 @@ import org.codehaus.jackson.type.JavaType;
  * @author Ryan Heaton
  */
 public class TestJacksonAnnotationIntrospector
-        extends TestCase
+    extends BaseMapTest
 {
     public static enum EnumExample {
         VALUE1;
@@ -129,7 +127,17 @@ public class TestJacksonAnnotationIntrospector
     @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS)
     @JsonTypeResolver(DummyBuilder.class)
     static class TypeResolverBean { }
-    
+
+    // Test to ensure we can override enum settings
+    static class LcEnumIntrospector extends JacksonAnnotationIntrospector
+    {
+        @Override
+        public String findEnumValue(Enum<?> value)
+        {
+            return value.name().toLowerCase();
+        }
+    }
+
     /*
     /**********************************************************
     /* Unit tests
@@ -174,4 +182,15 @@ public class TestJacksonAnnotationIntrospector
         assertNotNull(rb);
         assertSame(DummyBuilder.class, rb.getClass());
     }    
+
+    public void testEnumHandling() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+	AnnotationIntrospector intr = new LcEnumIntrospector();
+        mapper.getDeserializationConfig().setAnnotationIntrospector(intr);
+        mapper.getSerializationConfig().setAnnotationIntrospector(intr);
+        assertEquals("\"value1\"", mapper.writeValueAsString(EnumExample.VALUE1));
+        EnumExample result = mapper.readValue(quote("value1"), EnumExample.class);
+        assertEquals(EnumExample.VALUE1, result);
+    }
 }
