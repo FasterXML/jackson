@@ -204,20 +204,21 @@ public class BeanPropertyWriter
         
         _member = base._member;
         _contextAnnotations = base._contextAnnotations;
-        _name = base._name;
         _declaredType = base._declaredType;
-        _dynamicSerializers = base._dynamicSerializers;
-        _typeSerializer = base._typeSerializer;
-        _cfgSerializationType = base._cfgSerializationType;
         _accessorMethod = base._accessorMethod;
         _field = base._field;
-        _suppressNulls = base._suppressNulls;
-        _suppressableValue = base._suppressableValue;
-        _includeInViews = base._includeInViews;
         // one more thing: copy internal settings, if any (since 1.7)
         if (base._internalSettings != null) {
             _internalSettings = new HashMap<Object,Object>(base._internalSettings);
         }
+        _name = base._name;
+        _cfgSerializationType = base._cfgSerializationType;
+        _dynamicSerializers = base._dynamicSerializers;
+        _suppressNulls = base._suppressNulls;
+        _suppressableValue = base._suppressableValue;
+        _includeInViews = base._includeInViews;
+        _typeSerializer = base._typeSerializer;
+        _nonTrivialBaseType = base._nonTrivialBaseType;
    }
 
     /**

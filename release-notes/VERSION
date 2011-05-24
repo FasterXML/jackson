@@ -4,7 +4,18 @@ Release date:
   17-May-2011
 
 Description:
-  First patch release for 1.8.
+  A patch release for 1.8.
+
+  Fixes:
+
+  * Problem with FilteredBeanPropertyWriter: was not delegating call
+    to wrapped BeanPropertyWriter, causing problems with modules
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.8.1 [17-May-2011]
 
   Fixes:
   
@@ -20,10 +31,6 @@ Description:
   * [JACKSON-573] Failure to serialize certain Unicode Strings
    (reported by Young J-P)
   (plus all 1.7 fixes up to 1.7.7)
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.8.0 [20-Apr-2011]
 

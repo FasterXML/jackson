@@ -84,7 +84,7 @@ public class TestTypedArraySerialization
         ObjectWriter w = mapper.viewWriter(Object.class);
         assertEquals("{\"beans\":[{\"@type\":\"bean\",\"x\":0}]}", w.writeValueAsString(beans));
     }
-
+    
     public void testIntList() throws Exception
     {
         TypedList<Integer> input = new TypedList<Integer>();
@@ -94,12 +94,10 @@ public class TestTypedArraySerialization
         assertEquals("[\""+TypedList.class.getName()+"\",[5,13]]", serializeAsString(input));
     }
     
-    /**
-     * Similar to above, but this time let's request adding type info
-     * as property. That would not work (since there's no JSON Object to
-     * add property in), so it should revert to method used with
-     * ARRAY_WRAPPER method.
-     */
+    // Similar to above, but this time let's request adding type info
+    // as property. That would not work (since there's no JSON Object to
+    // add property in), so it should revert to method used with
+    // ARRAY_WRAPPER method.
     public void testStringListAsProp() throws Exception
     {
         TypedListAsProp<String> input = new TypedListAsProp<String>();

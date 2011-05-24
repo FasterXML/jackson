@@ -12,7 +12,7 @@ import org.codehaus.jackson.map.SerializerProvider;
  * @since 1.4
  */
 public abstract class FilteredBeanPropertyWriter
-{
+{    
     public static BeanPropertyWriter constructViewBased(BeanPropertyWriter base, Class<?>[] viewsToIncludeIn)
     {
         if (viewsToIncludeIn.length == 1) {
@@ -30,22 +30,20 @@ public abstract class FilteredBeanPropertyWriter
     private final static class SingleView
         extends BeanPropertyWriter
     {
+        protected final BeanPropertyWriter _delegate;
+
         protected final Class<?> _view;
         
-        protected SingleView(BeanPropertyWriter base, Class<?> view) {
-            super(base);
+        protected SingleView(BeanPropertyWriter delegate, Class<?> view)
+        {
+            super(delegate);
+            _delegate = delegate;
             _view = view;
-        }
-
-        protected SingleView(SingleView fromView, JsonSerializer<Object> ser) {
-            super(fromView, ser);
-            _view = fromView._view;
         }
         
         @Override
-        public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
-        {
-            return new SingleView(this, ser);
+        public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser) {
+            return new SingleView(_delegate.withSerializer(ser), _view);
         }
         
         @Override
@@ -54,7 +52,7 @@ public abstract class FilteredBeanPropertyWriter
         {
             Class<?> activeView = prov.getSerializationView();
             if (activeView == null || _view.isAssignableFrom(activeView)) {
-                super.serializeAsField(bean, jgen, prov);
+                _delegate.serializeAsField(bean, jgen, prov);
             }
         }
     }
@@ -62,22 +60,19 @@ public abstract class FilteredBeanPropertyWriter
     private final static class MultiView
         extends BeanPropertyWriter
     {
+        protected final BeanPropertyWriter _delegate;
+
         protected final Class<?>[] _views;
         
-        protected MultiView(BeanPropertyWriter base, Class<?>[] views) {
-            super(base);
+        protected MultiView(BeanPropertyWriter delegate, Class<?>[] views) {
+            super(delegate);
+            _delegate = delegate;
             _views = views;
-        }
-
-        protected MultiView(MultiView fromView, JsonSerializer<Object> ser) {
-            super(fromView, ser);
-            _views = fromView._views;
         }
         
         @Override
-        public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser)
-        {
-            return new MultiView(this, ser);
+        public BeanPropertyWriter withSerializer(JsonSerializer<Object> ser) {
+            return new MultiView(_delegate.withSerializer(ser), _views);
         }
         
         @Override
@@ -95,7 +90,7 @@ public abstract class FilteredBeanPropertyWriter
                     return;
                 }
             }
-            super.serializeAsField(bean, jgen, prov);
+            _delegate.serializeAsField(bean, jgen, prov);
         }
     }
 }
