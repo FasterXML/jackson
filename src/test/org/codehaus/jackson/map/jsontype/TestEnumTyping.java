@@ -29,6 +29,23 @@ public class TestEnumTyping extends BaseMapTest
     static class EnumInterfaceList extends ArrayList<EnumInterface> { }
 
     static class TagList extends ArrayList<Tag> { }
+
+    static enum TestEnum { A, B, C; }
+    
+    static class UntypedEnumBean
+    {
+       @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="__type")
+        public Object value;
+
+        public UntypedEnumBean() { }
+        public UntypedEnumBean(TestEnum v) { value = v; }
+
+        @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="__type")
+        public void setValue(Object o) {
+            System.out.println("Set value ("+o.getClass().getName()+") -> "+o);
+            value = o;
+        }
+    }
     
     /*
     /**********************************************************
@@ -71,6 +88,18 @@ public class TestEnumTyping extends BaseMapTest
         assertEquals(2, result.size());
         assertSame(Tag.A, result.get(0));
         assertSame(Tag.B, result.get(1));
+    }
+
+    public void testUntypedEnum() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        String str = mapper.writeValueAsString(new UntypedEnumBean(TestEnum.B));
+        UntypedEnumBean result = mapper.readValue(str, UntypedEnumBean.class);
+        assertNotNull(result);
+        assertNotNull(result.value);
+        Object ob = result.value;
+        assertSame(TestEnum.class, ob.getClass());
+        assertEquals(TestEnum.B, result.value);
     }
     
 }
