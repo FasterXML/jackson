@@ -12,7 +12,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  * 
  * @since 1.7
  */
-public class TestElementWrapper  extends BaseJaxbTest
+public class TestElementWrapper extends BaseJaxbTest
 {
     /*
     /**********************************************************
