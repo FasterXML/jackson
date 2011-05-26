@@ -1,0 +1,17 @@
+<?xml version="1.0" standalone="yes" ?>
+<project name="Ant task(s) to repackage Asm under Jackson class hierarchy, to
+  avoid version problems"
+  default="repackage-asm"
+>
+  <target name="repackage-asm">
+    <taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask"
+        classpath="lib/ext/jarjar/jarjar-1.0.jar"
+    />
+    <jarjar jarfile="lib/repackaged/jackson-asm-3.3.jar">
+        <zipfileset src="lib/ext/asm/asm-3.3.jar"/>
+        <rule pattern="org.objectweb.asm.**"
+            result="org.codehaus.jackson.org.objectweb.asm.@1"
+        />
+    </jarjar>
+  </target>
+</project>

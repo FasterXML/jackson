@@ -1,0 +1,9 @@
+{ "test key" : true,
+"nullField":null,
+"foo":1,
+"foo2": { "a" : 3 },
+ "a\u00E3b" :  -323,
+ "2" : [ 1, 2, 3],
+  "\"foo\"" : "foo\nbar"
+}
+
