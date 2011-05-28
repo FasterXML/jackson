@@ -9,9 +9,7 @@ import org.codehaus.jackson.util.BufferRecycler;
 
 // json.org's reference implementation
 import org.json.*;
-// Jsontool implementation
 import com.fasterxml.jackson.module.jsonorg.JsonOrgModule;
-import com.sdicons.json.parser.JSONParser;
 
 @SuppressWarnings("unused")
 public final class TestJsonPerf
@@ -30,9 +28,11 @@ public final class TestJsonPerf
     
     final byte[] _jsonData;
 
+    final String _jsonString;
+    
     final byte[] _smileData;
     
-    protected int mBatchSize;
+    protected int _batchSize;
 
     public TestJsonPerf(File f) throws IOException
     {
@@ -43,6 +43,7 @@ public final class TestJsonPerf
         _smileFactory = new SmileFactory();
         _smileMapper = new ObjectMapper(_smileFactory);
         _jsonData = readData(f);
+        _jsonString = new String(_jsonData, "UTF-8");
         _smileData = convertToSmile(_jsonData);
 
         // Let's try to guestimate suitable size... to get to 50 megs parsed
@@ -70,26 +71,36 @@ public final class TestJsonPerf
             switch (round) {
 
             case 0:
-                msg = "Jackson, stream"; // byte
-                sum += testJacksonStream(REPS, _jsonFactory, _jsonData, true);
+                msg = "Jackson, stream/byte[]"; // byte
+                sum += testJacksonStream(REPS, _jsonFactory, _jsonData);
                 break;
 
             case 1:
-                msg = "Jackson, JsonNode";
-                sum += testJacksonTree(_mapper, _jsonData, REPS);
+                msg = "Jackson, stream/String"; // String
+                sum += testJacksonStream(REPS, _jsonFactory, _jsonString);
+                break;
+                
+            case 2:
+                msg = "Jackson, tree/String";
+                sum += testJacksonTree(REPS, _mapper, _jsonString);
+                break;
+                
+            case 3:
+                msg = "Jackson, tree/byte[]";
+                sum += testJacksonTree(REPS, _mapper, _jsonData);
                 break;
                                 
-            case 2:
+                /*
+            case 3:
                 msg = "Jackson + module-org-json";
                 sum += testJsonOrgViaJackson(REPS);
                 break;
 
-            case 3:
+            case 4:
                 msg = "Json.org";
                 sum += testJsonOrg(REPS);
                 break;
 
-                /*
             case 0:
                 msg = "Jackson/smile, stream";
                 sum += testJacksonStream(REPS, _smileFactory, _smileData, true);
@@ -225,54 +236,14 @@ public final class TestJsonPerf
         }
         return ob.hashCode();
     }
-    
-    private int testJsonTools(int reps)
-        throws Exception
-    {
-        Object ob = null;
-        for (int i = 0; i < reps; ++i) {
-            // Json-tools accepts streams, yay!
-            JSONParser jp = new JSONParser(new ByteArrayInputStream(_jsonData), "byte stream");
-            /* Hmmmh. Will we get just one object for the whole thing?
-             * Or a stream? Seems like just one
-             */
-            //while ((ob = jp.nextValue()) != null) { ; }
-            ob = jp.nextValue();
-        }
-        return ob.hashCode();
-    }
 
-    private int testJsonSimple(int reps)
-        throws Exception
-    {
-        // Json.org's code only accepts Strings:
-        String input = new String(_jsonData, "UTF-8");
-        Object ob = null;
-        for (int i = 0; i < reps; ++i) {
-            ob = org.json.simple.JSONValue.parse(input);
-        }
-        return ob.hashCode();
-    }
-
-    private int testJacksonStream(int reps, JsonFactory factory, byte[] data, boolean fast)
-        throws Exception
+    private int testJacksonStream(int reps, JsonFactory factory, byte[] data) throws Exception
     {
         int sum = 0;
         for (int i = 0; i < reps; ++i) {
-            // note: fast is not used any more
-            JsonParser jp;
-
-            if (fast) {
-                jp = factory.createJsonParser(data, 0, data.length);
-            } else {
-                jp = factory.createJsonParser(new ByteArrayInputStream(data));
-            }
+            JsonParser jp = factory.createJsonParser(data, 0, data.length);
             JsonToken t;
             while ((t = jp.nextToken()) != null) {
-/*                
-if (t == JsonToken.FIELD_NAME) System.err.println("'"+jp.getCurrentName()+"'");               
-else System.err.println(""+t);                
-*/
                 // Field names are always constructed
                 if (t == JsonToken.VALUE_STRING
                     //|| t == JsonToken.FIELD_NAME
@@ -285,7 +256,26 @@ else System.err.println(""+t);
         return sum;
     }
 
-    private int testJacksonDatabind(ObjectMapper mapper, byte[] data, int reps)
+    private int testJacksonStream(int reps, JsonFactory factory, String data) throws Exception
+    {
+        int sum = 0;
+        for (int i = 0; i < reps; ++i) {
+            JsonParser jp = factory.createJsonParser(data);
+            JsonToken t;
+            while ((t = jp.nextToken()) != null) {
+                // Field names are always constructed
+                if (t == JsonToken.VALUE_STRING
+                    //|| t == JsonToken.FIELD_NAME
+                    ) {
+                    sum += jp.getText().length();
+                }
+            }
+            jp.close();
+        }
+        return sum;
+    }
+    
+    private int testJacksonDatabind(int reps, ObjectMapper mapper, byte[] data)
         throws Exception
     {
         Object ob = null;
@@ -296,7 +286,7 @@ else System.err.println(""+t);
         return ob.hashCode(); // just to get some non-optimizable number
     }
 
-    private int testJacksonTree(ObjectMapper mapper, byte[] data, int reps)
+    private int testJacksonTree(int reps, ObjectMapper mapper, byte[] data)
         throws Exception
     {
         Object ob = null;
@@ -306,6 +296,16 @@ else System.err.println(""+t);
         return ob.hashCode(); // just to get some non-optimizable number
     }
 
+    private int testJacksonTree(int reps, ObjectMapper mapper, String data)
+        throws Exception
+    {
+        Object ob = null;
+        for (int i = 0; i < reps; ++i) {
+            ob = mapper.readValue(data, JsonNode.class);
+        }
+        return ob.hashCode(); // just to get some non-optimizable number
+    }
+    
     public static void main(String[] args)
         throws Exception
     {
