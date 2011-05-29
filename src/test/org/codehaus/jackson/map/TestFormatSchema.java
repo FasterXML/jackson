@@ -55,7 +55,7 @@ public class TestFormatSchema  extends BaseMapTest
         }
     }
     
-    static class ParserWithSchema extends ReaderBasedNumericParser
+    static class ParserWithSchema extends ReaderBasedParserBase
     {
         public ParserWithSchema(IOContext ioCtxt, int features, Reader r)
         {

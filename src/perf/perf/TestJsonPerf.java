@@ -9,7 +9,13 @@ import org.codehaus.jackson.util.BufferRecycler;
 
 // json.org's reference implementation
 import org.json.*;
+
+// jackson-4-org.json
 import com.fasterxml.jackson.module.jsonorg.JsonOrgModule;
+
+// json-smart
+import net.minidev.json.JSONObject;
+import net.minidev.json.JSONValue;
 
 @SuppressWarnings("unused")
 public final class TestJsonPerf
@@ -46,8 +52,8 @@ public final class TestJsonPerf
         _jsonString = new String(_jsonData, "UTF-8");
         _smileData = convertToSmile(_jsonData);
 
-        // Let's try to guestimate suitable size... to get to 50 megs parsed
-        REPS = (int) ((double) (50 * 1000 * 1000) / (double) _jsonData.length);
+        // Let's try to guestimate suitable size... to get to 25 megs parsed
+        REPS = (int) ((double) (25 * 1000 * 1000) / (double) _jsonData.length);
 
         System.out.println("Read "+_jsonData.length+" bytes (smile: "+_smileData.length+") from '"+f+"'; will do "+REPS+" reps");
         System.out.println();
@@ -62,11 +68,13 @@ public final class TestJsonPerf
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
             // Use 9 to test all...
-            int round = (i++ % 4);
+            int round = (i++ % 5);
 
             long curr = System.currentTimeMillis();
             String msg;
             boolean lf = (round == 0);
+
+//            if (true) round = 2;
 
             switch (round) {
 
@@ -81,15 +89,20 @@ public final class TestJsonPerf
                 break;
                 
             case 2:
+                msg = "Jackson, tree/byte[]";
+                sum += testJacksonTree(REPS, _mapper, _jsonData);
+                break;
+
+            case 3:
                 msg = "Jackson, tree/String";
                 sum += testJacksonTree(REPS, _mapper, _jsonString);
                 break;
                 
-            case 3:
-                msg = "Jackson, tree/byte[]";
-                sum += testJacksonTree(REPS, _mapper, _jsonData);
+            case 4:
+                msg = "Json-smart/String";
+                sum += testJsonSmart(REPS, _jsonString);
                 break;
-                                
+                
                 /*
             case 3:
                 msg = "Jackson + module-org-json";
@@ -121,15 +134,6 @@ public final class TestJsonPerf
             case 2:
                 msg = "Jackson, stream/char";
                 sum += testJacksonStream(REPS, _jsonFactory, _jsonData, false);
-                break;
-
-            case 7:
-                msg = "Json-simple";
-                sum += testJsonSimple(REPS);
-                break;
-            case 8:
-                msg = "JSONTools (berlios.de)";
-                sum += testJsonTools(REPS);
                 break;
                 */
             default:
@@ -245,10 +249,11 @@ public final class TestJsonPerf
             JsonToken t;
             while ((t = jp.nextToken()) != null) {
                 // Field names are always constructed
-                if (t == JsonToken.VALUE_STRING
-                    //|| t == JsonToken.FIELD_NAME
+                if (t == JsonToken.VALUE_STRING || t == JsonToken.FIELD_NAME
                     ) {
                     sum += jp.getText().length();
+                } else if (t == JsonToken.VALUE_NUMBER_INT) {
+                    sum += jp.getIntValue();
                 }
             }
             jp.close();
@@ -264,10 +269,11 @@ public final class TestJsonPerf
             JsonToken t;
             while ((t = jp.nextToken()) != null) {
                 // Field names are always constructed
-                if (t == JsonToken.VALUE_STRING
-                    //|| t == JsonToken.FIELD_NAME
+                if (t == JsonToken.VALUE_STRING || t == JsonToken.FIELD_NAME
                     ) {
                     sum += jp.getText().length();
+                } else if (t == JsonToken.VALUE_NUMBER_INT) {
+                    sum += jp.getIntValue();
                 }
             }
             jp.close();
@@ -289,21 +295,38 @@ public final class TestJsonPerf
     private int testJacksonTree(int reps, ObjectMapper mapper, byte[] data)
         throws Exception
     {
-        Object ob = null;
-        for (int i = 0; i < reps; ++i) {
-            ob = mapper.readValue(data, JsonNode.class);
-        }
-        return ob.hashCode(); // just to get some non-optimizable number
+      Object ob = null;
+      for (int i = 0; i < reps; ++i) {
+        ob = mapper.readValue(data, JsonNode.class);
+          /*
+          ByteArrayInputStream in = new ByteArrayInputStream(data);
+          ob = mapper.readValue(in, JsonNode.class);
+          */
+      }
+      return ob.hashCode(); // just to get some non-optimizable number
     }
 
     private int testJacksonTree(int reps, ObjectMapper mapper, String data)
         throws Exception
     {
-        Object ob = null;
+        JsonNode tree = null;
+//        Object ob = null;
         for (int i = 0; i < reps; ++i) {
-            ob = mapper.readValue(data, JsonNode.class);
+//            ob = mapper.readValue(data, JsonNode.class);
+            tree = mapper.readTree(data);
         }
-        return ob.hashCode(); // just to get some non-optimizable number
+        return tree.hashCode(); // just to get some non-optimizable number
+    }
+
+    private int testJsonSmart(int reps, String data)
+        throws Exception
+    {
+        JSONObject root = null;
+        for (int i = 0; i < reps; ++i) {
+    //        ob = mapper.readValue(data, JsonNode.class);
+            root = (JSONObject) JSONValue.parse(data);
+        }
+        return root.hashCode();
     }
     
     public static void main(String[] args)
