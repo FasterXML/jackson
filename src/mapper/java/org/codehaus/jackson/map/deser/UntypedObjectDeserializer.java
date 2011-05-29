@@ -34,7 +34,18 @@ public class UntypedObjectDeserializer
         throws IOException, JsonProcessingException
     {
         switch (jp.getCurrentToken()) {
-        // first, simple types:
+        case START_OBJECT:
+            return mapObject(jp, ctxt);
+        case END_OBJECT: // invalid
+            break;
+        case START_ARRAY:
+            return mapArray(jp, ctxt);
+        case END_ARRAY: // invalid
+            break;
+        case FIELD_NAME:
+            return mapObject(jp, ctxt);
+        case VALUE_EMBEDDED_OBJECT:
+            return jp.getEmbeddedObject();
         case VALUE_STRING:
             return jp.getText();
 
@@ -60,26 +71,11 @@ public class UntypedObjectDeserializer
             return Boolean.TRUE;
         case VALUE_FALSE:
             return Boolean.FALSE;
-        case VALUE_EMBEDDED_OBJECT:
-            return jp.getEmbeddedObject();
 
         case VALUE_NULL: // should not get this but...
             return null;
             
-            // Then structured types:
-            
-        case START_ARRAY:
-            return mapArray(jp, ctxt);
-
-        case START_OBJECT:
-        case FIELD_NAME:
-            return mapObject(jp, ctxt);
-
-            // and finally, invalid types
-        case END_ARRAY:
-        case END_OBJECT:
-            break;
-        }
+         }
 
         throw ctxt.mappingException(Object.class);
     }
@@ -139,7 +135,7 @@ public class UntypedObjectDeserializer
     /**********************************************************
      */
     
-    protected List<Object> mapArray(JsonParser jp, DeserializationContext ctxt)
+    protected final List<Object> mapArray(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         // Minor optimization to handle small lists (default size for ArrayList is 10)
@@ -165,7 +161,7 @@ public class UntypedObjectDeserializer
         return result;
     }
 
-    protected Map<String,Object> mapObject(JsonParser jp, DeserializationContext ctxt)
+    protected final Map<String,Object> mapObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.getCurrentToken();

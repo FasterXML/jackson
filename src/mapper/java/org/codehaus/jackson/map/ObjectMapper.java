@@ -1195,7 +1195,13 @@ public class ObjectMapper
     public JsonNode readTree(JsonParser jp)
         throws IOException, JsonProcessingException
     {
-        return readTree(jp, copyDeserializationConfig());
+        /* 02-Mar-2009, tatu: One twist; deserialization provider
+         *   will map Json null straight into Java null. But what
+         *   we want to return is the "null node" instead.
+         */
+        DeserializationConfig cfg = copyDeserializationConfig();
+        JsonNode n = (JsonNode) _readValue(cfg, jp, JSON_NODE_TYPE);
+        return (n == null) ? NullNode.instance : n;
     }
 
     /**
@@ -1216,10 +1222,6 @@ public class ObjectMapper
     public JsonNode readTree(JsonParser jp, DeserializationConfig cfg)
         throws IOException, JsonProcessingException
     {
-        /* 02-Mar-2009, tatu: One twist; deserialization provider
-         *   will map Json null straight into Java null. But what
-         *   we want to return is the "null node" instead.
-         */
         JsonNode n = (JsonNode) _readValue(cfg, jp, JSON_NODE_TYPE);
         return (n == null) ? NullNode.instance : n;
     }
@@ -1239,7 +1241,7 @@ public class ObjectMapper
     public JsonNode readTree(InputStream in)
         throws IOException, JsonProcessingException
     {
-        JsonNode n = (JsonNode) readValue(in, JSON_NODE_TYPE);
+        JsonNode n = (JsonNode) _readMapAndClose(_jsonFactory.createJsonParser(in), JSON_NODE_TYPE);
         return (n == null) ? NullNode.instance : n;
     }
 
@@ -1258,7 +1260,7 @@ public class ObjectMapper
     public JsonNode readTree(Reader r)
         throws IOException, JsonProcessingException
     {
-        JsonNode n = (JsonNode) readValue(r, JSON_NODE_TYPE);
+        JsonNode n = (JsonNode) _readMapAndClose(_jsonFactory.createJsonParser(r), JSON_NODE_TYPE);
         return (n == null) ? NullNode.instance : n;
     }
 
@@ -1277,7 +1279,7 @@ public class ObjectMapper
     public JsonNode readTree(String content)
         throws IOException, JsonProcessingException
     {
-        JsonNode n = (JsonNode) readValue(content, JSON_NODE_TYPE);
+        JsonNode n = (JsonNode) _readMapAndClose(_jsonFactory.createJsonParser(content), JSON_NODE_TYPE);
         return (n == null) ? NullNode.instance : n;
     }
 
