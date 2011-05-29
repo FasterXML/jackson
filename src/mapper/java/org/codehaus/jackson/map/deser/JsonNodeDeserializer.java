@@ -53,7 +53,14 @@ public class JsonNodeDeserializer
     public JsonNode deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        return deserializeAny(jp, ctxt);
+        switch (jp.getCurrentToken()) {
+        case START_OBJECT:
+            return deserializeObject(jp, ctxt, ctxt.getNodeFactory());
+        case START_ARRAY:
+            return deserializeArray(jp, ctxt, ctxt.getNodeFactory());
+        default:
+            return deserializeAny(jp, ctxt, ctxt.getNodeFactory());
+        }
     }
 
     /*
@@ -79,10 +86,10 @@ public class JsonNodeDeserializer
         {
             if (jp.getCurrentToken() == JsonToken.START_OBJECT) {
                 jp.nextToken();
-                return deserializeObject(jp, ctxt);
+                return deserializeObject(jp, ctxt, ctxt.getNodeFactory());
             }
             if (jp.getCurrentToken() == JsonToken.FIELD_NAME) {
-                return deserializeObject(jp, ctxt);
+                return deserializeObject(jp, ctxt, ctxt.getNodeFactory());
             }
             throw ctxt.mappingException(ObjectNode.class);
          }
@@ -104,7 +111,7 @@ public class JsonNodeDeserializer
             throws IOException, JsonProcessingException
         {
             if (jp.isExpectedStartArrayToken()) {
-                return deserializeArray(jp, ctxt);
+                return deserializeArray(jp, ctxt, ctxt.getNodeFactory());
             }
             throw ctxt.mappingException(ArrayNode.class);
         }
@@ -173,18 +180,31 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
     /**********************************************************
      */
     
-    protected final ObjectNode deserializeObject(JsonParser jp, DeserializationContext ctxt)
+    protected final ObjectNode deserializeObject(JsonParser jp, DeserializationContext ctxt,
+            final JsonNodeFactory nodeFactory)            
         throws IOException, JsonProcessingException
     {
-        ObjectNode node = ctxt.getNodeFactory().objectNode();
+        ObjectNode node = nodeFactory.objectNode();
         JsonToken t = jp.getCurrentToken();
         if (t == JsonToken.START_OBJECT) {
             t = jp.nextToken();
         }
         for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
             String fieldName = jp.getCurrentName();
-            jp.nextToken();
-            JsonNode value = deserializeAny(jp, ctxt);
+            JsonNode value;
+            switch (jp.nextToken()) {
+            case START_OBJECT:
+                value = deserializeObject(jp, ctxt, nodeFactory);
+                break;
+            case START_ARRAY:
+                value = deserializeArray(jp, ctxt, nodeFactory);
+                break;
+            case VALUE_STRING:
+                value = nodeFactory.textNode(jp.getText());
+                break;
+            default:
+                value = deserializeAny(jp, ctxt, nodeFactory);
+            }
             JsonNode old = node.put(fieldName, value);
             if (old != null) {
                 _handleDuplicateField(fieldName, node, old, value);
@@ -193,27 +213,47 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
         return node;
     }
     
-    protected final ArrayNode deserializeArray(JsonParser jp, DeserializationContext ctxt)
+    protected final ArrayNode deserializeArray(JsonParser jp, DeserializationContext ctxt,
+            final JsonNodeFactory nodeFactory)            
         throws IOException, JsonProcessingException
     {
-        ArrayNode node = ctxt.getNodeFactory().arrayNode();
-        while (jp.nextToken() != JsonToken.END_ARRAY) {
-            node.add(deserializeAny(jp, ctxt));
+        ArrayNode node = nodeFactory.arrayNode();
+        while (true) {
+            switch (jp.nextToken()) {
+            case START_OBJECT:
+                node.add(deserializeObject(jp, ctxt, nodeFactory));
+                break;
+            case START_ARRAY:
+                node.add(deserializeArray(jp, ctxt, nodeFactory));
+                break;
+            case END_ARRAY:
+                return node;
+            case VALUE_STRING:
+                node.add(nodeFactory.textNode(jp.getText()));
+                break;
+            default:
+                node.add(deserializeAny(jp, ctxt, nodeFactory));
+                break;
+            }
         }
-        return node;
     }
 
-    protected final JsonNode deserializeAny(JsonParser jp, DeserializationContext ctxt)
+    protected final JsonNode deserializeAny(JsonParser jp, DeserializationContext ctxt,
+            final JsonNodeFactory nodeFactory)            
         throws IOException, JsonProcessingException
     {
-        final JsonNodeFactory nodeFactory = ctxt.getNodeFactory();
         switch (jp.getCurrentToken()) {
         case START_OBJECT:
-        case FIELD_NAME:
-            return deserializeObject(jp, ctxt);
+            return deserializeObject(jp, ctxt, nodeFactory);
 
         case START_ARRAY:
-            return deserializeArray(jp, ctxt);
+            return deserializeArray(jp, ctxt, nodeFactory);
+
+        case FIELD_NAME:
+            return deserializeObject(jp, ctxt, nodeFactory);
+
+        case VALUE_EMBEDDED_OBJECT:
+            return nodeFactory.POJONode(jp.getEmbeddedObject());
 
         case VALUE_STRING:
             return nodeFactory.textNode(jp.getText());
@@ -249,14 +289,45 @@ abstract class BaseNodeDeserializer<N extends JsonNode>
 
         case VALUE_NULL:
             return nodeFactory.nullNode();
-
+            
             // These states can not be mapped; input stream is
             // off by an event or two
 
-        case END_OBJECT:
-        case END_ARRAY:
+        //case END_OBJECT:
+        //case END_ARRAY:
         default:
             throw ctxt.mappingException(getValueClass());
         }
     }
+
+    /**
+     * @deprecated since 1.9.0
+     */
+    @Deprecated
+    protected final ObjectNode deserializeObject(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return deserializeObject(jp, ctxt, ctxt.getNodeFactory());
+    }
+
+    /**
+     * @deprecated since 1.9.0
+     */
+    @Deprecated
+    protected final ArrayNode deserializeArray(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return deserializeArray(jp, ctxt, ctxt.getNodeFactory());
+    }
+
+    /**
+     * @deprecated since 1.9.0
+     */
+    @Deprecated
+    protected final JsonNode deserializeAny(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        return deserializeAny(jp, ctxt, ctxt.getNodeFactory());
+    }
+
 }
