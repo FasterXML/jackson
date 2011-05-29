@@ -1272,11 +1272,13 @@ public final class ReaderBasedParser
         while ((_inputPtr < _inputEnd) || loadMore()) {
             int i = (int) _inputBuffer[_inputPtr++];
             if (i > INT_SPACE) {
-                 if (i != INT_SLASH) {
-                    return i;
+                 if (i == INT_SLASH) {
+                     _skipComment();
+                     continue;
                 }
-                _skipComment();
-            } else if (i != INT_SPACE) {
+                 return i;
+            }
+            if (i != INT_SPACE) {
                 if (i == INT_LF) {
                     _skipLF();
                 } else if (i == INT_CR) {
