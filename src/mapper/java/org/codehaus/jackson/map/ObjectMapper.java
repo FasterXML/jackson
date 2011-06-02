@@ -113,10 +113,14 @@ public class ObjectMapper
     }
 
     /**
-     * Customized {@link TypeResolverBuilder} that provides
-     * resolver builders based on its configuration. It is used
-     * when default typing is enabled (see
-     * {@link ObjectMapper#enableDefaultTyping()} for details).
+     * Customized {@link TypeResolverBuilder} that provides type resolver builders
+     * used with so-called "default typing"
+     * (see {@link ObjectMapper#enableDefaultTyping()} for details).
+     *<p>
+     * Type resolver construction is based on configuration: implementation takes care
+     * of only providing builders in cases where type information should be applied.
+     * This is important since build calls may be sent for any and all types, and
+     * type information should NOT be applied to all of them.
      */
     public static class DefaultTypeResolverBuilder
         extends StdTypeResolverBuilder
