@@ -25,6 +25,20 @@ import org.codehaus.jackson.type.JavaType;
  * will be called to get actual type resolver constructed
  * and used for resolving types for configured base type and its
  * subtypes.
+ *<p>
+ * Note that instances are used for two related but distinct use cases:
+ *<ul>
+ * <li>To create builders to use with explicit type information
+ *    inclusion (usually via <code>@JsonTypeInfo</code> annotation)
+ *   </li>
+ * <li>To create builders when "default typing" is used; if so, type information
+ *   is automatically included for certain kind of types, regardless of annotations
+ *   </li>
+ *</ul>
+ * Important distinction between the cases is that in first case, calls to
+ * create builders are only made when builders are certainly needed; whereas
+ * in second case builder has to first verify whether type information is
+ * applicable for given type, and if not, just return null to indicate this.
  * 
  * @since 1.5
  * @author tatu
