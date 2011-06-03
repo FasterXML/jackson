@@ -82,6 +82,12 @@ public class TestNullProperties
         public String getB() { return _b; }
     }
 
+    // to ensure that default values work for collections as well
+    static class ListBean {
+        @JsonSerialize(include=JsonSerialize.Inclusion.NON_DEFAULT)
+        public List<String> strings = new ArrayList<String>();
+    }
+    
     /*
     /**********************************************************
     /* Unit tests
@@ -155,6 +161,12 @@ public class TestNullProperties
         assertFalse(result.containsKey("a"));
     }
 
+    public void testDefaultForEmptyList() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        assertEquals("{}", m.writeValueAsString(new ListBean()));
+    }
+    
     // // // Tests for deprecated legacy annotations:
 
     public void testByClassLegacy() throws IOException

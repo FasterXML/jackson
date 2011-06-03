@@ -1,7 +1,9 @@
 package org.codehaus.jackson.map.ser;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collection;
 
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.JsonSerializer;
@@ -113,6 +115,12 @@ public class PropertyBuilder
                 break;
             case NON_NULL:
                 suppressNulls = true;
+                // fall through
+            case ALWAYS: // default
+                // we may still want to suppress empty collections, as per [JACKSON-254]:
+                if (declaredType.isContainerType()) {
+                    suppValue = getContainerValueChecker(name, declaredType);
+                }
                 break;
             }
         }
@@ -206,6 +214,44 @@ public class PropertyBuilder
         }
     }
 
+    /**
+     * Helper method called to see if we need a comparator Object to check if values
+     * of a container (Collection, array) property should be suppressed.
+     * This is usually
+     * 
+     * @param propertyName Name of property to handle
+     * @param propertyType Declared type of values of the property to handle
+     * @return Object whose <code>equals()</code> method is called to check if given value
+     *    is "empty Collection" value to suppress; or null if no such check should be done
+     *    (declared type not Collection or array)
+     * 
+     * @since 1.9
+     */
+    protected Object getContainerValueChecker(String propertyName, JavaType propertyType)
+    {
+        // currently we will only check for certain kinds of empty containers:
+        if (_config.isEnabled(SerializationConfig.Feature.WRITE_EMPTY_JSON_ARRAYS)) {
+            return null;
+        }
+        if (propertyType.isArrayType()) {
+            return new Object() { // all we need is a Comparator to see if value array is empty, so:
+                @Override
+                public boolean equals(Object other) {
+                    return Array.getLength(other) == 0;
+                }
+            };
+        }
+        if (Collection.class.isAssignableFrom(propertyType.getRawClass())) {
+            return new Object() { // all we need is a Comparator to see if value array is empty, so:
+                @Override
+                public boolean equals(Object other) {
+                    return ((Collection<?>) other).size() == 0;
+                }
+            };
+        }
+        return null;
+    }
+    
     protected Object _throwWrapped(Exception e, String propName, Object defaultBean)
     {
         Throwable t = e;

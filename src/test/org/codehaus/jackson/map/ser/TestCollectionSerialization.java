@@ -81,6 +81,15 @@ public class TestCollectionSerialization
         }
     }
 
+    // for [JACKSON-254], suppression of empty collections
+    static class EmptyListBean {
+        public List<String> empty = new ArrayList<String>();
+    }
+
+    static class EmptyArrayBean {
+        public String[] empty = new String[0];
+    }
+    
     /*
     /**********************************************************
     /* Test methods
@@ -286,5 +295,23 @@ public class TestCollectionSerialization
     {
         ObjectMapper m = new ObjectMapper();
         assertEquals("\"[ab, cd, ef]\"", m.writeValueAsString(new PseudoList("ab", "cd", "ef")));
+    }
+
+    // [JACKSON-254]
+    public void testEmptyListOrArray() throws IOException
+    {
+        // by default, empty lists serialized normally
+        EmptyListBean list = new EmptyListBean();
+        EmptyArrayBean array = new EmptyArrayBean();
+        ObjectMapper m = new ObjectMapper();
+        assertTrue(m.getSerializationConfig().isEnabled(SerializationConfig.Feature.WRITE_EMPTY_JSON_ARRAYS));
+        assertEquals("{\"empty\":[]}", m.writeValueAsString(list));
+        assertEquals("{\"empty\":[]}", m.writeValueAsString(array));
+
+        // note: value of setting may be cached when constructing serializer, need a new instance
+        m = new ObjectMapper();
+        m.configure(SerializationConfig.Feature.WRITE_EMPTY_JSON_ARRAYS, false);
+        assertEquals("{}", m.writeValueAsString(list));
+        assertEquals("{}", m.writeValueAsString(array));
     }
 }

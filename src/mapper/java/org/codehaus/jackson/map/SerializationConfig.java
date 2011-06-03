@@ -351,8 +351,21 @@ public class SerializationConfig
          * 
          * @since 1.6
          */
-        WRITE_NULL_MAP_VALUES(true)           
+        WRITE_NULL_MAP_VALUES(true),
 
+        /**
+         * Feature that determines whether Container properties (POJO properties
+         * with declared value of Collection or array; i.e. things that produce JSON
+         * arrays) that are empty (have no elements)
+         * will be serialized as empty JSON arrays (true), or suppressed from output (false).
+         *<p>
+         * Note that this does not change behavior of {@link java.util.Map}s, or
+         * "Collection-like" types.
+         * 
+         * @since 1.9
+         */
+        WRITE_EMPTY_JSON_ARRAYS(true)
+        
             ;
 
         final boolean _defaultState;

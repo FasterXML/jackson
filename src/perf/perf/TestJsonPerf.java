@@ -1,5 +1,8 @@
 package perf;
+
 import java.io.*;
+import java.nio.charset.Charset;
+import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
@@ -64,17 +67,20 @@ public final class TestJsonPerf
     {
         int i = 0;
         int sum = 0;
+        int round = 0;
 
         while (true) {
             try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-            // Use 9 to test all...
-            int round = (i++ % 5);
+
+            ++i;
+            
+//            round = i % 7;
+//            int round = 2 + (i % 2);
+            round = 6;
 
             long curr = System.currentTimeMillis();
             String msg;
             boolean lf = (round == 0);
-
-//            if (true) round = 2;
 
             switch (round) {
 
@@ -97,10 +103,20 @@ public final class TestJsonPerf
                 msg = "Jackson, tree/String";
                 sum += testJacksonTree(REPS, _mapper, _jsonString);
                 break;
-                
+
             case 4:
+                msg = "Jackson, Object/byte[]";
+                sum += testJacksonObject(REPS, _mapper, _jsonData);
+                break;
+
+            case 5:
+                msg = "Jackson, Object/String";
+                sum += testJacksonObject(REPS, _mapper, _jsonString);
+                break;
+                
+            case 6:
                 msg = "Json-smart/String";
-                sum += testJsonSmart(REPS, _jsonString);
+                sum += testJsonSmart(REPS, _jsonData, _jsonString);
                 break;
                 
                 /*
@@ -244,41 +260,61 @@ public final class TestJsonPerf
     private int testJacksonStream(int reps, JsonFactory factory, byte[] data) throws Exception
     {
         int sum = 0;
+        Object ob = null;
         for (int i = 0; i < reps; ++i) {
             JsonParser jp = factory.createJsonParser(data, 0, data.length);
-            JsonToken t;
-            while ((t = jp.nextToken()) != null) {
-                // Field names are always constructed
-                if (t == JsonToken.VALUE_STRING || t == JsonToken.FIELD_NAME
-                    ) {
-                    sum += jp.getText().length();
-                } else if (t == JsonToken.VALUE_NUMBER_INT) {
-                    sum += jp.getIntValue();
-                }
-            }
+            ob = mapStreamToObject(jp, jp.nextToken());
             jp.close();
         }
-        return sum;
+        return ob.hashCode();
     }
 
     private int testJacksonStream(int reps, JsonFactory factory, String data) throws Exception
     {
         int sum = 0;
+        Object ob = null;
         for (int i = 0; i < reps; ++i) {
             JsonParser jp = factory.createJsonParser(data);
-            JsonToken t;
-            while ((t = jp.nextToken()) != null) {
-                // Field names are always constructed
-                if (t == JsonToken.VALUE_STRING || t == JsonToken.FIELD_NAME
-                    ) {
-                    sum += jp.getText().length();
-                } else if (t == JsonToken.VALUE_NUMBER_INT) {
-                    sum += jp.getIntValue();
-                }
-            }
+            ob = mapStreamToObject(jp, jp.nextToken());
             jp.close();
         }
-        return sum;
+        return ob.hashCode();
+    }
+
+    private Object mapStreamToObject(JsonParser jp, JsonToken t) throws IOException
+    {
+        switch (t) {
+        case VALUE_FALSE:
+            return Boolean.FALSE;
+        case VALUE_TRUE:
+            return Boolean.TRUE;
+        case VALUE_STRING:
+            return jp.getText();
+        case VALUE_NUMBER_INT:
+        case VALUE_NUMBER_FLOAT:
+            return jp.getNumberValue();
+        case VALUE_EMBEDDED_OBJECT:
+            return jp.getEmbeddedObject();
+        case START_ARRAY:
+            {
+                ArrayList<Object> kids = new ArrayList<Object>(4);
+                while ((t = jp.nextToken()) != JsonToken.END_ARRAY) {
+                    kids.add(mapStreamToObject(jp, t));
+                }
+                return kids;
+            }
+        case START_OBJECT:
+            {
+//                HashMap<String, Object> kids = new LinkedHashMap<String, Object>();
+                HashMap<String, Object> kids = new HashMap<String, Object>(8);
+                while ((t = jp.nextToken()) != JsonToken.END_OBJECT) {
+                    kids.put(jp.getCurrentName(), mapStreamToObject(jp, jp.nextToken()));
+                }
+                return kids;
+            }
+        default:
+            throw new RuntimeException("Unexpected token: "+t);
+        }
     }
     
     private int testJacksonDatabind(int reps, ObjectMapper mapper, byte[] data)
@@ -318,13 +354,35 @@ public final class TestJsonPerf
         return tree.hashCode(); // just to get some non-optimizable number
     }
 
-    private int testJsonSmart(int reps, String data)
+    private int testJacksonObject(int reps, ObjectMapper mapper, byte[] data)
+        throws Exception
+    {
+      Object ob = null;
+      for (int i = 0; i < reps; ++i) {
+        ob = mapper.readValue(data, Object.class);
+      }
+      return ob.hashCode(); // just to get some non-optimizable number
+    }
+    
+    private int testJacksonObject(int reps, ObjectMapper mapper, String data)
+        throws Exception
+    {
+        Object ob = null;
+        for (int i = 0; i < reps; ++i) {
+            ob = mapper.readValue(data, Object.class);
+        }
+        return ob.hashCode(); // just to get some non-optimizable number
+    }
+    
+    private int testJsonSmart(int reps, byte[] dataBytes, String dataString)
         throws Exception
     {
         JSONObject root = null;
+        final Charset utf8 = Charset.forName("UTF-8");
         for (int i = 0; i < reps; ++i) {
     //        ob = mapper.readValue(data, JsonNode.class);
-            root = (JSONObject) JSONValue.parse(data);
+            String str = new String(dataBytes, utf8);
+            root = (JSONObject) JSONValue.parse(str);
         }
         return root.hashCode();
     }

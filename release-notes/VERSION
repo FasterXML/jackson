@@ -1,10 +1,25 @@
-Version: 1.8.1
+Version: 1.9.0
 
 Release date:
-  17-May-2011
+  xx-Jun-2011
 
 Description:
-  First patch release for 1.8.
+  Another minor release.
+
+  Fixes:
+
+  New features:
+ 
+  * [JACKSON-254] Add 'SerializationConfig.Feature.WRITE_EMPTY_JSON_ARRAYS',
+    which can be used to suppress serialization of empty JSON arrays (unless
+    overridden by per-property annotations).
+   (suggested by Fabrice D)
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.8.1 [17-May-2011]
 
   Fixes:
   
@@ -20,10 +35,6 @@ Description:
   * [JACKSON-573] Failure to serialize certain Unicode Strings
    (reported by Young J-P)
   (plus all 1.7 fixes up to 1.7.7)
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.8.0 [20-Apr-2011]
 
@@ -120,6 +131,64 @@ Description:
 
   * [JACKSON-532]: Add support for org.json.JSONObject, org.json.JSONArray;
     created "jackson-module-json-org" at [https://github.com/FasterXML/jackson-module-json-org]
+
+1.7.7 [17-May-2011]
+
+  Fixes:
+
+  * [JACKSON-542] Base64 decoder couldn't handle escaped characters
+    (reported by Luis N)
+  * [JACKSON-543] Root-level static type information incorrectly handled
+    with Maps (losing parameterization)
+   (reported by Steven S)
+  * [JACKSON-553] SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION
+    did not work correctly
+   (reported by Xun W)
+  * [JACKSON-554] ObjectMapper.readValue(JsonNode) was not properly passing
+    itself as ObjectCodec, making secondary conversions fail
+   (reported by Pascal G)
+  * [JACKSON-556] @XmlElement.name property ignored in some cases
+   (reported by Alex P)
+  * [JACKSON-562] Smile property name decoding issue
+   (reported by Jeffrey Damick, Shay Banon)
+  * [JACKSON-563] JSON Schema uses "required" (not "optional")
+   (reported by Oleg E)
+  * [JACKSON-569] ContextualSerializer not resolved for serializers
+    defined with @JsonSerialize annotation
+    (reported by Gregor O)
+  * [JACKSON-572] Problems serializing generic non-static inner classes
+   (reported by Steven S)
+
+1.7.6 [12-Apr-2011]
+
+  Fixes:
+
+  * [JACKSON-547] Problems relaying exceptions from creator methods
+    (reported by Gili)
+  * [JACKSON-550] Registration of serializers was not completely working
+    with SimpleModule (interfaces implemented by superclasses skipped)
+   (reported by Andrei P)
+  * [JACKSON-552] SmileParser not handling long field names properly,
+    failed with "this code path should never get executed" exception
+   (reported by Shay B)
+
+1.7.5 [01-Apr-2011]
+
+  Fixes:
+
+  * [JACKSON-530] Default SerializationInclusion value not properly
+    passed when "USE_ANNOTATION" set to false
+    (Suchema O)
+  * [JACKSON-533] Failed to serialize LinkedHashMap.value()
+    (reported by Linghu C)
+  * [JACKSON-540] Side-effects with ObjectMapper.canSerialize(),
+    canDeserialize()
+    (reported by Maik J)
+  * [JACKSON-541] Remove the need for @JsonCreator on multi-arg constructor
+    iff all parameters have @JsonProperty
+    (suggested by Pascal GŽlinas)
+  * [JACKSON-545] UTF8Writer.flush() should check against NPE
+    (reported by Michel G)
 
 1.7.4 [04-Mar-2011]
 
