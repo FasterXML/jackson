@@ -1,10 +1,18 @@
-Version: 1.7.7
+Version: 1.7.8
 
 Release date:
-  17-May-2011
+  xx-Jun-2011
 
 Description:
   A patch release for 1.7.
+
+  Fixes:
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.7.7 [17-May-2011]
 
   Fixes:
 
@@ -30,10 +38,6 @@ Description:
     (reported by Gregor O)
   * [JACKSON-572] Problems serializing generic non-static inner classes
    (reported by Steven S)
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.7.6 [12-Apr-2011]
 
