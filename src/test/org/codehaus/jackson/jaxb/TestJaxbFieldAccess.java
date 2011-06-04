@@ -24,17 +24,6 @@ public class TestJaxbFieldAccess
         Fields(int x) { this.x = x; }
     }
 
-    @XmlAccessorType(XmlAccessType.NONE)
-    public static class Bean354
-    {
-        protected String name = "foo";
-    
-        @XmlElement
-        protected String getName() { return name; }
-
-        public void setName(String s) { name = s; }
-    } 
-
     /*
     /**********************************************************
     /* Unit tests
