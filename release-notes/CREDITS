@@ -617,6 +617,8 @@ Pascal Glinas:
   * Reported [JACKSON-554] ObjectMapper.readValue(JsonNode) was not properly
     passing itself as ObjectCodec, making secondary conversions fail
    [1.7.7]
+  * Suggested [JACKSON-581] Add 'ObjectMapper.readTree(File)'
+   [1.9.0]
 
 Maik Jorra:
   * Reported [JACKSON-540] Side-effects with ObjectMapper.canSerialize(),

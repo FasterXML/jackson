@@ -1269,14 +1269,11 @@ public class ObjectMapper
     }
 
     /**
-     * Method to deserialize JSON content as tree expressed
-     * using set of {@link JsonNode} instances.
-     * Returns root of the resulting tree (where root can consist
-     * of just a single node if the current event is a
-     * value event, not container).
+     * Method to deserialize JSON content as tree expressed using set of {@link JsonNode} instances.
+     * Returns root of the resulting tree (where root can consist of just a single node if the current
+     * event is a value event, not container).
      *
-     * @param content JSON content to parse
-     *   for building the JSON tree.
+     * @param content JSON content to parse for building the JSON tree.
      *
      * @since 1.3
      */
@@ -1287,6 +1284,22 @@ public class ObjectMapper
         return (n == null) ? NullNode.instance : n;
     }
 
+    /**
+     * Method to deserialize JSON content as tree expressed using set of {@link JsonNode} instances.
+     * Returns root of the resulting tree (where root can consist of just a single node if the current
+     * event is a value event, not container).
+     *
+     * @param file File of which contents to parse as JSON for building a tree instance
+     *
+     * @since 1.9
+     */
+    public JsonNode readTree(File file)
+        throws IOException, JsonProcessingException
+    {
+        JsonNode n = (JsonNode) _readMapAndClose(_jsonFactory.createJsonParser(file), JSON_NODE_TYPE);
+        return (n == null) ? NullNode.instance : n;
+    }
+    
     /**
      * Method for reading sequence of Objects from parser stream.
      *<p>
