@@ -1,10 +1,18 @@
-Version: 1.8.2
+Version: 1.8.3
 
 Release date:
-  15-Jun-2011
+  xx-Jul-2011
 
 Description:
-  A minor patch release for 1.8.
+  A patch release for 1.8.
+
+  Fixes:
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.8.2 [15-Jun-2011]
 
   Fixes:
 
@@ -13,10 +21,6 @@ Description:
    (reported by Pierre-Alexander M)
   * Problem with FilteredBeanPropertyWriter: was not delegating call
     to wrapped BeanPropertyWriter, causing problems with modules
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.8.1 [17-May-2011]
 

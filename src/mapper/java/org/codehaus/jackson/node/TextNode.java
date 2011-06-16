@@ -177,6 +177,7 @@ public final class TextNode
 
     @Override
     public long getValueAsLong(long defaultValue) {
+System.err.println("Value '"+_value+"'... -> "+    NumberInput.parseAsLong(_value, -1L));  
         return NumberInput.parseAsLong(_value, defaultValue);
     }
     

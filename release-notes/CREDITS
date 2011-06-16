@@ -678,3 +678,8 @@ Ruben Errejon Garcia:
 Pierre-Alexandre Meyer:
   * Reported [JACKSON-586]: Problems with @JsonValue, method visibility
    [1.8.2]
+
+Chris Pruett:
+  * Reported [JACKSON-587] TextNode.getValueAsLong() failing with values
+    beyond int range.
+   [1.8.3]

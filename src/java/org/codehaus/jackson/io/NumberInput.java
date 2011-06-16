@@ -242,7 +242,7 @@ public final class NumberInput
         if (len == 0) {
             return defaultValue;
         }
-        // One more thing: use integer parsing for 'simple'
+        // One more thing: use long parsing for 'simple'
         int i = 0;
         if (i < len) { // skip leading sign:
             char c = input.charAt(0);
