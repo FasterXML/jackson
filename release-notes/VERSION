@@ -8,6 +8,9 @@ Description:
 
   Fixes:
 
+  * [JACKSON-586] Problems with @JsonValue, method access (failed on
+    non-public methods, or public method of non-public class)
+   (reported by Pierre-Alexander M)
   * Problem with FilteredBeanPropertyWriter: was not delegating call
     to wrapped BeanPropertyWriter, causing problems with modules
 

@@ -674,3 +674,7 @@ Jamie Reilly:
 
 Ruben Errejon Garcia:
   * Reported [JACKSON-560] Mix-in annotations ignored when used with views
+
+Pierre-Alexandre Meyer:
+  * Reported [JACKSON-586]: Problems with @JsonValue, method visibility
+   [1.8.2]

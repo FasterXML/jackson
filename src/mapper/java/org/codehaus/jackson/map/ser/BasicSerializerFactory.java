@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.ser;
 
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
@@ -17,6 +18,7 @@ import org.codehaus.jackson.map.ser.impl.ObjectArraySerializer;
 import org.codehaus.jackson.map.ser.impl.StringCollectionSerializer;
 import org.codehaus.jackson.map.ser.impl.TimeZoneSerializer;
 import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
@@ -260,8 +262,13 @@ public abstract class BasicSerializerFactory
         // Second: as per [JACKSON-193] consider @JsonValue for any types:
         AnnotatedMethod valueMethod = beanDesc.findJsonValueMethod();
         if (valueMethod != null) {
+            // [JACKSON-586]: need to ensure accessibility of method
+            Method m = valueMethod.getAnnotated();
+            if (config.isEnabled(SerializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
+                ClassUtil.checkAndFixAccess(m);
+            }
             JsonSerializer<Object> ser = findSerializerFromAnnotation(config, valueMethod, property);
-            return new JsonValueSerializer(valueMethod.getAnnotated(), ser, property);
+            return new JsonValueSerializer(m, ser, property);
         }
         
         // One unfortunate special case, as per [JACKSON-484]
