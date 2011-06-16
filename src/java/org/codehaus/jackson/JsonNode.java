@@ -335,7 +335,7 @@ public abstract class JsonNode
      * @since 1.6
      */
     public long getValueAsLong() {
-        return getValueAsInt(0);
+        return getValueAsLong(0);
     }
     
     /**
