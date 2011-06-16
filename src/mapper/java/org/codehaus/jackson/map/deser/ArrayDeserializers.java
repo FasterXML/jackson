@@ -291,7 +291,7 @@ public class ArrayDeserializers
                     // should we catch overflow exceptions?
                     value = jp.getByteValue();
                 } else {
-                    // [JACKSON-79]: should probably accept nulls as 'false'
+                    // [JACKSON-79]: should probably accept nulls as 0
                     if (t != JsonToken.VALUE_NULL) {
                         throw ctxt.mappingException(_valueClass.getComponentType());
                     }
