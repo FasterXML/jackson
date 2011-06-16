@@ -11,6 +11,8 @@ Description:
   * [JACKSON-586] Problems with @JsonValue, method access (failed on
     non-public methods, or public method of non-public class)
    (reported by Pierre-Alexander M)
+  * [JACKSON-587] TextNode.getValueAsLong() does not work properly
+    (reported by Chris P)
 
 ------------------------------------------------------------------------
 === History: ===
