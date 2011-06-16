@@ -18,14 +18,15 @@ public class TestGoogleCollections
 {
     static class MapBean
     {
+        // both class and method left non-public to verify that access is overridden
         @JsonValue
-        @SuppressWarnings({"unchecked"})
-        public ImmutableMap toMap()
+        protected ImmutableMap<String,Integer> toMap()
         {
-            return new ImmutableMap.Builder().put("a", 1).build();
+            return new ImmutableMap.Builder<String,Integer>().put("a", 1).build();
         }
     }
-    
+
+    // !!! NOTE: does not test that it produces anything useful...
     public void testTrivialMultiMapSerialize() throws Exception
     {
         Multimap<String,String> map = HashMultimap.create();
@@ -40,6 +41,24 @@ public class TestGoogleCollections
 
     public void testMapWithJsonValue() throws Exception
     {
-        assertEquals("{}", new ObjectMapper().writeValueAsString(new MapBean()));
+        assertEquals("{\"a\":1}", new ObjectMapper().writeValueAsString(new MapBean()));
     }
+
+    /*// fails similarly, for same reason
+    static class StdMapBean
+    {
+        @JsonValue
+        public Map<String,String> toMap()
+        {
+            HashMap<String,String> map = new HashMap<String,String>();
+            map.put("a", "1");
+            return map;
+        }
+    }
+    
+    public void testMapWithJsonValue2() throws Exception
+    {
+        assertEquals("{\"a\":1}", new ObjectMapper().writeValueAsString(new StdMapBean()));
+    }
+    */
 }

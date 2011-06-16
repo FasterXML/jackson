@@ -1,12 +1,16 @@
 Version: 1.7.8
 
 Release date:
-  xx-Jun-2011
+  xx-Jul-2011
 
 Description:
   A patch release for 1.7.
 
   Fixes:
+
+  * [JACKSON-586] Problems with @JsonValue, method access (failed on
+    non-public methods, or public method of non-public class)
+   (reported by Pierre-Alexander M)
 
 ------------------------------------------------------------------------
 === History: ===
