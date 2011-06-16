@@ -93,10 +93,6 @@ public final class JsonValueSerializer
             while (t instanceof InvocationTargetException && t.getCause() != null) {
                 t = t.getCause();
             }
-System.err.println("<Problem>: "+t);            
-t.printStackTrace();            
-System.err.println("</Problem>");
-
             // Errors shouldn't be wrapped (and often can't, as well)
             if (t instanceof Error) {
                 throw (Error) t;
