@@ -1,6 +1,10 @@
 package org.codehaus.jackson.map.ser;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.codehaus.jackson.map.BaseMapTest;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
@@ -75,6 +79,17 @@ public class TestAnnotationJsonValue
         @JsonValue
         public ValueBase getX() { return new ValueType(); }
     }
+
+    static class MapBean
+    {
+        @JsonValue
+        public Map<String,String> toMap()
+        {
+            HashMap<String,String> map = new HashMap<String,String>();
+            map.put("a", "1");
+            return map;
+        }
+    }
     
     /*
     /*********************************************************
@@ -116,5 +131,10 @@ public class TestAnnotationJsonValue
         m = new ObjectMapper();
         m.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
         assertEquals("{\"a\":\"a\"}", serializeAsString(m, new ValueWrapper()));
+    }
+
+    public void testMapWithJsonValue() throws Exception
+    {
+        assertEquals("{\"a\":\"1\"}", new ObjectMapper().writeValueAsString(new MapBean()));
     }
 }
