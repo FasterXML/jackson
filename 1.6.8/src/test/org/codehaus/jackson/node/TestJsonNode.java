@@ -59,8 +59,15 @@ public class TestJsonNode
         // 1.6:
         assertNodeNumbers(TextNode.valueOf("-3"), -3, -3.0);
         assertNodeNumbers(TextNode.valueOf("17.75"), 17, 17.75);
+    
+        // [JACKSON-587]
+        long value = 127353264013893L;
+        TextNode n = TextNode.valueOf(String.valueOf(value));
+        assertEquals(value, n.getValueAsLong());
+        
         // and then with non-numeric input
         assertNodeNumbersForNonNumeric(TextNode.valueOf("foobar"));
+
     }
 
     public void testBoolean()

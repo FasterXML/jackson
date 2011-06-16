@@ -11,6 +11,8 @@ Description:
   * [JACKSON-552] SmileParser not handling long field names properly,
     failed with "this code path should never get executed" exception
    (reported by Shay B)
+  * [JACKSON-587] TextNode.getValueAsLong() does not work properly
+    (reported by Chris P)
 
 ------------------------------------------------------------------------
 == History: ==
