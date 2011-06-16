@@ -8,6 +8,9 @@ Description:
 
   Fixes:
 
+  * [JACKSON-587] TextNode.getValueAsLong() does not work properly
+   (reported by Chris P);
+
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
