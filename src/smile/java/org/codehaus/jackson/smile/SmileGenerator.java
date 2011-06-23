@@ -835,6 +835,10 @@ public class SmileGenerator
     @Override
     public void writeString(String text) throws IOException,JsonGenerationException
     {
+        if (text == null) {
+            writeNull();
+            return;
+        }
         _verifyValueWrite("write String value");
         int len = text.length();
         if (len == 0) {
