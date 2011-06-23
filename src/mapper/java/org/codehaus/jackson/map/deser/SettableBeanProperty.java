@@ -185,9 +185,15 @@ public abstract class SettableBeanProperty
      * 
      * @return Index of this property
      * 
-     * @since 1.7
+     * @since 1.7 Although note that it was misspelled as "getProperytIndex"; fixed in 1.9
      */
-    public int getProperytIndex() { return _propertyIndex; }
+    public int getPropertyIndex() { return _propertyIndex; }
+
+    /**
+     * @deprecated Since 1.9: use {@link #getPropertyIndex} instead
+     */
+    @Deprecated
+    public int getProperytIndex() { return getPropertyIndex(); }
     
     /*
     /**********************************************************
