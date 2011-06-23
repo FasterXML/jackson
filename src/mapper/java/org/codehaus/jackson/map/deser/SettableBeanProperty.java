@@ -103,6 +103,23 @@ public abstract class SettableBeanProperty
         _valueTypeDeserializer = typeDeser;
     }
 
+    /**
+     * Copy-constructor
+     * 
+     * @since 1.8.3
+     */
+    protected SettableBeanProperty(SettableBeanProperty src)
+    {
+        _propName = src._propName;
+        _type = src._type;
+        _contextAnnotations = src._contextAnnotations;
+        _valueDeserializer = src._valueDeserializer;
+        _valueTypeDeserializer = src._valueTypeDeserializer;
+        _nullProvider = src._nullProvider;
+        _managedReferenceName = src._managedReferenceName;
+        _propertyIndex = src._propertyIndex;
+    }
+
     public void setValueDeserializer(JsonDeserializer<Object> deser)
     {
         if (_valueDeserializer != null) { // sanity check
@@ -165,8 +182,13 @@ public abstract class SettableBeanProperty
     public String getPropertyName() { return _propName; }
 
     public String getManagedReferenceName() { return _managedReferenceName; }
-    
+
     public boolean hasValueDeserializer() { return (_valueDeserializer != null); }
+
+    /**
+     * @since 1.8.3
+     */
+    public JsonDeserializer<Object> getValueDeserializer() { return _valueDeserializer; }
 
     /**
      * Method to use for accessing index of the property (related to
