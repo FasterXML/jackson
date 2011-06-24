@@ -1,7 +1,5 @@
 package org.codehaus.jackson.map.interop;
 
-import java.util.*;
-
 import com.google.common.collect.*;
 
 import org.codehaus.jackson.annotate.JsonValue;
