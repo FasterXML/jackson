@@ -122,7 +122,7 @@ public class JodaDeserializers
                 jp.nextToken(); // VALUE_NUMBER_INT
                 int day = jp.getIntValue();
                 if (jp.nextToken() != JsonToken.END_ARRAY) {
-                    ctxt.wrongTokenException(jp, JsonToken.END_ARRAY, "after LocalDate ints");
+                    throw ctxt.wrongTokenException(jp, JsonToken.END_ARRAY, "after LocalDate ints");
                 }
                 return new LocalDate(year, month, day);
             }
@@ -136,8 +136,7 @@ public class JodaDeserializers
                 }
                 return local.toLocalDate();
             }
-            ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected JSON Array, String or Number");
-            return null;
+            throw ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected JSON Array, String or Number");
         }
     }
 
@@ -174,7 +173,7 @@ public class JodaDeserializers
                     jp.nextToken(); // END_ARRAY?
                 }
                 if (jp.getCurrentToken() != JsonToken.END_ARRAY) {
-                    ctxt.wrongTokenException(jp, JsonToken.END_ARRAY, "after LocalDateTime ints");
+                    throw ctxt.wrongTokenException(jp, JsonToken.END_ARRAY, "after LocalDateTime ints");
                 }
                 return new LocalDateTime(year, month, day, hour, minute, second, millisecond);                 
             }
@@ -189,8 +188,7 @@ public class JodaDeserializers
                 }
                 return local.toLocalDateTime();
             }
-            ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected JSON Array or Number");
-            return null;
+            throw ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected JSON Array or Number");
         }
     }
 
@@ -215,7 +213,7 @@ public class JodaDeserializers
                 jp.nextToken(); // VALUE_NUMBER_INT
                 int day = jp.getIntValue();
                 if (jp.nextToken() != JsonToken.END_ARRAY) {
-                    ctxt.wrongTokenException(jp, JsonToken.END_ARRAY, "after DateMidnight ints");
+                    throw ctxt.wrongTokenException(jp, JsonToken.END_ARRAY, "after DateMidnight ints");
                 }
                 return new DateMidnight(year, month, day);
             }
@@ -229,8 +227,7 @@ public class JodaDeserializers
                 }
                 return local.toDateMidnight();
             }
-            ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected JSON Array, Number or String");
-            return null;
+            throw ctxt.wrongTokenException(jp, JsonToken.START_ARRAY, "expected JSON Array, Number or String");
         }
     }
 }

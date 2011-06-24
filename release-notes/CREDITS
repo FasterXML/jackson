@@ -683,3 +683,7 @@ Chris Pruett:
   * Reported [JACKSON-587] TextNode.getValueAsLong() failing with values
     beyond int range.
    [1.8.3]
+
+Tom Leccese:
+  * reported [JACKSON-591] JodaDeserializers not throwing wrongTokenException
+   [1.8.3]
