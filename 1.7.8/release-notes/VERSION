@@ -13,6 +13,8 @@ Description:
    (reported by Pierre-Alexander M)
   * [JACKSON-587] TextNode.getValueAsLong() does not work properly
     (reported by Chris P)
+  * [JACKSON-591] JodaDeserializers not throwing wrongTokenException
+   (reported by Tom L)
 
 ------------------------------------------------------------------------
 === History: ===
