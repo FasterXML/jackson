@@ -42,7 +42,6 @@ public class TestEnumTyping extends BaseMapTest
 
         @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="__type")
         public void setValue(Object o) {
-            System.out.println("Set value ("+o.getClass().getName()+") -> "+o);
             value = o;
         }
     }
