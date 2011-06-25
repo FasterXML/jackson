@@ -77,6 +77,7 @@ public final class Utf8StreamParser
             boolean bufferRecyclable)
     {
         super(ctxt, features, in, inputBuffer, start, end, bufferRecyclable);
+        _parsingContext = JsonReadContext.createRootContext();
         _objectCodec = codec;
         _symbols = sym;
         // 12-Mar-2010, tatus: Sanity check, related to [JACKSON-259]:

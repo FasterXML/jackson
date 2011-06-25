@@ -15,7 +15,7 @@ import org.codehaus.jackson.io.IOContext;
  * @author Tatu Saloranta
  */
 public abstract class ReaderBasedParserBase
-    extends JsonNumericParserBase
+    extends JsonParserBase
 {
     /*
     /**********************************************************

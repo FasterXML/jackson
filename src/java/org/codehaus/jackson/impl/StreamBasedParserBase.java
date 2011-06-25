@@ -15,7 +15,7 @@ import org.codehaus.jackson.io.IOContext;
  * @author Tatu Saloranta
  */
 public abstract class StreamBasedParserBase
-    extends JsonNumericParserBase
+    extends JsonParserBase
 {
     /*
     /**********************************************************
@@ -59,9 +59,8 @@ public abstract class StreamBasedParserBase
      */
 
     protected StreamBasedParserBase(IOContext ctxt, int features,
-                                    InputStream in,
-                                    byte[] inputBuffer, int start, int end,
-                                    boolean bufferRecyclable)
+            InputStream in, byte[] inputBuffer, int start, int end,
+            boolean bufferRecyclable)
     {
         super(ctxt, features);
         _inputStream = in;
@@ -70,7 +69,7 @@ public abstract class StreamBasedParserBase
         _inputEnd = end;
         _bufferRecyclable = bufferRecyclable;
     }
-
+    
     /*
     /**********************************************************
     /* Overrides
