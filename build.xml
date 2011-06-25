@@ -161,6 +161,7 @@ compile.smile, compile.mrbean" />
             debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
+            <exclude name="**/package-info.java" />
             <include name="org/codehaus/**/*.java" />
         </javac>
     	<!-- 1.6, [JACKSON-278]: need to copy VERSION info along (so unit tests see it) -->
@@ -173,6 +174,7 @@ compile.smile, compile.mrbean" />
             debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
+            <exclude name="**/package-info.java" />
             <include name="org/codehaus/jackson/**/*.java" />
             <!-- mapper builds on core classes -->
             <classpath>
@@ -193,6 +195,7 @@ compile.smile, compile.mrbean" />
             debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
+            <exclude name="**/package-info.java" />
             <include name="org/codehaus/jackson/**/*.java" />
             <!-- builds on core and mapper classes -->
             <classpath>
@@ -215,6 +218,7 @@ compile.smile, compile.mrbean" />
             debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
+            <exclude name="**/package-info.java" />
             <include name="org/codehaus/jackson/**/*.java" />
             <!-- builds on core and mapper classes -->
             <classpath>
@@ -237,6 +241,7 @@ compile.smile, compile.mrbean" />
             debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
+            <exclude name="**/package-info.java" />
             <include name="org/codehaus/jackson/smile/**/*.java" />
             <!-- builds on core classes -->
             <classpath>
@@ -253,6 +258,7 @@ compile.smile, compile.mrbean" />
             debug="true" includeantruntime="false"
         >
             <compilerarg value="-Xlint:unchecked" />
+            <exclude name="**/package-info.java" />
             <include name="org/codehaus/jackson/mrbean/**/*.java" />
             <!-- builds on core and mapper classes -->
             <classpath>
