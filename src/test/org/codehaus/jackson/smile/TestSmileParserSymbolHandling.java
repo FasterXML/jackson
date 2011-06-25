@@ -426,6 +426,87 @@ public class TestSmileParserSymbolHandling
 
         assertToken(JsonToken.END_OBJECT, parser.nextToken());
     }
+
+    /**
+     * Verification that [JACKSON-564] was fixed.
+     */
+    public void testIssue564() throws Exception
+    {
+        JsonFactory factory = new SmileFactory();
+
+        ByteArrayOutputStream bos1 = new ByteArrayOutputStream();
+        JsonGenerator generator = factory.createJsonGenerator(bos1);
+        generator.writeStartObject();
+        generator.writeFieldName("query");
+        generator.writeStartObject();
+        generator.writeFieldName("term");
+        generator.writeStartObject();
+        generator.writeStringField("doc.payload.test_record_main.string_not_analyzed__s", "foo");
+        generator.writeEndObject();
+        generator.writeEndObject();
+        generator.writeEndObject();
+        generator.close();
+
+        JsonParser parser = factory.createJsonParser(bos1.toByteArray());
+        JsonToken token = parser.nextToken();
+        assertToken(JsonToken.START_OBJECT, token);
+        token = parser.nextToken();
+        assertToken(JsonToken.FIELD_NAME, token);
+        assertEquals("query", parser.getCurrentName());
+        token = parser.nextToken();
+        assertToken(JsonToken.START_OBJECT, token);
+        token = parser.nextToken();
+        assertToken(JsonToken.FIELD_NAME, token);
+        assertEquals("term", parser.getCurrentName());
+        token = parser.nextToken();
+        assertToken(JsonToken.START_OBJECT, token);
+        token = parser.nextToken();
+        assertToken(JsonToken.FIELD_NAME, token);
+        assertEquals("doc.payload.test_record_main.string_not_analyzed__s", parser.getCurrentName());
+        token = parser.nextToken();
+        assertToken(JsonToken.VALUE_STRING, token);
+        assertEquals("foo", parser.getText());
+        parser.close();
+
+        ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
+        generator = factory.createJsonGenerator(bos2);
+        generator.writeStartObject();
+        generator.writeFieldName("query");
+        generator.writeStartObject();
+        generator.writeFieldName("term");
+        generator.writeStartObject();
+        // note the difference here, teh field is analyzed2 and not analyzed as in the first doc, as well
+        // as having a different value, though don't think it matters
+        generator.writeStringField("doc.payload.test_record_main.string_not_analyzed2__s", "bar");
+        generator.writeEndObject();
+        generator.writeEndObject();
+        generator.writeEndObject();
+        generator.close();
+
+        parser = factory.createJsonParser(bos2.toByteArray());
+        token = parser.nextToken();
+        assertToken(JsonToken.START_OBJECT, token);
+        token = parser.nextToken();
+        assertToken(JsonToken.FIELD_NAME, token);
+        assertEquals("query", parser.getCurrentName());
+        token = parser.nextToken();
+        assertToken(JsonToken.START_OBJECT, token);
+        token = parser.nextToken();
+        assertToken(JsonToken.FIELD_NAME, token);
+        assertEquals("term", parser.getCurrentName());
+        token = parser.nextToken();
+        assertToken(JsonToken.START_OBJECT, token);
+        token = parser.nextToken();
+        assertToken(JsonToken.FIELD_NAME, token);
+        // here we fail..., seems to be a problem with field caching factory level???
+        // since we get the field name of the previous (bos1) document field value (withou the 2)
+        assertEquals("doc.payload.test_record_main.string_not_analyzed2__s", parser.getCurrentName());
+        token = parser.nextToken();
+        assertToken(JsonToken.VALUE_STRING, token);
+        assertEquals("bar", parser.getText());
+
+        parser.close();
+    }
     
     /*
     /**********************************************************
