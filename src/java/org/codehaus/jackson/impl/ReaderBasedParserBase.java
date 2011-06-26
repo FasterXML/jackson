@@ -13,7 +13,11 @@ import org.codehaus.jackson.io.IOContext;
  * and positions.
  *
  * @author Tatu Saloranta
+ * 
+ * @deprecated Since 1.9 sub-classes should just include code
+ *   from here as is.
  */
+@Deprecated
 public abstract class ReaderBasedParserBase
     extends JsonParserBase
 {
