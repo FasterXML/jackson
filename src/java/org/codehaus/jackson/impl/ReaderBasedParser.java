@@ -444,15 +444,15 @@ public final class ReaderBasedParser
             // been handled earlier
             _reportUnexpectedChar(i, "expected a value");
         case INT_t:
-            _matchToken(JsonToken.VALUE_TRUE);
+            _matchToken("true", 1);
             t = JsonToken.VALUE_TRUE;
             break;
         case INT_f:
-            _matchToken(JsonToken.VALUE_FALSE);
+            _matchToken("false", 1);
             t = JsonToken.VALUE_FALSE;
             break;
         case INT_n:
-            _matchToken(JsonToken.VALUE_NULL);
+            _matchToken("null", 1);
             t = JsonToken.VALUE_NULL;
             break;
 
@@ -1302,35 +1302,6 @@ public final class ReaderBasedParser
         }
     }
 
-    /**
-     * Method called to much one of literal tokens we may expect
-     */
-    protected void _matchToken(JsonToken token)
-        throws IOException, JsonParseException
-    {
-        // First char is already matched, need to check the rest
-        String matchStr = token.asString();
-        int i = 1;
-
-        for (int len = matchStr.length(); i < len; ++i) {
-            if (_inputPtr >= _inputEnd) {
-                if (!loadMore()) {
-                    _reportInvalidEOF(" in a value");
-                }
-            }
-            char c = _inputBuffer[_inputPtr];
-            if (c != matchStr.charAt(i)) {
-                _reportInvalidToken(matchStr.substring(0, i), "'null', 'true' or 'false'");
-            }
-            ++_inputPtr;
-        }
-        /* Ok, fine; let's not bother checking anything beyond keyword.
-         * If there's something wrong there, it'll cause a parsing
-         * error later on.
-         */
-        return;
-    }
-
     /*
     /**********************************************************
     /* Internal methods, other parsing
@@ -1534,7 +1505,7 @@ public final class ReaderBasedParser
         }
         return (char) value;
     }
-
+    
     /**
      * Helper method for checking whether input matches expected token
      * 
