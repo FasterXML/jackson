@@ -3,7 +3,6 @@ package org.codehaus.jackson.impl;
 import java.io.*;
 
 import org.codehaus.jackson.*;
-import org.codehaus.jackson.JsonParser.Feature;
 import org.codehaus.jackson.io.IOContext;
 import org.codehaus.jackson.sym.CharsToNameCanonicalizer;
 import org.codehaus.jackson.util.*;
@@ -1481,6 +1480,7 @@ public final class ReaderBasedParser
         }
     }
 
+    @Override
     protected final char _decodeEscaped()
         throws IOException, JsonParseException
     {
@@ -1637,7 +1637,7 @@ public final class ReaderBasedParser
                     }
                     ch = _inputBuffer[_inputPtr++];
                     if (!b64variant.usesPaddingChar(ch)) {
-                        throw reportInvalidChar(b64variant, ch, 3, "expected padding character '"+b64variant.getPaddingChar()+"'");
+                        throw reportInvalidBase64Char(b64variant, ch, 3, "expected padding character '"+b64variant.getPaddingChar()+"'");
                     }
                     // Got 12 bits, only need 8, need to shift
                     decodedData >>= 4;
@@ -1677,28 +1677,6 @@ public final class ReaderBasedParser
         }
     }
 
-    private final int _decodeBase64Escape(Base64Variant b64variant, char ch, int index)
-        throws IOException, JsonParseException
-    {
-        // 17-May-2011, tatu: As per [JACKSON-xxx], need to handle escaped chars
-        if (ch != '\\') {
-            throw reportInvalidChar(b64variant, ch, index);
-        }
-        char unescaped = _decodeEscaped();
-        // if white space, skip if first triplet; otherwise errors
-        if (unescaped <= INT_SPACE) {
-            if (index == 0) { // whitespace only allowed to be skipped between triplets
-                return -1;
-            }
-        }
-        // otherwise try to find actual triplet value
-        int bits = b64variant.decodeBase64Char(unescaped);
-        if (bits < 0) {
-            throw reportInvalidChar(b64variant, unescaped, index);
-        }
-        return bits;
-    }
-
     /*
     /**********************************************************
     /* Error reporting
@@ -1727,35 +1705,5 @@ public final class ReaderBasedParser
             sb.append(c);
         }
         _reportError("Unrecognized token '"+sb.toString()+"': was expecting ");
-    }
-    
-    protected IllegalArgumentException reportInvalidChar(Base64Variant b64variant, char ch, int bindex)
-        throws IllegalArgumentException
-    {
-        return reportInvalidChar(b64variant, ch, bindex, null);
-    }
-
-    /**
-     * @param bindex Relative index within base64 character unit; between 0
-     *   and 3 (as unit has exactly 4 characters)
-     */
-    protected IllegalArgumentException reportInvalidChar(Base64Variant b64variant, char ch, int bindex, String msg)
-        throws IllegalArgumentException
-    {
-        String base;
-        if (ch <= INT_SPACE) {
-            base = "Illegal white space character (code 0x"+Integer.toHexString(ch)+") as character #"+(bindex+1)+" of 4-char base64 unit: can only used between units";
-        } else if (b64variant.usesPaddingChar(ch)) {
-            base = "Unexpected padding character ('"+b64variant.getPaddingChar()+"') as character #"+(bindex+1)+" of 4-char base64 unit: padding only legal as 3rd or 4th character";
-        } else if (!Character.isDefined(ch) || Character.isISOControl(ch)) {
-            // Not sure if we can really get here... ? (most illegal xml chars are caught at lower level)
-            base = "Illegal character (code 0x"+Integer.toHexString(ch)+") in base64 content";
-        } else {
-            base = "Illegal character '"+ch+"' (code 0x"+Integer.toHexString(ch)+") in base64 content";
-        }
-        if (msg != null) {
-            base = base + ": " + msg;
-        }
-        return new IllegalArgumentException(base);
     }
 }

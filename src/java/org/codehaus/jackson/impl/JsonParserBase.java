@@ -943,7 +943,11 @@ public abstract class JsonParserBase
         _numTypesValid |= NR_BIGDECIMAL;
     }
     
-    // // // Reporting number-parsing - related Exceptions
+    /*
+    /**********************************************************
+    /* Number handling exceptions
+    /**********************************************************
+     */    
     
     protected void reportUnexpectedNumberChar(int ch, String comment)
         throws JsonParseException
@@ -973,4 +977,94 @@ public abstract class JsonParserBase
     {
         _reportError("Numeric value ("+getText()+") out of range of long ("+Long.MIN_VALUE+" - "+Long.MAX_VALUE+")");
     }    
+
+    /*
+    /**********************************************************
+    /* Base64 handling support
+    /**********************************************************
+     */
+
+    /**
+     * Method that sub-classes must implement to support escaped sequences
+     * in base64-encoded sections.
+     * Sub-classes that do not need base64 support can leave this as is
+     */
+    protected char _decodeEscaped()
+        throws IOException, JsonParseException {
+        throw new UnsupportedOperationException();
+    }
+    
+    protected final int _decodeBase64Escape(Base64Variant b64variant, int ch, int index)
+        throws IOException, JsonParseException
+    {
+        // 17-May-2011, tatu: As per [JACKSON-xxx], need to handle escaped chars
+        if (ch != '\\') {
+            throw reportInvalidBase64Char(b64variant, ch, index);
+        }
+        int unescaped = _decodeEscaped();
+        // if white space, skip if first triplet; otherwise errors
+        if (unescaped <= INT_SPACE) {
+            if (index == 0) { // whitespace only allowed to be skipped between triplets
+                return -1;
+            }
+        }
+        // otherwise try to find actual triplet value
+        int bits = b64variant.decodeBase64Char(unescaped);
+        if (bits < 0) {
+            throw reportInvalidBase64Char(b64variant, unescaped, index);
+        }
+        return bits;
+    }
+    
+    protected final int _decodeBase64Escape(Base64Variant b64variant, char ch, int index)
+        throws IOException, JsonParseException
+    {
+        // 17-May-2011, tatu: As per [JACKSON-xxx], need to handle escaped chars
+        if (ch != '\\') {
+            throw reportInvalidBase64Char(b64variant, ch, index);
+        }
+        char unescaped = _decodeEscaped();
+        // if white space, skip if first triplet; otherwise errors
+        if (unescaped <= INT_SPACE) {
+            if (index == 0) { // whitespace only allowed to be skipped between triplets
+                return -1;
+            }
+        }
+        // otherwise try to find actual triplet value
+        int bits = b64variant.decodeBase64Char(unescaped);
+        if (bits < 0) {
+            throw reportInvalidBase64Char(b64variant, unescaped, index);
+        }
+        return bits;
+    }
+    
+    protected IllegalArgumentException reportInvalidBase64Char(Base64Variant b64variant, int ch, int bindex)
+        throws IllegalArgumentException
+    {
+        return reportInvalidBase64Char(b64variant, ch, bindex, null);
+    }
+
+    /**
+     * @param bindex Relative index within base64 character unit; between 0
+     *   and 3 (as unit has exactly 4 characters)
+     */
+    protected IllegalArgumentException reportInvalidBase64Char(Base64Variant b64variant, int ch, int bindex, String msg)
+        throws IllegalArgumentException
+    {
+        String base;
+        if (ch <= INT_SPACE) {
+            base = "Illegal white space character (code 0x"+Integer.toHexString(ch)+") as character #"+(bindex+1)+" of 4-char base64 unit: can only used between units";
+        } else if (b64variant.usesPaddingChar(ch)) {
+            base = "Unexpected padding character ('"+b64variant.getPaddingChar()+"') as character #"+(bindex+1)+" of 4-char base64 unit: padding only legal as 3rd or 4th character";
+        } else if (!Character.isDefined(ch) || Character.isISOControl(ch)) {
+            // Not sure if we can really get here... ? (most illegal xml chars are caught at lower level)
+            base = "Illegal character (code 0x"+Integer.toHexString(ch)+") in base64 content";
+        } else {
+            base = "Illegal character '"+((char)ch)+"' (code 0x"+Integer.toHexString(ch)+") in base64 content";
+        }
+        if (msg != null) {
+            base = base + ": " + msg;
+        }
+        return new IllegalArgumentException(base);
+    }
 }

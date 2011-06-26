@@ -13,7 +13,10 @@ import org.codehaus.jackson.io.IOContext;
  * and positions.
  *
  * @author Tatu Saloranta
+ * 
+ * @deprecated Since 1.9, sub-classes should just embed code from here
  */
+@Deprecated
 public abstract class StreamBasedParserBase
     extends JsonParserBase
 {
@@ -179,12 +182,6 @@ public abstract class StreamBasedParserBase
         }
     }
 
-    /**
-     * Method called to release internal buffers owned by the base
-     * reader. This may be called along with {@link #_closeInput} (for
-     * example, when explicitly closing this reader instance), or
-     * separately (if need be).
-     */
     @Override
     protected void _releaseBuffers() throws IOException
     {
