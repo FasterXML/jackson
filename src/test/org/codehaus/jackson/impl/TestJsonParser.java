@@ -216,17 +216,22 @@ public class TestJsonParser
         assertToken(JsonToken.END_OBJECT, jp.nextToken());
     }
 
-    public void testInvalidKeywords()
-        throws Exception
+    public void testInvalidKeywords() throws Exception
     {
-        doTestInvalidKeyword1("nul");
-        doTestInvalidKeyword2("nulla", JsonToken.VALUE_NULL);
-        doTestInvalidKeyword1("fal");
-        doTestInvalidKeyword3("False");
-        doTestInvalidKeyword2("falsett0", JsonToken.VALUE_FALSE);
-        doTestInvalidKeyword1("tr");
-        doTestInvalidKeyword1("truE");
-        doTestInvalidKeyword2("trueenough", JsonToken.VALUE_TRUE);
+        _testInvalidKeywords(true);
+        _testInvalidKeywords(false);
+    }
+
+    private void _testInvalidKeywords(boolean useStream) throws Exception
+    {
+        doTestInvalidKeyword1(useStream, "nul");
+        doTestInvalidKeyword1(useStream, "nulla");
+        doTestInvalidKeyword1(useStream, "fal");
+        doTestInvalidKeyword3(useStream, "False");
+        doTestInvalidKeyword1(useStream, "falsett0");
+        doTestInvalidKeyword1(useStream, "tr");
+        doTestInvalidKeyword1(useStream, "truE");
+        doTestInvalidKeyword1(useStream, "trueenough");
     }
 
     public void testSkipping()
@@ -480,10 +485,12 @@ public class TestJsonParser
         jp.close();
     }
 
-    private void doTestInvalidKeyword1(String value)
+    private void doTestInvalidKeyword1(boolean useStream, String value)
         throws IOException
     {
-        JsonParser jp = createParserUsingStream("{ \"key1\" : "+value+" }", "UTF-8");
+        final String doc = "{ \"key1\" : "+value+" }";
+        JsonParser jp = useStream ? createParserUsingStream(doc, "UTF-8")
+                : this.createParserUsingReader(doc);
         assertToken(JsonToken.START_OBJECT, jp.nextToken());
         /* 24-Nov-2008, tatu: Note that depending on parser impl, we may
          *   get the exception early or late...
@@ -497,25 +504,12 @@ public class TestJsonParser
         }
     }
 
-    private void doTestInvalidKeyword2(String value, JsonToken firstValue)
+    private void doTestInvalidKeyword3(boolean useStream, String value)
         throws IOException
     {
-        JsonParser jp = createParserUsingStream("{ \"key1\" : "+value+" }", "UTF-8");
-        assertToken(JsonToken.START_OBJECT, jp.nextToken());
-        assertToken(JsonToken.FIELD_NAME, jp.nextToken());
-        assertToken(firstValue, jp.nextToken());
-        try {
-            jp.nextToken();
-            fail("Expected an exception for malformed value keyword");
-        } catch (JsonParseException jex) {
-            verifyException(jex, "Unexpected character");
-        }
-    }
-
-    private void doTestInvalidKeyword3(String value)
-        throws IOException
-    {
-        JsonParser jp = createParserUsingStream("{ \"key1\" : "+value+" }", "UTF-8");
+        final String doc = "{ \"key1\" : "+value+" }";
+        JsonParser jp = useStream ? createParserUsingStream(doc, "UTF-8")
+                : this.createParserUsingReader(doc);
         assertToken(JsonToken.START_OBJECT, jp.nextToken());
         /* 24-Nov-2008, tatu: Note that depending on parser impl, we may
          *   get the exception early or late...

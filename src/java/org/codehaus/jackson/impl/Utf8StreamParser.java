@@ -515,15 +515,15 @@ public final class Utf8StreamParser
             // been handled earlier
             _reportUnexpectedChar(i, "expected a value");
         case INT_t:
-            _matchToken(JsonToken.VALUE_TRUE);
+            _matchToken("true", 1);
             t = JsonToken.VALUE_TRUE;
             break;
         case INT_f:
-            _matchToken(JsonToken.VALUE_FALSE);
+            _matchToken("false", 1);
              t = JsonToken.VALUE_FALSE;
             break;
         case INT_n:
-            _matchToken(JsonToken.VALUE_NULL);
+            _matchToken("null", 1);
             t = JsonToken.VALUE_NULL;
             break;
 
@@ -571,13 +571,13 @@ public final class Utf8StreamParser
             // been handled earlier
             _reportUnexpectedChar(i, "expected a value");
         case INT_t:
-            _matchToken(JsonToken.VALUE_TRUE);
+            _matchToken("true", 1);
             return (_currToken = JsonToken.VALUE_TRUE);
         case INT_f:
-            _matchToken(JsonToken.VALUE_FALSE);
+            _matchToken("false", 1);
             return (_currToken = JsonToken.VALUE_FALSE);
         case INT_n:
-            _matchToken(JsonToken.VALUE_NULL);
+            _matchToken("null", 1);
             return (_currToken = JsonToken.VALUE_NULL);
         case INT_MINUS:
             /* Should we have separate handling for plus? Although
@@ -1724,13 +1724,11 @@ public final class Utf8StreamParser
             }
             break;
         case 'N':
-            if (_matchToken("NaN", 1)) {
-                if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
-                    return resetAsNaN("NaN", Double.NaN);
-                }
-                _reportError("Non-standard token 'NaN': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
+            _matchToken("NaN", 1);
+            if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
+                return resetAsNaN("NaN", Double.NaN);
             }
-            _reportUnexpectedChar(_inputBuffer[_inputPtr++] & 0xFF, "expected 'NaN' or a valid value");
+            _reportError("Non-standard token 'NaN': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
             break;
         case '+': // note: '-' is taken as number
             if (_inputPtr >= _inputEnd) {
@@ -1853,49 +1851,25 @@ public final class Utf8StreamParser
             ch = _inputBuffer[_inputPtr++];
             if (ch == 'N') {
                 String match = negative ? "-INF" :"+INF";
-                if (_matchToken(match, 3)) {
-                    if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
-                        return resetAsNaN(match, negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY);
-                    }
-                    _reportError("Non-standard token '"+match+"': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
+                _matchToken(match, 3);
+                if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
+                    return resetAsNaN(match, negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY);
                 }
+                _reportError("Non-standard token '"+match+"': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
             } else if (ch == 'n') {
                 String match = negative ? "-Infinity" :"+Infinity";
-                if (_matchToken(match, 3)) {
-                    if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
-                        return resetAsNaN(match, negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY);
-                    }
-                    _reportError("Non-standard token '"+match+"': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
+                _matchToken(match, 3);
+                if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
+                    return resetAsNaN(match, negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY);
                 }
+                _reportError("Non-standard token '"+match+"': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
             }
         }
         reportUnexpectedNumberChar(ch, "expected digit (0-9) to follow minus sign, for valid numeric value");
         return null;
     }
-    
-    protected void _matchToken(JsonToken token)
-        throws IOException, JsonParseException
-    {
-        // First char is already matched, need to check the rest
-        byte[] matchBytes = token.asByteArray();
-        int i = 1;
 
-        for (int len = matchBytes.length; i < len; ++i) {
-            if (_inputPtr >= _inputEnd) {
-                loadMoreGuaranteed();
-            }
-            if (matchBytes[i] != _inputBuffer[_inputPtr]) {
-                _reportInvalidToken(token.asString().substring(0, i), "'null', 'true' or 'false'");
-            }
-            ++_inputPtr;
-        }
-        /* Ok, fine; let's not bother checking anything beyond keyword.
-         * If there's something wrong there, it'll cause a parsing
-         * error later on.
-         */
-    }
-
-    protected final boolean _matchToken(String matchStr, int i)
+    protected final void _matchToken(String matchStr, int i)
         throws IOException, JsonParseException
     {
         final int len = matchStr.length();
@@ -1915,16 +1889,19 @@ public final class Utf8StreamParser
         // but let's also ensure we either get EOF, or non-alphanum char...
         if (_inputPtr >= _inputEnd) {
             if (!loadMore()) {
-                return true;
+                return;
             }
         }
-        char c = (char) _decodeCharForError(_inputBuffer[_inputPtr] & 0xFF);
-        // if Java letter, it's a problem tho
+        int ch = _inputBuffer[_inputPtr] & 0xFF;
+        if (ch < '0' || ch == ']' || ch == '}') { // expected/allowed chars
+            return;
+        }
+        // but actually only alphanums are problematic
+        char c = (char) _decodeCharForError(ch);
         if (Character.isJavaIdentifierPart(c)) {
             ++_inputPtr;
             _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
         }
-        return true;
     }
     
     protected void _reportInvalidToken(String matchedPart, String msg)

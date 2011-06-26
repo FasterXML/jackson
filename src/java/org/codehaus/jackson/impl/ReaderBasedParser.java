@@ -824,20 +824,18 @@ public final class ReaderBasedParser
             ch = _inputBuffer[_inputPtr++];
             if (ch == 'N') {
                 String match = negative ? "-INF" :"+INF";
-                if (_matchToken(match, 3)) {
-                    if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
-                        return resetAsNaN(match, negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY);
-                    }
-                    _reportError("Non-standard token '"+match+"': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
+                _matchToken(match, 3);
+                if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
+                    return resetAsNaN(match, negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY);
                 }
+                _reportError("Non-standard token '"+match+"': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
             } else if (ch == 'n') {
                 String match = negative ? "-Infinity" :"+Infinity";
-                if (_matchToken(match, 3)) {
-                    if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
-                        return resetAsNaN(match, negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY);
-                    }
-                    _reportError("Non-standard token '"+match+"': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
+                _matchToken(match, 3);
+                if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
+                    return resetAsNaN(match, negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY);
                 }
+                _reportError("Non-standard token '"+match+"': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
             }
         }
         reportUnexpectedNumberChar(ch, "expected digit (0-9) to follow minus sign, for valid numeric value");
@@ -1061,13 +1059,11 @@ public final class ReaderBasedParser
             }
             break;
         case 'N':
-            if (_matchToken("NaN", 1)) {
-                if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
-                    return resetAsNaN("NaN", Double.NaN);
-                }
-                _reportError("Non-standard token 'NaN': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
+            _matchToken("NaN", 1);
+            if (isEnabled(Feature.ALLOW_NON_NUMERIC_NUMBERS)) {
+                return resetAsNaN("NaN", Double.NaN);
             }
-            _reportUnexpectedChar(_inputBuffer[_inputPtr++], "expected 'NaN' or a valid value");
+            _reportError("Non-standard token 'NaN': enable JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS to allow");
             break;
         case '+': // note: '-' is taken as number
             if (_inputPtr >= _inputEnd) {
@@ -1511,7 +1507,7 @@ public final class ReaderBasedParser
      * 
      * @since 1.8
      */
-    protected final boolean _matchToken(String matchStr, int i)
+    protected final void _matchToken(String matchStr, int i)
         throws IOException, JsonParseException
     {
         final int len = matchStr.length();
@@ -1531,16 +1527,19 @@ public final class ReaderBasedParser
         // but let's also ensure we either get EOF, or non-alphanum char...
         if (_inputPtr >= _inputEnd) {
             if (!loadMore()) {
-                return true;
+                return;
             }
         }
         char c = _inputBuffer[_inputPtr];
+        if (c < '0' || c == ']' || c == '}') { // expected/allowed chars
+            return;
+        }
         // if Java letter, it's a problem tho
         if (Character.isJavaIdentifierPart(c)) {
             ++_inputPtr;
             _reportInvalidToken(matchStr.substring(0, i), "'null', 'true', 'false' or NaN");
         }
-        return true;
+        return;
     }
 
     /*
