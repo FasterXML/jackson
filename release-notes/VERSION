@@ -12,6 +12,8 @@ Description:
    (reported by Chris P)
   * [JACKSON-591] JodaDeserializers not throwing wrongTokenException
    (reported by Tom L)
+  * [JACKSON-597] Make ClassDeserializer support primitive types
+   (suggested by Bruce P)
 
 ------------------------------------------------------------------------
 === History: ===

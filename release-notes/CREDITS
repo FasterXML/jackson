@@ -687,3 +687,7 @@ Chris Pruett:
 Tom Leccese:
   * reported [JACKSON-591] JodaDeserializers not throwing wrongTokenException
    [1.8.3]
+
+"Programmer Bruce":
+  * Suggested [JACKSON-597] Make ClassDeserializer support primitive types
+   [1.8.3]
