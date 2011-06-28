@@ -172,4 +172,21 @@ public class TestJdkTypes
         address = mapper.readValue(quote(HOST), InetAddress.class);
         assertEquals(HOST, address.getHostName());
     }
+
+    // [JACKSON-597]
+    public void testClass() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertSame(String.class, mapper.readValue(quote("java.lang.String"), Class.class));
+
+        // then primitive types
+        assertSame(Byte.TYPE, mapper.readValue(quote("byte"), Class.class));
+        assertSame(Short.TYPE, mapper.readValue(quote("short"), Class.class));
+        assertSame(Character.TYPE, mapper.readValue(quote("char"), Class.class));
+        assertSame(Integer.TYPE, mapper.readValue(quote("int"), Class.class));
+        assertSame(Long.TYPE, mapper.readValue(quote("long"), Class.class));
+        assertSame(Float.TYPE, mapper.readValue(quote("float"), Class.class));
+        assertSame(Double.TYPE, mapper.readValue(quote("double"), Class.class));
+        assertSame(Void.TYPE, mapper.readValue(quote("void"), Class.class));
+    }
 }

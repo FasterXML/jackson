@@ -638,3 +638,7 @@ Gregor Ottman:
   * Reported [JACKSON-569] ContextualSerializer not resolved for serializers
     defined with @JsonSerialize annotation
    [1.7.7]
+
+"Programmer Bruce":
+  * Suggested [JACKSON-597] Make ClassDeserializer support primitive types
+   [1.7.8]

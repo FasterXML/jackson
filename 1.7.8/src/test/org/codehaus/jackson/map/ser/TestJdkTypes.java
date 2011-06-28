@@ -59,4 +59,15 @@ public class TestJdkTypes
         assertEquals(quote("127.0.0.1"), mapper.writeValueAsString(InetAddress.getByName("127.0.0.1")));
         assertEquals(quote("ning.com"), mapper.writeValueAsString(InetAddress.getByName("ning.com")));
     }
+
+    // [JACKSON-597]
+    public void testClass() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(quote("java.lang.String"), mapper.writeValueAsString(String.class));
+        assertEquals(quote("int"), mapper.writeValueAsString(Integer.TYPE));
+        assertEquals(quote("boolean"), mapper.writeValueAsString(Boolean.TYPE));
+        assertEquals(quote("void"), mapper.writeValueAsString(Void.TYPE));
+    }
+
 }
