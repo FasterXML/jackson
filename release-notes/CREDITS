@@ -551,7 +551,6 @@ Christian Naeger:
    [1.6.5]
 
 Steven Schlansker:
-Steven Schlansker:
   * Reported [JACKSON-473] JsonMapping$Reference not Serializable
    [1.6.5]
   * Reported [JACKSON-543] Root-level static type information incorrectly handled
