@@ -17,7 +17,6 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
  */
 public class BeanDeserializerBuilder
 {
-    
     /*
     /**********************************************************
     /* General information about POJO
@@ -49,10 +48,11 @@ public class BeanDeserializerBuilder
     protected HashSet<String> _ignorableProps;
     
     /**
-     * Set of creators (constructors, factory methods) that 
-     * bean type has.
+     * Object that will handle value instantiation for the bean type.
+     * 
+     * @since 1.9
      */
-    protected CreatorContainer _creators;
+    protected ValueInstantiator _valueInstantiator;
 
     /**
      * Fallback setter used for handling any properties that are not
@@ -77,11 +77,28 @@ public class BeanDeserializerBuilder
     { 
         _beanDesc = beanDesc;
     }
- 
-    public void setCreators(CreatorContainer creators) {
-        _creators = creators;
-    }
 
+    /**
+     * Copy constructor for sub-classes to use, when constructing
+     * custom builder instances
+     * 
+     * @since 1.9
+     */
+    protected BeanDeserializerBuilder(BeanDeserializerBuilder src)
+    {
+        _beanDesc = src._beanDesc;
+        _anySetter = src._anySetter;
+        _ignoreAllUnknown = src._ignoreAllUnknown;
+
+        // let's make copy of properties
+        _properties.putAll(src._properties);
+        
+        // Hmmh. Should we create defensive copies here? For now, not yet
+        _backRefProperties = src._backRefProperties;
+        _ignorableProps = src._ignorableProps;
+        _valueInstantiator = src._valueInstantiator;
+    }
+    
     /**
      * Method for adding a new property or replacing a property.
      */
@@ -153,6 +170,20 @@ public class BeanDeserializerBuilder
     public void setIgnoreUnknownProperties(boolean ignore) {
         _ignoreAllUnknown = ignore;
     }
+
+    /**
+     * @since 1.9
+     */
+    public void setValueInstantiator(ValueInstantiator inst) {
+        _valueInstantiator = inst;
+    }
+
+    /**
+     * @since 1.9
+     */
+    public ValueInstantiator getValueInstantiator() {
+        return _valueInstantiator;
+    }
     
     /*
     /**********************************************************
@@ -164,9 +195,8 @@ public class BeanDeserializerBuilder
     {
         BeanPropertyMap propertyMap = new BeanPropertyMap(_properties.values());
         propertyMap.assignIndexes();
-
         return new BeanDeserializer(_beanDesc.getClassInfo(), _beanDesc.getType(), forProperty,
-                _creators, propertyMap, _backRefProperties, _ignorableProps, _ignoreAllUnknown,
+                _valueInstantiator, propertyMap, _backRefProperties, _ignorableProps, _ignoreAllUnknown,
                 _anySetter);
     }
 }

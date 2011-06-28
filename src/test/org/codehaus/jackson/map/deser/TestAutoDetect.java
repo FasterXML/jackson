@@ -42,7 +42,7 @@ public class TestAutoDetect
             m.readValue("\"abc\"", PrivateBean.class);
             fail("Expected exception for missing constructor");
         } catch (JsonProcessingException e) {
-            verifyException(e, "no suitable creator method");
+            verifyException(e, "no single-String constructor/factory");
         }
     }
 

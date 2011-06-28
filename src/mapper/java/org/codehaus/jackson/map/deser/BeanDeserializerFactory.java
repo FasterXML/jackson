@@ -1,11 +1,11 @@
 package org.codehaus.jackson.map.deser;
 
-import java.lang.reflect.*;
 import java.util.*;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.deser.impl.CreatorCollector;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
@@ -592,7 +592,8 @@ public class BeanDeserializerFactory
         throws JsonMappingException
     {
         BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(beanDesc);
-        builder.setCreators(findDeserializerCreators(config, beanDesc));
+        CreatorCollector cc = findDeserializerCreators(config, beanDesc);
+        builder.setValueInstantiator(cc.constructValueInstantiator(config));
          // And then setters for deserializing from JSON Object
         addBeanProps(config, beanDesc, builder);
         // managed/back reference fields/setters need special handling... first part
@@ -623,7 +624,8 @@ public class BeanDeserializerFactory
     {
         // first: construct like a regular bean deserializer...
         BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(beanDesc);
-        builder.setCreators(findDeserializerCreators(config, beanDesc));
+        CreatorCollector cc = findDeserializerCreators(config, beanDesc);
+        builder.setValueInstantiator(cc.constructValueInstantiator(config));
 
         addBeanProps(config, beanDesc, builder);
         // (and assume there won't be any back references)
@@ -688,30 +690,29 @@ public class BeanDeserializerFactory
     protected BeanDeserializerBuilder constructBeanDeserializerBuilder(BasicBeanDescription beanDesc) {
         return new BeanDeserializerBuilder(beanDesc);
     }
-
+    
     /**
      * Method that is to find all creators (constructors, factory methods)
      * for the bean type to deserialize.
      * 
      * @since 1.7
      */
-    protected CreatorContainer findDeserializerCreators(DeserializationConfig config,
+    protected CreatorCollector findDeserializerCreators(DeserializationConfig config,
             BasicBeanDescription beanDesc)
         throws JsonMappingException
     {
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        CreatorContainer creators =  new CreatorContainer(beanDesc, fixAccess);
+        CreatorCollector creators =  new CreatorCollector(beanDesc, fixAccess);
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
 
         // First, let's figure out constructor/factory-based instantation
         // 23-Jan-2010, tatus: but only for concrete types
         if (beanDesc.getType().isConcrete()) {
-            Constructor<?> defaultCtor = beanDesc.findDefaultConstructor();
+            AnnotatedConstructor defaultCtor = beanDesc.findAnnotatedDefaultConstructor();
             if (defaultCtor != null) {
                 if (fixAccess) {
-                    ClassUtil.checkAndFixAccess(defaultCtor);
+                    ClassUtil.checkAndFixAccess(defaultCtor.getAnnotated());
                 }
-    
                 creators.setDefaultConstructor(defaultCtor);
             }
         }
@@ -730,7 +731,7 @@ public class BeanDeserializerFactory
 
     protected void _addDeserializerConstructors
         (DeserializationConfig config, BasicBeanDescription beanDesc, VisibilityChecker<?> vchecker,
-         AnnotationIntrospector intr, CreatorContainer creators)
+         AnnotationIntrospector intr, CreatorCollector creators)
         throws JsonMappingException
     {
         for (AnnotatedConstructor ctor : beanDesc.getConstructors()) {
@@ -808,7 +809,7 @@ public class BeanDeserializerFactory
 
     protected void _addDeserializerFactoryMethods
         (DeserializationConfig config, BasicBeanDescription beanDesc, VisibilityChecker<?> vchecker,
-         AnnotationIntrospector intr, CreatorContainer creators)
+         AnnotationIntrospector intr, CreatorCollector creators)
         throws JsonMappingException
     {
 

@@ -87,6 +87,11 @@ public class BasicBeanDescription extends BeanDescription
         }
         return _bindings;
     }
+
+    @Override
+    public JavaType resolveType(java.lang.reflect.Type jdkType) {
+        return bindingsForBeanType().resolveType(jdkType);
+    }
     
     /*
     /**********************************************************
@@ -271,6 +276,14 @@ public class BasicBeanDescription extends BeanDescription
         return ac.getAnnotated();
     }
 
+    /**
+     * @since 1.9
+     */
+    public AnnotatedConstructor findAnnotatedDefaultConstructor()
+    {
+        return _classInfo.getDefaultConstructor();
+    }
+    
     public List<AnnotatedConstructor> getConstructors()
     {
         return _classInfo.getConstructors();

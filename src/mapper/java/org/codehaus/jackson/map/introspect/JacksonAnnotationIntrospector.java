@@ -249,6 +249,7 @@ public class JacksonAnnotationIntrospector
     /**********************************************************
     */
 
+    @SuppressWarnings("deprecation")
     @Override
     public Object findSerializer(Annotated a, BeanProperty property)
     {
@@ -461,6 +462,7 @@ public class JacksonAnnotationIntrospector
     /**********************************************************
      */
 
+    @SuppressWarnings("deprecation")
     @Override
     public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a, BeanProperty property)
     {

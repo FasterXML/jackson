@@ -105,6 +105,7 @@ public class NopAnnotationIntrospector
     /**********************************************************
      */
 
+    @SuppressWarnings("deprecation")
     @Override
     public Object findSerializer(Annotated am, BeanProperty property) {
         return null;
@@ -177,6 +178,7 @@ public class NopAnnotationIntrospector
         return null;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Object findDeserializer(Annotated am, BeanProperty property) { return null; }
 

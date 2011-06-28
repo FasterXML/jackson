@@ -42,15 +42,15 @@ public class ThrowableDeserializer
         if (_propertyBasedCreator != null) { // proper @JsonCreator
             return _deserializeUsingPropertyBased(jp, ctxt);
         }
-        if (_delegatingCreator != null) { // delegate based one (single-arg, no property name)
-            return _delegatingCreator.deserialize(jp, ctxt);
+        if (_delegateDeserializer != null) {
+            return _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
         }
         if (_beanType.isAbstract()) { // for good measure, check this too
             throw JsonMappingException.from(jp, "Can not instantiate abstract type "+_beanType
                     +" (need to add/enable type information?)");
         }
         // and finally, verify we do have single-String arg constructor (if no @JsonCreator)
-        if (_stringCreator == null) {
+        if (!_valueInstantiator.canCreateFromString()) {
             throw new JsonMappingException("Can not deserialize Throwable of type "+_beanType
                     +" without having either single-String-arg constructor; or explicit @JsonCreator");
         }
@@ -81,7 +81,7 @@ public class ThrowableDeserializer
 
             // Maybe it's "message"?
             if (PROP_NAME_MESSAGE.equals(propName)) {
-                throwable = _stringCreator.construct(jp.getText());
+                throwable = _valueInstantiator.createFromString(jp.getText());
                 // any pending values?
                 if (pending != null) {
                     for (int i = 0, len = pendingIx; i < len; i += 2) {
@@ -114,7 +114,7 @@ public class ThrowableDeserializer
              *   Should probably allow use of default constructor, too...
              */
             //throw new JsonMappingException("No 'message' property found: could not deserialize "+_beanType);
-            throwable = _stringCreator.construct(null);
+            throwable = _valueInstantiator.createFromString(null);
             // any pending values?
             if (pending != null) {
                 for (int i = 0, len = pendingIx; i < len; i += 2) {

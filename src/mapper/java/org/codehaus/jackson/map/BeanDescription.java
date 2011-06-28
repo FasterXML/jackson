@@ -65,6 +65,14 @@ public abstract class BeanDescription
      * methods and constructors, and types of fields.
      */
     public abstract TypeBindings bindingsForBeanType();
+
+    /**
+     * Method for resolving given JDK type, using this bean as the
+     * generic type resolution context.
+     * 
+     * @since 1.9
+     */
+    public abstract JavaType resolveType(java.lang.reflect.Type jdkType);
     
     /**
      * Method for accessing collection of annotations the bean

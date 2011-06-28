@@ -146,4 +146,40 @@ public abstract class AnnotatedWithParams
     }
     
     public final int getAnnotationCount() { return _annotations.size(); }
+
+    /**
+     * Method that can be used to (try to) call this object without arguments.
+     * This may succeed or fail, depending on expected number
+     * of arguments: caller needs to take care to pass correct number.
+     * Exceptions are thrown directly from actual low-level call.
+     *<p>
+     * Note: only works for constructors and static methods.
+     * 
+     * @since 1.9
+     */
+    public abstract Object call() throws Exception;
+
+    /**
+     * Method that can be used to (try to) call this object with specified arguments.
+     * This may succeed or fail, depending on expected number
+     * of arguments: caller needs to take care to pass correct number.
+     * Exceptions are thrown directly from actual low-level call.
+     *<p>
+     * Note: only works for constructors and static methods.
+     * 
+     * @since 1.9
+     */
+    public abstract Object call(Object[] args) throws Exception;
+
+    /**
+     * Method that can be used to (try to) call this object with single arguments.
+     * This may succeed or fail, depending on expected number
+     * of arguments: caller needs to take care to pass correct number.
+     * Exceptions are thrown directly from actual low-level call.
+     *<p>
+     * Note: only works for constructors and static methods.
+     * 
+     * @since 1.9
+     */
+    public abstract Object call1(Object arg) throws Exception;
 }

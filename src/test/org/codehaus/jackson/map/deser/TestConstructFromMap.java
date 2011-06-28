@@ -46,7 +46,7 @@ public class TestConstructFromMap
         }
     }
 
-    // Also: let's test BigDecimal-from-Json-String factory
+    // Also: let's test BigDecimal-from-JSON-String factory
     static class FactoryFromDecimalString
     {
 	int _value;
@@ -63,9 +63,9 @@ public class TestConstructFromMap
     }
 
     /*
-    //////////////////////////////////////////////
-    // Test methods
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
      */
 
     public void testViaConstructor() throws Exception
@@ -89,7 +89,7 @@ public class TestConstructFromMap
     {
         ObjectMapper m = new ObjectMapper();
         FactoryFromDecimalString result = m.readValue("\"12.57\"", FactoryFromDecimalString.class);
+        assertNotNull(result);
         assertEquals(12, result._value);
     }
-
 }

@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.deser.impl.CreatorCollector;
 import org.codehaus.jackson.map.deser.impl.StringCollectionDeserializer;
 import org.codehaus.jackson.map.ext.OptionalHandlerFactory;
 import org.codehaus.jackson.map.introspect.*;
@@ -412,7 +413,7 @@ public abstract class BasicDeserializerFactory
         }
         MapDeserializer md = new MapDeserializer(type, defaultCtor, keyDes, contentDeser, contentTypeDeser);
         md.setIgnorableProperties(config.getAnnotationIntrospector().findPropertiesToIgnore(beanDesc.getClassInfo()));
-        md.setCreators(findMapCreators(config, beanDesc));
+        md.setValueInstantiator(findMapCreators(config, beanDesc).constructValueInstantiator(config));
         return md;
     }
 
@@ -857,12 +858,12 @@ public abstract class BasicDeserializerFactory
      * Method used to find non-default constructors and factory 
      * methods that are marked to be used as Creators for a Map type.
      */
-    protected CreatorContainer findMapCreators(DeserializationConfig config, BasicBeanDescription beanDesc)
+    protected CreatorCollector findMapCreators(DeserializationConfig config, BasicBeanDescription beanDesc)
         throws JsonMappingException
     {
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        CreatorContainer creators =  new CreatorContainer(beanDesc, fixAccess);
+        CreatorCollector creators =  new CreatorCollector(beanDesc, fixAccess);
         // First, let's find if we have a constructor creator:
         for (AnnotatedConstructor ctor : beanDesc.getConstructors()) {
             int argCount = ctor.getParameterCount();

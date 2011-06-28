@@ -803,6 +803,7 @@ public class DeserializationConfig
     /**
      * @deprecated Since 1.8 should use variant without arguments
      */
+    @SuppressWarnings("deprecation")
     @Deprecated
     @Override
     public DeserializationConfig createUnshared(TypeResolverBuilder<?> typer,

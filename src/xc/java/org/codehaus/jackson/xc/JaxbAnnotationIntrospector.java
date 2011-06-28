@@ -439,6 +439,7 @@ public class JaxbAnnotationIntrospector
     /**********************************************************
      */
 
+    @SuppressWarnings("deprecation")
     @Override
     public JsonSerializer<?> findSerializer(Annotated am, BeanProperty property)
     {
@@ -651,6 +652,7 @@ public class JaxbAnnotationIntrospector
     /**********************************************************
     */
 
+    @SuppressWarnings("deprecation")
     @Override
     public JsonDeserializer<?> findDeserializer(Annotated am, BeanProperty property)
     {

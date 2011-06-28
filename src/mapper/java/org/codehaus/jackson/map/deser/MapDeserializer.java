@@ -10,6 +10,8 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
+import org.codehaus.jackson.map.deser.impl.PropertyBasedCreator;
+import org.codehaus.jackson.map.deser.impl.PropertyValueBuffer;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.type.JavaType;
 
@@ -53,12 +55,17 @@ public class MapDeserializer
     final protected Constructor<Map<Object,Object>> _defaultCtor;
 
     /**
+     * @since 1.9
+     */
+    protected ValueInstantiator _valueInstantiator;
+
+    /**
      * If the Map is to be instantiated using non-default constructor
      * or factory method
      * that takes one or more named properties as argument(s),
      * this creator is used for instantiation.
      */
-    protected Creator.PropertyBased _propertyBasedCreator;
+    protected PropertyBasedCreator _propertyBasedCreator;    
 
     // // Any properties to ignore if seen?
     
@@ -86,9 +93,13 @@ public class MapDeserializer
      * Method called to add constructor and/or factory method based
      * creators to be used with Map, instead of default constructor.
      */
-    public void setCreators(CreatorContainer creators)
-    {
-        _propertyBasedCreator = creators.propertyBasedCreator();
+    public void setValueInstantiator(ValueInstantiator valueInstantiator) {
+        _valueInstantiator = valueInstantiator;
+        // do we need to use a @JsonCreator indicated one?
+        if (valueInstantiator.canCreateWithArgs()) {
+            _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator,
+                    valueInstantiator.getFromObjectArguments());
+        }
     }
 
     public void setIgnorableProperties(String[] ignorable)
@@ -128,9 +139,12 @@ public class MapDeserializer
         throws JsonMappingException
     {
         // just need to worry about property-based one
-        if (_propertyBasedCreator != null) {
-            for (SettableBeanProperty prop : _propertyBasedCreator.properties()) {
-                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
+        if (_valueInstantiator != null) {
+            SettableBeanProperty[] props = _valueInstantiator.getFromObjectArguments();
+            if (props != null) {
+                for (SettableBeanProperty prop : props) {
+                    prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
+                }
             }
         }
     }
@@ -248,7 +262,7 @@ public class MapDeserializer
     public Map<Object,Object> _deserializeUsingCreator(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        final Creator.PropertyBased creator = _propertyBasedCreator;
+        final PropertyBasedCreator creator = _propertyBasedCreator;
         PropertyValueBuffer buffer = creator.startBuilding(jp, ctxt);
 
         JsonToken t = jp.getCurrentToken();

@@ -373,7 +373,7 @@ public abstract class DeserializerFactory
     public JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, Class<?> enumClass, DeserializerProvider p)
         throws JsonMappingException
     {
-        return createEnumDeserializer(config, p, TypeFactory.type(enumClass), null);
+        return createEnumDeserializer(config, p, config.getTypeFactory().constructType(enumClass), null);
     }
     
     /**
@@ -405,6 +405,6 @@ public abstract class DeserializerFactory
     public JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, Class<? extends JsonNode> nodeClass, DeserializerProvider p)
         throws JsonMappingException
     {
-        return createTreeDeserializer(config, p, TypeFactory.type(nodeClass), null);
+        return createTreeDeserializer(config, p, config.getTypeFactory().constructType(nodeClass), null);
     }
 }

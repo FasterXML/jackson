@@ -8,9 +8,13 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.deser.impl.BeanPropertyMap;
+import org.codehaus.jackson.map.deser.impl.CreatorCollector;
+import org.codehaus.jackson.map.deser.impl.PropertyBasedCreator;
+import org.codehaus.jackson.map.deser.impl.PropertyValueBuffer;
+import org.codehaus.jackson.map.deser.impl.StdValueInstantiator;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.AnnotatedWithParams;
 import org.codehaus.jackson.map.type.ClassKey;
-import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
 
@@ -61,49 +65,34 @@ public class BeanDeserializer
      */
 
     /**
-     * Default constructor used to instantiate the bean when mapping
-     * from Json object, and only using setters for initialization
-     * (not specific constructors).
-     *<p>
-     * Note: may be null, if deserializer is constructed for abstract
-     * types (which is only useful if additional type information will
-     * allow construction of concrete subtype).
+     * Object that handles details of constructing initial 
+     * bean value (to which bind data to), unless instance
+     * is passed (via updateValue())
      */
-    protected final Constructor<?> _defaultConstructor;
-
+    protected final ValueInstantiator _valueInstantiator;
+    
     /**
-     * If the "bean" class can be instantiated using just a single
-     * String (via constructor, static method etc), this object
-     * knows how to invoke method/constructor in question.
-     * If so, no setters will be used.
+     * Flag that is set to mark if the default constructor is
+     * NOT to be used for
+     * instantiation from JSON Object
+     * (instead, a delegation- or properties-based one is needed)
      */
-    protected final Creator.StringBased _stringCreator;
-
+    protected final boolean _useNonDefaultCreator;
+    
     /**
-     * If the "bean" class can be instantiated using just a single
-     * numeric (int, long) value  (via constructor, static method etc),
-     * this object
-     * knows how to invoke method/constructor in question.
-     * If so, no setters will be used.
+     * Deserializer that is used iff delegate-based creator is
+     * to be used for deserializing from JSON Object.
      */
-    protected final Creator.NumberBased _numberCreator;
-
-    /**
-     * If the bean class can be instantiated using a creator
-     * (an annotated single arg constructor or static method),
-     * this object is used for handling details of how delegate-based
-     * deserialization and instance construction works
-     */
-    protected final Creator.Delegating _delegatingCreator;
-
+    protected JsonDeserializer<Object> _delegateDeserializer;
+    
     /**
      * If the bean needs to be instantiated using constructor
      * or factory method
      * that takes one or more named properties as argument(s),
      * this creator is used for instantiation.
      */
-    protected final Creator.PropertyBased _propertyBasedCreator;
-
+    protected final PropertyBasedCreator _propertyBasedCreator;
+    
     /*
     /**********************************************************
     /* Property information, setters
@@ -162,8 +151,28 @@ public class BeanDeserializer
     /**********************************************************
      */
 
+    /**
+     * @since 1.9.0 Use the constructor that takes {@link ValueInstantiator} instead
+     */
+    @Deprecated
     public BeanDeserializer(AnnotatedClass forClass, JavaType type, BeanProperty property,
-            CreatorContainer creators,
+            CreatorCollector creators,
+            BeanPropertyMap properties, Map<String, SettableBeanProperty> backRefs,
+            HashSet<String> ignorableProps, boolean ignoreAllUnknown,
+            SettableAnyProperty anySetter)
+    {
+        this(forClass, type, property,
+                creators.constructValueInstantiator(null),
+                properties, backRefs,
+                ignorableProps, ignoreAllUnknown,
+                anySetter);
+    }
+
+    /**
+     * @since 1.9
+     */
+    public BeanDeserializer(AnnotatedClass forClass, JavaType type, BeanProperty property,
+            ValueInstantiator valueInstantiator,
             BeanPropertyMap properties, Map<String, SettableBeanProperty> backRefs,
             HashSet<String> ignorableProps, boolean ignoreAllUnknown,
             SettableAnyProperty anySetter)
@@ -172,33 +181,25 @@ public class BeanDeserializer
         _forClass = forClass;
         _beanType = type;
         _property = property;
+
+        _valueInstantiator = valueInstantiator;
+
+        SettableBeanProperty[] withArgsProps = valueInstantiator.getFromObjectArguments();
+        if (withArgsProps != null) {
+            _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator, withArgsProps);
+        } else {
+            _propertyBasedCreator = null;
+        }
+        
         _beanProperties = properties;
         _backRefs = backRefs;
         _ignorableProps = ignorableProps;
         _ignoreAllUnknown = ignoreAllUnknown;
         _anySetter = anySetter;
 
-        // And then creator stuff:
-        _stringCreator = creators.stringCreator();
-        _numberCreator = creators.numberCreator();
-        /* Delegating constructor means that the JSON Object is first deserialized
-         * into delegated type, and then resulting value is passed as the argument
-         * to delegating constructor.
-         * Note that delegating constructors have precedence over default
-         * and property-based constructors.
-         */
-        _delegatingCreator = creators.delegatingCreator();
-        _propertyBasedCreator = creators.propertyBasedCreator();
-
-        /* important: ensure we do not hold on to default constructor,
-         * if delegating OR property-based creator is found
-         */
-        if (_delegatingCreator != null || _propertyBasedCreator != null) {
-            _defaultConstructor = null;
-        } else {
-            _defaultConstructor = creators.getDefaultConstructor();
-        }
-
+        _useNonDefaultCreator = valueInstantiator.canCreateUsingDelegate()
+            || (_propertyBasedCreator != null)
+            || !valueInstantiator.canCreateUsingDefault();
     }
 
     /**
@@ -213,18 +214,18 @@ public class BeanDeserializer
         _forClass = src._forClass;
         _beanType = src._beanType;
         _property = src._property;
+        
+        _valueInstantiator = src._valueInstantiator;
+        _delegateDeserializer = src._delegateDeserializer;
+        _propertyBasedCreator = src._propertyBasedCreator;
+
         _beanProperties = src._beanProperties;
         _backRefs = src._backRefs;
         _ignorableProps = src._ignorableProps;
         _ignoreAllUnknown = src._ignoreAllUnknown;
         _anySetter = src._anySetter;
 
-        // and plethora of creators...
-        _defaultConstructor = src._defaultConstructor;
-        _stringCreator = src._stringCreator;
-        _numberCreator = src._numberCreator;
-        _delegatingCreator = src._delegatingCreator;
-        _propertyBasedCreator = src._propertyBasedCreator;
+        _useNonDefaultCreator = src._useNonDefaultCreator;
     }
 
     /*
@@ -314,22 +315,27 @@ public class BeanDeserializer
         }
 
         // as well as delegate-based constructor:
-        if (_delegatingCreator != null) {
-            // Need to create a temporary property to allow contextual deserializers:
-            BeanProperty.Std property = new BeanProperty.Std(null, _delegatingCreator.getValueType(),
-                    _forClass.getAnnotations(), _delegatingCreator.getCreator());
-            JsonDeserializer<Object> deser = findDeserializer(config, provider, _delegatingCreator.getValueType(), property);
-            _delegatingCreator.setDeserializer(deser);
+        if (_valueInstantiator instanceof StdValueInstantiator) {
+            AnnotatedWithParams delegateCreator = _valueInstantiator.getDelegateCreator();
+            if (delegateCreator != null) {
+                JavaType delegateType = _valueInstantiator.getDelegateType();
+                // Need to create a temporary property to allow contextual deserializers:
+                BeanProperty.Std property = new BeanProperty.Std(null,
+                        delegateType, _forClass.getAnnotations(), delegateCreator);
+                _delegateDeserializer = findDeserializer(config, provider, delegateType, property);
+            }
         }
         // or property-based one
-        if (_propertyBasedCreator != null) {
-            for (SettableBeanProperty prop : _propertyBasedCreator.properties()) {
+        SettableBeanProperty[] props = _valueInstantiator.getFromObjectArguments();
+        if (props != null) {
+            for (SettableBeanProperty prop : props) {
                 if (!prop.hasValueDeserializer()) {
                     prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
                 }
             }
         }
     }
+    
     /*
     /**********************************************************
     /* JsonDeserializer implementation
@@ -352,7 +358,7 @@ public class BeanDeserializer
         // and then others, generally requiring use of @JsonCreator
         switch (t) {
         case VALUE_STRING:
-	    return deserializeFromString(jp, ctxt);
+            return deserializeFromString(jp, ctxt);
         case VALUE_NUMBER_INT:
         case VALUE_NUMBER_FLOAT:
 	    return deserializeFromNumber(jp, ctxt);
@@ -456,34 +462,28 @@ public class BeanDeserializer
         }
         return _backRefs.get(logicalName);
     }
+
+    /**
+     * @since 1.9
+     */
+    public ValueInstantiator getValueInstantiator() {
+        return _valueInstantiator;
+    }
     
     /*
     /**********************************************************
     /* Concrete deserialization methods
     /**********************************************************
      */
-
+    
     public Object deserializeFromObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {        
-        if (_defaultConstructor == null) {
-            // 25-Jul-2009, tatu: finally, can also use "non-default" constructor (or factory method)
-            if (_propertyBasedCreator != null) {
-                return _deserializeUsingPropertyBased(jp, ctxt);
-            }
-    	    // 07-Jul-2009, tatu: let's allow delegate-based approach too
-    	    if (_delegatingCreator != null) {
-    	        return _delegatingCreator.deserialize(jp, ctxt);
-    	    }
-    	    // should only occur for abstract types...
-    	    if (_beanType.isAbstract()) {
-                throw JsonMappingException.from(jp, "Can not instantiate abstract type "+_beanType
-                        +" (need to add/enable type information?)");
-    	    }
-            throw JsonMappingException.from(jp, "No suitable constructor found for type "+_beanType+": can not instantiate from JSON object (need to add/enable type information?)");
+        if (_useNonDefaultCreator) {
+            return deserializerFromObjectUsingNonDefault(jp, ctxt);
         }
 
-        final Object bean = constructDefaultInstance();
+        final Object bean = _valueInstantiator.createInstanceFromObject();
         for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
             // Skip field name:
@@ -517,37 +517,53 @@ public class BeanDeserializer
         return bean;
     }
 
+    /**
+     * @since 1.9
+     */
+    protected Object deserializerFromObjectUsingNonDefault(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {        
+        if (_delegateDeserializer != null) {
+            return _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
+        }
+        if (_propertyBasedCreator != null) {
+            return _deserializeUsingPropertyBased(jp, ctxt);
+        }
+        // should only occur for abstract types...
+        if (_beanType.isAbstract()) {
+            throw JsonMappingException.from(jp, "Can not instantiate abstract type "+_beanType
+                    +" (need to add/enable type information?)");
+        }
+        throw JsonMappingException.from(jp, "No suitable constructor found for type "+_beanType+": can not instantiate from JSON object (need to add/enable type information?)");
+    }
+    
     public Object deserializeFromString(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-    	if (_stringCreator != null) {
-    	    return _stringCreator.construct(jp.getText());
+        /* Bit complicated if we have delegating creator; may need to use it,
+         * or might not...
+         */
+        if (_delegateDeserializer != null) {
+            if (!_valueInstantiator.canCreateFromString()) {
+                return _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
+            }
         }
-    	if (_delegatingCreator != null) {
-    	    return _delegatingCreator.deserialize(jp, ctxt);
-    	}
-    	// [JACKSON-204]: allow "" as null equivalent for POJOs...
-    	if (ctxt.isEnabled(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)) {
-    	    if (jp.getTextLength() == 0) {
-    	        return null;
-    	    }
-    	}
-        throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found to deserialize from JSON String");
+        return _valueInstantiator.createFromString(jp.getText());
     }
 
     public Object deserializeFromNumber(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-    	if (_numberCreator != null) {
-            switch (jp.getNumberType()) {
-            case INT:
-		return _numberCreator.construct(jp.getIntValue());
-            case LONG:
-		return _numberCreator.construct(jp.getLongValue());
+        if (_delegateDeserializer != null) {
+            if (!_valueInstantiator.canCreateFromNumber()) {
+                return _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
             }
-    	}
-    	if (_delegatingCreator != null) {
-    	    return _delegatingCreator.deserialize(jp, ctxt);
+        }
+        switch (jp.getNumberType()) {
+        case INT:
+            return _valueInstantiator.createFromInt(jp.getIntValue());
+        case LONG:
+            return _valueInstantiator.createFromLong(jp.getLongValue());
     	}
         throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found to deserialize from JSON Number");
     }
@@ -555,9 +571,9 @@ public class BeanDeserializer
     public Object deserializeUsingCreator(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-    	if (_delegatingCreator != null) {
+    	if (_delegateDeserializer != null) {
     	    try {
-    	        return _delegatingCreator.deserialize(jp, ctxt);
+                return _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
             } catch (Exception e) {
                 wrapInstantiationProblem(e, ctxt);
             }
@@ -578,7 +594,7 @@ public class BeanDeserializer
     protected final Object _deserializeUsingPropertyBased(final JsonParser jp, final DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     { 
-        final Creator.PropertyBased creator = _propertyBasedCreator;
+        final PropertyBasedCreator creator = _propertyBasedCreator;
         PropertyValueBuffer buffer = creator.startBuilding(jp, ctxt);
 
         // 04-Jan-2010, tatu: May need to collect unknown properties for polymorphic cases
@@ -788,24 +804,6 @@ public class BeanDeserializer
             }
         }
         return subDeser;
-    }
-
-    /**
-     * Method that is called to instantiate Object of type this deserializer
-     * produces, using the default (no-argument) constructor.
-     * 
-     * @return Instance of type this deserializer handles
-     * 
-     * @since 1.7
-     */
-    protected Object constructDefaultInstance()
-    {
-        try {
-            return _defaultConstructor.newInstance();
-        } catch (Exception e) {
-            ClassUtil.unwrapAndThrowAsIAE(e);
-            return null; // never gets here
-        }
     }
 
     /*

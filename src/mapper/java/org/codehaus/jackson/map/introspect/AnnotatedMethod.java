@@ -77,9 +77,23 @@ public final class AnnotatedMethod
      * type bindings; mostly it will allow defining bounds.
      */
     @Override
-    public JavaType getType(TypeBindings bindings)
-    {
+    public JavaType getType(TypeBindings bindings) {
         return getType(bindings, _method.getTypeParameters());
+    }
+
+    @Override
+    public final Object call() throws Exception {
+        return _method.invoke(null);
+    }
+
+    @Override
+    public final Object call(Object[] args) throws Exception {
+        return _method.invoke(null, args);
+    }
+
+    @Override
+    public final Object call1(Object arg) throws Exception {
+        return _method.invoke(null, arg);
     }
     
     /*

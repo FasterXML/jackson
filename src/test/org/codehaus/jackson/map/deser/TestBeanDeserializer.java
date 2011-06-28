@@ -182,6 +182,7 @@ public class TestBeanDeserializer extends BaseMapTest
         }
 
         // should be ok to enable dynamically:
+        mapper = new ObjectMapper();
         mapper.configure(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
         Bean result = mapper.readValue(quote(""), Bean.class);
         assertNull(result);

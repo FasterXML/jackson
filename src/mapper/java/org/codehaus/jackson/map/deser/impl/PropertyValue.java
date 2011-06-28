@@ -1,13 +1,15 @@
-package org.codehaus.jackson.map.deser;
+package org.codehaus.jackson.map.deser.impl;
 
 import java.io.IOException;
 import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.deser.SettableAnyProperty;
+import org.codehaus.jackson.map.deser.SettableBeanProperty;
 
 /**
  * Base class for property values that need to be buffered during
  * deserialization.
  */
-abstract class PropertyValue
+public abstract class PropertyValue
 {
     public final PropertyValue next;
 

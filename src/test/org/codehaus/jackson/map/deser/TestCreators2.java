@@ -152,7 +152,7 @@ public class TestCreators2
             m.readValue("{}", BustedCtor.class);
             fail("Expected exception");
         } catch (JsonMappingException e) {
-            verifyException(e, "problem: foobar");
+            verifyException(e, ": foobar");
             // also: should have nested exception
             Throwable t = e.getCause();
             assertNotNull(t);
@@ -263,7 +263,7 @@ public class TestCreators2
             mapper.readValue(quote("abc"), IgnoredCtor.class);
             fail("Should have caught missing constructor problem");
         } catch (JsonMappingException e) {
-            verifyException(e, "no suitable creator");
+            verifyException(e, "no single-String constructor/factory method");
         }
     }
 }

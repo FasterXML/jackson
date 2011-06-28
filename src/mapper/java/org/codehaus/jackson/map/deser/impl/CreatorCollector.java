@@ -1,25 +1,27 @@
-package org.codehaus.jackson.map.deser;
+package org.codehaus.jackson.map.deser.impl;
 
-import java.lang.reflect.Constructor;
-import java.util.HashMap;
+import java.util.*;
 
-import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
-import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.deser.SettableBeanProperty;
+import org.codehaus.jackson.map.deser.ValueInstantiator;
+import org.codehaus.jackson.map.introspect.*;
+import org.codehaus.jackson.map.type.TypeBindings;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.type.JavaType;
 
 /**
- * Container for set of Creators (constructors, factory methods)
+ * Container class for storing information on creators (based on annotations,
+ * visibility), to be able to build actual instantiator later on.
  */
-public class CreatorContainer
+public class CreatorCollector
 {
     /// Type of bean being created
     final BasicBeanDescription _beanDesc;
 
-//    final Class<?> _beanClass;
     final boolean _canFixAccess;
 
-    protected Constructor<?> _defaultConstructor;
+    protected AnnotatedConstructor _defaultConstructor;
     
     AnnotatedMethod _strFactory, _intFactory, _longFactory;
     AnnotatedMethod _delegatingFactory;
@@ -31,20 +33,65 @@ public class CreatorContainer
     AnnotatedConstructor _propertyBasedConstructor;
     SettableBeanProperty[] _propertyBasedConstructorProperties = null;
 
-    public CreatorContainer(BasicBeanDescription beanDesc, boolean canFixAccess)
+    /*
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
+     */
+    
+    public CreatorCollector(BasicBeanDescription beanDesc, boolean canFixAccess)
     {
         _beanDesc = beanDesc;
         _canFixAccess = canFixAccess;
-//        _beanClass = beanClass;
     }
 
+    /**
+     * @since 1.9.0
+     */
+    public ValueInstantiator constructValueInstantiator(DeserializationConfig config)
+    {
+        StdValueInstantiator inst = new StdValueInstantiator(config, _beanDesc.getType());
+
+        // then for with-args ("properties-based") construction
+        AnnotatedWithParams withArgsCreator = null;
+        SettableBeanProperty[] constructorArgs = null;
+
+        if (_propertyBasedConstructor != null) {
+            constructorArgs = _propertyBasedConstructorProperties;
+            withArgsCreator = _propertyBasedConstructor;
+        } else if (_propertyBasedFactory != null) {
+            constructorArgs = _propertyBasedFactoryProperties;
+            withArgsCreator = _propertyBasedFactory;
+        }
+
+        AnnotatedWithParams delegateCreator = null;
+        JavaType delegateType = null;
+        TypeBindings bindings = _beanDesc.bindingsForBeanType();
+        
+        if (_delegatingConstructor != null) {
+            delegateCreator = _delegatingConstructor;
+            delegateType =  bindings.resolveType(_delegatingConstructor.getParameterType(0));
+        } else if (_delegatingFactory != null) {
+            delegateCreator = _delegatingFactory;
+            delegateType =  bindings.resolveType(_delegatingFactory.getParameterType(0));
+        }
+        
+        inst.configureFromObjectSettings(_defaultConstructor,
+                delegateCreator, delegateType,
+                withArgsCreator, constructorArgs);
+        inst.configureFromStringSettings(_strConstructor, _strFactory);
+        inst.configureFromIntSettings(_intConstructor, _intFactory);
+        inst.configureFromLongSettings(_longConstructor, _longFactory);
+        return inst;
+    }
+    
     /*
     /**********************************************************
     /* Setters
     /**********************************************************
      */
 
-    public void setDefaultConstructor(Constructor<?> ctor) {
+    public void setDefaultConstructor(AnnotatedConstructor ctor) {
         _defaultConstructor = ctor;
     }
     
@@ -59,7 +106,7 @@ public class CreatorContainer
     }
 
     public void addDelegatingConstructor(AnnotatedConstructor ctor) {
-        _delegatingConstructor = verifyNonDup(ctor, _delegatingConstructor, "long");
+        _delegatingConstructor = verifyNonDup(ctor, _delegatingConstructor, "delegate");
     }
 
     public void addPropertyConstructor(AnnotatedConstructor ctor, SettableBeanProperty[] properties)
@@ -90,56 +137,13 @@ public class CreatorContainer
     }
 
     public void addDelegatingFactory(AnnotatedMethod factory) {
-        _delegatingFactory = verifyNonDup(factory, _delegatingFactory, "long");
+        _delegatingFactory = verifyNonDup(factory, _delegatingFactory, "delegate");
     }
 
     public void addPropertyFactory(AnnotatedMethod factory, SettableBeanProperty[] properties)
     {
         _propertyBasedFactory = verifyNonDup(factory, _propertyBasedFactory, "property-based");
         _propertyBasedFactoryProperties = properties;
-    }
-
-    /*
-    /**********************************************************
-    /* Accessors
-    /**********************************************************
-     */
-
-    public Constructor<?> getDefaultConstructor() { return _defaultConstructor; }
-    
-    public Creator.StringBased stringCreator()
-    {
-        if (_strConstructor == null &&  _strFactory == null) {
-            return null;
-        }
-        return new Creator.StringBased(_beanDesc.getBeanClass(), _strConstructor, _strFactory);
-    }
-
-    public Creator.NumberBased numberCreator()
-    {
-        if (_intConstructor == null && _intFactory == null
-            && _longConstructor == null && _longFactory == null) {
-            return null;
-        }
-        return new Creator.NumberBased(_beanDesc.getBeanClass(), _intConstructor, _intFactory,
-                                       _longConstructor, _longFactory);
-    }
-
-    public Creator.Delegating delegatingCreator()
-    {
-        if (_delegatingConstructor == null && _delegatingFactory == null) {
-            return null;
-        }
-        return new Creator.Delegating(_beanDesc, _delegatingConstructor, _delegatingFactory);
-    }
-
-    public Creator.PropertyBased propertyBasedCreator()
-    {
-        if (_propertyBasedConstructor == null && _propertyBasedFactory == null) {
-            return null;
-        }
-        return new Creator.PropertyBased(_propertyBasedConstructor, _propertyBasedConstructorProperties,
-                                         _propertyBasedFactory, _propertyBasedFactoryProperties);
     }
 
     /*
@@ -172,6 +176,3 @@ public class CreatorContainer
         return newOne;
     }
 }
-
-
-

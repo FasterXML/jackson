@@ -94,6 +94,21 @@ public final class AnnotatedConstructor
         return (index >= types.length) ? null : types[index];
     }
 
+    @Override
+    public final Object call() throws Exception {
+        return _constructor.newInstance();
+    }
+
+    @Override
+    public final Object call(Object[] args) throws Exception {
+        return _constructor.newInstance(args);
+    }
+
+    @Override
+    public final Object call1(Object arg) throws Exception {
+        return _constructor.newInstance(arg);
+    }
+    
     /*
     /**********************************************************
     /* AnnotatedMember impl
@@ -105,7 +120,7 @@ public final class AnnotatedConstructor
 
     @Override
     public Member getMember() { return _constructor; }
-
+    
     /*
     /**********************************************************
     /* Extended API, specific annotations

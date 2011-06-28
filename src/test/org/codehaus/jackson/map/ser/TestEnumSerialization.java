@@ -71,6 +71,7 @@ public class TestEnumSerialization
             serialize(jgen, provider);
         }
 
+        @SuppressWarnings("deprecation")
         public void serialize(JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException
         {
             jgen.writeString("foo");

@@ -1077,6 +1077,7 @@ public abstract class AnnotationIntrospector
 
         // // // Serialization: general annotations
 
+        @SuppressWarnings("deprecation")
         @Override
         public Object findSerializer(Annotated am, BeanProperty property)
         {
@@ -1288,6 +1289,7 @@ public abstract class AnnotationIntrospector
             return result;
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public Object findDeserializer(Annotated am, BeanProperty property)
         {

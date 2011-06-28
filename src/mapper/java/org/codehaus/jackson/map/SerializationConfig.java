@@ -835,6 +835,7 @@ public class SerializationConfig
     /**
      * @deprecated Since 1.8 should use variant without arguments
      */
+    @SuppressWarnings("deprecation")
     @Deprecated
     @Override
     public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
@@ -851,6 +852,7 @@ public class SerializationConfig
      * 
      * @deprecated Since 1.8, use {@link #withDateFormat} instead.
      */
+    @SuppressWarnings("deprecation")
     @Override
     @Deprecated
     public final void setDateFormat(DateFormat df) {

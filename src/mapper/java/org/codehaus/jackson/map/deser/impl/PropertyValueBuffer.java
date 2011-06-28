@@ -1,7 +1,9 @@
-package org.codehaus.jackson.map.deser;
+package org.codehaus.jackson.map.deser.impl;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.deser.SettableAnyProperty;
+import org.codehaus.jackson.map.deser.SettableBeanProperty;
 
 /**
  * Simple container used for temporarily buffering a set of
