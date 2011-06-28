@@ -112,14 +112,6 @@ public abstract class ValueInstantiator
     public JavaType getDelegateType() {
         return null;
     }
-
-    /**
-     * Method that can be called to try to access member (constructor,
-     * static factory method) that is used as the "delegate creator".
-     */
-    public AnnotatedWithParams getDelegateCreator() {
-        return null;
-    }
     
     /*
     /**********************************************************
@@ -187,5 +179,51 @@ public abstract class ValueInstantiator
     
     public Object createFromBoolean(boolean value) throws IOException, JsonProcessingException {
         throw new JsonMappingException("Can not instantiate value of type "+getValueType()+" from JSON boolean");
+    }
+
+    
+    /*
+    /**********************************************************
+    /* Accessors for underlying creator objects
+    /**********************************************************
+     */
+
+    /**
+     * Method that can be called to try to access member (constructor,
+     * static factory method) that is used as the "default creator"
+     * (creator that is called without arguments; typically default
+     * [zero-argument] constructor of the type).
+     * Note that implementations not required to return actual object
+     * they use (or, they may use some other instantiation) method.
+     * That is, even if {@link #canCreateUsingDefault()} returns true,
+     * this method may return null .
+     */
+    public AnnotatedWithParams getDefaultCreator() {
+        return null;
+    }
+    
+    /**
+     * Method that can be called to try to access member (constructor,
+     * static factory method) that is used as the "delegate creator".
+     * Note that implementations not required to return actual object
+     * they use (or, they may use some other instantiation) method.
+     * That is, even if {@link #canCreateUsingDelegate()} returns true,
+     * this method may return null .
+     */
+    public AnnotatedWithParams getDelegateCreator() {
+        return null;
+    }
+
+    /**
+     * Method that can be called to try to access member (constructor,
+     * static factory method) that is used as the "non-default creator"
+     * (constructor or factory method that takes one or more arguments).
+     * Note that implementations not required to return actual object
+     * they use (or, they may use some other instantiation) method.
+     * That is, even if {@link #canCreateWithArgs()} returns true,
+     * this method may return null .
+     */
+    public AnnotatedWithParams getWithArgsCreator() {
+        return null;
     }
 }
