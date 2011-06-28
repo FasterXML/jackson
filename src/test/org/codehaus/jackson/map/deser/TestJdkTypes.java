@@ -180,6 +180,7 @@ public class TestJdkTypes
         assertSame(String.class, mapper.readValue(quote("java.lang.String"), Class.class));
 
         // then primitive types
+        assertSame(Boolean.TYPE, mapper.readValue(quote("boolean"), Class.class));
         assertSame(Byte.TYPE, mapper.readValue(quote("byte"), Class.class));
         assertSame(Short.TYPE, mapper.readValue(quote("short"), Class.class));
         assertSame(Character.TYPE, mapper.readValue(quote("char"), Class.class));

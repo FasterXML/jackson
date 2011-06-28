@@ -702,6 +702,7 @@ public abstract class StdDeserializer<T>
                     if ("long".equals(className)) return Long.TYPE;
                     if ("float".equals(className)) return Float.TYPE;
                     if ("double".equals(className)) return Double.TYPE;
+                    if ("boolean".equals(className)) return Boolean.TYPE;
                     if ("byte".equals(className)) return Byte.TYPE;
                     if ("char".equals(className)) return Character.TYPE;
                     if ("short".equals(className)) return Short.TYPE;
