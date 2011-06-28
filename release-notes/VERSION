@@ -8,6 +8,9 @@ Description:
 
   Fixes:
 
+  * [JACKSON-593] Add ObjectMapper.readTree(byte[]), (URL) variants
+   (suggested by Bruce P)
+
   New features:
  
   * [JACKSON-254] Add 'SerializationConfig.Feature.WRITE_EMPTY_JSON_ARRAYS',

@@ -680,3 +680,9 @@ Jamie Reilly:
 
 Ruben Errejon Garcia:
   * Reported [JACKSON-560] Mix-in annotations ignored when used with views
+
+"Programmer Bruce":
+  * Suggested [JACKSON-593] Add ObjectMapper.readTree(byte[]), (URL) variants
+   [1.9.0]
+  * Suggested [JACKSON-597] Make ClassDeserializer support primitive types
+   [1.8.3]

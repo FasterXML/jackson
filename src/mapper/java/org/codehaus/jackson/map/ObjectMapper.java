@@ -1058,7 +1058,6 @@ public class ObjectMapper
         return _deserializationConfig.getNodeFactory();
     }
 
-    
     /*
     /**********************************************************
     /* Public API (from ObjectCodec): deserialization
@@ -1088,7 +1087,63 @@ public class ObjectMapper
     } 
 
     /**
-     * Method to deserialize Json content into a non-container
+     * Method to deserialize JSON content into a Java type, reference
+     * to which is passed as argument. Type is passed using so-called
+     * "super type token" (see )
+     * and specifically needs to be used if the root type is a 
+     * parameterized (generic) container type.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(JsonParser jp, TypeReference<?> valueTypeRef)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readValue(copyDeserializationConfig(), jp, _typeFactory.constructType(valueTypeRef));
+    }
+
+    /**
+     * Method to deserialize JSON content into a Java type, reference
+     * to which is passed as argument. Type is passed using 
+     * Jackson specific type; instance of which can be constructed using
+     * {@link TypeFactory}.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T readValue(JsonParser jp, JavaType valueType)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        return (T) _readValue(copyDeserializationConfig(), jp, valueType);
+    } 
+
+    /**
+     * Method to deserialize JSON content as tree expressed
+     * using set of {@link JsonNode} instances. Returns
+     * root of the resulting tree (where root can consist
+     * of just a single node if the current event is a
+     * value event, not container).
+     */
+    @Override
+    public JsonNode readTree(JsonParser jp)
+        throws IOException, JsonProcessingException
+    {
+        /* 02-Mar-2009, tatu: One twist; deserialization provider
+         *   will map Json null straight into Java null. But what
+         *   we want to return is the "null node" instead.
+         */
+        DeserializationConfig cfg = copyDeserializationConfig();
+        JsonNode n = (JsonNode) _readValue(cfg, jp, JSON_NODE_TYPE);
+        return (n == null) ? NullNode.instance : n;
+    }
+
+    /*
+    /**********************************************************
+    /* Public API not included in ObjectCodec: deserialization
+    /* (mapping from JSON to Java types)
+    /**********************************************************
+     */
+    
+    /**
+     * Method to deserialize JSON content into a non-container
      * type (it can be an array type, however): typically a bean, array
      * or a wrapper type (like {@link java.lang.Boolean}).
      *<p>
@@ -1115,22 +1170,7 @@ public class ObjectMapper
     } 
 
     /**
-     * Method to deserialize Json content into a Java type, reference
-     * to which is passed as argument. Type is passed using so-called
-     * "super type token" (see )
-     * and specifically needs to be used if the root type is a 
-     * parameterized (generic) container type.
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> T readValue(JsonParser jp, TypeReference<?> valueTypeRef)
-        throws IOException, JsonParseException, JsonMappingException
-    {
-        return (T) _readValue(copyDeserializationConfig(), jp, _typeFactory.constructType(valueTypeRef));
-    } 
-
-    /**
-     * Method to deserialize Json content into a Java type, reference
+     * Method to deserialize JSON content into a Java type, reference
      * to which is passed as argument. Type is passed using so-called
      * "super type token" (see )
      * and specifically needs to be used if the root type is a 
@@ -1153,21 +1193,7 @@ public class ObjectMapper
     } 
 
     /**
-     * Method to deserialize Json content into a Java type, reference
-     * to which is passed as argument. Type is passed using 
-     * Jackson specific type; instance of which can be constructed using
-     * {@link TypeFactory}.
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> T readValue(JsonParser jp, JavaType valueType)
-        throws IOException, JsonParseException, JsonMappingException
-    {
-        return (T) _readValue(copyDeserializationConfig(), jp, valueType);
-    } 
-
-    /**
-     * Method to deserialize Json content into a Java type, reference
+     * Method to deserialize JSON content into a Java type, reference
      * to which is passed as argument. Type is passed using 
      * Jackson specific type; instance of which can be constructed using
      * {@link TypeFactory}.
@@ -1187,26 +1213,6 @@ public class ObjectMapper
     {
         return (T) _readValue(cfg, jp, valueType);
     } 
-
-    /**
-     * Method to deserialize JSON content as tree expressed
-     * using set of {@link JsonNode} instances. Returns
-     * root of the resulting tree (where root can consist
-     * of just a single node if the current event is a
-     * value event, not container).
-     */
-    @Override
-    public JsonNode readTree(JsonParser jp)
-        throws IOException, JsonProcessingException
-    {
-        /* 02-Mar-2009, tatu: One twist; deserialization provider
-         *   will map Json null straight into Java null. But what
-         *   we want to return is the "null node" instead.
-         */
-        DeserializationConfig cfg = copyDeserializationConfig();
-        JsonNode n = (JsonNode) _readValue(cfg, jp, JSON_NODE_TYPE);
-        return (n == null) ? NullNode.instance : n;
-    }
 
     /**
      * Method to deserialize JSON content as tree expressed
@@ -1273,7 +1279,7 @@ public class ObjectMapper
      * Returns root of the resulting tree (where root can consist of just a single node if the current
      * event is a value event, not container).
      *
-     * @param content JSON content to parse for building the JSON tree.
+     * @param content JSON content to parse to build the JSON tree.
      *
      * @since 1.3
      */
@@ -1289,6 +1295,22 @@ public class ObjectMapper
      * Returns root of the resulting tree (where root can consist of just a single node if the current
      * event is a value event, not container).
      *
+     * @param content JSON content to parse to build the JSON tree.
+     *
+     * @since 1.9
+     */
+    public JsonNode readTree(byte[] content)
+        throws IOException, JsonProcessingException
+    {
+        JsonNode n = (JsonNode) _readMapAndClose(_jsonFactory.createJsonParser(content), JSON_NODE_TYPE);
+        return (n == null) ? NullNode.instance : n;
+    }
+    
+    /**
+     * Method to deserialize JSON content as tree expressed using set of {@link JsonNode} instances.
+     * Returns root of the resulting tree (where root can consist of just a single node if the current
+     * event is a value event, not container).
+     *
      * @param file File of which contents to parse as JSON for building a tree instance
      *
      * @since 1.9
@@ -1299,7 +1321,23 @@ public class ObjectMapper
         JsonNode n = (JsonNode) _readMapAndClose(_jsonFactory.createJsonParser(file), JSON_NODE_TYPE);
         return (n == null) ? NullNode.instance : n;
     }
-    
+
+    /**
+     * Method to deserialize JSON content as tree expressed using set of {@link JsonNode} instances.
+     * Returns root of the resulting tree (where root can consist of just a single node if the current
+     * event is a value event, not container).
+     *
+     * @param source URL to use for fetching contents to parse as JSON for building a tree instance
+     *
+     * @since 1.9
+     */
+    public JsonNode readTree(URL source)
+        throws IOException, JsonProcessingException
+    {
+        JsonNode n = (JsonNode) _readMapAndClose(_jsonFactory.createJsonParser(source), JSON_NODE_TYPE);
+        return (n == null) ? NullNode.instance : n;
+    }
+
     /**
      * Method for reading sequence of Objects from parser stream.
      *<p>
