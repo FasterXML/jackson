@@ -534,7 +534,8 @@ public class BeanDeserializer
             throw JsonMappingException.from(jp, "Can not instantiate abstract type "+_beanType
                     +" (need to add/enable type information?)");
         }
-        throw JsonMappingException.from(jp, "No suitable constructor found for type "+_beanType+": can not instantiate from JSON object (need to add/enable type information?)");
+        throw JsonMappingException.from(jp, "No suitable constructor found for type "
+                +_beanType+": can not instantiate from JSON object (need to add/enable type information?)");
     }
     
     public Object deserializeFromString(JsonParser jp, DeserializationContext ctxt)

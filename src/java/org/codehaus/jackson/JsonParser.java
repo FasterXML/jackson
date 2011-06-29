@@ -1018,7 +1018,7 @@ public abstract class JsonParser
      * Method that can be used to read (and consume -- results
      * may not be accessible using other methods after the call)
      * base64-encoded binary data
-     * included in the current textual json value.
+     * included in the current textual JSON value.
      * It works similar to getting String value via {@link #getText}
      * and decoding result (except for decoding part),
      * but should be significantly more performant.

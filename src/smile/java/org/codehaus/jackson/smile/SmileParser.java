@@ -450,6 +450,7 @@ public class SmileParser
     @Override
     protected void _releaseBuffers() throws IOException
     {
+         super._releaseBuffers();
          if (_bufferRecyclable) {
              byte[] buf = _inputBuffer;
              if (buf != null) {
