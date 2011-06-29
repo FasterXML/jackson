@@ -714,13 +714,19 @@ public class SmileGenerator
             _outputBuffer[_outputTail++] = (byte) ((TOKEN_PREFIX_KEY_ASCII - 1) + byteLen);
             System.arraycopy(bytes, 0, _outputBuffer, _outputTail, byteLen);
             _outputTail += byteLen;
-            // Also, keep track if we can use back-references (shared names)
-            if (_seenNameCount >= 0) {
-                _addSeenName(name.getValue());
-            }
-            return;
+        } else {
+            _writeLongAsciiFieldName(bytes);
         }
+        // Also, keep track if we can use back-references (shared names)
+        if (_seenNameCount >= 0) {
+            _addSeenName(name.getValue());
+        }
+    }
 
+    private final void _writeLongAsciiFieldName(byte[] bytes)
+        throws IOException, JsonGenerationException
+    {
+        final int byteLen = bytes.length;
         if (_outputTail >= _outputEnd) {
             _flushBuffer();
         }
@@ -745,10 +751,6 @@ public class SmileGenerator
             }
         }
         _outputBuffer[_outputTail++] = BYTE_MARKER_END_OF_STRING;
-        // Also, keep track if we can use back-references (shared names)
-        if (_seenNameCount >= 0) {
-            _addSeenName(name.getValue());
-        }
     }
 
     protected final void _writeFieldNameUnicode(SerializableString name, byte[] bytes)
@@ -1980,6 +1982,12 @@ public class SmileGenerator
             SharedStringNode[] nameBuf = _seenNames;
             if (nameBuf != null && nameBuf.length == SmileBufferRecycler.DEFAULT_NAME_BUFFER_LENGTH) {
                 _seenNames = null;
+                /* 28-Jun-2011, tatu: With 1.9, caller needs to clear the buffer; and note
+                 *   that since it's a hash area, must clear all
+                 */
+                if (_seenNameCount > 0) {
+                    Arrays.fill(nameBuf, null);
+                }
                 _smileBufferRecycler.releaseSeenNamesBuffer(nameBuf);
             }
         }
@@ -1987,6 +1995,12 @@ public class SmileGenerator
             SharedStringNode[] valueBuf = _seenStringValues;
             if (valueBuf != null && valueBuf.length == SmileBufferRecycler.DEFAULT_STRING_VALUE_BUFFER_LENGTH) {
                 _seenStringValues = null;
+                /* 28-Jun-2011, tatu: With 1.9, caller needs to clear the buffer; and note
+                 *   that since it's a hash area, must clear all
+                 */
+                if (_seenStringValueCount > 0) {
+                    Arrays.fill(valueBuf, null);
+                }
                 _smileBufferRecycler.releaseSeenStringValuesBuffer(valueBuf);
             }
         }
@@ -2132,54 +2146,4 @@ public class SmileGenerator
     protected UnsupportedOperationException _notSupported() {
         return new UnsupportedOperationException();
     }    
-
-    /*
-    /**********************************************************
-    /* Helper classes
-    /**********************************************************
-     */
-/*
-    private final static class BufferRecycler
-    {
-        protected final static int DEFAULT_NAME_BUFFER_LENGTH = 64;
-
-        protected final static int DEFAULT_STRING_VALUE_BUFFER_LENGTH = 64;
-        
-        protected SharedStringNode[] _seenNamesBuffer;
-
-        protected SharedStringNode[] _seenStringValuesBuffer;
-
-        public BufferRecycler() { }
-
-        public SharedStringNode[] allocSeenNamesBuffer()
-        {
-            SharedStringNode[] buffer = _seenNamesBuffer;
-            if (buffer == null) {
-                buffer = new SharedStringNode[DEFAULT_NAME_BUFFER_LENGTH];
-            } else {
-                _seenNamesBuffer = null;
-            }
-            return buffer;
-        }
-
-        public SharedStringNode[] allocSeenStringValuesBuffer()
-        {
-            SharedStringNode[] buffer = _seenStringValuesBuffer;
-            if (buffer == null) {
-                buffer = new SharedStringNode[DEFAULT_STRING_VALUE_BUFFER_LENGTH];
-            } else {
-                _seenStringValuesBuffer = null;
-            }
-            return buffer;
-        }
-        
-        public void releaseSeenNamesBuffer(SharedStringNode[] buffer) {
-            _seenNamesBuffer = buffer;
-        }
-
-        public void releaseSeenStringValuesBuffer(SharedStringNode[] buffer) {
-            _seenStringValuesBuffer = buffer;
-        }
-    }
-    */
 }

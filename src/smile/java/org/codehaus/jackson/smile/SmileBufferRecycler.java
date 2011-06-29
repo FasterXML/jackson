@@ -1,7 +1,5 @@
 package org.codehaus.jackson.smile;
 
-import java.util.Arrays;
-
 /**
  * Simple helper class used for implementing simple reuse system for Smile-specific
  * buffers that are used.
@@ -29,8 +27,7 @@ public class SmileBufferRecycler<T>
         if (result != null) {
             // let's ensure we don't retain it here, unless returned
             _seenNamesBuffer = null;
-            // and also clean up recycled buffer
-            Arrays.fill(result, null);
+            // note: caller must have cleaned it up before returning
         }
         return result;
     }
@@ -41,8 +38,7 @@ public class SmileBufferRecycler<T>
         T[] result = _seenStringValuesBuffer;
         if (result != null) {
             _seenStringValuesBuffer = null;
-            // and also clean up recycled buffer
-            Arrays.fill(result, null);
+            // note: caller must have cleaned it up before returning
         }
         return result;
     }

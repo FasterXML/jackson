@@ -462,8 +462,12 @@ public class SmileParser
             String[] nameBuf = _seenNames;
             if (nameBuf != null && nameBuf.length > 0) {
                 _seenNames = null;
-                // Note: while not mandatory, it's probably good idea to clear up cruft to reduce memory retention
-                Arrays.fill(nameBuf, 0, _seenNameCount, null);
+                /* 28-Jun-2011, tatu: With 1.9, caller needs to clear the buffer;
+                 *   but we only need to clear up to count as it is not a hash area
+                 */
+                if (_seenNameCount > 0) {
+                    Arrays.fill(nameBuf, 0, _seenNameCount, null);
+                }
                 _smileBufferRecycler.releaseSeenNamesBuffer(nameBuf);
             }
         }
@@ -471,8 +475,12 @@ public class SmileParser
             String[] valueBuf = _seenStringValues;
             if (valueBuf != null && valueBuf.length > 0) {
                 _seenStringValues = null;
-                // Note: while not mandatory, it's probably good idea to clear up cruft to reduce memory retention
-                Arrays.fill(valueBuf, 0, _seenStringValueCount, null);
+                /* 28-Jun-2011, tatu: With 1.9, caller needs to clear the buffer;
+                 *   but we only need to clear up to count as it is not a hash area
+                 */
+                if (_seenStringValueCount > 0) {
+                    Arrays.fill(valueBuf, 0, _seenStringValueCount, null);
+                }
                 _smileBufferRecycler.releaseSeenStringValuesBuffer(valueBuf);
             }
         }
