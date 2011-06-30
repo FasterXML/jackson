@@ -547,11 +547,7 @@ public class SmileGenerator
     {
         _verifyValueWrite("start an array");
         _writeContext = _writeContext.createChildArrayContext();
-        if (_cfgPrettyPrinter != null) {
-            _cfgPrettyPrinter.writeStartArray(this);
-        } else {
-            _writeByte(TOKEN_LITERAL_START_ARRAY);
-        }
+        _writeByte(TOKEN_LITERAL_START_ARRAY);
     }
 
     @Override
@@ -560,11 +556,7 @@ public class SmileGenerator
         if (!_writeContext.inArray()) {
             _reportError("Current context not an ARRAY but "+_writeContext.getTypeDesc());
         }
-        if (_cfgPrettyPrinter != null) {
-            _cfgPrettyPrinter.writeEndArray(this, _writeContext.getEntryCount());
-        } else {
-            _writeByte(TOKEN_LITERAL_END_ARRAY);
-        }
+        _writeByte(TOKEN_LITERAL_END_ARRAY);
         _writeContext = _writeContext.getParent();
     }
 
@@ -573,11 +565,7 @@ public class SmileGenerator
     {
         _verifyValueWrite("start an object");
         _writeContext = _writeContext.createChildObjectContext();
-        if (_cfgPrettyPrinter != null) {
-            _cfgPrettyPrinter.writeStartObject(this);
-        } else {
-            _writeByte(TOKEN_LITERAL_START_OBJECT);
-        }
+        _writeByte(TOKEN_LITERAL_START_OBJECT);
     }
 
     @Override
@@ -587,11 +575,7 @@ public class SmileGenerator
             _reportError("Current context not an object but "+_writeContext.getTypeDesc());
         }
         _writeContext = _writeContext.getParent();
-        if (_cfgPrettyPrinter != null) {
-            _cfgPrettyPrinter.writeEndObject(this, _writeContext.getEntryCount());
-        } else {
-            _writeByte(TOKEN_LITERAL_END_OBJECT);
-        }
+        _writeByte(TOKEN_LITERAL_END_OBJECT);
     }
 
     private final void _writeFieldName(String name)
@@ -1449,10 +1433,6 @@ public class SmileGenerator
     @Override
     public void close() throws IOException
     {
-        boolean wasClosed = _closed;
-        
-        super.close();
-
         /* 05-Dec-2008, tatu: To add [JACKSON-27], need to close open
          *   scopes.
          */
@@ -1470,6 +1450,9 @@ public class SmileGenerator
                 }
             }
         }
+        boolean wasClosed = _closed;
+        super.close();
+
         if (!wasClosed && isEnabled(Feature.WRITE_END_MARKER)) {
             _writeByte(BYTE_MARKER_END_OF_CONTENT);
         }
