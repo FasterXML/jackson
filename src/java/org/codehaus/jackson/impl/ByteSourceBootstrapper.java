@@ -28,9 +28,9 @@ public final class ByteSourceBootstrapper
     /**********************************************************
      */
 
-    final IOContext _context;
+    protected final IOContext _context;
 
-    final InputStream _in;
+    protected final InputStream _in;
 
     /*
     /**********************************************************
@@ -38,7 +38,7 @@ public final class ByteSourceBootstrapper
     /**********************************************************
      */
 
-    final byte[] _inputBuffer;
+    protected final byte[] _inputBuffer;
 
     private int _inputPtr;
 
