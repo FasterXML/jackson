@@ -55,7 +55,8 @@
 
     <patternset id="dist-all-source-files">
           <include name="README.txt" />
-          <include name="build*.xml" />
+          <include name="ant/build*.xml" />
+          <include name="build.xml" />
           <include name="release-notes/*" />
           <include name="DEV/contributor*" />
           <include name="src/**/*.java" />
@@ -73,11 +74,11 @@
     </patternset>
 
     <!-- some build tasks are refactored out of the main task -->
-    <import file="build-osgi.xml" />
-    <import file="build-maven-deploy.xml" />
-    <import file="build-coverage.xml" />
-    <import file="build-test.xml" />
-
+    <import file="ant/build-osgi.xml" />
+    <import file="ant/build-maven-deploy.xml" />
+    <import file="ant/build-coverage.xml" />
+    <import file="ant/build-test.xml" />
+    <import file="ant/build-mini.xml" />
 
     <!--*********************************************************************-->
     <!-- The readme target shows a brief description of all targets          -->
@@ -316,7 +317,7 @@ compile.smile, compile.mrbean" />
     </target>
 
     <!-- Dummy target that just includes all individual jars... --> 
-    <target name="jars" depends="jars.asl, jars.lgpl, jars.other, jar.all, jars.tools" />
+    <target name="jars" depends="jars.asl, jars.lgpl, jars.other, jar.all, jars.tools, jar.mini" />
 
     <target name="javadoc" depends="compile.all">
         <!-- Build a dirpath that contains just the "source" tree -->
