@@ -518,19 +518,9 @@ public class JacksonAnnotationIntrospector
                 return cls;
             }
         }
-
-        /* TODO: !!! 21-May-2009, tatu: JsonClass is deprecated; will need to
-         *    drop support at a later point (for 2.0?)
+        /* 30-Jun-2011, tatu: Here we used to have support for @JsonClass;
+         *    removed in 1.9
          */
-        @SuppressWarnings("deprecation")
-        JsonClass oldAnn = am.getAnnotation(JsonClass.class);
-        if (oldAnn != null) {
-            @SuppressWarnings("deprecation")
-            Class<?> cls = oldAnn.value();
-            if(cls != NoClass.class) {
-                return cls;
-            }
-        }
         return null;
     }
 
@@ -546,23 +536,12 @@ public class JacksonAnnotationIntrospector
                 return cls;
             }
         }
-
-        /* !!! 21-May-2009, tatu: JsonClass is deprecated; will need to
-         *    drop support at a later point (for 2.0?)
+        /* 30-Jun-2011, tatu: Here we used to have support for @JsonKeyClass;
+         *    removed in 1.9
          */
-        @SuppressWarnings("deprecation")
-        JsonKeyClass oldAnn = am.getAnnotation(JsonKeyClass.class);
-        if (oldAnn != null) {
-            @SuppressWarnings("deprecation")
-            Class<?> cls = oldAnn.value();
-            if(cls != NoClass.class) {
-                return cls;
-            }
-        }
         return null;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public Class<?> findDeserializationContentType(Annotated am, JavaType baseContentType,
             String propName)
@@ -575,17 +554,9 @@ public class JacksonAnnotationIntrospector
                 return cls;
             }
         }
-
-        /* !!! 21-May-2009, tatu: JsonClass is deprecated; will need to
-         *    drop support at a later point (for 2.0?)
+        /* 30-Jun-2011, tatu: Here we used to have support for @JsonContentClass;
+         *    removed in 1.9
          */
-        JsonContentClass oldAnn = am.getAnnotation(JsonContentClass.class);
-        if (oldAnn != null) {
-            Class<?> cls = oldAnn.value();
-            if(cls != NoClass.class) {
-                return cls;
-            }
-        }
         return null;
     }
 

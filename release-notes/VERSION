@@ -20,6 +20,11 @@ Description:
   * [JACKSON-581] Add 'ObjectMapper.readTree(File)'
    (suggested by Pascal G)
 
+  Potential backwards compatibility issues (compared to 1.8.x):
+
+  * Removed 'org.codehaus.jackson.annotate.JsonClass, JsonKeyClass and
+    JsonContentClass (deprecated since 1.1)
+
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
