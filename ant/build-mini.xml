@@ -1,0 +1,45 @@
+<?xml version="1.0" standalone='yes'?>
+<!-- This Ant build file fragment contains target(s) needed to build
+     "mini" version of the core parser+generator package
+  -->
+
+<project name="Mini-build tasks for Jackson" basedir=".">
+    <property name="dir.build.classes.mini" location="${dir.build}/classes/mini" />
+    <target name="compile.mini" depends="prepare">
+        <mkdir dir="${dir.build.classes.mini}" />
+        <javac srcdir="${dir.src.java.core}" destdir="${dir.build.classes.mini}"
+            source="1.5" target="1.5"
+            debug="false" includeantruntime="false"
+        >
+            <compilerarg value="-Xlint:unchecked" />
+            <exclude name="**/package-info.java" />
+            <!-- and do NOT compile things that we can live without: -->
+            <exclude name="org/codehaus/jackson/annotate/*.java" />
+            <exclude name="org/codehaus/jackson/util/TokenBuffer.java" />
+            <include name="org/codehaus/**/*.java" />
+        </javac>
+        <copy file="${dir.build}/VERSION.txt" toDir="${dir.build.classes.core}/org/codehaus/jackson/impl" />
+
+        <!--
+          -->
+    </target>
+
+    <target name="jar.mini" depends="compile.mini">
+      <jar jarfile="${dir.build}/jackson-mini-${IMPL_VERSION}.jar" filesonly="true" >
+         <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Specification-Title"   value="${JSON_TITLE}"/>
+            <attribute name="Specification-Version" value="${JSON_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${JSON_VENDOR}"/>
+            <attribute name="Implementation-Title"   value="${IMPL_TITLE_CORE}"/>
+            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+          </manifest>
+          <fileset dir="${dir.build.classes.mini}">
+             <include name="org/codehaus/jackson/**/*.class" />
+          </fileset>
+        </jar>
+    </target> 
+
+</project>
+
