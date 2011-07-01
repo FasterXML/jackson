@@ -591,9 +591,16 @@ public class BeanDeserializerFactory
             JavaType type, BasicBeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException
     {
-        BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(beanDesc);
         CreatorCollector cc = findDeserializerCreators(config, beanDesc);
-        builder.setValueInstantiator(cc.constructValueInstantiator(config));
+        ValueInstantiator instantiator = cc.constructValueInstantiator(config);
+        // anyone want to modify ValueInstantiator?
+        if (_factoryConfig.hasDeserializerModifiers()) {
+            for (BeanDeserializerModifier mod : _factoryConfig.deserializerModifiers()) {
+                instantiator = mod.modifyValueInstantiator(config, beanDesc, instantiator);
+            }
+        }
+        BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(beanDesc);
+        builder.setValueInstantiator(instantiator);
          // And then setters for deserializing from JSON Object
         addBeanProps(config, beanDesc, builder);
         // managed/back reference fields/setters need special handling... first part

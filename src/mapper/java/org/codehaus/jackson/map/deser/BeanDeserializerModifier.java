@@ -14,18 +14,49 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
  *<p>
  * Sequence in which callback methods are called is as follows:
  * <ol>
+ *  <li>modifyValueInstantiator is called once factory has figured out creators
+ *     to use, based on annotations and existence of default constructor
+ *   </li>
+ *  <li>updateBuilder is called once all initial pieces for building deserializer
+ *    have been collected
+ *   </li>
+ *  <li><code>modifyDeserializer</code> is called after deserializer has been built,
+ *    but before it is returned to be used
+ *   </li>
  * </ol>
  *<p>
  * Default method implementations are "no-op"s, meaning that methods are implemented
- * but have no effect.
+ * but have no effect; this is mostly so that new methods can be added in later
+ * versions.
  * 
  * @since 1.7
  */
 public abstract class BeanDeserializerModifier
 {
     /**
+     * Method called by {@link BeanDeserializerFactory} when it has constructed
+     * the default value instantiator (initially of type
+     * {@link org.codehaus.jackson.map.deser.impl.StdValueInstantiator}, but
+     * note that it may already have been replace by another modifier)
+     * to use for creating instances of the bean during deserialization.
+     * Method can either try to modify instantiator, or replace it with a
+     * custom version.
+     * 
+     * @param config Deserialization configuration
+     * @param beanDesc Information about POJO type for which deserializer is being built
+     * @param instantiator Default instantiator to use (possibly having been modified
+     *   by preceding modifiers)
+     * 
+     * @return Value instantiator to use for bean
+     */
+    public ValueInstantiator modifyValueInstantiator(DeserializationConfig config,
+            BasicBeanDescription beanDesc, ValueInstantiator instantiator) {
+        return instantiator;
+    }
+    
+    /**
      * Method called by {@link BeanDeserializerFactory} when it has collected
-     * basic information such as tentative list of properties to deserializer.
+     * basic information such as tentative list of properties to deserialize.
      *
      * Implementations may choose to modify state of builder (to affect deserializer being
      * built), or even completely replace it (if they want to build different kind of

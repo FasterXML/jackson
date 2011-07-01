@@ -27,7 +27,7 @@ public class StdValueInstantiator
      * Type of values that are instantiated; used
      * for error reporting purposes.
      */
-    protected final JavaType _valueType;
+    protected final String _valueTypeDesc;
 
     /**
      * Are we allowed to convert empty Strings to null objects?
@@ -63,12 +63,19 @@ public class StdValueInstantiator
     /* Life-cycle
     /**********************************************************
      */
+
+    public StdValueInstantiator(DeserializationConfig config, Class<?> valueType)
+    {
+        _cfgEmptyStringsAsObjects = (config == null) ? false
+                : config.isEnabled(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
+        _valueTypeDesc = valueType.getName();
+    }
     
     public StdValueInstantiator(DeserializationConfig config, JavaType valueType)
     {
         _cfgEmptyStringsAsObjects = (config == null) ? false
                 : config.isEnabled(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-        _valueType = valueType;
+        _valueTypeDesc = valueType.toString();
     }
     
     /**
@@ -78,7 +85,7 @@ public class StdValueInstantiator
     protected StdValueInstantiator(StdValueInstantiator src)
     {
         _cfgEmptyStringsAsObjects = src._cfgEmptyStringsAsObjects;
-        _valueType = src._valueType;
+        _valueTypeDesc = src._valueTypeDesc;
 
         _defaultCreator = src._defaultCreator;
 
@@ -128,10 +135,10 @@ public class StdValueInstantiator
      */
 
     @Override
-    public JavaType getValueType() {
-        return _valueType;
+    public String getValueTypeDesc() {
+        return _valueTypeDesc;
     }
-
+    
     @Override
     public boolean canCreateFromString() {
         return (_fromStringCreator != null);
@@ -227,7 +234,7 @@ public class StdValueInstantiator
         if (_cfgEmptyStringsAsObjects && value.length() == 0) {
             return null;
         }
-        throw new JsonMappingException("Can not instantiate value of type "+getValueType()
+        throw new JsonMappingException("Can not instantiate value of type "+getValueTypeDesc()
                 +" from JSON String; no single-String constructor/factory method");
     }
     
@@ -246,7 +253,7 @@ public class StdValueInstantiator
         } catch (Exception e) {
             throw wrapException(e);
         }
-        throw new JsonMappingException("Can not instantiate value of type "+getValueType()
+        throw new JsonMappingException("Can not instantiate value of type "+getValueTypeDesc()
                 +" from JSON number; no single-int constructor/factory method");
     }
 
@@ -260,7 +267,7 @@ public class StdValueInstantiator
         } catch (Exception e) {
             throw wrapException(e);
         }
-        throw new JsonMappingException("Can not instantiate value of type "+getValueType()
+        throw new JsonMappingException("Can not instantiate value of type "+getValueTypeDesc()
                 +" from JSON number; no single-long constructor/factory method");
     }
     
@@ -296,7 +303,7 @@ public class StdValueInstantiator
         while (t.getCause() != null) {
             t = t.getCause();
         }
-        return new JsonMappingException("Instantiation of "+_valueType+" value failed: "+t.getMessage(), t);
+        return new JsonMappingException("Instantiation of "+getValueTypeDesc()+" value failed: "+t.getMessage(), t);
     }
 }
 

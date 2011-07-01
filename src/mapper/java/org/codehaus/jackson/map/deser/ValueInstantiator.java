@@ -39,11 +39,11 @@ public abstract class ValueInstantiator
      */
 
     /**
-     * Method that returns value type handled by this instantiator.
-     * Used for diagnostics purposes.
+     * Method that returns description of the value type this instantiator
+     * handles. Used for error messages, diagnostics.
      */
-    public abstract JavaType getValueType();
-
+    public abstract String getValueTypeDesc();
+    
     /**
      * Method that can be called to check whether a String-based creator
      * is available for this instantiator
@@ -129,7 +129,8 @@ public abstract class ValueInstantiator
      */
     public Object createInstanceFromObject()
         throws IOException, JsonProcessingException {
-        throw new JsonMappingException("Can not instantiate value of type "+getValueType()+" from JSON Object (without arguments)");
+        throw new JsonMappingException("Can not instantiate value of type "
+                +getValueTypeDesc()+" from JSON Object (without arguments)");
     }
 
     /**
@@ -142,7 +143,8 @@ public abstract class ValueInstantiator
      */
     public Object createInstanceFromObjectWith(Object[] args)
         throws IOException, JsonProcessingException {
-        throw new JsonMappingException("Can not instantiate value of type "+getValueType()+" from JSON Object (with arguments)");
+        throw new JsonMappingException("Can not instantiate value of type "
+                +getValueTypeDesc()+" from JSON Object (with arguments)");
     }
 
     /**
@@ -151,7 +153,8 @@ public abstract class ValueInstantiator
      */
     public Object createInstanceFromObjectUsing(Object delegate)
         throws IOException, JsonProcessingException {
-        throw new JsonMappingException("Can not instantiate value of type "+getValueType()+" from JSON Object with delegate");
+        throw new JsonMappingException("Can not instantiate value of type "
+                +getValueTypeDesc()+" from JSON Object with delegate");
     }
     
     /*
@@ -162,26 +165,30 @@ public abstract class ValueInstantiator
      */
     
     public Object createFromString(String value) throws IOException, JsonProcessingException {
-        throw new JsonMappingException("Can not instantiate value of type "+getValueType()+" from JSON String");
+        throw new JsonMappingException("Can not instantiate value of type "
+                +getValueTypeDesc()+" from JSON String");
     }
     
     public Object createFromInt(int value) throws IOException, JsonProcessingException {
-        throw new JsonMappingException("Can not instantiate value of type "+getValueType()+" from JSON int number");
+        throw new JsonMappingException("Can not instantiate value of type "
+                +getValueTypeDesc()+" from JSON int number");
     }
 
     public Object createFromLong(long value) throws IOException, JsonProcessingException {
-        throw new JsonMappingException("Can not instantiate value of type "+getValueType()+" from JSON long number");
+        throw new JsonMappingException("Can not instantiate value of type "
+                +getValueTypeDesc()+" from JSON long number");
     }
 
     public Object createFromDouble(double value) throws IOException, JsonProcessingException {
-        throw new JsonMappingException("Can not instantiate value of type "+getValueType()+" from JSON floating-point number");
+        throw new JsonMappingException("Can not instantiate value of type "
+                +getValueTypeDesc()+" from JSON floating-point number");
     }
     
     public Object createFromBoolean(boolean value) throws IOException, JsonProcessingException {
-        throw new JsonMappingException("Can not instantiate value of type "+getValueType()+" from JSON boolean");
+        throw new JsonMappingException("Can not instantiate value of type "
+                +getValueTypeDesc()+" from JSON boolean");
     }
 
-    
     /*
     /**********************************************************
     /* Accessors for underlying creator objects
