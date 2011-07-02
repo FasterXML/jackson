@@ -89,26 +89,27 @@ public class StdDeserializerProvider
 
     @Override
     public DeserializerProvider withAdditionalDeserializers(Deserializers d) {
-        _factory = _factory.withAdditionalDeserializers(d);
-        return this;
+        return new StdDeserializerProvider(_factory.withAdditionalDeserializers(d));
     }
 
     @Override
     public DeserializerProvider withAdditionalKeyDeserializers(KeyDeserializers d) {
-        _factory = _factory.withAdditionalKeyDeserializers(d);
-        return this;
+        return new StdDeserializerProvider(_factory.withAdditionalKeyDeserializers(d));
     }
     
     @Override
     public DeserializerProvider withDeserializerModifier(BeanDeserializerModifier modifier) {
-        _factory = _factory.withDeserializerModifier(modifier);
-        return this;
+        return new StdDeserializerProvider(_factory.withDeserializerModifier(modifier));
     }
 
     @Override
     public DeserializerProvider withAbstractTypeResolver(AbstractTypeResolver resolver) {
-        _factory = _factory.withAbstractTypeResolver(resolver);
-        return this;
+        return new  StdDeserializerProvider(_factory.withAbstractTypeResolver(resolver));
+    }
+
+    @Override
+    public DeserializerProvider withValueInstantiators(ValueInstantiators instantiators) {
+        return new StdDeserializerProvider(_factory.withValueInstantiators(instantiators));
     }
     
     /*

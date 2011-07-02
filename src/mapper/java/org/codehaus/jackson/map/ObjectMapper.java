@@ -13,6 +13,7 @@ import org.codehaus.jackson.io.SegmentedStringWriter;
 import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.deser.StdDeserializerProvider;
+import org.codehaus.jackson.map.deser.ValueInstantiators;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
@@ -458,7 +459,7 @@ public class ObjectMapper
                 return mapper.getSerializationConfig();
             }
             
-            // // // Methods for registering handlers
+            // // // Methods for registering handlers: deserializers, serializers
             
             @Override
             public void addDeserializers(Deserializers d) {
@@ -479,7 +480,7 @@ public class ObjectMapper
             public void addKeySerializers(Serializers s) {
                 mapper._serializerFactory = mapper._serializerFactory.withAdditionalKeySerializers(s);
             }
-
+            
             @Override
             public void addBeanSerializerModifier(BeanSerializerModifier modifier) {
                 mapper._serializerFactory = mapper._serializerFactory.withSerializerModifier(modifier);
@@ -490,6 +491,8 @@ public class ObjectMapper
                 mapper._deserializerProvider = mapper._deserializerProvider.withDeserializerModifier(modifier);
             }
 
+            // // // Methods for registering handlers: other
+            
             @Override
             public void addAbstractTypeResolver(AbstractTypeResolver resolver) {
                 mapper._deserializerProvider = mapper._deserializerProvider.withAbstractTypeResolver(resolver);
@@ -500,6 +503,11 @@ public class ObjectMapper
                 TypeFactory f = mapper._typeFactory;
                 f = f.withModifier(modifier);
                 mapper.setTypeFactory(f);
+            }
+
+            @Override
+            public void addValueInstantiators(ValueInstantiators instantiators) {
+                mapper._deserializerProvider = mapper._deserializerProvider.withValueInstantiators(instantiators);
             }
             
             @Override

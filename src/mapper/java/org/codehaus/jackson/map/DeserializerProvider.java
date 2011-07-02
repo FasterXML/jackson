@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map;
 
 import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
+import org.codehaus.jackson.map.deser.ValueInstantiators;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -36,6 +37,14 @@ public abstract class DeserializerProvider
      * @since 1.8
      */
     public abstract DeserializerProvider withAbstractTypeResolver(AbstractTypeResolver resolver);
+
+    /**
+     * Method that will construct a new instance with specified additional value instantiators
+     * (i.e. does NOT replace existing ones)
+     * 
+     * @since 1.9
+     */
+    public abstract DeserializerProvider withValueInstantiators(ValueInstantiators instantiators);
     
     /*
     /**********************************************************

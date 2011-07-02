@@ -514,6 +514,9 @@ public class DeserializationConfig
      */
 
     /**
+     * Fluent factory method that will construct a new instance with
+     * specified {@link JsonNodeFactory}
+     * 
      * @since 1.8
      */
     public DeserializationConfig withNodeFactory(JsonNodeFactory f) {

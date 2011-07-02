@@ -2,11 +2,10 @@ package org.codehaus.jackson.map.module;
 
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.BaseMapTest;
+import org.codehaus.jackson.map.BeanDescription;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
-import org.codehaus.jackson.map.deser.ValueInstantiator;
-import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.deser.*;
 
 public class TestBeanDeserializerModifier extends BaseMapTest
 {
@@ -37,15 +36,17 @@ public class TestBeanDeserializerModifier extends BaseMapTest
         }
     }
     
-    static class MyBeanDeserializerModifier extends BeanDeserializerModifier
+    static class MyValueInstantiators implements ValueInstantiators
     {
         @Override
-        public ValueInstantiator modifyValueInstantiator(DeserializationConfig config,
-                BasicBeanDescription beanDesc, ValueInstantiator instantiator) {
+        public ValueInstantiator findValueInstantiator(
+                DeserializationConfig config, BeanDescription beanDesc,
+                ValueInstantiator defaultInstantiator)
+        {
             if (beanDesc.getBeanClass() == MyBean.class) {
                 return new MyInstantiator();
             }
-            return instantiator;
+            return defaultInstantiator;
         }
     }
 
@@ -58,7 +59,7 @@ public class TestBeanDeserializerModifier extends BaseMapTest
         @Override
         public void setupModule(SetupContext context)
         {
-            context.addBeanDeserializerModifier(new MyBeanDeserializerModifier());
+            context.addValueInstantiators(new MyValueInstantiators());
         }        
     }
     

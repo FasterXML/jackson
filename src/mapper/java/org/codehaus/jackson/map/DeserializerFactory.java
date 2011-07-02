@@ -2,6 +2,7 @@ package org.codehaus.jackson.map;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
+import org.codehaus.jackson.map.deser.ValueInstantiators;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.type.JavaType;
 
@@ -86,6 +87,20 @@ public abstract class DeserializerFactory
          * @since 1.8
          */
         public abstract Config withAbstractTypeResolver(AbstractTypeResolver resolver);
+
+        /**
+         * Fluent/factory method used to construct a configuration object that
+         * has same configuration as this instance plus specified additional
+         * value instantiator provider object.
+         * Added instantiator provider has the highest priority (that is, it
+         * gets called before any already registered resolver).
+         * 
+         * @param instantiators Object that can provide {@link org.codehaus.jackson.map.deser.ValueInstantiator}s for
+         *    constructing POJO values during deserialization
+         * 
+         * @since 1.9
+         */
+        public abstract Config withValueInstantiators(ValueInstantiators instantiators);
         
         public abstract Iterable<Deserializers> deserializers();
 
@@ -100,6 +115,11 @@ public abstract class DeserializerFactory
          * @since 1.8
          */
         public abstract Iterable<AbstractTypeResolver> abstractTypeResolvers();
+
+        /**
+         * @since 1.9
+         */
+        public abstract Iterable<ValueInstantiators> valueInstantiators();
         
         public abstract boolean hasDeserializers();
 
@@ -114,6 +134,11 @@ public abstract class DeserializerFactory
          * @since 1.8
          */
         public abstract boolean hasAbstractTypeResolvers();
+
+        /**
+         * @since 1.9
+         */
+        public abstract boolean hasValueInstantiators();
     }
 
     /*
@@ -179,6 +204,16 @@ public abstract class DeserializerFactory
      */
     public final DeserializerFactory withAbstractTypeResolver(AbstractTypeResolver resolver) {
         return withConfig(getConfig().withAbstractTypeResolver(resolver));
+    }
+
+    /**
+     * Convenience method for creating a new factory instance with additional
+     * {@link ValueInstantiators}.
+     * 
+     * @since 1.9
+     */
+    public final DeserializerFactory withValueInstantiators(ValueInstantiators instantiators) {
+        return withConfig(getConfig().withValueInstantiators(instantiators));
     }
     
     /*

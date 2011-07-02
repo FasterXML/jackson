@@ -44,6 +44,7 @@ public class BeanDeserializerFactory
         protected final static KeyDeserializers[] NO_KEY_DESERIALIZERS = new KeyDeserializers[0];
         protected final static BeanDeserializerModifier[] NO_MODIFIERS = new BeanDeserializerModifier[0];
         protected final static AbstractTypeResolver[] NO_ABSTRACT_TYPE_RESOLVERS = new AbstractTypeResolver[0];
+        protected final static ValueInstantiators[] NO_VALUE_INSTANTIATORS = new ValueInstantiators[0];
         
         /**
          * List of providers for additional deserializers, checked before considering default
@@ -75,13 +76,24 @@ public class BeanDeserializerFactory
          * @since 1.8
          */
         protected final AbstractTypeResolver[] _abstractTypeResolvers;
+
+        /**
+         * List of objects that know how to create instances of POJO types;
+         * possibly using custom construction (non-annoted constructors; factory
+         * methods external to value type etc).
+         * Used to support objects that are created using non-standard methods;
+         * or to support post-constructor functionality.
+         * 
+         * @since 1.9
+         */
+        protected final ValueInstantiators[] _valueInstantiators;
         
         /**
          * Constructor for creating basic configuration with no additional
          * handlers.
          */
         public ConfigImpl() {
-            this(null, null, null, null);
+            this(null, null, null, null, null);
         }
 
         /**
@@ -91,7 +103,8 @@ public class BeanDeserializerFactory
         protected ConfigImpl(Deserializers[] allAdditionalDeserializers,
                 KeyDeserializers[] allAdditionalKeyDeserializers,
                 BeanDeserializerModifier[] modifiers,
-                AbstractTypeResolver[] atr)
+                AbstractTypeResolver[] atr,
+                ValueInstantiators[] vi)
         {
             _additionalDeserializers = (allAdditionalDeserializers == null) ?
                     NO_DESERIALIZERS : allAdditionalDeserializers;
@@ -99,6 +112,7 @@ public class BeanDeserializerFactory
                     NO_KEY_DESERIALIZERS : allAdditionalKeyDeserializers;
             _modifiers = (modifiers == null) ? NO_MODIFIERS : modifiers;
             _abstractTypeResolvers = (atr == null) ? NO_ABSTRACT_TYPE_RESOLVERS : atr;
+            _valueInstantiators = (vi == null) ? NO_VALUE_INSTANTIATORS : vi;
         }
 
         @Override
@@ -108,7 +122,8 @@ public class BeanDeserializerFactory
                 throw new IllegalArgumentException("Can not pass null Deserializers");
             }
             Deserializers[] all = ArrayBuilders.insertInListNoDup(_additionalDeserializers, additional);
-            return new ConfigImpl(all, _additionalKeyDeserializers, _modifiers, _abstractTypeResolvers);
+            return new ConfigImpl(all, _additionalKeyDeserializers, _modifiers,
+                    _abstractTypeResolvers, _valueInstantiators);
         }
 
         @Override
@@ -118,7 +133,8 @@ public class BeanDeserializerFactory
                 throw new IllegalArgumentException("Can not pass null KeyDeserializers");
             }
             KeyDeserializers[] all = ArrayBuilders.insertInListNoDup(_additionalKeyDeserializers, additional);
-            return new ConfigImpl(_additionalDeserializers, all, _modifiers, _abstractTypeResolvers);
+            return new ConfigImpl(_additionalDeserializers, all, _modifiers,
+                    _abstractTypeResolvers, _valueInstantiators);
         }
         
         @Override
@@ -128,7 +144,8 @@ public class BeanDeserializerFactory
                 throw new IllegalArgumentException("Can not pass null modifier");
             }
             BeanDeserializerModifier[] all = ArrayBuilders.insertInListNoDup(_modifiers, modifier);
-            return new ConfigImpl(_additionalDeserializers, _additionalKeyDeserializers, all, _abstractTypeResolvers);
+            return new ConfigImpl(_additionalDeserializers, _additionalKeyDeserializers, all,
+                    _abstractTypeResolvers, _valueInstantiators);
         }
 
         @Override
@@ -138,7 +155,19 @@ public class BeanDeserializerFactory
                 throw new IllegalArgumentException("Can not pass null resolver");
             }
             AbstractTypeResolver[] all = ArrayBuilders.insertInListNoDup(_abstractTypeResolvers, resolver);
-            return new ConfigImpl(_additionalDeserializers, _additionalKeyDeserializers, _modifiers, all);
+            return new ConfigImpl(_additionalDeserializers, _additionalKeyDeserializers, _modifiers,
+                    all, _valueInstantiators);
+        }
+
+        @Override
+        public Config withValueInstantiators(ValueInstantiators instantiators) 
+        {
+            if (instantiators == null) {
+                throw new IllegalArgumentException("Can not pass null resolver");
+            }
+            ValueInstantiators[] all = ArrayBuilders.insertInListNoDup(_valueInstantiators, instantiators);
+            return new ConfigImpl(_additionalDeserializers, _additionalKeyDeserializers, _modifiers,
+                    _abstractTypeResolvers, all);
         }
         
         @Override
@@ -152,6 +181,9 @@ public class BeanDeserializerFactory
 
         @Override
         public boolean hasAbstractTypeResolvers() { return _abstractTypeResolvers.length > 0; }
+
+        @Override
+        public boolean hasValueInstantiators() { return _valueInstantiators.length > 0; }
         
         @Override
         public Iterable<Deserializers> deserializers() {
@@ -171,6 +203,11 @@ public class BeanDeserializerFactory
         @Override
         public Iterable<AbstractTypeResolver> abstractTypeResolvers() {
             return ArrayBuilders.arrayAsIterable(_abstractTypeResolvers);
+        }
+
+        @Override
+        public Iterable<ValueInstantiators> valueInstantiators() {
+            return ArrayBuilders.arrayAsIterable(_valueInstantiators);
         }
     }
     
@@ -594,9 +631,9 @@ public class BeanDeserializerFactory
         CreatorCollector cc = findDeserializerCreators(config, beanDesc);
         ValueInstantiator instantiator = cc.constructValueInstantiator(config);
         // anyone want to modify ValueInstantiator?
-        if (_factoryConfig.hasDeserializerModifiers()) {
-            for (BeanDeserializerModifier mod : _factoryConfig.deserializerModifiers()) {
-                instantiator = mod.modifyValueInstantiator(config, beanDesc, instantiator);
+        if (_factoryConfig.hasValueInstantiators()) {
+            for (ValueInstantiators inst : _factoryConfig.valueInstantiators()) {
+                instantiator = inst.findValueInstantiator(config, beanDesc, instantiator);
             }
         }
         BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(beanDesc);

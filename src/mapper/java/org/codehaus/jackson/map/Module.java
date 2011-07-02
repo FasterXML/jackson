@@ -3,6 +3,7 @@ package org.codehaus.jackson.map;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.Versioned;
 import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
+import org.codehaus.jackson.map.deser.ValueInstantiators;
 import org.codehaus.jackson.map.ser.BeanSerializerModifier;
 import org.codehaus.jackson.map.type.TypeModifier;
 
@@ -94,7 +95,7 @@ public abstract class Module
         
         /*
         /**********************************************************
-        /* Handler registration
+        /* Handler registration; serializers/deserializers
         /**********************************************************
          */
         
@@ -133,6 +134,12 @@ public abstract class Module
          * @since 1.8
          */
         public void addKeySerializers(Serializers s);
+
+        /*
+        /**********************************************************
+        /* Handler registration; other
+        /**********************************************************
+         */
         
         /**
          * Method that module can use to register additional modifier objects to
@@ -171,6 +178,18 @@ public abstract class Module
          * @since 1.8
          */
         public void addTypeModifier(TypeModifier modifier);
+
+        /**
+         * Method that module can use to register additional {@link org.codehaus.jackson.map.deser.ValueInstantiator}s,
+         * by adding {@link ValueInstantiators} object that gets called when 
+         * instantatiator is needed by a deserializer.
+         * 
+         * @param instantiators Object that can provide {@link org.codehaus.jackson.map.deser.ValueInstantiator}s for
+         *    constructing POJO values during deserialization
+         * 
+         * @since 1.9
+         */
+        public void addValueInstantiators(ValueInstantiators instantiators);
         
         /**
          * Method for registering specified {@link AnnotationIntrospector} as the highest
