@@ -89,27 +89,37 @@ public class StdDeserializerProvider
 
     @Override
     public DeserializerProvider withAdditionalDeserializers(Deserializers d) {
-        return new StdDeserializerProvider(_factory.withAdditionalDeserializers(d));
+        return withFactory(_factory.withAdditionalDeserializers(d));
     }
 
     @Override
     public DeserializerProvider withAdditionalKeyDeserializers(KeyDeserializers d) {
-        return new StdDeserializerProvider(_factory.withAdditionalKeyDeserializers(d));
+        return withFactory(_factory.withAdditionalKeyDeserializers(d));
     }
     
     @Override
     public DeserializerProvider withDeserializerModifier(BeanDeserializerModifier modifier) {
-        return new StdDeserializerProvider(_factory.withDeserializerModifier(modifier));
+        return withFactory(_factory.withDeserializerModifier(modifier));
     }
 
     @Override
     public DeserializerProvider withAbstractTypeResolver(AbstractTypeResolver resolver) {
-        return new  StdDeserializerProvider(_factory.withAbstractTypeResolver(resolver));
+        return withFactory(_factory.withAbstractTypeResolver(resolver));
     }
 
     @Override
     public DeserializerProvider withValueInstantiators(ValueInstantiators instantiators) {
-        return new StdDeserializerProvider(_factory.withValueInstantiators(instantiators));
+        return withFactory(_factory.withValueInstantiators(instantiators));
+    }
+
+    @Override
+    public StdDeserializerProvider withFactory(DeserializerFactory factory) {
+        // sanity-check to try to prevent hard-to-debug problems; sub-classes MUST override this method
+        if (this.getClass() != StdDeserializerProvider.class) {
+            throw new IllegalStateException("DeserializerProvider of type "
+                    +this.getClass().getName()+" does not override 'withFactory()' method");
+        }
+        return new StdDeserializerProvider(factory);
     }
     
     /*

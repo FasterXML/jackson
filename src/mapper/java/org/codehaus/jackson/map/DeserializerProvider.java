@@ -14,6 +14,14 @@ public abstract class DeserializerProvider
     protected DeserializerProvider() { }
 
     /**
+     * Method that sub-classes need to override, to ensure that fluent-factory
+     * methods will produce proper sub-type.
+     * 
+     * @since 1.9
+     */
+    public abstract DeserializerProvider withFactory(DeserializerFactory factory);
+    
+    /**
      * Method that is to configure {@link DeserializerFactory} that provider has
      * to use specified deserializer provider, with highest precedence (that is,
      * additional providers have higher precedence than default one or previously

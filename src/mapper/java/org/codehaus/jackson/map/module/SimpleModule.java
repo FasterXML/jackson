@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.module;
 
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.deser.ValueInstantiator;
 
 /**
  * Simple {@link Module} implementation that allows registration
@@ -27,6 +28,13 @@ public class SimpleModule extends Module
      * (which may be abstract or concrete)
      */
     protected SimpleAbstractTypeResolver _abstractTypes = null;
+
+    /**
+     * Lazily-constructed resolver used for storing mappings from
+     * abstract classes to more specific implementing classes
+     * (which may be abstract or concrete)
+     */
+    protected SimpleValueInstantiators _valueInstantiators = null;
     
     /*
     /**********************************************************
@@ -106,6 +114,15 @@ public class SimpleModule extends Module
         _abstractTypes = _abstractTypes.addMapping(superType, subType);
         return this;
     }
+
+    public SimpleModule addValueInstantiator(Class<?> beanType, ValueInstantiator inst)
+    {
+        if (_valueInstantiators == null) {
+            _valueInstantiators = new SimpleValueInstantiators();
+        }
+        _valueInstantiators = _valueInstantiators.addValueInstantiator(beanType, inst);
+        return this;
+    }
     
     /*
     /**********************************************************
@@ -135,6 +152,9 @@ public class SimpleModule extends Module
         }
         if (_abstractTypes != null) {
             context.addAbstractTypeResolver(_abstractTypes);
+        }
+        if (_valueInstantiators != null) {
+            context.addValueInstantiators(_valueInstantiators);
         }
     }
 
