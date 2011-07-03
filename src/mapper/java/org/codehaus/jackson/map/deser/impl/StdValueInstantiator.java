@@ -38,7 +38,7 @@ public class StdValueInstantiator
 
     /**
      * Default (no-argument) constructor to use for instantiation
-     * (with {@link #createInstance})
+     * (with {@link #createInstanceFromObject})
      */
     protected AnnotatedWithParams _defaultCreator;
 
