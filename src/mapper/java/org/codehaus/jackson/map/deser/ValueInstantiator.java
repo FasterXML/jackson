@@ -67,7 +67,7 @@ public abstract class ValueInstantiator
      * is available for this instantiator
      */
     public boolean canCreateUsingDefault() {
-        return false;
+        return getDefaultCreator() != null;
     }
 
     /**

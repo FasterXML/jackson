@@ -5,6 +5,8 @@ import java.util.*;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.*;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Test related to [JACKSON-580] (allow specifying custom instantiators)
@@ -21,13 +23,13 @@ public class TestValueInstantiator extends BaseMapTest
     }
     
     @SuppressWarnings("serial")
-    static class MyList extends ArrayList<String>
+    static class MyList extends ArrayList<Object>
     {
         public MyList(boolean b) { super(); }
     }
 
     @SuppressWarnings("serial")
-    static class MyMap extends HashMap<String,String>
+    static class MyMap extends HashMap<String,Object>
     {
         public MyMap(boolean b) { super(); }
     }
@@ -48,6 +50,25 @@ public class TestValueInstantiator extends BaseMapTest
         }
     }
 
+    static class MyDelegateBeanInstantiator extends ValueInstantiator
+    {
+        @Override
+        public String getValueTypeDesc() { return "xxx"; }
+        
+        @Override
+        public boolean canCreateUsingDelegate() { return true; }
+
+        @Override
+        public JavaType getDelegateType() {
+            return TypeFactory.defaultInstance().constructType(Object.class);
+        }
+        
+        @Override
+        public Object createInstanceFromObjectUsing(Object delegate) {
+            return new MyBean(""+delegate, true);
+        }
+    }
+    
     static class MyListInstantiator extends ValueInstantiator
     {
         @Override
@@ -64,6 +85,27 @@ public class TestValueInstantiator extends BaseMapTest
         }
     }
 
+    static class MyDelegateListInstantiator extends ValueInstantiator
+    {
+        @Override
+        public String getValueTypeDesc() { return "xxx"; }
+        
+        @Override
+        public boolean canCreateUsingDelegate() { return true; }
+
+        @Override
+        public JavaType getDelegateType() {
+            return TypeFactory.defaultInstance().constructType(Object.class);
+        }
+        
+        @Override
+        public Object createInstanceFromObjectUsing(Object delegate) {
+            MyList list = new MyList(true);
+            list.add(delegate);
+            return list;
+        }
+    }
+    
     static class MyMapInstantiator extends ValueInstantiator
     {
         @Override
@@ -77,6 +119,27 @@ public class TestValueInstantiator extends BaseMapTest
         @Override
         public MyMap createInstanceFromObject() {
             return new MyMap(true);
+        }
+    }
+
+    static class MyDelegateMapInstantiator extends ValueInstantiator
+    {
+        @Override
+        public String getValueTypeDesc() { return "xxx"; }
+        
+        @Override
+        public boolean canCreateUsingDelegate() { return true; }
+
+        @Override
+        public JavaType getDelegateType() {
+            return TypeFactory.defaultInstance().constructType(Object.class);
+        }
+        
+        @Override
+        public Object createInstanceFromObjectUsing(Object delegate) {
+            MyMap map = new MyMap(true);
+            map.put("value", delegate);
+            return map;
         }
     }
     
@@ -104,6 +167,15 @@ public class TestValueInstantiator extends BaseMapTest
         assertEquals("secret!", bean._secret);
     }
 
+    public void testDelegateBeanInstantiator() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(MyBean.class, new MyDelegateBeanInstantiator()));
+        MyBean bean = mapper.readValue("123", MyBean.class);
+        assertNotNull(bean);
+        assertEquals("123", bean._secret);
+    }
+    
     public void testCustomListInstantiator() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -114,6 +186,16 @@ public class TestValueInstantiator extends BaseMapTest
         assertEquals(0, result.size());
     }
 
+    public void testDelegateListInstantiator() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(MyList.class, new MyDelegateListInstantiator()));
+        MyList result = mapper.readValue("123", MyList.class);
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(123), result.get(0));
+    }
+    
     public void testCustomMapInstantiator() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -122,5 +204,15 @@ public class TestValueInstantiator extends BaseMapTest
         assertNotNull(result);
         assertEquals(MyMap.class, result.getClass());
         assertEquals(1, result.size());
+    }
+
+    public void testDelegateMapInstantiator() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(MyMap.class, new MyDelegateMapInstantiator()));
+        MyMap result = mapper.readValue("123", MyMap.class);
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(123), result.values().iterator().next());
     }
 }

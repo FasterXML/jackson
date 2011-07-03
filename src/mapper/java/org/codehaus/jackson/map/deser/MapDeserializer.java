@@ -174,10 +174,16 @@ public class MapDeserializer
         throws JsonMappingException
     {
         // May need to resolve types for delegate- and/or property-based creators:
-        AnnotatedWithParams delegateCreator = _valueInstantiator.getDelegateCreator();
-        if (delegateCreator != null) {
+        if (_valueInstantiator.canCreateUsingDelegate()) {
             JavaType delegateType = _valueInstantiator.getDelegateType();
+            if (delegateType == null) {
+                throw new IllegalArgumentException("Invalid delegate-creator definition for "+_mapType
+                        +": value instantiator ("+_valueInstantiator.getClass().getName()
+                        +") returned true for 'canCreateUsingDelegate()', but null for 'getDelegateType()'");
+            }
+            AnnotatedWithParams delegateCreator = _valueInstantiator.getDelegateCreator();
             // Need to create a temporary property to allow contextual deserializers:
+            // Note: unlike BeanDeserializer, we don't have an AnnotatedClass around; hence no annotations passed
             BeanProperty.Std property = new BeanProperty.Std(null,
                     delegateType, null, delegateCreator);
             _delegateDeserializer = findDeserializer(config, provider, delegateType, property);
@@ -219,11 +225,6 @@ public class MapDeserializer
     public Map<Object,Object> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        // Ok: must point to START_OBJECT, FIELD_NAME or END_OBJECT
-        JsonToken t = jp.getCurrentToken();
-        if (t != JsonToken.START_OBJECT && t != JsonToken.FIELD_NAME && t != JsonToken.END_OBJECT) {
-            throw ctxt.mappingException(getMapClass());
-        }
         if (_propertyBasedCreator != null) {
             return _deserializeUsingCreator(jp, ctxt);
         }
@@ -232,6 +233,11 @@ public class MapDeserializer
         }
         if (!_hasDefaultCreator) {
             throw ctxt.instantiationException(getMapClass(), "No default constructor found");
+        }
+        // Ok: must point to START_OBJECT, FIELD_NAME or END_OBJECT
+        JsonToken t = jp.getCurrentToken();
+        if (t != JsonToken.START_OBJECT && t != JsonToken.FIELD_NAME && t != JsonToken.END_OBJECT) {
+            throw ctxt.mappingException(getMapClass());
         }
         final Map<Object,Object> result = (Map<Object,Object>) _valueInstantiator.createInstanceFromObject();
         _readAndBind(jp, ctxt, result);

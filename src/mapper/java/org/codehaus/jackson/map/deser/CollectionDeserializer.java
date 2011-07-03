@@ -130,10 +130,16 @@ public class CollectionDeserializer
         throws JsonMappingException
     {
         // May need to resolve types for delegate-based creators:
-        AnnotatedWithParams delegateCreator = _valueInstantiator.getDelegateCreator();
-        if (delegateCreator != null) {
+        if (_valueInstantiator.canCreateUsingDelegate()) {
             JavaType delegateType = _valueInstantiator.getDelegateType();
+            if (delegateType == null) {
+                throw new IllegalArgumentException("Invalid delegate-creator definition for "+_collectionType
+                        +": value instantiator ("+_valueInstantiator.getClass().getName()
+                        +") returned true for 'canCreateUsingDelegate()', but null for 'getDelegateType()'");
+            }
+            AnnotatedWithParams delegateCreator = _valueInstantiator.getDelegateCreator();
             // Need to create a temporary property to allow contextual deserializers:
+            // Note: unlike BeanDeserializer, we don't have an AnnotatedClass around; hence no annotations passed
             BeanProperty.Std property = new BeanProperty.Std(null,
                     delegateType, null, delegateCreator);
             _delegateDeserializer = findDeserializer(config, provider, delegateType, property);

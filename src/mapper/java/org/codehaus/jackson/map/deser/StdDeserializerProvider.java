@@ -260,6 +260,9 @@ public class StdDeserializerProvider
 
     protected JsonDeserializer<Object> _findCachedDeserializer(JavaType type)
     {
+        if (type == null) {
+            throw new IllegalArgumentException();
+        }
         return _cachedDeserializers.get(type);
     }
 

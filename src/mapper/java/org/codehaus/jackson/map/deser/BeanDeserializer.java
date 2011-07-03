@@ -310,9 +310,14 @@ public class BeanDeserializer
         }
 
         // as well as delegate-based constructor:
-        AnnotatedWithParams delegateCreator = _valueInstantiator.getDelegateCreator();
-        if (delegateCreator != null) {
+        if (_valueInstantiator.canCreateUsingDelegate()) {
             JavaType delegateType = _valueInstantiator.getDelegateType();
+            if (delegateType == null) {
+                throw new IllegalArgumentException("Invalid delegate-creator definition for "+_beanType
+                        +": value instantiator ("+_valueInstantiator.getClass().getName()
+                        +") returned true for 'canCreateUsingDelegate()', but null for 'getDelegateType()'");
+            }
+            AnnotatedWithParams delegateCreator = _valueInstantiator.getDelegateCreator();
             // Need to create a temporary property to allow contextual deserializers:
             BeanProperty.Std property = new BeanProperty.Std(null,
                     delegateType, _forClass.getAnnotations(), delegateCreator);
