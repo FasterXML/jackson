@@ -7,11 +7,7 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonCachable;
-import org.codehaus.jackson.map.deser.impl.BeanPropertyMap;
-import org.codehaus.jackson.map.deser.impl.CreatorCollector;
-import org.codehaus.jackson.map.deser.impl.PropertyBasedCreator;
-import org.codehaus.jackson.map.deser.impl.PropertyValueBuffer;
-import org.codehaus.jackson.map.deser.impl.StdValueInstantiator;
+import org.codehaus.jackson.map.deser.impl.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedWithParams;
 import org.codehaus.jackson.map.type.ClassKey;
@@ -183,7 +179,6 @@ public class BeanDeserializer
         _property = property;
 
         _valueInstantiator = valueInstantiator;
-
         SettableBeanProperty[] withArgsProps = valueInstantiator.getFromObjectArguments();
         if (withArgsProps != null) {
             _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator, withArgsProps);
@@ -315,15 +310,13 @@ public class BeanDeserializer
         }
 
         // as well as delegate-based constructor:
-        if (_valueInstantiator instanceof StdValueInstantiator) {
-            AnnotatedWithParams delegateCreator = _valueInstantiator.getDelegateCreator();
-            if (delegateCreator != null) {
-                JavaType delegateType = _valueInstantiator.getDelegateType();
-                // Need to create a temporary property to allow contextual deserializers:
-                BeanProperty.Std property = new BeanProperty.Std(null,
-                        delegateType, _forClass.getAnnotations(), delegateCreator);
-                _delegateDeserializer = findDeserializer(config, provider, delegateType, property);
-            }
+        AnnotatedWithParams delegateCreator = _valueInstantiator.getDelegateCreator();
+        if (delegateCreator != null) {
+            JavaType delegateType = _valueInstantiator.getDelegateType();
+            // Need to create a temporary property to allow contextual deserializers:
+            BeanProperty.Std property = new BeanProperty.Std(null,
+                    delegateType, _forClass.getAnnotations(), delegateCreator);
+            _delegateDeserializer = findDeserializer(config, provider, delegateType, property);
         }
         // or property-based one
         SettableBeanProperty[] props = _valueInstantiator.getFromObjectArguments();
@@ -480,7 +473,7 @@ public class BeanDeserializer
         throws IOException, JsonProcessingException
     {        
         if (_useNonDefaultCreator) {
-            return deserializerFromObjectUsingNonDefault(jp, ctxt);
+            return deserializeFromObjectUsingNonDefault(jp, ctxt);
         }
 
         final Object bean = _valueInstantiator.createInstanceFromObject();
@@ -520,7 +513,7 @@ public class BeanDeserializer
     /**
      * @since 1.9
      */
-    protected Object deserializerFromObjectUsingNonDefault(JsonParser jp, DeserializationContext ctxt)
+    protected Object deserializeFromObjectUsingNonDefault(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {        
         if (_delegateDeserializer != null) {

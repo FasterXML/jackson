@@ -12,6 +12,9 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.deser.impl.PropertyBasedCreator;
 import org.codehaus.jackson.map.deser.impl.PropertyValueBuffer;
+import org.codehaus.jackson.map.deser.impl.StdValueInstantiator;
+import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
+import org.codehaus.jackson.map.introspect.AnnotatedWithParams;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.type.JavaType;
 
@@ -52,13 +55,16 @@ public class MapDeserializer
     
     // // Instance construction settings:
 
-    final protected Constructor<Map<Object,Object>> _defaultCtor;
+    /**
+     * @since 1.9
+     */
+    protected final ValueInstantiator _valueInstantiator;
 
     /**
      * @since 1.9
      */
-    protected ValueInstantiator _valueInstantiator;
-
+    protected final boolean _hasDefaultCreator;
+    
     /**
      * If the Map is to be instantiated using non-default constructor
      * or factory method
@@ -66,7 +72,13 @@ public class MapDeserializer
      * this creator is used for instantiation.
      */
     protected PropertyBasedCreator _propertyBasedCreator;    
-
+    
+    /**
+     * Deserializer that is used iff delegate-based creator is
+     * to be used for deserializing from JSON Object.
+     */
+    protected JsonDeserializer<Object> _delegateDeserializer;
+    
     // // Any properties to ignore if seen?
     
     protected HashSet<String> _ignorableProperties;
@@ -77,29 +89,70 @@ public class MapDeserializer
     /**********************************************************
      */
 
+    /**
+     * @deprecated Since 1.9, use variant that takes ValueInstantiator
+     */
+    @Deprecated
     public MapDeserializer(JavaType mapType, Constructor<Map<Object,Object>> defCtor,
                            KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser,
                            TypeDeserializer valueTypeDeser)
     {
         super(Map.class);
         _mapType = mapType;
-        _defaultCtor = defCtor;
         _keyDeserializer = keyDeser;
         _valueDeserializer = valueDeser;
         _valueTypeDeserializer = valueTypeDeser;
+        // not super-clean, but has to do...
+        StdValueInstantiator inst = new StdValueInstantiator(null, mapType);
+        if (defCtor != null) {
+            AnnotatedConstructor aCtor = new AnnotatedConstructor(defCtor,
+                    null, null);
+            inst.configureFromObjectSettings(aCtor, null, null, null, null);
+        }
+        _hasDefaultCreator = (defCtor != null);
+        _valueInstantiator = inst;
     }
 
-    /**
-     * Method called to add constructor and/or factory method based
-     * creators to be used with Map, instead of default constructor.
-     */
-    public void setValueInstantiator(ValueInstantiator valueInstantiator) {
+    public MapDeserializer(JavaType mapType, ValueInstantiator valueInstantiator,
+            KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser,
+            TypeDeserializer valueTypeDeser)
+    {
+        super(Map.class);
+        _mapType = mapType;
+        _keyDeserializer = keyDeser;
+        _valueDeserializer = valueDeser;
+        _valueTypeDeserializer = valueTypeDeser;
         _valueInstantiator = valueInstantiator;
-        // do we need to use a @JsonCreator indicated one?
-        if (valueInstantiator.canCreateWithArgs()) {
-            _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator,
-                    valueInstantiator.getFromObjectArguments());
+        SettableBeanProperty[] withArgsProps = valueInstantiator.getFromObjectArguments();
+        if (withArgsProps != null) {
+            _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator, withArgsProps);
+        } else {
+            _propertyBasedCreator = null;
         }
+        _hasDefaultCreator = valueInstantiator.canCreateUsingDefault();
+    }
+    
+    //ValueInstantiator
+
+    /**
+     * Copy-constructor that can be used by sub-classes to allow
+     * copy-on-write styling copying of settings of an existing instance.
+     * 
+     * @since 1.9
+     */
+    protected MapDeserializer(MapDeserializer src)
+    {
+        super(src._valueClass);
+        _mapType = src._mapType;
+        _keyDeserializer = src._keyDeserializer;
+        _valueDeserializer = src._valueDeserializer;
+        _valueTypeDeserializer = src._valueTypeDeserializer;
+        _valueInstantiator = src._valueInstantiator;
+        _propertyBasedCreator = src._propertyBasedCreator;
+        _delegateDeserializer = src._delegateDeserializer;
+        _hasDefaultCreator = src._hasDefaultCreator;
+        // should we make a copy here?
+        _ignorableProperties = src._ignorableProperties;
     }
 
     public void setIgnorableProperties(String[] ignorable)
@@ -138,11 +191,19 @@ public class MapDeserializer
     public void resolve(DeserializationConfig config, DeserializerProvider provider)
         throws JsonMappingException
     {
-        // just need to worry about property-based one
-        if (_valueInstantiator != null) {
-            SettableBeanProperty[] props = _valueInstantiator.getFromObjectArguments();
-            if (props != null) {
-                for (SettableBeanProperty prop : props) {
+        // May need to resolve types for delegate- and/or property-based creators:
+        AnnotatedWithParams delegateCreator = _valueInstantiator.getDelegateCreator();
+        if (delegateCreator != null) {
+            JavaType delegateType = _valueInstantiator.getDelegateType();
+            // Need to create a temporary property to allow contextual deserializers:
+            BeanProperty.Std property = new BeanProperty.Std(null,
+                    delegateType, null, delegateCreator);
+            _delegateDeserializer = findDeserializer(config, provider, delegateType, property);
+        }
+        SettableBeanProperty[] props = _valueInstantiator.getFromObjectArguments();
+        if (props != null) {
+            for (SettableBeanProperty prop : props) {
+                if (!prop.hasValueDeserializer()) {
                     prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
                 }
             }
@@ -156,6 +217,7 @@ public class MapDeserializer
      */
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<Object,Object> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
@@ -167,15 +229,13 @@ public class MapDeserializer
         if (_propertyBasedCreator != null) {
             return _deserializeUsingCreator(jp, ctxt);
         }
-        Map<Object,Object> result;
-        if (_defaultCtor == null) {
+        if (_delegateDeserializer != null) {
+            return (Map<Object,Object>) _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
+        }
+        if (!_hasDefaultCreator) {
             throw ctxt.instantiationException(getMapClass(), "No default constructor found");
         }
-        try {
-            result = _defaultCtor.newInstance();
-        } catch (Exception e) {
-            throw ctxt.instantiationException(getMapClass(), e);
-        }
+        final Map<Object,Object> result = (Map<Object,Object>) _valueInstantiator.createInstanceFromObject();
         _readAndBind(jp, ctxt, result);
         return result;
     }

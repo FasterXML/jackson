@@ -628,16 +628,8 @@ public class BeanDeserializerFactory
             JavaType type, BasicBeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException
     {
-        CreatorCollector cc = findDeserializerCreators(config, beanDesc);
-        ValueInstantiator instantiator = cc.constructValueInstantiator(config);
-        // anyone want to modify ValueInstantiator?
-        if (_factoryConfig.hasValueInstantiators()) {
-            for (ValueInstantiators inst : _factoryConfig.valueInstantiators()) {
-                instantiator = inst.findValueInstantiator(config, beanDesc, instantiator);
-            }
-        }
         BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(beanDesc);
-        builder.setValueInstantiator(instantiator);
+        builder.setValueInstantiator(findDeserializerInstantiator(config, beanDesc));
          // And then setters for deserializing from JSON Object
         addBeanProps(config, beanDesc, builder);
         // managed/back reference fields/setters need special handling... first part
@@ -668,8 +660,7 @@ public class BeanDeserializerFactory
     {
         // first: construct like a regular bean deserializer...
         BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(beanDesc);
-        CreatorCollector cc = findDeserializerCreators(config, beanDesc);
-        builder.setValueInstantiator(cc.constructValueInstantiator(config));
+        builder.setValueInstantiator(findDeserializerInstantiator(config, beanDesc));
 
         addBeanProps(config, beanDesc, builder);
         // (and assume there won't be any back references)
@@ -735,13 +726,8 @@ public class BeanDeserializerFactory
         return new BeanDeserializerBuilder(beanDesc);
     }
     
-    /**
-     * Method that is to find all creators (constructors, factory methods)
-     * for the bean type to deserialize.
-     * 
-     * @since 1.7
-     */
-    protected CreatorCollector findDeserializerCreators(DeserializationConfig config,
+    @Override
+    protected ValueInstantiator findDeserializerInstantiator(DeserializationConfig config,
             BasicBeanDescription beanDesc)
         throws JsonMappingException
     {
@@ -770,7 +756,17 @@ public class BeanDeserializerFactory
 
         _addDeserializerConstructors(config, beanDesc, vchecker, intr, creators);
         _addDeserializerFactoryMethods(config, beanDesc, vchecker, intr, creators);
-        return creators;
+
+        ValueInstantiator instantiator = creators.constructValueInstantiator(config);
+        
+        // finally: anyone want to modify ValueInstantiator?
+        if (_factoryConfig.hasValueInstantiators()) {
+            for (ValueInstantiators inst : _factoryConfig.valueInstantiators()) {
+                instantiator = inst.findValueInstantiator(config, beanDesc, instantiator);
+            }
+        }
+        
+        return instantiator;
     }
 
     protected void _addDeserializerConstructors
@@ -915,6 +911,35 @@ public class BeanDeserializerFactory
             }
             creators.addPropertyFactory(factory, properties);
         }
+    }
+
+    /**
+     * Method that will construct a property object that represents
+    * a logical property passed via Creator (constructor or static
+    * factory method)
+     */
+    protected SettableBeanProperty constructCreatorProperty(DeserializationConfig config,
+            BasicBeanDescription beanDesc, String name, int index,
+            AnnotatedParameter param)
+        throws JsonMappingException
+    {
+        JavaType t0 = config.getTypeFactory().constructType(param.getParameterType(), beanDesc.bindingsForBeanType());
+        BeanProperty.Std property = new BeanProperty.Std(name, t0, beanDesc.getClassAnnotations(), param);
+        JavaType type = resolveType(config, beanDesc, t0, param, property);
+        if (type != t0) {
+            property = property.withType(type);
+        }
+        // Is there an annotation that specifies exact deserializer?
+        JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, param, property);
+        // If yes, we are mostly done:
+        type = modifyTypeByAnnotation(config, param, type, name);
+        TypeDeserializer typeDeser = findTypeDeserializer(config, type, property);
+        SettableBeanProperty prop = new SettableBeanProperty.CreatorProperty(name, type, typeDeser,
+                beanDesc.getClassAnnotations(), param, index);
+        if (deser != null) {
+            prop.setValueDeserializer(deser);
+        }
+       return prop;
     }
     
     /**

@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.deser.impl.CreatorCollector;
 import org.codehaus.jackson.map.deser.impl.StringCollectionDeserializer;
 import org.codehaus.jackson.map.ext.OptionalHandlerFactory;
 import org.codehaus.jackson.map.introspect.*;
@@ -157,7 +156,17 @@ public abstract class BasicDeserializerFactory
     protected abstract JsonDeserializer<?> _findCustomTreeNodeDeserializer(Class<? extends JsonNode> type,
             DeserializationConfig config, BeanProperty property)
         throws JsonMappingException;
-    
+
+    /**
+     * Method that is to find all creators (constructors, factory methods)
+     * for the bean type to deserialize.
+     * 
+     * @since 1.9
+     */
+    protected abstract ValueInstantiator findDeserializerInstantiator(DeserializationConfig config,
+            BasicBeanDescription beanDesc)
+        throws JsonMappingException;
+
     /*
     /**********************************************************
     /* JsonDeserializerFactory impl
@@ -411,9 +420,9 @@ public abstract class BasicDeserializerFactory
                 ClassUtil.checkAndFixAccess(defaultCtor);
             }
         }
-        MapDeserializer md = new MapDeserializer(type, defaultCtor, keyDes, contentDeser, contentTypeDeser);
+        ValueInstantiator inst = findDeserializerInstantiator(config, beanDesc);
+        MapDeserializer md = new MapDeserializer(type, inst, keyDes, contentDeser, contentTypeDeser);
         md.setIgnorableProperties(config.getAnnotationIntrospector().findPropertiesToIgnore(beanDesc.getClassInfo()));
-        md.setValueInstantiator(findMapCreators(config, beanDesc).constructValueInstantiator(config));
         return md;
     }
 
@@ -846,96 +855,5 @@ public abstract class BasicDeserializerFactory
             return EnumResolver.constructUnsafeUsingToString(enumClass);
         }
         return EnumResolver.constructUnsafe(enumClass, config.getAnnotationIntrospector());
-    }
-    
-    /*
-    /**********************************************************
-    /* Helper methods, dealing with Creators
-    /**********************************************************
-     */
-
-    /**
-     * Method used to find non-default constructors and factory 
-     * methods that are marked to be used as Creators for a Map type.
-     */
-    protected CreatorCollector findMapCreators(DeserializationConfig config, BasicBeanDescription beanDesc)
-        throws JsonMappingException
-    {
-        AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        CreatorCollector creators =  new CreatorCollector(beanDesc, fixAccess);
-        // First, let's find if we have a constructor creator:
-        for (AnnotatedConstructor ctor : beanDesc.getConstructors()) {
-            int argCount = ctor.getParameterCount();
-            if (argCount < 1 || !intr.hasCreatorAnnotation(ctor)) { // default ctor, or not marked with JsonCreator, skip
-                continue;
-            }
-            // For Map types property name is not optional for ctor params
-            SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
-            int nameCount = 0;
-            for (int i = 0; i < argCount; ++i) {
-                AnnotatedParameter param = ctor.getParameter(i);
-                String name = (param == null) ? null : intr.findPropertyNameForParam(param);
-                // At this point, name annotation is NOT optional
-                if (name == null || name.length() == 0) {
-                    throw new IllegalArgumentException("Parameter #"+i+" of constructor "+ctor+" has no property name annotation: must have for @JsonCreator for a Map type");
-                }
-                ++nameCount;
-                properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
-            }
-            creators.addPropertyConstructor(ctor, properties);
-        }
-
-        // And then if there's a factory creator
-        for (AnnotatedMethod factory : beanDesc.getFactoryMethods()) {
-            int argCount = factory.getParameterCount();
-            if (argCount < 1 || !intr.hasCreatorAnnotation(factory)) { // no args, or not marked with JsonCreator, skip
-                continue;
-            }
-            // Property name is not optional for factory method params
-            SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
-            int nameCount = 0;
-            for (int i = 0; i < argCount; ++i) {
-                AnnotatedParameter param = factory.getParameter(i);
-                String name = (param == null) ? null : intr.findPropertyNameForParam(param);
-                // At this point, name annotation is NOT optional
-                if (name == null || name.length() == 0) {
-                    throw new IllegalArgumentException("Parameter #"+i+" of factory method "+factory+" has no property name annotation: must have for @JsonCreator for a Map type");
-                }
-                ++nameCount;
-                properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
-            }
-            creators.addPropertyFactory(factory, properties);
-        }
-        return creators;
-    }
-
-    /**
-     * Method that will construct a property object that represents
-     * a logical property passed via Creator (constructor or static
-     * factory method)
-     */
-    protected SettableBeanProperty constructCreatorProperty(DeserializationConfig config,
-            BasicBeanDescription beanDesc, String name, int index,
-            AnnotatedParameter param)
-        throws JsonMappingException
-    {
-        JavaType t0 = config.getTypeFactory().constructType(param.getParameterType(), beanDesc.bindingsForBeanType());
-        BeanProperty.Std property = new BeanProperty.Std(name, t0, beanDesc.getClassAnnotations(), param);
-        JavaType type = resolveType(config, beanDesc, t0, param, property);
-        if (type != t0) {
-            property = property.withType(type);
-        }
-        // Is there an annotation that specifies exact deserializer?
-        JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, param, property);
-        // If yes, we are mostly done:
-        type = modifyTypeByAnnotation(config, param, type, name);
-        TypeDeserializer typeDeser = findTypeDeserializer(config, type, property);
-        SettableBeanProperty prop = new SettableBeanProperty.CreatorProperty(name, type, typeDeser,
-                beanDesc.getClassAnnotations(), param, index);
-        if (deser != null) {
-            prop.setValueDeserializer(deser);
-        }
-       return prop;
     }
 }
