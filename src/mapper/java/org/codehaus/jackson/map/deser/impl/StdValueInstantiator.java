@@ -68,14 +68,14 @@ public class StdValueInstantiator
     {
         _cfgEmptyStringsAsObjects = (config == null) ? false
                 : config.isEnabled(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-        _valueTypeDesc = valueType.getName();
+        _valueTypeDesc = (valueType == null) ? "UNKNOWN TYPE" : valueType.getName();
     }
     
     public StdValueInstantiator(DeserializationConfig config, JavaType valueType)
     {
         _cfgEmptyStringsAsObjects = (config == null) ? false
                 : config.isEnabled(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT);
-        _valueTypeDesc = valueType.toString();
+        _valueTypeDesc = (valueType == null) ? "UNKNOWN TYPE" : valueType.toString();
     }
     
     /**
