@@ -179,6 +179,9 @@ public class StdValueInstantiator
     public Object createInstanceFromObject()
         throws IOException, JsonProcessingException
     {
+        if (_defaultCreator == null) { // sanity-check; caller should check
+            throw new IllegalStateException("No default constructor for "+getValueTypeDesc());
+        }
         try {
             return _defaultCreator.call();
         } catch (ExceptionInInitializerError e) {
@@ -192,6 +195,9 @@ public class StdValueInstantiator
     public Object createInstanceFromObjectWith(Object[] args)
         throws IOException, JsonProcessingException
     {
+        if (_withArgsCreator == null) { // sanity-check; caller should check
+            throw new IllegalStateException("No with-args constructor for "+getValueTypeDesc());
+        }
         try {
             return _withArgsCreator.call(args);
         } catch (ExceptionInInitializerError e) {
@@ -205,6 +211,9 @@ public class StdValueInstantiator
     public Object createInstanceFromObjectUsing(Object delegate)
         throws IOException, JsonProcessingException
     {
+        if (_delegateCreator == null) { // sanity-check; caller should check
+            throw new IllegalStateException("No delegate constructor for "+getValueTypeDesc());
+        }
         try {
             return _delegateCreator.call1(delegate);
         } catch (ExceptionInInitializerError e) {

@@ -7,11 +7,11 @@ import java.util.*;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.map.TypeDeserializer;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
+import org.codehaus.jackson.map.deser.impl.StdValueInstantiator;
+import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
+import org.codehaus.jackson.map.introspect.AnnotatedWithParams;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -26,6 +26,7 @@ import org.codehaus.jackson.type.JavaType;
 @JacksonStdImpl
 public class CollectionDeserializer
     extends ContainerDeserializer<Collection<Object>>
+    implements ResolvableDeserializer
 {
     // // Configuration
 
@@ -42,26 +43,103 @@ public class CollectionDeserializer
      */
     final TypeDeserializer _valueTypeDeserializer;
 
-    /**
-     * We will use the default constructor of the class for
-     * instantiation
-     */
-    final Constructor<Collection<Object>> _defaultCtor;
+    // // Instance construction settings:
     
+    /**
+     * @since 1.9
+     */
+    protected final ValueInstantiator _valueInstantiator;
+    
+    /**
+     * Deserializer that is used iff delegate-based creator is
+     * to be used for deserializing from JSON Object.
+     */
+    protected JsonDeserializer<Object> _delegateDeserializer;
+
+    // NOTE: no PropertyBasedCreator, as JSON Arrays have no properties
+
+    /*
+    /**********************************************************
+    /* Life-cycle
+    /**********************************************************
+     */
+    
+    /**
+     * @deprecated Since 1.9, use variant that takes ValueInstantiator
+     */
+    @Deprecated
     public CollectionDeserializer(JavaType collectionType, JsonDeserializer<Object> valueDeser,
             TypeDeserializer valueTypeDeser,
-            Constructor<Collection<Object>> ctor)
+            Constructor<Collection<Object>> defCtor)
     {
         super(collectionType.getRawClass());
         _collectionType = collectionType;
         _valueDeserializer = valueDeser;
         _valueTypeDeserializer = valueTypeDeser;
-        if (ctor == null) {
-            throw new IllegalArgumentException("No default constructor found for container class "+collectionType.getRawClass().getName());
+        // not super-clean, but has to do...
+        StdValueInstantiator inst = new StdValueInstantiator(null, collectionType);
+        if (defCtor != null) {
+            AnnotatedConstructor aCtor = new AnnotatedConstructor(defCtor,
+                    null, null);
+            inst.configureFromObjectSettings(aCtor, null, null, null, null);
         }
-        _defaultCtor = ctor;
+        _valueInstantiator = inst;
     }
 
+    /**
+     * @since 1.9
+     */
+    public CollectionDeserializer(JavaType collectionType, JsonDeserializer<Object> valueDeser,
+            TypeDeserializer valueTypeDeser, ValueInstantiator valueInstantiator)
+    {
+        super(collectionType.getRawClass());
+        _collectionType = collectionType;
+        _valueDeserializer = valueDeser;
+        _valueTypeDeserializer = valueTypeDeser;
+        _valueInstantiator = valueInstantiator;
+    }
+
+    /**
+     * Copy-constructor that can be used by sub-classes to allow
+     * copy-on-write styling copying of settings of an existing instance.
+     * 
+     * @since 1.9
+     */
+    protected CollectionDeserializer(CollectionDeserializer src)
+    {
+        super(src._valueClass);
+        _collectionType = src._collectionType;
+        _valueDeserializer = src._valueDeserializer;
+        _valueTypeDeserializer = src._valueTypeDeserializer;
+        _valueInstantiator = src._valueInstantiator;
+        _delegateDeserializer = src._delegateDeserializer;
+    }
+
+    /*
+    /**********************************************************
+    /* Validation, post-processing (ResolvableDeserializer)
+    /**********************************************************
+     */
+
+    /**
+     * Method called to finalize setup of this deserializer,
+     * after deserializer itself has been registered. This
+     * is needed to handle recursive and transitive dependencies.
+     */
+    public void resolve(DeserializationConfig config, DeserializerProvider provider)
+        throws JsonMappingException
+    {
+        // May need to resolve types for delegate-based creators:
+        AnnotatedWithParams delegateCreator = _valueInstantiator.getDelegateCreator();
+        if (delegateCreator != null) {
+            JavaType delegateType = _valueInstantiator.getDelegateType();
+            // Need to create a temporary property to allow contextual deserializers:
+            BeanProperty.Std property = new BeanProperty.Std(null,
+                    delegateType, null, delegateCreator);
+            _delegateDeserializer = findDeserializer(config, provider, delegateType, property);
+        }
+    }
+    
     /*
     /**********************************************************
     /* ContainerDeserializer API
@@ -84,16 +162,15 @@ public class CollectionDeserializer
     /**********************************************************
      */
     
+    @SuppressWarnings("unchecked")
     @Override
     public Collection<Object> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        Collection<Object> result;
-        try {
-            result = _defaultCtor.newInstance();
-        } catch (Exception e) {
-            throw ctxt.instantiationException(_collectionType.getRawClass(), e);
+        if (_delegateDeserializer != null) {
+            return (Collection<Object>) _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
         }
+        final Collection<Object> result = (Collection<Object>) _valueInstantiator.createInstanceFromObject();
         return deserialize(jp, ctxt, result);
     }
 
@@ -164,4 +241,5 @@ public class CollectionDeserializer
         result.add(value);
         return result;
     }
+
 }

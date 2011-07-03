@@ -734,7 +734,7 @@ public class BeanDeserializerFactory
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         CreatorCollector creators =  new CreatorCollector(beanDesc, fixAccess);
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-
+        
         // First, let's figure out constructor/factory-based instantation
         // 23-Jan-2010, tatus: but only for concrete types
         if (beanDesc.getType().isConcrete()) {

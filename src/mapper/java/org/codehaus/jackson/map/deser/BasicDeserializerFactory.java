@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map.deser;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -13,7 +12,6 @@ import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.*;
-import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -229,7 +227,7 @@ public abstract class BasicDeserializerFactory
         type = (CollectionType) mapAbstractType(config, type);
 
         Class<?> collectionClass = type.getRawClass();
-        BasicBeanDescription beanDesc = config.introspectClassAnnotations(collectionClass);
+        BasicBeanDescription beanDesc = config.introspectForCreation(type);
         // Explicit deserializer to use? (@JsonDeserialize.using)
         JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, beanDesc.getClassInfo(), property);
         if (deser != null) {
@@ -282,17 +280,17 @@ public abstract class BasicDeserializerFactory
                 throw new IllegalArgumentException("Can not find a deserializer for non-concrete Collection type "+type);
             }
             collectionClass = fallback;
+            type = (CollectionType) type.forcedNarrowBy(collectionClass);
+            // But if so, also need to re-check creators...
+            beanDesc = config.introspectForCreation(type);
         }
-        
-        boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        @SuppressWarnings("unchecked")
-        Constructor<Collection<Object>> ctor = ClassUtil.findConstructor((Class<Collection<Object>>)collectionClass, fixAccess);
+        ValueInstantiator inst = findDeserializerInstantiator(config, beanDesc);
         // 13-Dec-2010, tatu: Can use more optimal deserializer if content type is String, so:
         if (contentType.getRawClass() == String.class) {
             // no value type deserializer because Strings are one of natural/native types:
-            return new StringCollectionDeserializer(type, contentDeser, ctor);
+            return new StringCollectionDeserializer(type, contentDeser, inst);
         }
-        return new CollectionDeserializer(type, contentDeser, contentTypeDeser, ctor);
+        return new CollectionDeserializer(type, contentDeser, contentTypeDeser, inst);
     }
 
     // Copied almost verbatim from "createCollectionDeserializer" -- should try to share more code
@@ -408,17 +406,6 @@ public abstract class BasicDeserializerFactory
             type = (MapType) type.forcedNarrowBy(mapClass);
             // But if so, also need to re-check creators...
             beanDesc = config.introspectForCreation(type);
-        }
-
-        // [JACKSON-153]: allow use of @JsonCreator
-        boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
-        // First, locate the default constructor (if one available)
-        @SuppressWarnings("unchecked")
-        Constructor<Map<Object,Object>> defaultCtor = (Constructor<Map<Object,Object>>) beanDesc.findDefaultConstructor();
-        if (defaultCtor != null) {
-            if (fixAccess) {
-                ClassUtil.checkAndFixAccess(defaultCtor);
-            }
         }
         ValueInstantiator inst = findDeserializerInstantiator(config, beanDesc);
         MapDeserializer md = new MapDeserializer(type, inst, keyDes, contentDeser, contentTypeDeser);

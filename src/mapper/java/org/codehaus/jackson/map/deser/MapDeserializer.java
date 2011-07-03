@@ -131,8 +131,6 @@ public class MapDeserializer
         }
         _hasDefaultCreator = valueInstantiator.canCreateUsingDefault();
     }
-    
-    //ValueInstantiator
 
     /**
      * Copy-constructor that can be used by sub-classes to allow
@@ -163,23 +161,7 @@ public class MapDeserializer
 
     /*
     /**********************************************************
-    /* ContainerDeserializer API
-    /**********************************************************
-     */
-
-    @Override
-    public JavaType getContentType() {
-        return _mapType.getContentType();
-    }
-
-    @Override
-    public JsonDeserializer<Object> getContentDeserializer() {
-        return _valueDeserializer;
-    }
-    
-    /*
-    /**********************************************************
-    /* Validation, post-processing
+    /* Validation, post-processing (ResolvableDeserializer)
     /**********************************************************
      */
 
@@ -209,7 +191,23 @@ public class MapDeserializer
             }
         }
     }
+    
+    /*
+    /**********************************************************
+    /* ContainerDeserializer API
+    /**********************************************************
+     */
 
+    @Override
+    public JavaType getContentType() {
+        return _mapType.getContentType();
+    }
+
+    @Override
+    public JsonDeserializer<Object> getContentDeserializer() {
+        return _valueDeserializer;
+    }
+    
     /*
     /**********************************************************
     /* JsonDeserializer API

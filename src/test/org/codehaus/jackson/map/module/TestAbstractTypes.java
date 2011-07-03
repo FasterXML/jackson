@@ -74,5 +74,4 @@ public class TestAbstractTypes extends BaseMapTest
         assertEquals(MyString.class, result.getClass());
         assertEquals("abc", ((MyString) result).value);
     }
-
 }
