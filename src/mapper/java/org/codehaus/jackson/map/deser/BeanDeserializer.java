@@ -179,9 +179,8 @@ public class BeanDeserializer
         _property = property;
 
         _valueInstantiator = valueInstantiator;
-        SettableBeanProperty[] withArgsProps = valueInstantiator.getFromObjectArguments();
-        if (withArgsProps != null) {
-            _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator, withArgsProps);
+        if (valueInstantiator.canCreateWithArgs()) {
+            _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator);
         } else {
             _propertyBasedCreator = null;
         }
@@ -324,9 +323,9 @@ public class BeanDeserializer
             _delegateDeserializer = findDeserializer(config, provider, delegateType, property);
         }
         // or property-based one
-        SettableBeanProperty[] props = _valueInstantiator.getFromObjectArguments();
-        if (props != null) {
-            for (SettableBeanProperty prop : props) {
+        // IMPORTANT: must access properties that _propertyBasedCreator has
+        if (_propertyBasedCreator != null) {
+            for (CreatorProperty prop : _propertyBasedCreator.getCreatorProperties()) {
                 if (!prop.hasValueDeserializer()) {
                     prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
                 }
@@ -604,11 +603,11 @@ public class BeanDeserializer
             String propName = jp.getCurrentName();
             jp.nextToken(); // to point to value
             // creator property?
-            SettableBeanProperty prop = creator.findCreatorProperty(propName);
-            if (prop != null) {
+            CreatorProperty creatorProp = creator.findCreatorProperty(propName);
+            if (creatorProp != null) {
                 // Last creator property to set?
-                Object value = prop.deserialize(jp, ctxt);
-                if (buffer.assignParameter(prop.getCreatorIndex(), value)) {
+                Object value = creatorProp.deserialize(jp, ctxt);
+                if (buffer.assignParameter(creatorProp.getCreatorIndex(), value)) {
                     jp.nextToken(); // to move to following FIELD_NAME/END_OBJECT
                     Object bean;
                     try {
@@ -630,7 +629,7 @@ public class BeanDeserializer
                 continue;
             }
             // regular property? needs buffering
-            prop = _beanProperties.find(propName);
+            SettableBeanProperty prop = _beanProperties.find(propName);
             if (prop != null) {
                 buffer.bufferProperty(prop, prop.deserialize(jp, ctxt));
                 continue;

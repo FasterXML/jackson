@@ -21,6 +21,17 @@ public class TestValueInstantiator extends BaseMapTest
             _secret = s;
         }
     }
+
+    static class CreatorBean
+    {
+        String _secret;
+
+        public String value;
+        
+        protected CreatorBean(String s) {
+            _secret = s;
+        }
+    }
     
     @SuppressWarnings("serial")
     static class MyList extends ArrayList<Object>
@@ -32,6 +43,10 @@ public class TestValueInstantiator extends BaseMapTest
     static class MyMap extends HashMap<String,Object>
     {
         public MyMap(boolean b) { super(); }
+        public MyMap(String name) {
+            super();
+            put(name, name);
+        }
     }
     
     static class MyBeanInstantiator extends ValueInstantiator
@@ -50,6 +65,54 @@ public class TestValueInstantiator extends BaseMapTest
         }
     }
 
+    static class CreatorBeanInstantiator extends ValueInstantiator
+    {
+        @Override
+        public String getValueTypeDesc() {
+            return CreatorBean.class.getName();
+        }
+        
+        @Override
+        public boolean canCreateWithArgs() { return true; }
+
+        @Override
+        public CreatorProperty[] getFromObjectArguments() {
+            return  new CreatorProperty[] {
+                    new CreatorProperty("secret", TypeFactory.defaultInstance().constructType(String.class),
+                            null, null, null, 0)
+            };
+        }
+
+        @Override
+        public Object createInstanceFromObjectWith(Object[] args) {
+            return new CreatorBean((String) args[0]);
+        }
+    }
+
+    static class CreatorMapInstantiator extends ValueInstantiator
+    {
+        @Override
+        public String getValueTypeDesc() {
+            return MyMap.class.getName();
+        }
+        
+        @Override
+        public boolean canCreateWithArgs() { return true; }
+
+        @Override
+        public CreatorProperty[] getFromObjectArguments() {
+            return  new CreatorProperty[] {
+                    new CreatorProperty("name", TypeFactory.defaultInstance().constructType(String.class),
+                            null, null, null, 0)
+            };
+        }
+
+        @Override
+        public Object createInstanceFromObjectWith(Object[] args) {
+            return new MyMap((String) args[0]);
+        }
+    }
+    
     static class MyDelegateBeanInstantiator extends ValueInstantiator
     {
         @Override
@@ -157,7 +220,7 @@ public class TestValueInstantiator extends BaseMapTest
     /* Unit tests
     /**********************************************************
      */
-    
+
     public void testCustomBeanInstantiator() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -172,6 +235,15 @@ public class TestValueInstantiator extends BaseMapTest
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new MyModule(MyBean.class, new MyDelegateBeanInstantiator()));
         MyBean bean = mapper.readValue("123", MyBean.class);
+        assertNotNull(bean);
+        assertEquals("123", bean._secret);
+    }
+
+    public void testPropertyBasedBeanInstantiator() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(CreatorBean.class, new CreatorBeanInstantiator()));
+        CreatorBean bean = mapper.readValue("{\"secret\":123,\"value\":37}", CreatorBean.class);
         assertNotNull(bean);
         assertEquals("123", bean._secret);
     }
@@ -214,5 +286,16 @@ public class TestValueInstantiator extends BaseMapTest
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(Integer.valueOf(123), result.values().iterator().next());
+    }
+
+    public void testPropertyBasedMapInstantiator() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(MyMap.class, new CreatorMapInstantiator()));
+        MyMap result = mapper.readValue("{\"name\":\"bob\", \"x\":\"y\"}", MyMap.class);
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("bob", result.get("bob"));
+        assertEquals("y", result.get("x"));
     }
 }

@@ -101,7 +101,7 @@ public abstract class ValueInstantiator
      * as {@link SettableBeanProperty} instances; but this can not
      * be avoided due to historical reasons.
      */
-    public SettableBeanProperty[] getFromObjectArguments() {
+    public CreatorProperty[] getFromObjectArguments() {
         return null;
     }
 

@@ -123,9 +123,8 @@ public class MapDeserializer
         _valueDeserializer = valueDeser;
         _valueTypeDeserializer = valueTypeDeser;
         _valueInstantiator = valueInstantiator;
-        SettableBeanProperty[] withArgsProps = valueInstantiator.getFromObjectArguments();
-        if (withArgsProps != null) {
-            _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator, withArgsProps);
+        if (valueInstantiator.canCreateWithArgs()) {
+            _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator);
         } else {
             _propertyBasedCreator = null;
         }
@@ -188,9 +187,8 @@ public class MapDeserializer
                     delegateType, null, delegateCreator);
             _delegateDeserializer = findDeserializer(config, provider, delegateType, property);
         }
-        SettableBeanProperty[] props = _valueInstantiator.getFromObjectArguments();
-        if (props != null) {
-            for (SettableBeanProperty prop : props) {
+        if (_propertyBasedCreator != null) {
+            for (CreatorProperty prop : _propertyBasedCreator.getCreatorProperties()) {
                 if (!prop.hasValueDeserializer()) {
                     prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
                 }
@@ -343,7 +341,7 @@ public class MapDeserializer
                 continue;
             }
             // creator property?
-            SettableBeanProperty prop = creator.findCreatorProperty(propName);
+            CreatorProperty prop = creator.findCreatorProperty(propName);
             if (prop != null) {
                 // Last property to set?
                 Object value = prop.deserialize(jp, ctxt);

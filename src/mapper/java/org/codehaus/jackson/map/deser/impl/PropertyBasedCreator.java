@@ -1,11 +1,12 @@
 package org.codehaus.jackson.map.deser.impl;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.map.deser.SettableBeanProperty;
+import org.codehaus.jackson.map.deser.CreatorProperty;
 import org.codehaus.jackson.map.deser.ValueInstantiator;
 import org.codehaus.jackson.map.util.ClassUtil;
 
@@ -26,7 +27,7 @@ public final class PropertyBasedCreator
      * method (whichever one is null: one property for each
      * parameter for that one), keyed by logical property name
      */
-    protected final HashMap<String, SettableBeanProperty> _properties;
+    protected final HashMap<String, CreatorProperty> _properties;
 
     /**
      * If some property values must always have a non-null value (like
@@ -34,15 +35,15 @@ public final class PropertyBasedCreator
      */
     protected final Object[]  _defaultValues;
     
-    public PropertyBasedCreator(ValueInstantiator valueInstantiator,
-            SettableBeanProperty[] creatorProps)
+    public PropertyBasedCreator(ValueInstantiator valueInstantiator)
     {
         _valueInstantiator = valueInstantiator;
-        _properties = new HashMap<String, SettableBeanProperty>();
+        _properties = new HashMap<String, CreatorProperty>();
         // [JACKSON-372]: primitive types need extra care
         Object[] defValues = null;
+        CreatorProperty[] creatorProps = valueInstantiator.getFromObjectArguments();
         for (int i = 0, len = creatorProps.length; i < len; ++i) {
-            SettableBeanProperty prop = creatorProps[i];
+            CreatorProperty prop = creatorProps[i];
             _properties.put(prop.getName(), prop);
             if (prop.getType().isPrimitive()) {
                 if (defValues == null) {
@@ -53,8 +54,12 @@ public final class PropertyBasedCreator
         }
         _defaultValues = defValues;
     }
+
+    public Collection<CreatorProperty> getCreatorProperties() {
+        return _properties.values();
+    }
     
-    public SettableBeanProperty findCreatorProperty(String name) {
+    public CreatorProperty findCreatorProperty(String name) {
         return _properties.get(name);
     }
     

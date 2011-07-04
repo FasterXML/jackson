@@ -816,7 +816,7 @@ public class BeanDeserializerFactory
                     continue;
                 }
                 // We know there's a name and it's only 1 parameter.
-                SettableBeanProperty[] properties = new SettableBeanProperty[1];
+                CreatorProperty[] properties = new CreatorProperty[1];
                 properties[0] = constructCreatorProperty(config, beanDesc, name, 0, param);
                 creators.addPropertyConstructor(ctor, properties);
                 continue;
@@ -828,7 +828,7 @@ public class BeanDeserializerFactory
             // But if it was auto-detected and there's no annotations, keep silent (was not meant to be a creator?)
             boolean annotationFound = false;
             boolean notAnnotatedParamFound = false;
-            SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
+            CreatorProperty[] properties = new CreatorProperty[argCount];
             for (int i = 0; i < argCount; ++i) {
                 AnnotatedParameter param = ctor.getParameter(i);
                 String name = (param == null) ? null : intr.findPropertyNameForParam(param);
@@ -839,7 +839,9 @@ public class BeanDeserializerFactory
                 if (notAnnotatedParamFound && (annotationFound || isCreator)) {
                     throw new IllegalArgumentException("Argument #"+i+" of constructor "+ctor+" has no property name annotation; must have name when multiple-paramater constructor annotated as Creator");
                 }
-                properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
+                if (!notAnnotatedParamFound) {
+                    properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
+                }
             }
             if (annotationFound) {
             	creators.addPropertyConstructor(ctor, properties);
@@ -899,7 +901,7 @@ public class BeanDeserializerFactory
                 }
             }
             // 1 or more args; all params must have name annotations
-            SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
+            CreatorProperty[] properties = new CreatorProperty[argCount];
             for (int i = 0; i < argCount; ++i) {
                 AnnotatedParameter param = factory.getParameter(i);
                 String name = intr.findPropertyNameForParam(param);
@@ -918,7 +920,7 @@ public class BeanDeserializerFactory
     * a logical property passed via Creator (constructor or static
     * factory method)
      */
-    protected SettableBeanProperty constructCreatorProperty(DeserializationConfig config,
+    protected CreatorProperty constructCreatorProperty(DeserializationConfig config,
             BasicBeanDescription beanDesc, String name, int index,
             AnnotatedParameter param)
         throws JsonMappingException
@@ -934,7 +936,7 @@ public class BeanDeserializerFactory
         // If yes, we are mostly done:
         type = modifyTypeByAnnotation(config, param, type, name);
         TypeDeserializer typeDeser = findTypeDeserializer(config, type, property);
-        SettableBeanProperty prop = new SettableBeanProperty.CreatorProperty(name, type, typeDeser,
+        CreatorProperty prop = new CreatorProperty(name, type, typeDeser,
                 beanDesc.getClassAnnotations(), param, index);
         if (deser != null) {
             prop.setValueDeserializer(deser);

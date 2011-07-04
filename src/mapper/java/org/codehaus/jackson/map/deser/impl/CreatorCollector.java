@@ -3,7 +3,7 @@ package org.codehaus.jackson.map.deser.impl;
 import java.util.*;
 
 import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.deser.SettableBeanProperty;
+import org.codehaus.jackson.map.deser.CreatorProperty;
 import org.codehaus.jackson.map.deser.ValueInstantiator;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.type.TypeBindings;
@@ -26,12 +26,12 @@ public class CreatorCollector
     AnnotatedMethod _strFactory, _intFactory, _longFactory;
     AnnotatedMethod _delegatingFactory;
     AnnotatedMethod _propertyBasedFactory;
-    SettableBeanProperty[] _propertyBasedFactoryProperties = null;
+    CreatorProperty[] _propertyBasedFactoryProperties = null;
 
     AnnotatedConstructor _strConstructor, _intConstructor, _longConstructor;
     AnnotatedConstructor _delegatingConstructor;
     AnnotatedConstructor _propertyBasedConstructor;
-    SettableBeanProperty[] _propertyBasedConstructorProperties = null;
+    CreatorProperty[] _propertyBasedConstructorProperties = null;
 
     /*
     /**********************************************************
@@ -54,7 +54,7 @@ public class CreatorCollector
 
         // then for with-args ("properties-based") construction
         AnnotatedWithParams withArgsCreator = null;
-        SettableBeanProperty[] constructorArgs = null;
+        CreatorProperty[] constructorArgs = null;
 
         if (_propertyBasedConstructor != null) {
             constructorArgs = _propertyBasedConstructorProperties;
@@ -109,7 +109,7 @@ public class CreatorCollector
         _delegatingConstructor = verifyNonDup(ctor, _delegatingConstructor, "delegate");
     }
 
-    public void addPropertyConstructor(AnnotatedConstructor ctor, SettableBeanProperty[] properties)
+    public void addPropertyConstructor(AnnotatedConstructor ctor, CreatorProperty[] properties)
     {
         _propertyBasedConstructor = verifyNonDup(ctor, _propertyBasedConstructor, "property-based");
         // [JACKSON-470] Better ensure we have no duplicate names either...
@@ -140,7 +140,7 @@ public class CreatorCollector
         _delegatingFactory = verifyNonDup(factory, _delegatingFactory, "delegate");
     }
 
-    public void addPropertyFactory(AnnotatedMethod factory, SettableBeanProperty[] properties)
+    public void addPropertyFactory(AnnotatedMethod factory, CreatorProperty[] properties)
     {
         _propertyBasedFactory = verifyNonDup(factory, _propertyBasedFactory, "property-based");
         _propertyBasedFactoryProperties = properties;

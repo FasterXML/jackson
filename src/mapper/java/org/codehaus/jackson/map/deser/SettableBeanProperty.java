@@ -10,7 +10,6 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.AnnotatedParameter;
 import org.codehaus.jackson.map.util.Annotations;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.InternCache;
@@ -189,16 +188,6 @@ public abstract class SettableBeanProperty
      * @since 1.8.3
      */
     public JsonDeserializer<Object> getValueDeserializer() { return _valueDeserializer; }
-
-    /**
-     * Method to use for accessing index of the property (related to
-     * other properties in the same context); currently only applicable
-     * to "Creator properties".
-     *<p>
-     * Base implementation returns -1 to indicate that no index exists
-     * for the property.
-     */
-    public int getCreatorIndex() { return -1; }
 
     /**
      * Method for accessing unique index of this property; indexes are
@@ -517,79 +506,7 @@ public abstract class SettableBeanProperty
         }
     }
 
-    /**
-     * This concrete sub-class implements property that is passed
-     * via Creator (constructor or static factory method).
-     */
-    public final static class CreatorProperty
-        extends SettableBeanProperty
-    {
-        protected final AnnotatedParameter _annotated;
-
-        /**
-         * Index of the property
-         */
-        final protected int _index;
-
-        public CreatorProperty(String name, JavaType type, TypeDeserializer typeDeser,
-                Annotations contextAnnotations, AnnotatedParameter param,                 
-                int index)
-        {
-            super(name, type, typeDeser, contextAnnotations);
-            _annotated = param;
-            _index = index;
-        }
-
-        /*
-        /**********************************************************
-        /* BeanProperty impl
-        /**********************************************************
-         */
-        
-        @Override
-        public <A extends Annotation> A getAnnotation(Class<A> acls) {
-            return _annotated.getAnnotation(acls);
-        }
-
-        @Override public AnnotatedMember getMember() {  return _annotated; }
-
-        /*
-        /**********************************************************
-        /* Overridden methods
-        /**********************************************************
-         */
-        
-        /**
-         * Method to use for accessing index of the property (related to
-         * other properties in the same context); currently only applicable
-         * to "Creator properties".
-         *<p>
-         * Base implementation returns -1 to indicate that no index exists
-         * for the property.
-         */
-        @Override
-        public int getCreatorIndex() { return _index; }
-
-        @Override
-        public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
-                                      Object instance)
-            throws IOException, JsonProcessingException
-        {
-            set(instance, deserialize(jp, ctxt));
-        }
-
-        @Override
-        public void set(Object instance, Object value)
-            throws IOException
-        {
-            /* Hmmmh. Should we return quietly (NOP), or error?
-             * For now, let's just bail out without fuss.
-             */
-            //throw new IllegalStateException("Method should never be called on a "+getClass().getName());
-        }
-    }
-
-    /**
+     /**
      * Wrapper property that is used to handle managed (forward) properties
      * (see [JACKSON-235] for more information). Basically just need to
      * delegate first to actual forward property, and 
