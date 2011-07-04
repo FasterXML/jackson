@@ -10,6 +10,8 @@ Description:
 
   * [JACKSON-593] Add ObjectMapper.readTree(byte[]), (URL) variants
    (suggested by Bruce P)
+  * [JACKSON-599] Expose Settability Of SimpleModule Serializers/Deserializers
+   (suggested by Bruce P)
 
   New features:
  

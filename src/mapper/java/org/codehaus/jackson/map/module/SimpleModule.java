@@ -50,6 +50,66 @@ public class SimpleModule extends Module
 
     /*
     /**********************************************************
+    /* Simple setters to allow overriding
+    /**********************************************************
+     */
+
+    /**
+     * Resets all currently configured serializers.
+     * 
+     * @since 1.9
+     */
+    public void setSerializers(SimpleSerializers s) {
+        _serializers = s;
+    }
+
+    /**
+     * Resets all currently configured deserializers.
+     * 
+     * @since 1.9
+     */
+    public void setDeserializers(SimpleDeserializers d) {
+        _deserializers = d;
+    }
+
+    /**
+     * Resets all currently configured key serializers.
+     * 
+     * @since 1.9
+     */
+    public void setKeySerializers(SimpleSerializers ks) {
+        _keySerializers = ks;
+    }
+
+    /**
+     * Resets all currently configured key deserializers.
+     * 
+     * @since 1.9
+     */
+    public void setKeyDeserializers(SimpleKeyDeserializers kd) {
+        _keyDeserializers = kd;
+    }
+
+    /**
+     * Resets currently configured abstract type mappings
+     *
+     * @since 1.9
+     */
+    public void setAbstractTypes(SimpleAbstractTypeResolver atr) {
+        _abstractTypes = atr;        
+    }
+
+    /**
+     * Resets all currently configured value instantiators
+     * 
+     * @since 1.9
+     */
+    public void setValueInstantiators(SimpleValueInstantiators svi) {
+        _valueInstantiators = svi;
+    }
+    
+    /*
+    /**********************************************************
     /* Configuration methods
     /**********************************************************
      */
