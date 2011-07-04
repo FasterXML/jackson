@@ -32,6 +32,13 @@ public class TestValueInstantiator extends BaseMapTest
             _secret = s;
         }
     }
+
+    static abstract class PolymorphicBeanBase { }
+    
+    static class PolymorphicBean extends PolymorphicBeanBase
+    {
+        public String name;
+    }
     
     @SuppressWarnings("serial")
     static class MyList extends ArrayList<Object>
@@ -89,6 +96,40 @@ public class TestValueInstantiator extends BaseMapTest
         }
     }
 
+    /**
+     * Something more ambitious: semi-automated approach to polymorphic
+     * deserialization, using ValueInstantiator; from Object to any
+     * type...
+     */
+    static class PolymorphicBeanInstantiator extends ValueInstantiator
+    {
+        @Override
+        public String getValueTypeDesc() {
+            return Object.class.getName();
+        }
+        
+        @Override
+        public boolean canCreateWithArgs() { return true; }
+
+        @Override
+        public CreatorProperty[] getFromObjectArguments() {
+            return  new CreatorProperty[] {
+                    new CreatorProperty("type", TypeFactory.defaultInstance().constructType(Class.class),
+                            null, null, null, 0)
+            };
+        }
+
+        @Override
+        public Object createInstanceFromObjectWith(Object[] args) {
+            try {
+                Class<?> cls = (Class<?>) args[0];
+                return cls.newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    
     static class CreatorMapInstantiator extends ValueInstantiator
     {
         @Override
@@ -217,7 +258,7 @@ public class TestValueInstantiator extends BaseMapTest
     
     /*
     /**********************************************************
-    /* Unit tests
+    /* Unit tests for default creators
     /**********************************************************
      */
 
@@ -230,24 +271,6 @@ public class TestValueInstantiator extends BaseMapTest
         assertEquals("secret!", bean._secret);
     }
 
-    public void testDelegateBeanInstantiator() throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new MyModule(MyBean.class, new MyDelegateBeanInstantiator()));
-        MyBean bean = mapper.readValue("123", MyBean.class);
-        assertNotNull(bean);
-        assertEquals("123", bean._secret);
-    }
-
-    public void testPropertyBasedBeanInstantiator() throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new MyModule(CreatorBean.class, new CreatorBeanInstantiator()));
-        CreatorBean bean = mapper.readValue("{\"secret\":123,\"value\":37}", CreatorBean.class);
-        assertNotNull(bean);
-        assertEquals("123", bean._secret);
-    }
-    
     public void testCustomListInstantiator() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -256,6 +279,32 @@ public class TestValueInstantiator extends BaseMapTest
         assertNotNull(result);
         assertEquals(MyList.class, result.getClass());
         assertEquals(0, result.size());
+    }
+
+    public void testCustomMapInstantiator() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(MyMap.class, new MyMapInstantiator()));
+        MyMap result = mapper.readValue("{ \"a\":\"b\" }", MyMap.class);
+        assertNotNull(result);
+        assertEquals(MyMap.class, result.getClass());
+        assertEquals(1, result.size());
+    }
+
+    
+    /*
+    /**********************************************************
+    /* Unit tests for delegate creators
+    /**********************************************************
+     */
+
+    public void testDelegateBeanInstantiator() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(MyBean.class, new MyDelegateBeanInstantiator()));
+        MyBean bean = mapper.readValue("123", MyBean.class);
+        assertNotNull(bean);
+        assertEquals("123", bean._secret);
     }
 
     public void testDelegateListInstantiator() throws Exception
@@ -268,16 +317,6 @@ public class TestValueInstantiator extends BaseMapTest
         assertEquals(Integer.valueOf(123), result.get(0));
     }
     
-    public void testCustomMapInstantiator() throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new MyModule(MyMap.class, new MyMapInstantiator()));
-        MyMap result = mapper.readValue("{ \"a\":\"b\" }", MyMap.class);
-        assertNotNull(result);
-        assertEquals(MyMap.class, result.getClass());
-        assertEquals(1, result.size());
-    }
-
     public void testDelegateMapInstantiator() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -286,6 +325,21 @@ public class TestValueInstantiator extends BaseMapTest
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(Integer.valueOf(123), result.values().iterator().next());
+    }
+
+    /*
+    /**********************************************************
+    /* Unit tests for property-based creators
+    /**********************************************************
+     */
+
+    public void testPropertyBasedBeanInstantiator() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(CreatorBean.class, new CreatorBeanInstantiator()));
+        CreatorBean bean = mapper.readValue("{\"secret\":123,\"value\":37}", CreatorBean.class);
+        assertNotNull(bean);
+        assertEquals("123", bean._secret);
     }
 
     public void testPropertyBasedMapInstantiator() throws Exception
@@ -297,5 +351,27 @@ public class TestValueInstantiator extends BaseMapTest
         assertEquals(2, result.size());
         assertEquals("bob", result.get("bob"));
         assertEquals("y", result.get("x"));
+    }
+
+    /*
+    /**********************************************************
+    /* Other tests
+    /**********************************************************
+     */
+
+    
+    /**
+     * Beyond basic features, it should be possible to even implement
+     * polymorphic handling...
+     */
+    public void testPolymorphicCreatorBean() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(PolymorphicBeanBase.class, new PolymorphicBeanInstantiator()));
+        String JSON = "{\"type\":"+quote(PolymorphicBean.class.getName())+",\"name\":\"Axel\"}";
+        PolymorphicBeanBase result = mapper.readValue(JSON, PolymorphicBeanBase.class);
+        assertNotNull(result);
+        assertSame(PolymorphicBean.class, result.getClass());
+        assertEquals("Axel", ((PolymorphicBean) result).name);
     }
 }

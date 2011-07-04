@@ -43,6 +43,21 @@ public abstract class ValueInstantiator
      * handles. Used for error messages, diagnostics.
      */
     public abstract String getValueTypeDesc();
+
+    /**
+     * Method that will return true if any of <code>canCreateXxx</code> method
+     * returns true: that is, if there is any way that an instance could
+     * be created.
+     */
+    public boolean canInstantiate() {
+        return
+             canCreateUsingDefault()
+             || canCreateUsingDelegate()
+             || canCreateWithArgs()
+             || canCreateFromString()
+             || canCreateFromNumber()
+             ;
+    }    
     
     /**
      * Method that can be called to check whether a String-based creator

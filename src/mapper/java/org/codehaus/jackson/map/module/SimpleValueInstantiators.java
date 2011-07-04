@@ -39,7 +39,7 @@ public class SimpleValueInstantiators
     public ValueInstantiator findValueInstantiator(DeserializationConfig config,
             BeanDescription beanDesc, ValueInstantiator defaultInstantiator)
     {
-        return _classMappings.get(new ClassKey(beanDesc.getBeanClass()));
+        ValueInstantiator inst = _classMappings.get(new ClassKey(beanDesc.getBeanClass()));
+        return (inst == null) ? defaultInstantiator : inst;
     }
-
 }

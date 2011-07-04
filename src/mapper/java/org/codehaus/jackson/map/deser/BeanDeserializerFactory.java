@@ -503,15 +503,7 @@ public class BeanDeserializerFactory
         if (!isPotentialBeanType(type.getRawClass())) {
             return null;
         }
-        
-        // if we still just have abstract type (but no deserializer), probably need type info, so:
-        if (type.isAbstract()) {
-            return new AbstractDeserializer(type);
-            
-        }
-        /* Otherwise we'll just use generic bean introspection
-         * to build deserializer
-         */
+        // Use generic bean introspection to build deserializer
         return buildBeanDeserializer(config, type, beanDesc, property);
     }
 
@@ -628,8 +620,17 @@ public class BeanDeserializerFactory
             JavaType type, BasicBeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException
     {
+        // First: check what creators we can use, if any
+        ValueInstantiator valueInstantiator = findDeserializerInstantiator(config, beanDesc);
+        // ... since often we have nothing to go on, if we have abstract type:
+        if (type.isAbstract()) {
+            if (!valueInstantiator.canInstantiate()) {
+                // and if so, need placeholder deserializer
+                return new AbstractDeserializer(type);
+            }
+        }
         BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(beanDesc);
-        builder.setValueInstantiator(findDeserializerInstantiator(config, beanDesc));
+        builder.setValueInstantiator(valueInstantiator);
          // And then setters for deserializing from JSON Object
         addBeanProps(config, beanDesc, builder);
         // managed/back reference fields/setters need special handling... first part
@@ -758,11 +759,16 @@ public class BeanDeserializerFactory
         _addDeserializerFactoryMethods(config, beanDesc, vchecker, intr, creators);
 
         ValueInstantiator instantiator = creators.constructValueInstantiator(config);
-        
+
         // finally: anyone want to modify ValueInstantiator?
         if (_factoryConfig.hasValueInstantiators()) {
             for (ValueInstantiators inst : _factoryConfig.valueInstantiators()) {
                 instantiator = inst.findValueInstantiator(config, beanDesc, instantiator);
+                // let's do sanity check; easier to spot buggy handlers
+                if (instantiator == null) {
+                    throw new JsonMappingException("Broken registered ValueInstantiators (of type "
+                            +inst.getClass().getName()+"): returned null ValueInstantiator");
+                }
             }
         }
         
