@@ -25,7 +25,7 @@ public final class ClassUtil
      */
     public static List<Class<?>> findSuperTypes(Class<?> cls, Class<?> endBefore)
     {
-        return findSuperTypes(cls, endBefore, new ArrayList<Class<?>>());
+        return findSuperTypes(cls, endBefore, new ArrayList<Class<?>>(8));
     }
 
     public static List<Class<?>> findSuperTypes(Class<?> cls, Class<?> endBefore, List<Class<?>> result)

@@ -378,15 +378,14 @@ public final class AnnotatedClass
     {
         // Then see which constructors we have
         _constructors = null;
-        for (Constructor<?> ctor : _class.getDeclaredConstructors()) {
-            switch (ctor.getParameterTypes().length) {
-            case 0:
+        Constructor<?>[] declaredCtors = _class.getDeclaredConstructors();
+        for (Constructor<?> ctor : declaredCtors) {
+            if (ctor.getParameterTypes().length == 0) {
                 _defaultConstructor = _constructConstructor(ctor, true);
-                break;
-            default:
+            } else {
                 if (includeAll) {
                     if (_constructors == null) {
-                        _constructors = new ArrayList<AnnotatedConstructor>();
+                        _constructors = new ArrayList<AnnotatedConstructor>(Math.max(10, declaredCtors.length));
                     }
                     _constructors.add(_constructConstructor(ctor, false));
                 }
@@ -436,7 +435,7 @@ public final class AnnotatedClass
                     continue;
                 }
                 if (_creatorMethods == null) {
-                    _creatorMethods = new ArrayList<AnnotatedMethod>();
+                    _creatorMethods = new ArrayList<AnnotatedMethod>(8);
                 }
                 _creatorMethods.add(_constructCreatorMethod(m));
             }
@@ -463,13 +462,11 @@ public final class AnnotatedClass
         MemberKey[] ctorKeys = null;
         int ctorCount = (_constructors == null) ? 0 : _constructors.size();
         for (Constructor<?> ctor : mixin.getDeclaredConstructors()) {
-            switch (ctor.getParameterTypes().length) {
-            case 0:
+            if (ctor.getParameterTypes().length == 0) {
                 if (_defaultConstructor != null) {
                     _addMixOvers(ctor, _defaultConstructor, false);
                 }
-                break;
-            default:
+            } else {
                 if (ctorKeys == null) {
                     ctorKeys = new MemberKey[ctorCount];
                     for (int i = 0; i < ctorCount; ++i) {
