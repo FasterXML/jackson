@@ -144,9 +144,9 @@ public final class StringCollectionDeserializer
         throws IOException, JsonProcessingException
     {
         if (_delegateDeserializer != null) {
-            return (Collection<String>) _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
+            return (Collection<String>) _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
         }
-        final Collection<String> result = (Collection<String>) _valueInstantiator.createInstanceFromObject();
+        final Collection<String> result = (Collection<String>) _valueInstantiator.createFromObject();
         return deserialize(jp, ctxt, result);
     }
 

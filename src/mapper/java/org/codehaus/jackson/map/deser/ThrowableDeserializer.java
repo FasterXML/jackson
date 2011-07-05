@@ -43,7 +43,7 @@ public class ThrowableDeserializer
             return _deserializeUsingPropertyBased(jp, ctxt);
         }
         if (_delegateDeserializer != null) {
-            return _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
+            return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
         }
         if (_beanType.isAbstract()) { // for good measure, check this too
             throw JsonMappingException.from(jp, "Can not instantiate abstract type "+_beanType

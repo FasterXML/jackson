@@ -179,7 +179,7 @@ public class BeanDeserializer
         _property = property;
 
         _valueInstantiator = valueInstantiator;
-        if (valueInstantiator.canCreateWithArgs()) {
+        if (valueInstantiator.canCreateFromObjectWithArgs()) {
             _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator);
         } else {
             _propertyBasedCreator = null;
@@ -193,7 +193,7 @@ public class BeanDeserializer
 
         _useNonDefaultCreator = valueInstantiator.canCreateUsingDelegate()
             || (_propertyBasedCreator != null)
-            || !valueInstantiator.canCreateUsingDefault();
+            || !valueInstantiator.canCreateFromObjectUsingDefault();
     }
 
     /**
@@ -480,7 +480,7 @@ public class BeanDeserializer
             return deserializeFromObjectUsingNonDefault(jp, ctxt);
         }
 
-        final Object bean = _valueInstantiator.createInstanceFromObject();
+        final Object bean = _valueInstantiator.createFromObject();
         for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
             // Skip field name:
@@ -521,7 +521,7 @@ public class BeanDeserializer
         throws IOException, JsonProcessingException
     {        
         if (_delegateDeserializer != null) {
-            return _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
+            return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
         }
         if (_propertyBasedCreator != null) {
             return _deserializeUsingPropertyBased(jp, ctxt);
@@ -543,7 +543,7 @@ public class BeanDeserializer
          */
         if (_delegateDeserializer != null) {
             if (!_valueInstantiator.canCreateFromString()) {
-                return _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
+                return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
             }
         }
         return _valueInstantiator.createFromString(jp.getText());
@@ -554,7 +554,7 @@ public class BeanDeserializer
     {
         if (_delegateDeserializer != null) {
             if (!_valueInstantiator.canCreateFromNumber()) {
-                return _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
+                return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
             }
         }
         switch (jp.getNumberType()) {
@@ -571,7 +571,7 @@ public class BeanDeserializer
     {
     	if (_delegateDeserializer != null) {
     	    try {
-                return _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
+                return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
             } catch (Exception e) {
                 wrapInstantiationProblem(e, ctxt);
             }

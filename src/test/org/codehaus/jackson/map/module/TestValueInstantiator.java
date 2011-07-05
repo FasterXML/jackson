@@ -22,6 +22,13 @@ public class TestValueInstantiator extends BaseMapTest
         }
     }
 
+    static class MysteryBean
+    {
+        Object value;
+        
+        public MysteryBean(Object v) { value = v; }
+    }
+    
     static class CreatorBean
     {
         String _secret;
@@ -33,6 +40,14 @@ public class TestValueInstantiator extends BaseMapTest
         }
     }
 
+    static abstract class InstantiatorBase extends ValueInstantiator
+    {
+        @Override
+        public String getValueTypeDesc() {
+            return "UNKNOWN";
+        }
+    }
+    
     static abstract class PolymorphicBeanBase { }
     
     static class PolymorphicBean extends PolymorphicBeanBase
@@ -64,10 +79,10 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public boolean canCreateUsingDefault() { return true; }
+        public boolean canCreateFromObjectUsingDefault() { return true; }
 
         @Override
-        public MyBean createInstanceFromObject() {
+        public MyBean createFromObject() {
             return new MyBean("secret!", true);
         }
     }
@@ -80,7 +95,7 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public boolean canCreateWithArgs() { return true; }
+        public boolean canCreateFromObjectWithArgs() { return true; }
 
         @Override
         public CreatorProperty[] getFromObjectArguments() {
@@ -91,7 +106,7 @@ public class TestValueInstantiator extends BaseMapTest
         }
 
         @Override
-        public Object createInstanceFromObjectWith(Object[] args) {
+        public Object createFromObjectWith(Object[] args) {
             return new CreatorBean((String) args[0]);
         }
     }
@@ -109,7 +124,7 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public boolean canCreateWithArgs() { return true; }
+        public boolean canCreateFromObjectWithArgs() { return true; }
 
         @Override
         public CreatorProperty[] getFromObjectArguments() {
@@ -120,7 +135,7 @@ public class TestValueInstantiator extends BaseMapTest
         }
 
         @Override
-        public Object createInstanceFromObjectWith(Object[] args) {
+        public Object createFromObjectWith(Object[] args) {
             try {
                 Class<?> cls = (Class<?>) args[0];
                 return cls.newInstance();
@@ -138,7 +153,7 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public boolean canCreateWithArgs() { return true; }
+        public boolean canCreateFromObjectWithArgs() { return true; }
 
         @Override
         public CreatorProperty[] getFromObjectArguments() {
@@ -149,7 +164,7 @@ public class TestValueInstantiator extends BaseMapTest
         }
 
         @Override
-        public Object createInstanceFromObjectWith(Object[] args) {
+        public Object createFromObjectWith(Object[] args) {
             return new MyMap((String) args[0]);
         }
     }
@@ -168,7 +183,7 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public Object createInstanceFromObjectUsing(Object delegate) {
+        public Object createUsingDelegate(Object delegate) {
             return new MyBean(""+delegate, true);
         }
     }
@@ -181,10 +196,10 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public boolean canCreateUsingDefault() { return true; }
+        public boolean canCreateFromObjectUsingDefault() { return true; }
 
         @Override
-        public MyList createInstanceFromObject() {
+        public MyList createFromObject() {
             return new MyList(true);
         }
     }
@@ -203,7 +218,7 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public Object createInstanceFromObjectUsing(Object delegate) {
+        public Object createUsingDelegate(Object delegate) {
             MyList list = new MyList(true);
             list.add(delegate);
             return list;
@@ -218,10 +233,10 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public boolean canCreateUsingDefault() { return true; }
+        public boolean canCreateFromObjectUsingDefault() { return true; }
 
         @Override
-        public MyMap createInstanceFromObject() {
+        public MyMap createFromObject() {
             return new MyMap(true);
         }
     }
@@ -240,7 +255,7 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public Object createInstanceFromObjectUsing(Object delegate) {
+        public Object createUsingDelegate(Object delegate) {
             MyMap map = new MyMap(true);
             map.put("value", delegate);
             return map;
@@ -290,7 +305,6 @@ public class TestValueInstantiator extends BaseMapTest
         assertEquals(MyMap.class, result.getClass());
         assertEquals(1, result.size());
     }
-
     
     /*
     /**********************************************************
@@ -353,6 +367,30 @@ public class TestValueInstantiator extends BaseMapTest
         assertEquals("y", result.get("x"));
     }
 
+    /*
+    /**********************************************************
+    /* Unit tests for scalar-delegates
+    /**********************************************************
+     */
+
+    public void testBeanFromString() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(MysteryBean.class,
+                new InstantiatorBase() {
+                    @Override
+                    public boolean canCreateFromString() { return true; }
+                    
+                    @Override
+                    public Object createFromString(String value) {
+                        return new MysteryBean(value);
+                    }
+        }));
+        MysteryBean result = mapper.readValue(quote("abc"), MysteryBean.class);
+        assertNotNull(result);
+        assertEquals("abc", result.value);
+    }
+    
     /*
     /**********************************************************
     /* Other tests

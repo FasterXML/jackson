@@ -51,9 +51,9 @@ public abstract class ValueInstantiator
      */
     public boolean canInstantiate() {
         return
-             canCreateUsingDefault()
+             canCreateFromObjectUsingDefault()
              || canCreateUsingDelegate()
-             || canCreateWithArgs()
+             || canCreateFromObjectWithArgs()
              || canCreateFromString()
              || canCreateFromNumber()
              ;
@@ -81,7 +81,7 @@ public abstract class ValueInstantiator
      * or no-arg static factory method)
      * is available for this instantiator
      */
-    public boolean canCreateUsingDefault() {
+    public boolean canCreateFromObjectUsingDefault() {
         return getDefaultCreator() != null;
     }
 
@@ -99,7 +99,7 @@ public abstract class ValueInstantiator
      * (argument-taking constructor or factory method)
      * is available for this instantiator
      */
-    public boolean canCreateWithArgs() {
+    public boolean canCreateFromObjectWithArgs() {
         return false;
     }
 
@@ -107,10 +107,10 @@ public abstract class ValueInstantiator
      * Method called to determine whether instantiation arguments
      * are expected for instantiating values for JSON Object;
      * if this method returns null (or empty List), no arguments
-     * are expected (and {@link #createInstanceFromObject}) will
+     * are expected (and {@link #createFromObject}) will
      * be used); otherwise specified arguments are bound
      * from input JSON object (and passed to
-     * {@link #createInstanceFromObjectWith}).
+     * {@link #createFromObjectWith}).
      *<p>
      * It is unfortunate that argument information needs to be exposed
      * as {@link SettableBeanProperty} instances; but this can not
@@ -142,7 +142,7 @@ public abstract class ValueInstantiator
      * This method is called if {@link #getFromObjectArguments} returns
      * null or empty List.
      */
-    public Object createInstanceFromObject()
+    public Object createFromObject()
         throws IOException, JsonProcessingException {
         throw new JsonMappingException("Can not instantiate value of type "
                 +getValueTypeDesc()+" from JSON Object (without arguments)");
@@ -156,7 +156,7 @@ public abstract class ValueInstantiator
      * This method is called if {@link #getFromObjectArguments} returns
      * a non-empty List of arguments.
      */
-    public Object createInstanceFromObjectWith(Object[] args)
+    public Object createFromObjectWith(Object[] args)
         throws IOException, JsonProcessingException {
         throw new JsonMappingException("Can not instantiate value of type "
                 +getValueTypeDesc()+" from JSON Object (with arguments)");
@@ -166,7 +166,7 @@ public abstract class ValueInstantiator
      * Method to called to create value instance from JSON Object using
      * an intermediate "delegate" value to pass to createor method
      */
-    public Object createInstanceFromObjectUsing(Object delegate)
+    public Object createUsingDelegate(Object delegate)
         throws IOException, JsonProcessingException {
         throw new JsonMappingException("Can not instantiate value of type "
                 +getValueTypeDesc()+" from JSON Object with delegate");
@@ -206,7 +206,7 @@ public abstract class ValueInstantiator
 
     /*
     /**********************************************************
-    /* Accessors for underlying creator objects
+    /* Accessors for underlying creator objects (optional)
     /**********************************************************
      */
 
@@ -217,7 +217,7 @@ public abstract class ValueInstantiator
      * [zero-argument] constructor of the type).
      * Note that implementations not required to return actual object
      * they use (or, they may use some other instantiation) method.
-     * That is, even if {@link #canCreateUsingDefault()} returns true,
+     * That is, even if {@link #canCreateFromObjectUsingDefault()} returns true,
      * this method may return null .
      */
     public AnnotatedWithParams getDefaultCreator() {
@@ -242,7 +242,7 @@ public abstract class ValueInstantiator
      * (constructor or factory method that takes one or more arguments).
      * Note that implementations not required to return actual object
      * they use (or, they may use some other instantiation) method.
-     * That is, even if {@link #canCreateWithArgs()} returns true,
+     * That is, even if {@link #canCreateFromObjectWithArgs()} returns true,
      * this method may return null .
      */
     public AnnotatedWithParams getWithArgsCreator() {

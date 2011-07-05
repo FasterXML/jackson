@@ -73,7 +73,7 @@ public final class PropertyBasedCreator
     
     public Object build(PropertyValueBuffer buffer) throws IOException
     {
-        Object bean = _valueInstantiator.createInstanceFromObjectWith(buffer.getParameters(_defaultValues));
+        Object bean = _valueInstantiator.createFromObjectWith(buffer.getParameters(_defaultValues));
         // Anything buffered?
         for (PropertyValue pv = buffer.buffered(); pv != null; pv = pv.next) {
             pv.assign(bean);

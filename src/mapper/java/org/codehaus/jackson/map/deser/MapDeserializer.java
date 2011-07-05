@@ -123,12 +123,12 @@ public class MapDeserializer
         _valueDeserializer = valueDeser;
         _valueTypeDeserializer = valueTypeDeser;
         _valueInstantiator = valueInstantiator;
-        if (valueInstantiator.canCreateWithArgs()) {
+        if (valueInstantiator.canCreateFromObjectWithArgs()) {
             _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator);
         } else {
             _propertyBasedCreator = null;
         }
-        _hasDefaultCreator = valueInstantiator.canCreateUsingDefault();
+        _hasDefaultCreator = valueInstantiator.canCreateFromObjectUsingDefault();
     }
 
     /**
@@ -227,7 +227,7 @@ public class MapDeserializer
             return _deserializeUsingCreator(jp, ctxt);
         }
         if (_delegateDeserializer != null) {
-            return (Map<Object,Object>) _valueInstantiator.createInstanceFromObjectUsing(_delegateDeserializer.deserialize(jp, ctxt));
+            return (Map<Object,Object>) _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
         }
         if (!_hasDefaultCreator) {
             throw ctxt.instantiationException(getMapClass(), "No default constructor found");
@@ -237,7 +237,7 @@ public class MapDeserializer
         if (t != JsonToken.START_OBJECT && t != JsonToken.FIELD_NAME && t != JsonToken.END_OBJECT) {
             throw ctxt.mappingException(getMapClass());
         }
-        final Map<Object,Object> result = (Map<Object,Object>) _valueInstantiator.createInstanceFromObject();
+        final Map<Object,Object> result = (Map<Object,Object>) _valueInstantiator.createFromObject();
         _readAndBind(jp, ctxt, result);
         return result;
     }

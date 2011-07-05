@@ -150,12 +150,12 @@ public class StdValueInstantiator
     }
 
     @Override
-    public boolean canCreateUsingDefault() {
+    public boolean canCreateFromObjectUsingDefault() {
         return (_defaultCreator != null);
     }
 
     @Override
-    public boolean canCreateWithArgs() {
+    public boolean canCreateFromObjectWithArgs() {
         return (_withArgsCreator != null);
     }
 
@@ -176,7 +176,7 @@ public class StdValueInstantiator
      */
     
     @Override
-    public Object createInstanceFromObject()
+    public Object createFromObject()
         throws IOException, JsonProcessingException
     {
         if (_defaultCreator == null) { // sanity-check; caller should check
@@ -192,7 +192,7 @@ public class StdValueInstantiator
     }
     
     @Override
-    public Object createInstanceFromObjectWith(Object[] args)
+    public Object createFromObjectWith(Object[] args)
         throws IOException, JsonProcessingException
     {
         if (_withArgsCreator == null) { // sanity-check; caller should check
@@ -208,7 +208,7 @@ public class StdValueInstantiator
     }
 
     @Override
-    public Object createInstanceFromObjectUsing(Object delegate)
+    public Object createUsingDelegate(Object delegate)
         throws IOException, JsonProcessingException
     {
         if (_delegateCreator == null) { // sanity-check; caller should check
