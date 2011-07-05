@@ -123,12 +123,12 @@ public class MapDeserializer
         _valueDeserializer = valueDeser;
         _valueTypeDeserializer = valueTypeDeser;
         _valueInstantiator = valueInstantiator;
-        if (valueInstantiator.canCreateFromObjectWithArgs()) {
+        if (valueInstantiator.canCreateFromObjectWith()) {
             _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator);
         } else {
             _propertyBasedCreator = null;
         }
-        _hasDefaultCreator = valueInstantiator.canCreateFromObjectUsingDefault();
+        _hasDefaultCreator = valueInstantiator.canCreateUsingDefault();
     }
 
     /**
@@ -237,7 +237,7 @@ public class MapDeserializer
         if (t != JsonToken.START_OBJECT && t != JsonToken.FIELD_NAME && t != JsonToken.END_OBJECT) {
             throw ctxt.mappingException(getMapClass());
         }
-        final Map<Object,Object> result = (Map<Object,Object>) _valueInstantiator.createFromObject();
+        final Map<Object,Object> result = (Map<Object,Object>) _valueInstantiator.createUsingDefault();
         _readAndBind(jp, ctxt, result);
         return result;
     }

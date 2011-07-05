@@ -145,17 +145,22 @@ public class StdValueInstantiator
     }
 
     @Override
-    public boolean canCreateFromNumber() {
-        return (_fromIntCreator != null) || (_fromLongCreator != null);
+    public boolean canCreateFromInt() {
+        return (_fromIntCreator != null);
     }
 
     @Override
-    public boolean canCreateFromObjectUsingDefault() {
+    public boolean canCreateFromLong() {
+        return (_fromLongCreator != null);
+    }
+    
+    @Override
+    public boolean canCreateUsingDefault() {
         return (_defaultCreator != null);
     }
 
     @Override
-    public boolean canCreateFromObjectWithArgs() {
+    public boolean canCreateFromObjectWith() {
         return (_withArgsCreator != null);
     }
 
@@ -176,7 +181,7 @@ public class StdValueInstantiator
      */
     
     @Override
-    public Object createFromObject()
+    public Object createUsingDefault()
         throws IOException, JsonProcessingException
     {
         if (_defaultCreator == null) { // sanity-check; caller should check

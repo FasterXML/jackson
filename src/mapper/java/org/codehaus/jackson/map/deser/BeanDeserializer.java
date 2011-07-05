@@ -179,7 +179,7 @@ public class BeanDeserializer
         _property = property;
 
         _valueInstantiator = valueInstantiator;
-        if (valueInstantiator.canCreateFromObjectWithArgs()) {
+        if (valueInstantiator.canCreateFromObjectWith()) {
             _propertyBasedCreator = new PropertyBasedCreator(valueInstantiator);
         } else {
             _propertyBasedCreator = null;
@@ -193,7 +193,7 @@ public class BeanDeserializer
 
         _useNonDefaultCreator = valueInstantiator.canCreateUsingDelegate()
             || (_propertyBasedCreator != null)
-            || !valueInstantiator.canCreateFromObjectUsingDefault();
+            || !valueInstantiator.canCreateUsingDefault();
     }
 
     /**
@@ -357,8 +357,9 @@ public class BeanDeserializer
         case VALUE_STRING:
             return deserializeFromString(jp, ctxt);
         case VALUE_NUMBER_INT:
+            return deserializeFromNumber(jp, ctxt);
         case VALUE_NUMBER_FLOAT:
-	    return deserializeFromNumber(jp, ctxt);
+	    return deserializeFromDouble(jp, ctxt);
         case VALUE_EMBEDDED_OBJECT:
             return jp.getEmbeddedObject();
         case VALUE_TRUE:
@@ -480,7 +481,7 @@ public class BeanDeserializer
             return deserializeFromObjectUsingNonDefault(jp, ctxt);
         }
 
-        final Object bean = _valueInstantiator.createFromObject();
+        final Object bean = _valueInstantiator.createUsingDefault();
         for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
             // Skip field name:
@@ -552,20 +553,52 @@ public class BeanDeserializer
     public Object deserializeFromNumber(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
-        if (_delegateDeserializer != null) {
-            if (!_valueInstantiator.canCreateFromNumber()) {
-                return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
-            }
-        }
         switch (jp.getNumberType()) {
         case INT:
+            if (_delegateDeserializer != null) {
+                if (!_valueInstantiator.canCreateFromInt()) {
+                    return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                }
+            }
             return _valueInstantiator.createFromInt(jp.getIntValue());
         case LONG:
+            if (_delegateDeserializer != null) {
+                if (!_valueInstantiator.canCreateFromInt()) {
+                    return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                }
+            }
             return _valueInstantiator.createFromLong(jp.getLongValue());
     	}
-        throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found to deserialize from JSON Number");
+        // actually, could also be BigInteger, so:
+        if (_delegateDeserializer != null) {
+            return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+        }
+        throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found to deserialize from JSON integer number");
     }
 
+    /**
+     * @since 1.9
+     */
+    public Object deserializeFromDouble(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        switch (jp.getNumberType()) {
+        case FLOAT: // no separate methods for taking float...
+        case DOUBLE:
+            if (_delegateDeserializer != null) {
+                if (!_valueInstantiator.canCreateFromDouble()) {
+                    return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                }
+            }
+            return _valueInstantiator.createFromDouble(jp.getDoubleValue());
+        }
+        // actually, could also be BigDecimal, so:
+        if (_delegateDeserializer != null) {
+            return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+        }
+        throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found to deserialize from JSON floating-point number");
+    }
+    
     public Object deserializeUsingCreator(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {

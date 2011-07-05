@@ -79,10 +79,10 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public boolean canCreateFromObjectUsingDefault() { return true; }
+        public boolean canCreateUsingDefault() { return true; }
 
         @Override
-        public MyBean createFromObject() {
+        public MyBean createUsingDefault() {
             return new MyBean("secret!", true);
         }
     }
@@ -95,7 +95,7 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public boolean canCreateFromObjectWithArgs() { return true; }
+        public boolean canCreateFromObjectWith() { return true; }
 
         @Override
         public CreatorProperty[] getFromObjectArguments() {
@@ -124,7 +124,7 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public boolean canCreateFromObjectWithArgs() { return true; }
+        public boolean canCreateFromObjectWith() { return true; }
 
         @Override
         public CreatorProperty[] getFromObjectArguments() {
@@ -153,7 +153,7 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public boolean canCreateFromObjectWithArgs() { return true; }
+        public boolean canCreateFromObjectWith() { return true; }
 
         @Override
         public CreatorProperty[] getFromObjectArguments() {
@@ -196,10 +196,10 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public boolean canCreateFromObjectUsingDefault() { return true; }
+        public boolean canCreateUsingDefault() { return true; }
 
         @Override
-        public MyList createFromObject() {
+        public MyList createUsingDefault() {
             return new MyList(true);
         }
     }
@@ -233,10 +233,10 @@ public class TestValueInstantiator extends BaseMapTest
         }
         
         @Override
-        public boolean canCreateFromObjectUsingDefault() { return true; }
+        public boolean canCreateUsingDefault() { return true; }
 
         @Override
-        public MyMap createFromObject() {
+        public MyMap createUsingDefault() {
             return new MyMap(true);
         }
     }

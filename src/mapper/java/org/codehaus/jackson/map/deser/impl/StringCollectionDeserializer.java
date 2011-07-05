@@ -146,7 +146,7 @@ public final class StringCollectionDeserializer
         if (_delegateDeserializer != null) {
             return (Collection<String>) _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
         }
-        final Collection<String> result = (Collection<String>) _valueInstantiator.createFromObject();
+        final Collection<String> result = (Collection<String>) _valueInstantiator.createUsingDefault();
         return deserialize(jp, ctxt, result);
     }
 

@@ -51,11 +51,14 @@ public abstract class ValueInstantiator
      */
     public boolean canInstantiate() {
         return
-             canCreateFromObjectUsingDefault()
+             canCreateUsingDefault()
              || canCreateUsingDelegate()
-             || canCreateFromObjectWithArgs()
+             || canCreateFromObjectWith()
              || canCreateFromString()
-             || canCreateFromNumber()
+             || canCreateFromInt()
+             || canCreateFromLong()
+             || canCreateFromDouble()
+             || canCreateFromBoolean()
              ;
     }    
     
@@ -68,20 +71,43 @@ public abstract class ValueInstantiator
     }
 
     /**
-     * Method that can be called to check whether a number-based (int, long or double)
-     * creator
-     * is available for this instantiator
+     * Method that can be called to check whether an integer (int, Integer) based
+     * creator is available to use (to call {@link #createFromInt}).
      */
-    public boolean canCreateFromNumber() {
+    public boolean canCreateFromInt() {
         return false;
     }
 
+    /**
+     * Method that can be called to check whether a long (long, Long) based
+     * creator is available to use (to call {@link #createFromLong}).
+     */
+    public boolean canCreateFromLong() {
+        return false;
+    }
+
+    /**
+     * Method that can be called to check whether a double (double / Double) based
+     * creator is available to use (to call {@link #createFromDouble}).
+     */
+    public boolean canCreateFromDouble() {
+        return false;
+    }
+
+    /**
+     * Method that can be called to check whether a double (boolean / Boolean) based
+     * creator is available to use (to call {@link #createFromDouble}).
+     */
+    public boolean canCreateFromBoolean() {
+        return false;
+    }
+    
     /**
      * Method that can be called to check whether a default creator (constructor,
      * or no-arg static factory method)
      * is available for this instantiator
      */
-    public boolean canCreateFromObjectUsingDefault() {
+    public boolean canCreateUsingDefault() {
         return getDefaultCreator() != null;
     }
 
@@ -95,26 +121,20 @@ public abstract class ValueInstantiator
     }
 
     /**
-     * Method that can be called to check whether an argument-taking ("property-based") creator
+     * Method that can be called to check whether a property-based creator
      * (argument-taking constructor or factory method)
-     * is available for this instantiator
+     * is available to instantiate values from JSON Object
      */
-    public boolean canCreateFromObjectWithArgs() {
+    public boolean canCreateFromObjectWith() {
         return false;
     }
 
     /**
-     * Method called to determine whether instantiation arguments
-     * are expected for instantiating values for JSON Object;
-     * if this method returns null (or empty List), no arguments
-     * are expected (and {@link #createFromObject}) will
-     * be used); otherwise specified arguments are bound
-     * from input JSON object (and passed to
-     * {@link #createFromObjectWith}).
-     *<p>
-     * It is unfortunate that argument information needs to be exposed
-     * as {@link SettableBeanProperty} instances; but this can not
-     * be avoided due to historical reasons.
+     * Method called to determine types of instantiation arguments
+     * to use when creating instances with creator arguments
+     * (when {@link #canCreateFromObjectWith()} returns  true).
+     * These arguments are bound from JSON, using specified
+     * property types to locate deserializers.
      */
     public CreatorProperty[] getFromObjectArguments() {
         return null;
@@ -135,17 +155,19 @@ public abstract class ValueInstantiator
      */
 
     /**
-     * Method called to create value instance from JSON Object when
+     * Method called to create value instance from a JSON value when
      * no data needs to passed to creator (constructor, factory method);
      * typically this will call the default constructor of the value object.
+     * It will only be used if more specific creator methods are not
+     * applicable; hence "default".
      *<p>
      * This method is called if {@link #getFromObjectArguments} returns
      * null or empty List.
      */
-    public Object createFromObject()
+    public Object createUsingDefault()
         throws IOException, JsonProcessingException {
         throw new JsonMappingException("Can not instantiate value of type "
-                +getValueTypeDesc()+" from JSON Object (without arguments)");
+                +getValueTypeDesc()+"; no default creator found");
     }
 
     /**
@@ -159,7 +181,7 @@ public abstract class ValueInstantiator
     public Object createFromObjectWith(Object[] args)
         throws IOException, JsonProcessingException {
         throw new JsonMappingException("Can not instantiate value of type "
-                +getValueTypeDesc()+" from JSON Object (with arguments)");
+                +getValueTypeDesc()+" with arguments");
     }
 
     /**
@@ -167,9 +189,10 @@ public abstract class ValueInstantiator
      * an intermediate "delegate" value to pass to createor method
      */
     public Object createUsingDelegate(Object delegate)
-        throws IOException, JsonProcessingException {
+        throws IOException, JsonProcessingException
+    {
         throw new JsonMappingException("Can not instantiate value of type "
-                +getValueTypeDesc()+" from JSON Object with delegate");
+                +getValueTypeDesc()+" using delegate");
     }
     
     /*
@@ -196,12 +219,12 @@ public abstract class ValueInstantiator
 
     public Object createFromDouble(double value) throws IOException, JsonProcessingException {
         throw new JsonMappingException("Can not instantiate value of type "
-                +getValueTypeDesc()+" from JSON floating-point number");
+                +getValueTypeDesc()+" from JSON double number");
     }
     
     public Object createFromBoolean(boolean value) throws IOException, JsonProcessingException {
         throw new JsonMappingException("Can not instantiate value of type "
-                +getValueTypeDesc()+" from JSON boolean");
+                +getValueTypeDesc()+" from JSON boolean value");
     }
 
     /*
@@ -217,7 +240,7 @@ public abstract class ValueInstantiator
      * [zero-argument] constructor of the type).
      * Note that implementations not required to return actual object
      * they use (or, they may use some other instantiation) method.
-     * That is, even if {@link #canCreateFromObjectUsingDefault()} returns true,
+     * That is, even if {@link #canCreateUsingDefault()} returns true,
      * this method may return null .
      */
     public AnnotatedWithParams getDefaultCreator() {
@@ -242,7 +265,7 @@ public abstract class ValueInstantiator
      * (constructor or factory method that takes one or more arguments).
      * Note that implementations not required to return actual object
      * they use (or, they may use some other instantiation) method.
-     * That is, even if {@link #canCreateFromObjectWithArgs()} returns true,
+     * That is, even if {@link #canCreateFromObjectWith()} returns true,
      * this method may return null .
      */
     public AnnotatedWithParams getWithArgsCreator() {
