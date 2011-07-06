@@ -19,6 +19,7 @@ Description:
     which can be used to suppress serialization of empty JSON arrays (unless
     overridden by per-property annotations).
    (suggested by Fabrice D)
+  * [JACKSON-580] Allow registering instantiators (ValueInstantiator) for types (classes)
   * [JACKSON-581] Add 'ObjectMapper.readTree(File)'
    (suggested by Pascal G)
 

@@ -7,8 +7,6 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.deser.CreatorProperty;
 import org.codehaus.jackson.map.deser.ValueInstantiator;
-import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
-import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.AnnotatedWithParams;
 import org.codehaus.jackson.type.JavaType;
 
@@ -57,6 +55,8 @@ public class StdValueInstantiator
     protected AnnotatedWithParams _fromStringCreator;
     protected AnnotatedWithParams _fromIntCreator;
     protected AnnotatedWithParams _fromLongCreator;
+    protected AnnotatedWithParams _fromDoubleCreator;
+    protected AnnotatedWithParams _fromBooleanCreator;
     
     /*
     /**********************************************************
@@ -98,6 +98,8 @@ public class StdValueInstantiator
         _fromStringCreator = src._fromStringCreator;
         _fromIntCreator = src._fromIntCreator;
         _fromLongCreator = src._fromLongCreator;
+        _fromDoubleCreator = src._fromDoubleCreator;
+        _fromBooleanCreator = src._fromBooleanCreator;
     }
 
     /**
@@ -116,16 +118,24 @@ public class StdValueInstantiator
         _constructorArguments = constructorArgs;
     }
 
-    public void configureFromStringSettings(AnnotatedConstructor ctor, AnnotatedMethod factory) {
-        _fromStringCreator = (ctor != null) ? ctor : factory;
+    public void configureFromStringCreator(AnnotatedWithParams creator) {
+        _fromStringCreator = creator;
     }
 
-    public void configureFromIntSettings(AnnotatedConstructor ctor, AnnotatedMethod factory) {
-        _fromIntCreator = (ctor != null) ? ctor : factory;
+    public void configureFromIntCreator(AnnotatedWithParams creator) {
+        _fromIntCreator = creator;
     }
 
-    public void configureFromLongSettings(AnnotatedConstructor ctor, AnnotatedMethod factory) {
-        _fromLongCreator = (ctor != null) ? ctor : factory;
+    public void configureFromLongCreator(AnnotatedWithParams creator) {
+        _fromLongCreator = creator;
+    }
+
+    public void configureFromDoubleCreator(AnnotatedWithParams creator) {
+        _fromDoubleCreator = creator;
+    }
+
+    public void configureFromBooleanCreator(AnnotatedWithParams creator) {
+        _fromBooleanCreator = creator;
     }
     
     /*
@@ -152,6 +162,16 @@ public class StdValueInstantiator
     @Override
     public boolean canCreateFromLong() {
         return (_fromLongCreator != null);
+    }
+
+    @Override
+    public boolean canCreateFromDouble() {
+        return (_fromDoubleCreator != null);
+    }
+
+    @Override
+    public boolean canCreateFromBoolean() {
+        return (_fromBooleanCreator != null);
     }
     
     @Override
@@ -268,7 +288,7 @@ public class StdValueInstantiator
             throw wrapException(e);
         }
         throw new JsonMappingException("Can not instantiate value of type "+getValueTypeDesc()
-                +" from JSON number; no single-int constructor/factory method");
+                +" from JSON integral number; no single-int-arg constructor/factory method");
     }
 
     @Override
@@ -282,7 +302,35 @@ public class StdValueInstantiator
             throw wrapException(e);
         }
         throw new JsonMappingException("Can not instantiate value of type "+getValueTypeDesc()
-                +" from JSON number; no single-long constructor/factory method");
+                +" from JSON long integral number; no single-long-arg constructor/factory method");
+    }
+
+    @Override
+    public Object createFromDouble(double value) throws IOException, JsonProcessingException
+    {
+        try {
+            if (_fromDoubleCreator != null) {
+                return _fromDoubleCreator.call1(Double.valueOf(value));
+            }
+        } catch (Exception e) {
+            throw wrapException(e);
+        }
+        throw new JsonMappingException("Can not instantiate value of type "+getValueTypeDesc()
+                +" from JSON floating-point number; no one-double/Double-arg constructor/factory method");
+    }
+
+    @Override
+    public Object createFromBoolean(boolean value) throws IOException, JsonProcessingException
+    {
+        try {
+            if (_fromBooleanCreator != null) {
+                return _fromDoubleCreator.call1(Boolean.valueOf(value));
+            }
+        } catch (Exception e) {
+            throw wrapException(e);
+        }
+        throw new JsonMappingException("Can not instantiate value of type "+getValueTypeDesc()
+                +" from JSON boolean value; no single-boolean/Boolean-arg constructor/factory method");
     }
     
     /*

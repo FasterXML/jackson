@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.deser.impl;
 
+import java.lang.reflect.Member;
 import java.util.*;
 
 import org.codehaus.jackson.map.DeserializationConfig;
@@ -23,15 +24,12 @@ public class CreatorCollector
 
     protected AnnotatedConstructor _defaultConstructor;
     
-    AnnotatedMethod _strFactory, _intFactory, _longFactory;
-    AnnotatedMethod _delegatingFactory;
-    AnnotatedMethod _propertyBasedFactory;
-    CreatorProperty[] _propertyBasedFactoryProperties = null;
+    protected AnnotatedWithParams _stringCreator, _intCreator, _longCreator;
+    protected AnnotatedWithParams _doubleCreator, _booleanCreator;
 
-    AnnotatedConstructor _strConstructor, _intConstructor, _longConstructor;
-    AnnotatedConstructor _delegatingConstructor;
-    AnnotatedConstructor _propertyBasedConstructor;
-    CreatorProperty[] _propertyBasedConstructorProperties = null;
+    protected AnnotatedWithParams _delegateCreator;
+    protected AnnotatedWithParams _propertyBasedCreator;
+    protected CreatorProperty[] _propertyBasedArgs = null;
 
     /*
     /**********************************************************
@@ -52,36 +50,23 @@ public class CreatorCollector
     {
         StdValueInstantiator inst = new StdValueInstantiator(config, _beanDesc.getType());
 
-        // then for with-args ("properties-based") construction
-        AnnotatedWithParams withArgsCreator = null;
-        CreatorProperty[] constructorArgs = null;
+        JavaType delegateType;
 
-        if (_propertyBasedConstructor != null) {
-            constructorArgs = _propertyBasedConstructorProperties;
-            withArgsCreator = _propertyBasedConstructor;
-        } else if (_propertyBasedFactory != null) {
-            constructorArgs = _propertyBasedFactoryProperties;
-            withArgsCreator = _propertyBasedFactory;
-        }
-
-        AnnotatedWithParams delegateCreator = null;
-        JavaType delegateType = null;
-        TypeBindings bindings = _beanDesc.bindingsForBeanType();
-        
-        if (_delegatingConstructor != null) {
-            delegateCreator = _delegatingConstructor;
-            delegateType =  bindings.resolveType(_delegatingConstructor.getParameterType(0));
-        } else if (_delegatingFactory != null) {
-            delegateCreator = _delegatingFactory;
-            delegateType =  bindings.resolveType(_delegatingFactory.getParameterType(0));
+        if (_delegateCreator == null) {
+            delegateType = null;
+        } else {
+            TypeBindings bindings = _beanDesc.bindingsForBeanType();
+            delegateType = bindings.resolveType(_delegateCreator.getParameterType(0));
         }
         
         inst.configureFromObjectSettings(_defaultConstructor,
-                delegateCreator, delegateType,
-                withArgsCreator, constructorArgs);
-        inst.configureFromStringSettings(_strConstructor, _strFactory);
-        inst.configureFromIntSettings(_intConstructor, _intFactory);
-        inst.configureFromLongSettings(_longConstructor, _longFactory);
+                _delegateCreator, delegateType,
+                _propertyBasedCreator, _propertyBasedArgs);
+        inst.configureFromStringCreator(_stringCreator);
+        inst.configureFromIntCreator(_intCreator);
+        inst.configureFromLongCreator(_longCreator);
+        inst.configureFromDoubleCreator(_doubleCreator);
+        inst.configureFromBooleanCreator(_booleanCreator);
         return inst;
     }
     
@@ -95,23 +80,29 @@ public class CreatorCollector
         _defaultConstructor = ctor;
     }
     
-    public void addStringConstructor(AnnotatedConstructor ctor) {
-        _strConstructor = verifyNonDup(ctor, _strConstructor, "String");
+    public void addStringCreator(AnnotatedWithParams creator) {
+        _stringCreator = verifyNonDup(creator, _stringCreator, "String");
     }
-    public void addIntConstructor(AnnotatedConstructor ctor) {
-        _intConstructor = verifyNonDup(ctor, _intConstructor, "int");
+    public void addIntCreator(AnnotatedWithParams creator) {
+        _intCreator = verifyNonDup(creator, _intCreator, "int");
     }
-    public void addLongConstructor(AnnotatedConstructor ctor) {
-        _longConstructor = verifyNonDup(ctor, _longConstructor, "long");
+    public void addLongCreator(AnnotatedWithParams creator) {
+        _longCreator = verifyNonDup(creator, _longCreator, "long");
+    }
+    public void addDoubleCreator(AnnotatedWithParams creator) {
+        _doubleCreator = verifyNonDup(creator, _doubleCreator, "double");
+    }
+    public void addBooleanCreator(AnnotatedWithParams creator) {
+        _booleanCreator = verifyNonDup(creator, _booleanCreator, "boolean");
     }
 
-    public void addDelegatingConstructor(AnnotatedConstructor ctor) {
-        _delegatingConstructor = verifyNonDup(ctor, _delegatingConstructor, "delegate");
+    public void addDelegatingCreator(AnnotatedWithParams creator) {
+        _delegateCreator = verifyNonDup(creator, _delegateCreator, "delegate");
     }
 
-    public void addPropertyConstructor(AnnotatedConstructor ctor, CreatorProperty[] properties)
+    public void addPropertyCreator(AnnotatedWithParams creator, CreatorProperty[] properties)
     {
-        _propertyBasedConstructor = verifyNonDup(ctor, _propertyBasedConstructor, "property-based");
+        _propertyBasedCreator = verifyNonDup(creator, _propertyBasedCreator, "property-based");
         // [JACKSON-470] Better ensure we have no duplicate names either...
         if (properties.length > 1) {
             HashMap<String,Integer> names = new HashMap<String,Integer>();
@@ -123,27 +114,7 @@ public class CreatorCollector
                 }
             }
         }
-        _propertyBasedConstructorProperties = properties;
-    }
-
-    public void addStringFactory(AnnotatedMethod factory) {
-        _strFactory = verifyNonDup(factory, _strFactory, "String");
-    }
-    public void addIntFactory(AnnotatedMethod factory) {
-        _intFactory = verifyNonDup(factory, _intFactory, "int");
-    }
-    public void addLongFactory(AnnotatedMethod factory) {
-        _longFactory = verifyNonDup(factory, _longFactory, "long");
-    }
-
-    public void addDelegatingFactory(AnnotatedMethod factory) {
-        _delegatingFactory = verifyNonDup(factory, _delegatingFactory, "delegate");
-    }
-
-    public void addPropertyFactory(AnnotatedMethod factory, CreatorProperty[] properties)
-    {
-        _propertyBasedFactory = verifyNonDup(factory, _propertyBasedFactory, "property-based");
-        _propertyBasedFactoryProperties = properties;
+        _propertyBasedArgs = properties;
     }
 
     /*
@@ -152,26 +123,17 @@ public class CreatorCollector
     /**********************************************************
      */
 
-    protected AnnotatedConstructor verifyNonDup(AnnotatedConstructor newOne, AnnotatedConstructor oldOne,
+    protected AnnotatedWithParams verifyNonDup(AnnotatedWithParams newOne, AnnotatedWithParams oldOne,
             String type)
     {
         if (oldOne != null) {
-            throw new IllegalArgumentException("Conflicting "+type+" constructors: already had "+oldOne+", encountered "+newOne);
+            // important: ok to override factory with constructor; but not within same type, so:
+            if (oldOne.getClass() == newOne.getClass()) {
+                throw new IllegalArgumentException("Conflicting "+type+" creators: already had "+oldOne+", encountered "+newOne);
+            }
         }
         if (_canFixAccess) {
-            ClassUtil.checkAndFixAccess(newOne.getAnnotated());
-        }
-        return newOne;
-    }
-        
-    protected AnnotatedMethod verifyNonDup(AnnotatedMethod newOne, AnnotatedMethod oldOne,
-                                           String type)
-    {
-        if (oldOne != null) {
-            throw new IllegalArgumentException("Conflicting "+type+" factory methods: already had "+oldOne+", encountered "+newOne);
-        }
-        if (_canFixAccess) {
-            ClassUtil.checkAndFixAccess(newOne.getAnnotated());
+            ClassUtil.checkAndFixAccess((Member) newOne.getAnnotated());
         }
         return newOne;
     }

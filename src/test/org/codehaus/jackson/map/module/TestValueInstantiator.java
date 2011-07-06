@@ -87,30 +87,6 @@ public class TestValueInstantiator extends BaseMapTest
         }
     }
 
-    static class CreatorBeanInstantiator extends ValueInstantiator
-    {
-        @Override
-        public String getValueTypeDesc() {
-            return CreatorBean.class.getName();
-        }
-        
-        @Override
-        public boolean canCreateFromObjectWith() { return true; }
-
-        @Override
-        public CreatorProperty[] getFromObjectArguments() {
-            return  new CreatorProperty[] {
-                    new CreatorProperty("secret", TypeFactory.defaultInstance().constructType(String.class),
-                            null, null, null, 0)
-            };
-        }
-
-        @Override
-        public Object createFromObjectWith(Object[] args) {
-            return new CreatorBean((String) args[0]);
-        }
-    }
-
     /**
      * Something more ambitious: semi-automated approach to polymorphic
      * deserialization, using ValueInstantiator; from Object to any
@@ -350,7 +326,24 @@ public class TestValueInstantiator extends BaseMapTest
     public void testPropertyBasedBeanInstantiator() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new MyModule(CreatorBean.class, new CreatorBeanInstantiator()));
+        mapper.registerModule(new MyModule(CreatorBean.class,
+                new InstantiatorBase() {
+                    @Override
+                    public boolean canCreateFromObjectWith() { return true; }
+        
+                    @Override
+                    public CreatorProperty[] getFromObjectArguments() {
+                        return  new CreatorProperty[] {
+                                new CreatorProperty("secret", TypeFactory.defaultInstance().constructType(String.class),
+                                        null, null, null, 0)
+                        };
+                    }
+        
+                    @Override
+                    public Object createFromObjectWith(Object[] args) {
+                        return new CreatorBean((String) args[0]);
+                    }
+        }));
         CreatorBean bean = mapper.readValue("{\"secret\":123,\"value\":37}", CreatorBean.class);
         assertNotNull(bean);
         assertEquals("123", bean._secret);
@@ -389,6 +382,78 @@ public class TestValueInstantiator extends BaseMapTest
         MysteryBean result = mapper.readValue(quote("abc"), MysteryBean.class);
         assertNotNull(result);
         assertEquals("abc", result.value);
+    }
+
+    public void testBeanFromInt() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(MysteryBean.class,
+                new InstantiatorBase() {
+                    @Override
+                    public boolean canCreateFromInt() { return true; }
+                    
+                    @Override
+                    public Object createFromInt(int value) {
+                        return new MysteryBean(value+1);
+                    }
+        }));
+        MysteryBean result = mapper.readValue("37", MysteryBean.class);
+        assertNotNull(result);
+        assertEquals(Integer.valueOf(38), result.value);
+    }
+
+    public void testBeanFromLong() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(MysteryBean.class,
+                new InstantiatorBase() {
+                    @Override
+                    public boolean canCreateFromLong() { return true; }
+                    
+                    @Override
+                    public Object createFromLong(long value) {
+                        return new MysteryBean(value+1L);
+                    }
+        }));
+        MysteryBean result = mapper.readValue("9876543210", MysteryBean.class);
+        assertNotNull(result);
+        assertEquals(Long.valueOf(9876543211L), result.value);
+    }
+
+    public void testBeanFromDouble() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(MysteryBean.class,
+                new InstantiatorBase() {
+                    @Override
+                    public boolean canCreateFromDouble() { return true; }
+
+                    @Override
+                    public Object createFromDouble(double value) {
+                        return new MysteryBean(2.0 * value);
+                    }
+        }));
+        MysteryBean result = mapper.readValue("0.25", MysteryBean.class);
+        assertNotNull(result);
+        assertEquals(Double.valueOf(0.5), result.value);
+    }
+
+    public void testBeanFromBoolean() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MyModule(MysteryBean.class,
+                new InstantiatorBase() {
+                    @Override
+                    public boolean canCreateFromBoolean() { return true; }
+                    
+                    @Override
+                    public Object createFromBoolean(boolean value) {
+                        return new MysteryBean(Boolean.valueOf(value));
+                    }
+        }));
+        MysteryBean result = mapper.readValue("true", MysteryBean.class);
+        assertNotNull(result);
+        assertEquals(Boolean.TRUE, result.value);
     }
     
     /*

@@ -219,7 +219,7 @@ public abstract class ValueInstantiator
 
     public Object createFromDouble(double value) throws IOException, JsonProcessingException {
         throw new JsonMappingException("Can not instantiate value of type "
-                +getValueTypeDesc()+" from JSON double number");
+                +getValueTypeDesc()+" from JSON floating-point number");
     }
     
     public Object createFromBoolean(boolean value) throws IOException, JsonProcessingException {

@@ -364,9 +364,10 @@ public class BeanDeserializer
             return jp.getEmbeddedObject();
         case VALUE_TRUE:
         case VALUE_FALSE:
+            return deserializeFromBoolean(jp, ctxt);
         case START_ARRAY:
             // these only work if there's a (delegating) creator...
-            return deserializeUsingCreator(jp, ctxt);
+            return deserializeFromArray(jp, ctxt);
         case FIELD_NAME:
         case END_OBJECT: // added to resolve [JACKSON-319], possible related issues
             return deserializeFromObject(jp, ctxt);
@@ -577,6 +578,9 @@ public class BeanDeserializer
     }
 
     /**
+     * Method called to deserialize POJO value from a JSON floating-point
+     * number.
+     * 
      * @since 1.9
      */
     public Object deserializeFromDouble(JsonParser jp, DeserializationContext ctxt)
@@ -598,8 +602,29 @@ public class BeanDeserializer
         }
         throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found to deserialize from JSON floating-point number");
     }
-    
-    public Object deserializeUsingCreator(JsonParser jp, DeserializationContext ctxt)
+
+    /**
+     * Method called to deserialize POJO value from a JSON boolean
+     * value (true, false)
+     * 
+     * @since 1.9
+     */
+    public Object deserializeFromBoolean(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        if (_delegateDeserializer != null) {
+            if (!_valueInstantiator.canCreateFromBoolean()) {
+                return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+            }
+        }
+        boolean value = (jp.getCurrentToken() == JsonToken.VALUE_TRUE);
+        return _valueInstantiator.createFromBoolean(value);
+    }
+
+    /**
+     * @since 1.9
+     */
+    public Object deserializeFromArray(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
     	if (_delegateDeserializer != null) {

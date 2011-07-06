@@ -13,9 +13,9 @@ public class TestCreators
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes, simple
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated helper classes, simple
+    /**********************************************************
      */
 
     /**
@@ -41,6 +41,14 @@ public class TestCreators
         }
     }
 
+    @SuppressWarnings("unused")
+    private static class BooleanConstructorBean2 {
+        boolean b;
+        @JsonCreator protected BooleanConstructorBean2(boolean b) {
+            this.b = b;
+        }
+    }
+    
     static class DoubleConstructorBean {
         Double d; // cup?
         @JsonCreator protected DoubleConstructorBean(Double d) {
@@ -141,10 +149,19 @@ public class TestCreators
         @JsonIgnore private MixIn(String a, int x) { }
     }
 
+    static class MultiBean {
+        Object value;
+
+        @JsonCreator public MultiBean(int v) { value = v; }
+        @JsonCreator public MultiBean(double v) { value = v; }
+        @JsonCreator public MultiBean(String v) { value = v; }
+        @JsonCreator public MultiBean(boolean v) { value = v; }
+    }
+    
     /*
-    //////////////////////////////////////////////////////
-    // Annotated helper classes, mixed (creator and props)
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated helper classes, mixed (creator and props)
+    /**********************************************************
      */
 
     /**
@@ -274,6 +291,9 @@ public class TestCreators
         ObjectMapper m = new ObjectMapper();
         BooleanConstructorBean bean = m.readValue(" true ", BooleanConstructorBean.class);
         assertEquals(Boolean.TRUE, bean.b);
+
+        BooleanConstructorBean2 bean2 = m.readValue(" true ", BooleanConstructorBean2.class);
+        assertTrue(bean2.b);
     }
 
     public void testSimpleFactory() throws Exception
@@ -333,10 +353,25 @@ public class TestCreators
         assertFalse(arg1[2]);
     }
 
+    /**
+     * Test to verify that multiple creators may co-exist, iff
+     * they use different JSON type as input
+     */
+    public void testMultipleCreators() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        MultiBean bean = m.readValue("123", MultiBean.class);
+        assertEquals(Integer.valueOf(123), bean.value);
+        bean = m.readValue(quote("abc"), MultiBean.class);
+        assertEquals("abc", bean.value);
+        bean = m.readValue("0.25", MultiBean.class);
+        assertEquals(Double.valueOf(0.25), bean.value);
+    }
+
     /*
-    /////////////////////////////////////////////////////
-    // Test methods, valid cases, deferred, no mixins
-    /////////////////////////////////////////////////////
+    /**********************************************************
+    /* Test methods, valid cases, deferred, no mixins
+    /**********************************************************
      */
 
     public void testDeferredConstructorAndProps() throws Exception

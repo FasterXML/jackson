@@ -755,8 +755,11 @@ public class BeanDeserializerFactory
         }
         vchecker = config.getAnnotationIntrospector().findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);
 
-        _addDeserializerConstructors(config, beanDesc, vchecker, intr, creators);
+        /* Important: first add factory methods; then constructors, so
+         * latter can override former!
+         */
         _addDeserializerFactoryMethods(config, beanDesc, vchecker, intr, creators);
+        _addDeserializerConstructors(config, beanDesc, vchecker, intr, creators);
 
         ValueInstantiator instantiator = creators.constructValueInstantiator(config);
 
@@ -798,25 +801,32 @@ public class BeanDeserializerFactory
                     Class<?> type = ctor.getParameterClass(0);
                     if (type == String.class) {
                         if (isCreator || isVisible) {
-                            creators.addStringConstructor(ctor);
+                            creators.addStringCreator(ctor);
                         }
                         continue;
                     }
                     if (type == int.class || type == Integer.class) {
                         if (isCreator || isVisible) {
-                            creators.addIntConstructor(ctor);
+                            creators.addIntCreator(ctor);
                         }
                         continue;
                     }
                     if (type == long.class || type == Long.class) {
                         if (isCreator || isVisible) {
-                            creators.addLongConstructor(ctor);
+                            creators.addLongCreator(ctor);
                         }
                         continue;
                     }
-                    // Delegating constructor ok iff it has @JsonCreator (etc)
+                    if (type == double.class || type == Double.class) {
+                        if (isCreator || isVisible) {
+                            creators.addDoubleCreator(ctor);
+                        }
+                        continue;
+                    }
+
+                    // Delegating Creator ok iff it has @JsonCreator (etc)
                     if (isCreator) {
-                        creators.addDelegatingConstructor(ctor);
+                        creators.addDelegatingCreator(ctor);
                     }
                     // otherwise just ignored
                     continue;
@@ -824,7 +834,7 @@ public class BeanDeserializerFactory
                 // We know there's a name and it's only 1 parameter.
                 CreatorProperty[] properties = new CreatorProperty[1];
                 properties[0] = constructCreatorProperty(config, beanDesc, name, 0, param);
-                creators.addPropertyConstructor(ctor, properties);
+                creators.addPropertyCreator(ctor, properties);
                 continue;
             } else if (!isCreator && !isVisible) {
             	continue;
@@ -850,7 +860,7 @@ public class BeanDeserializerFactory
                 }
             }
             if (annotationFound) {
-            	creators.addPropertyConstructor(ctor, properties);
+            	creators.addPropertyCreator(ctor, properties);
             }
         }
     }
@@ -877,24 +887,36 @@ public class BeanDeserializerFactory
                     Class<?> type = factory.getParameterClass(0);
                     if (type == String.class) {
                         if (isCreator || vchecker.isCreatorVisible(factory)) {
-                            creators.addStringFactory(factory);
+                            creators.addStringCreator(factory);
                         }
                         continue;
                     }
                     if (type == int.class || type == Integer.class) {
                         if (isCreator || vchecker.isCreatorVisible(factory)) {
-                            creators.addIntFactory(factory);
+                            creators.addIntCreator(factory);
                         }
                         continue;
                     }
                     if (type == long.class || type == Long.class) {
                         if (isCreator || vchecker.isCreatorVisible(factory)) {
-                            creators.addLongFactory(factory);
+                            creators.addLongCreator(factory);
+                        }
+                        continue;
+                    }
+                    if (type == double.class || type == Double.class) {
+                        if (isCreator || vchecker.isCreatorVisible(factory)) {
+                            creators.addDoubleCreator(factory);
+                        }
+                        continue;
+                    }
+                    if (type == boolean.class || type == Boolean.class) {
+                        if (isCreator || vchecker.isCreatorVisible(factory)) {
+                            creators.addBooleanCreator(factory);
                         }
                         continue;
                     }
                     if (intr.hasCreatorAnnotation(factory)) {
-                        creators.addDelegatingFactory(factory);
+                        creators.addDelegatingCreator(factory);
                     }
                     // otherwise just ignored
                     continue;
@@ -917,7 +939,7 @@ public class BeanDeserializerFactory
                 }
                 properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
             }
-            creators.addPropertyFactory(factory, properties);
+            creators.addPropertyCreator(factory, properties);
         }
     }
 
