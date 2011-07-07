@@ -18,9 +18,9 @@ public class TestAnnotations
     extends BaseMapTest
 {
     /*
-    /**********************************************************************
+    /**********************************************************
     /* Helper classes
-    /**********************************************************************
+    /**********************************************************
      */
 
     /// Class for testing {@link JsonProperty} annotations with getters
@@ -100,10 +100,31 @@ public class TestAnnotations
         public int getZ() { return 3; }
     }
 
+    static class Unwrapping {
+        public String name;
+        @JsonUnwrapped
+        public Location location;
+
+        public Unwrapping(String str, int x, int y) {
+            name = str;
+            location = new Location(x, y);
+        }
+    }
+
+    static class Location {
+        public int x;
+        public int y;
+
+        public Location(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+    
     /*
-    //////////////////////////////////////////////
-    // Other helper classes
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Other helper classes
+    /**********************************************************
      */
 
     public final static class BogusSerializer extends JsonSerializer<Object>
@@ -128,9 +149,9 @@ public class TestAnnotations
     }
 
     /*
-    //////////////////////////////////////////////
-    // Main tests
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Main tests
+    /**********************************************************
      */
 
     public void testSimpleGetter() throws Exception
@@ -211,4 +232,13 @@ public class TestAnnotations
          */
         assertEquals("{\"x\":8}", sw.toString());
     }
+
+    // [JACKSON-132]: Unwrapping...
+    public void testUnwrapping() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        assertEquals("{\"name\":\"Tatu\",\"x\":1,\"y\":2}",
+                m.writeValueAsString(new Unwrapping("Tatu", 1, 2)));
+    }
+
 }

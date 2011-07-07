@@ -3,7 +3,6 @@ package org.codehaus.jackson.map.introspect;
 import java.lang.annotation.Annotation;
 
 import org.codehaus.jackson.type.JavaType;
-import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.KeyDeserializer;
 import org.codehaus.jackson.map.AnnotationIntrospector;
@@ -53,11 +52,6 @@ public class NopAnnotationIntrospector
      */
 
     @Override
-    public Boolean findCachability(AnnotatedClass ac) {
-        return null;
-    }
-
-    @Override
     public String findRootName(AnnotatedClass ac) {
         return null;
     }
@@ -105,9 +99,8 @@ public class NopAnnotationIntrospector
     /**********************************************************
      */
 
-    @SuppressWarnings("deprecation")
     @Override
-    public Object findSerializer(Annotated am, BeanProperty property) {
+    public Object findSerializer(Annotated am) {
         return null;
     }
 
@@ -178,9 +171,8 @@ public class NopAnnotationIntrospector
         return null;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public Object findDeserializer(Annotated am, BeanProperty property) { return null; }
+    public Object findDeserializer(Annotated am) { return null; }
 
     @Override
     public Class<KeyDeserializer> findKeyDeserializer(Annotated am) { return null; }

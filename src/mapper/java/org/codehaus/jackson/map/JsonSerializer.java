@@ -11,6 +11,35 @@ import org.codehaus.jackson.*;
  */
 public abstract class JsonSerializer<T>
 {
+    /*
+    /**********************************************************
+    /* Fluent factory methods for constructing decorated versions
+    /**********************************************************
+     */
+
+    /**
+     * Method that will return serializer instance that produces
+     * "unwrapped" serialization, if applicable for type being
+     * serialized (which is the case for some serializers
+     * that produce JSON Objects as output).
+     * If no unwrapped serializer can be constructed, will simply
+     * return serializer as-is.
+     *<p>
+     * Default implementation just returns serializer as-is,
+     * indicating that no unwrapped variant exists
+     * 
+     * @since 1.9
+     */
+    public JsonSerializer<T> unwrappingSerializer() {
+        return this;
+    }
+    
+    /*
+    /**********************************************************
+    /* Serialization methods
+    /**********************************************************
+     */
+
     /**
      * Method that can be called to ask implementation to serialize
      * values of type this serializer handles.
@@ -56,7 +85,7 @@ public abstract class JsonSerializer<T>
     
     /*
     /**********************************************************
-    * Introspection methods needed for type handling 
+    /* Introspection methods needed for type handling 
     /**********************************************************
      */
     

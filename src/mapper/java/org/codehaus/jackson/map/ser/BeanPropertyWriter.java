@@ -350,7 +350,7 @@ public class BeanPropertyWriter
     public boolean hasSerializer() { return _serializer != null; }
     
     // Needed by BeanSerializer#getSchema
-    protected JsonSerializer<Object> getSerializer() {
+    public JsonSerializer<Object> getSerializer() {
         return _serializer;
     }
 

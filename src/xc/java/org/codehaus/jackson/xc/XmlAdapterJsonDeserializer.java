@@ -19,18 +19,14 @@ public class XmlAdapterJsonDeserializer
 {
     protected final static JavaType ADAPTER_TYPE = TypeFactory.defaultInstance().uncheckedSimpleType(XmlAdapter.class);
 
-    protected final BeanProperty _property;
-
     protected final XmlAdapter<Object,Object> _xmlAdapter;
     protected final JavaType _valueType;
 
     protected JsonDeserializer<?> _deserializer;
     
-    public XmlAdapterJsonDeserializer(XmlAdapter<Object,Object> xmlAdapter,
-            BeanProperty property)
+    public XmlAdapterJsonDeserializer(XmlAdapter<Object,Object> xmlAdapter)
     {
         super(Object.class); // type not yet known (will be in a second), but that's ok...
-        _property = property;
         _xmlAdapter = xmlAdapter;
         // [JACKSON-404] Need to figure out generic type parameters used...
         /* 14-Mar-2011, tatu: This is sub-optimal, as we really should use
@@ -58,7 +54,7 @@ public class XmlAdapterJsonDeserializer
         if (deser == null) {
             DeserializationConfig config = ctxt.getConfig();
             _deserializer = deser = ctxt.getDeserializerProvider().findValueDeserializer
-                (config, _valueType, _property);
+                (config, _valueType, null);
         }
         Object boundObject = deser.deserialize(jp, ctxt);
         try {

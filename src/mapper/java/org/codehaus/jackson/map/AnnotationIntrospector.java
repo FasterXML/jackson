@@ -167,7 +167,9 @@ public abstract class AnnotationIntrospector
      *   False if not, and null if introspector does not care either
      *   way.
      */
-    public abstract Boolean findCachability(AnnotatedClass ac);
+    public Boolean findCachability(AnnotatedClass ac) {
+        return null;
+    }
 
     /**
      * Method for locating name used as "root name" (for use by
@@ -247,7 +249,7 @@ public abstract class AnnotationIntrospector
     
     /*
     /**********************************************************
-    /* Class annotations for PM type handling (1.5+)
+    /* Class annotations for Polymorphic type handling (1.5+)
     /**********************************************************
     */
     
@@ -359,6 +361,17 @@ public abstract class AnnotationIntrospector
     public ReferenceProperty findReferenceType(AnnotatedMember member) {
         return null;
     }
+
+    /**
+     * Method called to check whether given property is marked to be "unwrapped"
+     * when being serialized (and appropriately handled in reverse direction,
+     * i.e. expect unwrapped representation during deserialization)
+     * 
+     * @since 1.9
+     */
+    public Boolean shouldUnwrapProperty(AnnotatedMember member) {
+        return null;
+    }
     
     /*
     /**********************************************************
@@ -416,21 +429,7 @@ public abstract class AnnotationIntrospector
      *<p>
      * Note: this variant was briefly deprecated for 1.7; should not be
      */
-    public Object findSerializer(Annotated am) {
-        return findSerializer(am, null);
-    }
-
-    /**
-     * @deprecated (as of 1.8) -- going back to 1.7, since BeanProperty really should not
-     *  have to be bought here; contextualization is via callbacks
-     */
-    @Deprecated
-    public Object findSerializer(Annotated am, BeanProperty property) {
-        if (property != null) {
-            return findSerializer(am);
-        }
-        return null;
-    }
+    public abstract Object findSerializer(Annotated am);
 
     /**
      * Method for getting a serializer definition for keys of associated <code>Map</code> property.
@@ -630,27 +629,7 @@ public abstract class AnnotationIntrospector
      * Note: this variant was briefly deprecated for 1.7; but it turns out
      * we really should not try to push BeanProperty through at this point
      */
-    public Object findDeserializer(Annotated am) {
-        return findDeserializer(am, null);
-    }
-
-    /**
-     * Method for getting a deserializer definition on specified method
-     * or field.
-     * Type of definition is either instance (of type
-     * {@link JsonDeserializer}) or Class (of type
-     * <code>Class<JsonDeserializer></code>); if value of different
-     * type is returned, a runtime exception may be thrown by caller.
-     *
-     * @deprecated (as of 1.7) Should use version that gets property object
-     */
-    @Deprecated
-    public Object findDeserializer(Annotated am, BeanProperty property) {
-        if (property != null) {
-            return findDeserializer(am);
-        }
-        return null;
-    }
+    public abstract Object findDeserializer(Annotated am);
 
     /**
      * Method for getting a deserializer definition for keys of
@@ -1054,6 +1033,16 @@ public abstract class AnnotationIntrospector
             }
             return ref; 
         }
+
+        @Override        
+        public Boolean shouldUnwrapProperty(AnnotatedMember member)
+        {
+            Boolean value = _primary.shouldUnwrapProperty(member);
+            if (value == null) {
+                value = _secondary.shouldUnwrapProperty(member);
+            }
+            return value;
+        }
         
         // // // General method annotations
 
@@ -1076,21 +1065,6 @@ public abstract class AnnotationIntrospector
         }
 
         // // // Serialization: general annotations
-
-        @SuppressWarnings("deprecation")
-        @Override
-        public Object findSerializer(Annotated am, BeanProperty property)
-        {
-            Object result = _primary.findSerializer(am, property);
-            /* Are there non-null results that should be ignored?
-             * (i.e. should some validation be done here)
-             * For now let's assume no
-             */
-            if (result == null) {
-                result = _secondary.findSerializer(am, property);
-            }
-            return result;
-        }
 
         @Override
         public Object findSerializer(Annotated am)
@@ -1285,17 +1259,6 @@ public abstract class AnnotationIntrospector
             Object result = _primary.findDeserializer(am);
             if (result == null) {
                 result = _secondary.findDeserializer(am);
-            }
-            return result;
-        }
-
-        @SuppressWarnings("deprecation")
-        @Override
-        public Object findDeserializer(Annotated am, BeanProperty property)
-        {
-            Object result = _primary.findDeserializer(am, property);
-            if (result == null) {
-                result = _secondary.findDeserializer(am, property);
             }
             return result;
         }

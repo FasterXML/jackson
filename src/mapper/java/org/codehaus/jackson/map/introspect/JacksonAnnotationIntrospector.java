@@ -5,12 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.codehaus.jackson.annotate.*;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.BeanProperty;
-import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.KeyDeserializer;
-import org.codehaus.jackson.map.MapperConfig;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
@@ -151,6 +146,22 @@ public class JacksonAnnotationIntrospector
         }
         return null;
     }
+
+    /**
+     * Method called to check whether given property is marked to be "unwrapped"
+     * when being serialized (and appropriately handled in reverse direction,
+     * i.e. expect unwrapped representation during deserialization)
+     * 
+     * @since 1.9
+     */
+    @Override
+    public Boolean shouldUnwrapProperty(AnnotatedMember member)
+    {
+        JsonUnwrapped ann = member.getAnnotation(JsonUnwrapped.class);
+        // if not enabled, just means annotation is not enabled; not necessarily
+        // that unwrapping should not be done (relevant when using chained introspectors)
+        return (ann != null && ann.enabled()) ? Boolean.TRUE : null;
+    }
     
     /*
     /**********************************************************
@@ -249,9 +260,8 @@ public class JacksonAnnotationIntrospector
     /**********************************************************
     */
 
-    @SuppressWarnings("deprecation")
     @Override
-    public Object findSerializer(Annotated a, BeanProperty property)
+    public Object findSerializer(Annotated a)
     {
         /* 21-May-2009, tatu: Slight change; primary annotation is now
          *    @JsonSerialize; @JsonUseSerializer is deprecated
@@ -462,9 +472,8 @@ public class JacksonAnnotationIntrospector
     /**********************************************************
      */
 
-    @SuppressWarnings("deprecation")
     @Override
-    public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a, BeanProperty property)
+    public Class<? extends JsonDeserializer<?>> findDeserializer(Annotated a)
     {
         /* 21-May-2009, tatu: Slight change; primary annotation is now
          *    @JsonDeserialize; @JsonUseDeserializer is deprecated

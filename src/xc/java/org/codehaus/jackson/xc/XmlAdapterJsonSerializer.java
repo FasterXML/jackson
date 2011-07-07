@@ -10,7 +10,6 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.schema.JsonSchema;
-import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
@@ -23,14 +22,11 @@ public class XmlAdapterJsonSerializer extends SerializerBase<Object>
     implements SchemaAware
 {
     private final XmlAdapter<Object,Object> xmlAdapter;
-
-    private final BeanProperty _property;
     
-    public XmlAdapterJsonSerializer(XmlAdapter<Object,Object> xmlAdapter, BeanProperty property)
+    public XmlAdapterJsonSerializer(XmlAdapter<Object,Object> xmlAdapter)
     {
         super(Object.class);
         this.xmlAdapter = xmlAdapter;
-        _property = property;
     }
 
     @Override
@@ -48,7 +44,7 @@ public class XmlAdapterJsonSerializer extends SerializerBase<Object>
         } else {
             Class<?> c = adapted.getClass();
             // true -> do cache for future lookups
-            provider.findTypedValueSerializer(c, true, _property).serialize(adapted, jgen, provider);
+            provider.findTypedValueSerializer(c, true, null).serialize(adapted, jgen, provider);
         }
     }
 
@@ -57,7 +53,7 @@ public class XmlAdapterJsonSerializer extends SerializerBase<Object>
             throws JsonMappingException
     {
         // no type resolver needed for schema
-        JsonSerializer<Object> ser = provider.findValueSerializer(findValueClass(), _property);
+        JsonSerializer<Object> ser = provider.findValueSerializer(findValueClass(), null);
         JsonNode schemaNode = (ser instanceof SchemaAware) ?
                 ((SchemaAware) ser).getSchema(provider, null) :
                 JsonSchema.getDefaultSchemaNode();
