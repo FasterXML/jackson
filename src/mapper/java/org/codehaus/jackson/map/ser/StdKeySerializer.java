@@ -25,8 +25,7 @@ public final class StdKeySerializer
     public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
-        String keyStr = (value.getClass() == String.class) ? ((String) value) : value.toString();
-        jgen.writeFieldName(keyStr);
+        jgen.writeFieldName(value.toString());
     }
 
     @Override

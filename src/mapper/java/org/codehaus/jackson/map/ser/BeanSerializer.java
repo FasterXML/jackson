@@ -300,8 +300,6 @@ public class BeanSerializer
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {
-
-        //AnnotationIntrospector ai = provider.getConfig().getAnnotationIntrospector();
         int filteredCount = (_filteredProps == null) ? 0 : _filteredProps.length;
         for (int i = 0, len = _props.length; i < len; ++i) {
             BeanPropertyWriter prop = _props[i];
@@ -318,10 +316,9 @@ public class BeanSerializer
             if (type == null) {
                 type = provider.constructType(prop.getGenericPropertyType());
                 if (!type.isFinal()) {
-                    /* 18-Feb-2010, tatus: But even if it is non-final,
-                     *    we may need to retain some of type information
-                     *    so that we can accurately handle contained
-                     *    types
+                    /* 18-Feb-2010, tatus: But even if it is non-final, we may
+                     *   need to retain some of type information so that we can
+                     *   accurately handle contained types
                      */
                     if (type.isContainerType() || type.containedTypeCount() > 0) {
                         prop.setNonTrivialBaseType(type);
