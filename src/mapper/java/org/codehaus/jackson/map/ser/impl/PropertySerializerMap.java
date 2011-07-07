@@ -48,7 +48,7 @@ public abstract class PropertySerializerMap
         return new SerializerAndMapResult(serializer, newWith(type.getRawClass(), serializer));
     }
 
-    protected abstract PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer);
+    public abstract PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer);
     
     public static PropertySerializerMap emptyMap() {
         return Empty.instance;
@@ -111,7 +111,7 @@ public abstract class PropertySerializerMap
         }        
 
         @Override
-        protected PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer) {
+        public PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer) {
             return new Single(type, serializer);
         }
     }
@@ -142,7 +142,7 @@ public abstract class PropertySerializerMap
         }
 
         @Override
-        protected PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer) {
+        public PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer) {
             return new Double(_type, _serializer, type, serializer);
         }
     }
@@ -174,7 +174,7 @@ public abstract class PropertySerializerMap
         }        
 
         @Override
-        protected PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer) {
+        public PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer) {
             // Ok: let's just create generic one
             TypeAndSerializer[] ts = new TypeAndSerializer[2];
             ts[0] = new TypeAndSerializer(_type1, _serializer1);
@@ -214,7 +214,7 @@ public abstract class PropertySerializerMap
         }
 
         @Override
-        protected PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer)
+        public PropertySerializerMap newWith(Class<?> type, JsonSerializer<Object> serializer)
         {
             int len = _entries.length;
             // Will only grow up to N entries

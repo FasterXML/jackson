@@ -35,6 +35,11 @@ public class UnwrappingBeanSerializer
         // already unwrapping, nothing more to do:
         return this;
     }
+
+    @Override
+    public boolean isUnwrappingSerializer() {
+        return true; // sure is
+    }
     
     /*
     /**********************************************************

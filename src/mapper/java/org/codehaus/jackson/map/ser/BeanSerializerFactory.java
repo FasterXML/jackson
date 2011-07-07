@@ -274,34 +274,31 @@ public class BeanSerializerFactory
                 return (JsonSerializer<Object>) ser;
             }
         }
-        
+
         /* Otherwise, we will check "primary types"; both marker types that
          * indicate specific handling (JsonSerializable), or main types that have
          * precedence over container types
          */
         ser = findSerializerByLookup(type, config, beanDesc, property, staticTyping);
-        if (ser != null) {
-            return (JsonSerializer<Object>) ser;
-        }
-        ser = findSerializerByPrimaryType(type, config, beanDesc, property, staticTyping);
-        if (ser != null) {
-            return (JsonSerializer<Object>) ser;
-        }
-        
-        /* And this is where this class comes in: if type is not a
-         * known "primary JDK type", perhaps it's a bean? We can still
-         * get a null, if we can't find a single suitable bean property.
-         */
-        ser = this.findBeanSerializer(config, type, beanDesc, property);
-        /* Finally: maybe we can still deal with it as an
-         * implementation of some basic JDK interface?
-         */
         if (ser == null) {
-            ser = super.findSerializerByAddonType(config, type, beanDesc, property, staticTyping);
+            ser = findSerializerByPrimaryType(type, config, beanDesc, property, staticTyping);
+            if (ser == null) {
+                /* And this is where this class comes in: if type is not a
+                 * known "primary JDK type", perhaps it's a bean? We can still
+                 * get a null, if we can't find a single suitable bean property.
+                 */
+                ser = findBeanSerializer(config, type, beanDesc, property);
+                /* Finally: maybe we can still deal with it as an
+                 * implementation of some basic JDK interface?
+                 */
+                if (ser == null) {
+                    ser = findSerializerByAddonType(config, type, beanDesc, property, staticTyping);
+                }
+            }
         }
         return (JsonSerializer<Object>) ser;
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public JsonSerializer<Object> createKeySerializer(SerializationConfig config, JavaType type,

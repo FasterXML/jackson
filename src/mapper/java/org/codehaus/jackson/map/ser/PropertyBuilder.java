@@ -5,10 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.TypeSerializer;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 import org.codehaus.jackson.map.introspect.*;
@@ -124,8 +121,16 @@ public class PropertyBuilder
                 break;
             }
         }
-        return new BeanPropertyWriter(am, _beanDesc.getClassAnnotations(), name, declaredType,
+
+        BeanPropertyWriter bpw = new BeanPropertyWriter(am, _beanDesc.getClassAnnotations(), name, declaredType,
                 ser, typeSer, serializationType, m, f, suppressNulls, suppValue);
+        
+        // [JACKSON-132]: Unwrapping
+        Boolean unwrapped = _annotationIntrospector.shouldUnwrapProperty(am);
+        if (unwrapped != null && unwrapped.booleanValue()) {
+            bpw = bpw.unwrappingWriter();
+        }
+        return bpw;
     }
     
     /*

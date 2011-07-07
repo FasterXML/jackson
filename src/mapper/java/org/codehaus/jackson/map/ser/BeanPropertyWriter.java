@@ -8,6 +8,7 @@ import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.ser.impl.PropertySerializerMap;
+import org.codehaus.jackson.map.ser.impl.UnwrappingBeanPropertyWriter;
 import org.codehaus.jackson.map.util.Annotations;
 import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.type.JavaType;
@@ -236,6 +237,16 @@ public class BeanPropertyWriter
     }
 
     /**
+     * Method called create an instance that handles details of unwrapping
+     * contained value.
+     * 
+     * @since 1.9
+     */
+    public BeanPropertyWriter unwrappingWriter() {
+        return new UnwrappingBeanPropertyWriter(this);
+    }
+    
+    /**
      * Method for defining which views to included value of this
      * property in. If left undefined, will always be included;
      * otherwise active view definition will be checked against
@@ -436,7 +447,7 @@ public class BeanPropertyWriter
     /**
      * @since 1.7
      */
-    protected final JsonSerializer<Object> _findAndAddDynamic(PropertySerializerMap map,
+    protected JsonSerializer<Object> _findAndAddDynamic(PropertySerializerMap map,
             Class<?> type, SerializerProvider provider) throws JsonMappingException
     {
         PropertySerializerMap.SerializerAndMapResult result;

@@ -33,6 +33,18 @@ public abstract class JsonSerializer<T>
     public JsonSerializer<T> unwrappingSerializer() {
         return this;
     }
+
+    /**
+     * Accessor for checking whether this serializer is an
+     * "unwrapping" serializer; this is necessary to know since
+     * it may also require caller to suppress writing of the
+     * leading property name.
+     * 
+     * @since 1.9
+     */
+    public boolean isUnwrappingSerializer() {
+        return false;
+    }
     
     /*
     /**********************************************************
