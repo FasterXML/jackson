@@ -16,9 +16,9 @@ public class TestBasicAnnotations
     extends BaseMapTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated helper classes
+    /**********************************************************
      */
 
     /// Class for testing {@link JsonProperty} annotations
@@ -76,14 +76,25 @@ public class TestBasicAnnotations
         public void setZ(int value) { _z = value; }
     }
 
+    // for [JACKSON-132]:
+    static class Unwrapping {
+        public String name;
+        @JsonUnwrapped
+        public Location location;
+    }
+
+    static class Location {
+        public int x;
+        public int y;
+    }
+    
     /*
-    //////////////////////////////////////////////
-    // Other helper classes
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Other helper classes
+    /**********************************************************
      */
 
-    @SuppressWarnings("unused")
-    private final static class IntsDeserializer extends StdDeserializer<int[]>
+    final static class IntsDeserializer extends StdDeserializer<int[]>
     {
         public IntsDeserializer() { super(int[].class); }
         @Override
@@ -93,11 +104,11 @@ public class TestBasicAnnotations
             return new int[] { jp.getIntValue() };
         }
     }
-
+    
     /*
-    //////////////////////////////////////////////
-    // Test methods
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
      */
 
     public void testSimpleSetter() throws Exception
@@ -145,5 +156,18 @@ public class TestBasicAnnotations
         assertEquals(1, result._x);
         assertEquals(2, result._y);
         assertEquals(3, result._z);
+    }
+
+    // [JACKSON-132]: Unwrapping...
+    public void testUnwrapping() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        Unwrapping bean = m.readValue("{\"name\":\"Tatu\",\"x\":1,\"y\":2}",
+                Unwrapping.class);
+        assertEquals("Tatu", bean.name);
+        Location loc = bean.location;
+        assertNotNull(loc);
+        assertEquals(1, loc.x);
+        assertEquals(2, loc.y);
     }
 }
