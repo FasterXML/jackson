@@ -11,14 +11,20 @@ import org.codehaus.jackson.*;
  */
 public abstract class JsonDeserializer<T>
 {
+    /*
+    /**********************************************************
+    /* Main deserialization methods
+    /**********************************************************
+     */
+    
     /**
      * Method that can be called to ask implementation to deserialize
-     * json content into the value type this serializer handles.
+     * JSON content into the value type this serializer handles.
      * Returned instance is to be constructed by method itself.
      *<p>
      * Pre-condition for this method is that the parser points to the
      * first event that is part of value to deserializer (and which 
-     * is never Json 'null' literal, more on this below): for simple
+     * is never JSON 'null' literal, more on this below): for simple
      * types it may be the only value; and for structured types the
      * Object start marker.
      * Post-condition is that the parser will point to the last
@@ -29,7 +35,7 @@ public abstract class JsonDeserializer<T>
      * Note that this method is never called for JSON null literal,
      * and thus deserializers need (and should) not check for it.
      *
-     * @param jp Parsed used for reading Json content
+     * @param jp Parsed used for reading JSON content
      * @param ctxt Context that can be used to access information about
      *   this deserialization activity.
      *
@@ -83,6 +89,33 @@ public abstract class JsonDeserializer<T>
         return (T) typeDeserializer.deserializeTypedFromAny(jp, ctxt);
     }
 
+    /*
+    /**********************************************************
+    /* Fluent factory methods for constructing decorated versions
+    /**********************************************************
+     */
+
+    /**
+     * Method that will return deserializer instance that is able
+     * to handle "unwrapped" value instances
+     * If no unwrapped instance can be constructed, will simply
+     * return this object as-is.
+     *<p>
+     * Default implementation just returns 'this'
+     * indicating that no unwrapped variant exists
+     * 
+     * @since 1.9
+     */
+    public JsonDeserializer<T> unwrappingDeserializer() {
+        return this;
+    }
+    
+    /*
+    /**********************************************************
+    /* Other accessors
+    /**********************************************************
+     */
+    
     /**
      * Method that can be called to determine value to be used for
      * representing null values (values deserialized when Json token

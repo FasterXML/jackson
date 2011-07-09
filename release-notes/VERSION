@@ -1,7 +1,7 @@
 Version: 1.9.0
 
 Release date:
-  xx-Jun-2011
+  xx-Aug-2011
 
 Description:
   Another minor release.
@@ -14,7 +14,8 @@ Description:
    (suggested by Bruce P)
 
   New features:
- 
+
+  * [JACKSON-132] Support "unwrapped" properties, using @JsonUnwrapped. 
   * [JACKSON-254] Add 'SerializationConfig.Feature.WRITE_EMPTY_JSON_ARRAYS',
     which can be used to suppress serialization of empty JSON arrays (unless
     overridden by per-property annotations).

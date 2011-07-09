@@ -6,6 +6,7 @@ import java.lang.annotation.Annotation;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.TypeDeserializer;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedParameter;
@@ -58,6 +59,17 @@ public class CreatorProperty
         _creatorIndex = creatorIndex;
     }
 
+    protected CreatorProperty(CreatorProperty src, JsonDeserializer<Object> deser) {
+        super(src, deser);
+        _annotated = src._annotated;
+        _creatorIndex = src._creatorIndex;
+    }
+
+    @Override
+    public CreatorProperty withValueDeserializer(JsonDeserializer<Object> deser) {
+        return new CreatorProperty(this, deser);
+    }
+    
     /*
     /**********************************************************
     /* BeanProperty impl

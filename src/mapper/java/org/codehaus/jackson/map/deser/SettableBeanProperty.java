@@ -119,6 +119,27 @@ public abstract class SettableBeanProperty
         _propertyIndex = src._propertyIndex;
     }
 
+    /**
+     * @since 1.9
+     */
+    protected SettableBeanProperty(SettableBeanProperty src, JsonDeserializer<Object> deser)
+    {
+        _propName = src._propName;
+        _type = src._type;
+        _contextAnnotations = src._contextAnnotations;
+        _valueTypeDeserializer = src._valueTypeDeserializer;
+        _managedReferenceName = src._managedReferenceName;
+        _propertyIndex = src._propertyIndex;
+
+        _valueDeserializer = deser;
+        if (deser == null) {
+            _nullProvider = null;
+        } else {
+            Object nvl = deser.getNullValue();
+            _nullProvider = (nvl == null) ? null : new NullProvider(_type, nvl);
+        }
+    }
+    
     public void setValueDeserializer(JsonDeserializer<Object> deser)
     {
         if (_valueDeserializer != null) { // sanity check
@@ -128,11 +149,16 @@ public abstract class SettableBeanProperty
         Object nvl = _valueDeserializer.getNullValue();
         _nullProvider = (nvl == null) ? null : new NullProvider(_type, nvl);
     }
-
+    
+    /**
+     * @since 1.9
+     */
+    public abstract SettableBeanProperty withValueDeserializer(JsonDeserializer<Object> deser);
+    
     public void setManagedReferenceName(String n) {
         _managedReferenceName = n;
     }
-
+    
     /**
      * Method used to assign index for property.
      * 
@@ -324,6 +350,17 @@ public abstract class SettableBeanProperty
             _setter = method.getAnnotated();
         }
 
+        protected MethodProperty(MethodProperty src, JsonDeserializer<Object> deser) {
+            super(src, deser);
+            _annotated = src._annotated;
+            _setter = src._setter;
+        }
+
+        @Override
+        public SettableBeanProperty withValueDeserializer(JsonDeserializer<Object> deser) {
+            return new MethodProperty(this, deser);
+        }
+        
         /*
         /**********************************************************
         /* BeanProperty impl
@@ -386,6 +423,17 @@ public abstract class SettableBeanProperty
             _getter = method.getAnnotated();
         }
 
+        protected SetterlessProperty(SetterlessProperty src, JsonDeserializer<Object> deser) {
+            super(src, deser);
+            _annotated = src._annotated;
+            _getter = src._getter;
+        }
+
+        @Override
+        public SetterlessProperty withValueDeserializer(JsonDeserializer<Object> deser) {
+            return new SetterlessProperty(this, deser);
+        }
+        
         /*
         /**********************************************************
         /* BeanProperty impl
@@ -467,6 +515,17 @@ public abstract class SettableBeanProperty
             _field = field.getAnnotated();
         }
 
+        protected FieldProperty(FieldProperty src, JsonDeserializer<Object> deser) {
+            super(src, deser);
+            _annotated = src._annotated;
+            _field = src._field;
+        }
+
+        @Override
+        public FieldProperty withValueDeserializer(JsonDeserializer<Object> deser) {
+            return new FieldProperty(this, deser);
+        }
+        
         /*
         /**********************************************************
         /* BeanProperty impl
@@ -541,6 +600,20 @@ public abstract class SettableBeanProperty
             _isContainer = isContainer;
         }
 
+        protected ManagedReferenceProperty(ManagedReferenceProperty src, JsonDeserializer<Object> deser)
+        {
+            super(src, deser);
+            _referenceName = src._referenceName;
+            _isContainer = src._isContainer;
+            _managedProperty = src._managedProperty;
+            _backProperty = src._backProperty;
+        }
+
+        @Override
+        public ManagedReferenceProperty withValueDeserializer(JsonDeserializer<Object> deser) {
+            return new ManagedReferenceProperty(this, deser);
+        }
+        
         /*
         /**********************************************************
         /* BeanProperty impl
