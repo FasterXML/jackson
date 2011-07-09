@@ -1,7 +1,7 @@
 Version: 1.8.3
 
 Release date:
-  xx-Jul-2011
+  08-Jul-2011
 
 Description:
   A patch release for 1.8.
@@ -14,6 +14,7 @@ Description:
    (reported by Tom L)
   * [JACKSON-597] Make ClassDeserializer support primitive types
    (suggested by Bruce P)
+  (plus all 1.7 fixes up to 1.7.7)
 
 ------------------------------------------------------------------------
 === History: ===
