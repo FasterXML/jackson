@@ -81,11 +81,18 @@ public final class ClassUtil
         return null;
     }
 
-    public static String isLocalType(Class<?> type)
+    public static String isLocalType(Class<?> type) {
+        return isLocalType(type, false);
+    }
+    
+    /**
+     * @since 1.9
+     */
+    public static String isLocalType(Class<?> type, boolean allowNonStatic)
     {
         /* As per [JACKSON-187], GAE seems to throw SecurityExceptions
          * here and there... and GAE itself has a bug, too
-         * (see []). Bah.
+         * (see []). Bah. So we need to catch some wayward exceptions on GAE
          */
         try {
             // one more: method locals, anonymous, are not good:
@@ -97,9 +104,11 @@ public final class ClassUtil
              * easily (theoretically, we could try to check if parent
              * happens to be enclosing... but that gets convoluted)
              */
-            if (type.getEnclosingClass() != null) {
-                if (!Modifier.isStatic(type.getModifiers())) {
-                    return "non-static member class";
+            if (!allowNonStatic) {
+                if (type.getEnclosingClass() != null) {
+                    if (!Modifier.isStatic(type.getModifiers())) {
+                        return "non-static member class";
+                    }
                 }
             }
         }

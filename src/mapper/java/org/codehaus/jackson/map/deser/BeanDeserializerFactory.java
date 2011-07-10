@@ -1313,8 +1313,10 @@ public class BeanDeserializerFactory
         if (ClassUtil.isProxyType(type)) {
             throw new IllegalArgumentException("Can not deserialize Proxy class "+type.getName()+" as a Bean");
         }
-        // also: can't deserialize local (in-method, anonymous, non-static-enclosed) classes
-        typeStr = ClassUtil.isLocalType(type);
+        /* also: can't deserialize some local classes: static are ok; in-method not;
+         * and with [JACKSON-594], other non-static inner classes are ok
+         */
+        typeStr = ClassUtil.isLocalType(type, true);
         if (typeStr != null) {
             throw new IllegalArgumentException("Can not deserialize Class "+type.getName()+" (of type "+typeStr+") as a Bean");
         }
