@@ -26,6 +26,11 @@ Description:
   * [JACKSON-581] Add 'ObjectMapper.readTree(File)'
    (suggested by Pascal G)
 
+  Issues handled by new external projects:
+
+  * [JACKSON-51]: Implement Just-In-Time code generation for serialization
+    created "jackson-module-afterburner" at [https://github.com/FasterXML/jackson-module-afterburner]
+
   Potential backwards compatibility issues (compared to 1.8.x):
 
   * Removed 'org.codehaus.jackson.annotate.JsonClass, JsonKeyClass and
