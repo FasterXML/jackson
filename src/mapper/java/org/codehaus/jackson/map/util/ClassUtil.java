@@ -81,6 +81,10 @@ public final class ClassUtil
         return null;
     }
 
+    /**
+     * @deprecated since 1.9, use variant that takes second argument
+     */
+    @Deprecated
     public static String isLocalType(Class<?> type) {
         return isLocalType(type, false);
     }
@@ -117,6 +121,28 @@ public final class ClassUtil
         return null;
     }
 
+    /**
+     * Method for finding enclosing class for non-static inner classes
+     * 
+     * @since 1.9
+     */
+    public static Class<?> getOuterClass(Class<?> type)
+    {
+        // as above, GAE has some issues...
+        try {
+            // one more: method locals, anonymous, are not good:
+            if (type.getEnclosingMethod() != null) {
+                return null;
+            }
+            if (!Modifier.isStatic(type.getModifiers())) {
+                return type.getEnclosingClass();
+            }
+        } catch (SecurityException e) { }
+        catch (NullPointerException e) { }
+        return null;
+    }
+    
+    
     /**
      * Helper method used to weed out dynamic Proxy types; types that do
      * not expose concrete method API that we could use to figure out

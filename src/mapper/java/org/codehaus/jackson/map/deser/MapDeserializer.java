@@ -190,7 +190,7 @@ public class MapDeserializer
         if (_propertyBasedCreator != null) {
             for (CreatorProperty prop : _propertyBasedCreator.getCreatorProperties()) {
                 if (!prop.hasValueDeserializer()) {
-                    prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
+                    _propertyBasedCreator.assignDeserializer(prop, findDeserializer(config, provider, prop.getType(), prop));
                 }
             }
         }

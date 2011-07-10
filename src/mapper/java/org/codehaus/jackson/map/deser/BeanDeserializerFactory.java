@@ -967,9 +967,9 @@ public class BeanDeserializerFactory
         CreatorProperty prop = new CreatorProperty(name, type, typeDeser,
                 beanDesc.getClassAnnotations(), param, index);
         if (deser != null) {
-            prop.setValueDeserializer(deser);
+            prop = prop.withValueDeserializer(deser);
         }
-       return prop;
+        return prop;
     }
     
     /**
@@ -1164,15 +1164,13 @@ public class BeanDeserializerFactory
          */
         JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, setter, property);
         if (deser != null) {
-            SettableAnyProperty prop = new SettableAnyProperty(property, setter, type);
-            prop.setValueDeserializer(deser);
-            return prop;
+            return new SettableAnyProperty(property, setter, type, deser);
         }
         /* Otherwise, method may specify more specific (sub-)class for
          * value (no need to check if explicit deser was specified):
          */
         type = modifyTypeByAnnotation(config, setter, type, property.getName());
-        return new SettableAnyProperty(property, setter, type);
+        return new SettableAnyProperty(property, setter, type, null);
     }
 
     /**
@@ -1195,7 +1193,7 @@ public class BeanDeserializerFactory
             setter.fixAccess();
         }
 
-        // note: this works since we know there's exactly one arg for methods
+        // note: this works since we know there's exactly one argument for methods
         JavaType t0 = beanDesc.bindingsForBeanType().resolveType(setter.getParameterType(0));
         BeanProperty.Std property = new BeanProperty.Std(name, t0, beanDesc.getClassAnnotations(), setter);
         JavaType type = resolveType(config, beanDesc, t0, setter, property);
@@ -1213,7 +1211,7 @@ public class BeanDeserializerFactory
         SettableBeanProperty prop = new SettableBeanProperty.MethodProperty(name, type, typeDeser,
                 beanDesc.getClassAnnotations(), setter);
         if (propDeser != null) {
-            prop.setValueDeserializer(propDeser);
+            prop = prop.withValueDeserializer(propDeser);
         }
         // [JACKSON-235]: need to retain name of managed forward references:
         AnnotationIntrospector.ReferenceProperty ref = config.getAnnotationIntrospector().findReferenceType(setter);
@@ -1247,7 +1245,7 @@ public class BeanDeserializerFactory
         SettableBeanProperty prop = new SettableBeanProperty.FieldProperty(name, type, typeDeser,
                 beanDesc.getClassAnnotations(), field);
         if (propDeser != null) {
-            prop.setValueDeserializer(propDeser);
+            prop = prop.withValueDeserializer(propDeser);
         }
         // [JACKSON-235]: need to retain name of managed forward references:
         AnnotationIntrospector.ReferenceProperty ref = config.getAnnotationIntrospector().findReferenceType(field);
@@ -1285,7 +1283,7 @@ public class BeanDeserializerFactory
         SettableBeanProperty prop = new SettableBeanProperty.SetterlessProperty(name, type, typeDeser,
                 beanDesc.getClassAnnotations(), getter);
         if (propDeser != null) {
-            prop.setValueDeserializer(propDeser);
+            prop = prop.withValueDeserializer(propDeser);
         }
         return prop;
     }

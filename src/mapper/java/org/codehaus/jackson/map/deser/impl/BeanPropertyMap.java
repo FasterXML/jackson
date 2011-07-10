@@ -125,7 +125,9 @@ public final class BeanPropertyMap
         if (!found) {
             throw new NoSuchElementException("No entry '"+property+"' found, can't replace");
         }
-        // So let's attach replacement in front:
+        /* So let's attach replacement in front: useful also because
+         * it allows replacement even when iterating over entries
+         */
         _buckets[index] = new Bucket(tail, name, property);
     }
     

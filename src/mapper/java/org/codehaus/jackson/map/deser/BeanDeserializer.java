@@ -108,7 +108,7 @@ public class BeanDeserializer
      * mapped to regular setters. If setter is not null, it will be
      * called once for each such property.
      */
-    final protected SettableAnyProperty _anySetter;
+    protected SettableAnyProperty _anySetter;
 
     /**
      * In addition to properties that are set, we will also keep
@@ -285,8 +285,8 @@ public class BeanDeserializer
 
     /**
      * Method called to finalize setup of this deserializer,
-     * after deserializer itself has been registered. This
-     * is needed to handle recursive and transitive dependencies.
+     * after deserializer itself has been registered.
+     * This is needed to handle recursive and transitive dependencies.
      */
     public void resolve(DeserializationConfig config, DeserializerProvider provider)
         throws JsonMappingException
@@ -294,16 +294,18 @@ public class BeanDeserializer
         UnwrappedPropertyHandler unwrapper = null;
         Iterator<SettableBeanProperty> it = _beanProperties.allProperties();
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
+
         while (it.hasNext()) {
-            SettableBeanProperty prop = it.next();
+            SettableBeanProperty origProp = it.next();
+            SettableBeanProperty prop = origProp;
             // May already have deserializer from annotations, if so, skip:
             if (!prop.hasValueDeserializer()) {
-                prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
+                prop = prop.withValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
             }
             // and for [JACKSON-235] need to finally link managed references with matching back references
             String refName = prop.getManagedReferenceName();
             if (refName != null) {
-                JsonDeserializer<?> valueDeser = prop._valueDeserializer;
+                JsonDeserializer<?> valueDeser = prop.getValueDeserializer();
                 SettableBeanProperty backProp = null;
                 boolean isContainer = false;
                 if (valueDeser instanceof BeanDeserializer) {
@@ -336,8 +338,8 @@ public class BeanDeserializer
                             +backRefType.getRawClass().getName()+") not compatible with managed type ("
                             +referredType.getRawClass().getName()+")");
                 }
-                _beanProperties.replace(new SettableBeanProperty.ManagedReferenceProperty(refName, prop, backProp,
-                        _forClass.getAnnotations(), isContainer));
+                prop = new SettableBeanProperty.ManagedReferenceProperty(refName, prop, backProp,
+                        _forClass.getAnnotations(), isContainer);
             } else { // only allow 'unwrapped' handling, except for not for managed refs:
                 // [JACKSON-132]: support unwrapped values (via @JsonUnwrapped)
                 AnnotatedMember am = prop.getMember();
@@ -347,7 +349,6 @@ public class BeanDeserializer
                     if (unwrapping != orig && unwrapping != null) {
                         // might be cleaner to create new instance; but difficult to do reliably, so:
                         prop = prop.withValueDeserializer(unwrapping);
-                        _beanProperties.replace(prop);
                         if (unwrapper == null) {
                             unwrapper = new UnwrappedPropertyHandler();
                         }
@@ -355,11 +356,14 @@ public class BeanDeserializer
                     }
                 }
             }
+            if (prop != origProp) {
+                _beanProperties.replace(prop);
+            }
         }
 
         // Finally, "any setter" may also need to be resolved now
         if (_anySetter != null && !_anySetter.hasValueDeserializer()) {
-            _anySetter.setValueDeserializer(findDeserializer(config, provider, _anySetter.getType(), _anySetter.getProperty()));
+            _anySetter = _anySetter.withValueDeserializer(findDeserializer(config, provider, _anySetter.getType(), _anySetter.getProperty()));
         }
 
         // as well as delegate-based constructor:
@@ -381,7 +385,8 @@ public class BeanDeserializer
         if (_propertyBasedCreator != null) {
             for (CreatorProperty prop : _propertyBasedCreator.getCreatorProperties()) {
                 if (!prop.hasValueDeserializer()) {
-                    prop.setValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
+                    _propertyBasedCreator.assignDeserializer(prop,
+                           findDeserializer(config, provider, prop.getType(), prop));
                 }
             }
         }

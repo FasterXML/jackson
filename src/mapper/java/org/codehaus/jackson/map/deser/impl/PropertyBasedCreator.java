@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.deser.CreatorProperty;
 import org.codehaus.jackson.map.deser.ValueInstantiator;
 import org.codehaus.jackson.map.util.ClassUtil;
@@ -61,6 +62,11 @@ public final class PropertyBasedCreator
     
     public CreatorProperty findCreatorProperty(String name) {
         return _properties.get(name);
+    }
+
+    public void assignDeserializer(CreatorProperty prop, JsonDeserializer<Object> deser) {
+        prop = prop.withValueDeserializer(deser);
+        _properties.put(prop.getName(), prop);
     }
     
     /**

@@ -103,9 +103,9 @@ public abstract class SettableBeanProperty
     }
 
     /**
-     * Copy-constructor
+     * Basic copy-constructor for sub-classes to use.
      * 
-     * @since 1.8.3
+     * @since 1.9
      */
     protected SettableBeanProperty(SettableBeanProperty src)
     {
@@ -120,6 +120,8 @@ public abstract class SettableBeanProperty
     }
 
     /**
+     * Copy-with-deserializer-change constructor for sub-classes to use.
+     * 
      * @since 1.9
      */
     protected SettableBeanProperty(SettableBeanProperty src, JsonDeserializer<Object> deser)
@@ -139,7 +141,8 @@ public abstract class SettableBeanProperty
             _nullProvider = (nvl == null) ? null : new NullProvider(_type, nvl);
         }
     }
-    
+
+    @Deprecated
     public void setValueDeserializer(JsonDeserializer<Object> deser)
     {
         if (_valueDeserializer != null) { // sanity check

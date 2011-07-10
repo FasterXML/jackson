@@ -44,13 +44,35 @@ public final class SettableAnyProperty
     /**********************************************************
      */
     
-    public SettableAnyProperty(BeanProperty property, AnnotatedMethod setter, JavaType type)
-    {
-        _property = property;
-        _type = type;
-        _setter = setter.getAnnotated();
+    /**
+     * @deprecated Since 1.9 - use variant that takes deserializer
+     */
+    @Deprecated
+    public SettableAnyProperty(BeanProperty property, AnnotatedMethod setter, JavaType type) {
+        this(property, setter, type, null);
     }
 
+    public SettableAnyProperty(BeanProperty property, AnnotatedMethod setter, JavaType type,
+            JsonDeserializer<Object> valueDeser) {
+        this(property, setter.getAnnotated(), type, valueDeser);
+    }
+
+    public SettableAnyProperty(BeanProperty property, Method rawSetter, JavaType type,
+            JsonDeserializer<Object> valueDeser) {
+        _property = property;
+        _type = type;
+        _setter = rawSetter;
+        _valueDeserializer = valueDeser;
+    }
+
+    public SettableAnyProperty withValueDeserializer(JsonDeserializer<Object> deser) {
+        return new SettableAnyProperty(_property, _setter, _type, deser);
+    }
+    
+    /**
+     * @deprecated Since 1.9 - construct with deserializer
+     */
+    @Deprecated
     public void setValueDeserializer(JsonDeserializer<Object> deser)
     {
         if (_valueDeserializer != null) { // sanity check

@@ -88,8 +88,8 @@ public class TestClassUtil
         assertEquals("primitive", ClassUtil.canBeABeanType(Integer.TYPE));
         assertNull(ClassUtil.canBeABeanType(Integer.class));
 
-        assertEquals("non-static member class", ClassUtil.isLocalType(InnerNonStatic.class));
-        assertNull(ClassUtil.isLocalType(Integer.class));
+        assertEquals("non-static member class", ClassUtil.isLocalType(InnerNonStatic.class, false));
+        assertNull(ClassUtil.isLocalType(Integer.class, false));
     }
 
     public void testExceptionHelpers()
