@@ -12,6 +12,7 @@ import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedWithParams;
 import org.codehaus.jackson.map.type.ClassKey;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.TokenBuffer;
 
@@ -276,6 +277,41 @@ public class BeanDeserializer
     public int getPropertyCount() { 
         return _beanProperties.size();
     }
+
+    public final Class<?> getBeanClass() { return _beanType.getRawClass(); }
+
+    @Override public JavaType getValueType() { return _beanType; }
+
+    /**
+     * 
+     * @since 1.6
+     */
+    public Iterator<SettableBeanProperty> properties()
+    {
+        if (_beanProperties == null) { // since 1.7
+            throw new IllegalStateException("Can only call before BeanDeserializer has been resolved");
+        }
+        return _beanProperties.allProperties();
+    }
+
+    /**
+     * Method needed by {@link BeanDeserializerFactory} to properly link
+     * managed- and back-reference pairs.
+     */
+    public SettableBeanProperty findBackReference(String logicalName)
+    {
+        if (_backRefs == null) {
+            return null;
+        }
+        return _backRefs.get(logicalName);
+    }
+
+    /**
+     * @since 1.9
+     */
+    public ValueInstantiator getValueInstantiator() {
+        return _valueInstantiator;
+    }
     
     /*
     /**********************************************************
@@ -291,10 +327,9 @@ public class BeanDeserializer
     public void resolve(DeserializationConfig config, DeserializerProvider provider)
         throws JsonMappingException
     {
-        UnwrappedPropertyHandler unwrapper = null;
         Iterator<SettableBeanProperty> it = _beanProperties.allProperties();
-        AnnotationIntrospector intr = config.getAnnotationIntrospector();
-
+        UnwrappedPropertyHandler unwrapped = null;
+        
         while (it.hasNext()) {
             SettableBeanProperty origProp = it.next();
             SettableBeanProperty prop = origProp;
@@ -302,60 +337,20 @@ public class BeanDeserializer
             if (!prop.hasValueDeserializer()) {
                 prop = prop.withValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
             }
-            // and for [JACKSON-235] need to finally link managed references with matching back references
-            String refName = prop.getManagedReferenceName();
-            if (refName != null) {
-                JsonDeserializer<?> valueDeser = prop.getValueDeserializer();
-                SettableBeanProperty backProp = null;
-                boolean isContainer = false;
-                if (valueDeser instanceof BeanDeserializer) {
-                    backProp = ((BeanDeserializer) valueDeser).findBackReference(refName);
-                } else if (valueDeser instanceof ContainerDeserializer<?>) {
-                    JsonDeserializer<?> contentDeser = ((ContainerDeserializer<?>) valueDeser).getContentDeserializer();
-                    if (!(contentDeser instanceof BeanDeserializer)) {
-                        throw new IllegalArgumentException("Can not handle managed/back reference '"+refName
-                                +"': value deserializer is of type ContainerDeserializer, but content type is not handled by a BeanDeserializer "
-                                +" (instead it's of type "+contentDeser.getClass().getName()+")");
-                    }
-                    backProp = ((BeanDeserializer) contentDeser).findBackReference(refName);
-                    isContainer = true;
-                } else if (valueDeser instanceof AbstractDeserializer) { // [JACKSON-368]: not easy to fix, alas  
-                    throw new IllegalArgumentException("Can not handle managed/back reference for abstract types (property "+_beanType.getRawClass().getName()+"."+prop.getName()+")");
-                } else {
-                    throw new IllegalArgumentException("Can not handle managed/back reference '"+refName
-                            +"': type for value deserializer is not BeanDeserializer or ContainerDeserializer, but "
-                            +valueDeser.getClass().getName());
+            // [JACKSON-235]: need to link managed references with matching back references
+            prop = handleManagedReferenceProperty(config, prop);
+            // [JACKSON-132]: support unwrapped values (via @JsonUnwrapped)
+            SettableBeanProperty u = handleUnwrappedProperty(config, prop);
+            if (u != null) {
+                prop = u;
+                if (unwrapped == null) {
+                    unwrapped = new UnwrappedPropertyHandler();
                 }
-                if (backProp == null) {
-                    throw new IllegalArgumentException("Can not handle managed/back reference '"+refName+"': no back reference property found from type "
-                            +prop.getType());
-                }
-                // also: verify that type is compatible
-                JavaType referredType = _beanType;
-                JavaType backRefType = backProp.getType();
-                if (!backRefType.getRawClass().isAssignableFrom(referredType.getRawClass())) {
-                    throw new IllegalArgumentException("Can not handle managed/back reference '"+refName+"': back reference type ("
-                            +backRefType.getRawClass().getName()+") not compatible with managed type ("
-                            +referredType.getRawClass().getName()+")");
-                }
-                prop = new SettableBeanProperty.ManagedReferenceProperty(refName, prop, backProp,
-                        _forClass.getAnnotations(), isContainer);
-            } else { // only allow 'unwrapped' handling, except for not for managed refs:
-                // [JACKSON-132]: support unwrapped values (via @JsonUnwrapped)
-                AnnotatedMember am = prop.getMember();
-                if (am != null && intr.shouldUnwrapProperty(am) == Boolean.TRUE) {
-                    JsonDeserializer<Object> orig = prop.getValueDeserializer();
-                    JsonDeserializer<Object> unwrapping = orig.unwrappingDeserializer();
-                    if (unwrapping != orig && unwrapping != null) {
-                        // might be cleaner to create new instance; but difficult to do reliably, so:
-                        prop = prop.withValueDeserializer(unwrapping);
-                        if (unwrapper == null) {
-                            unwrapper = new UnwrappedPropertyHandler();
-                        }
-                        unwrapper.addProperty(prop);
-                    }
-                }
+                unwrapped.addProperty(prop);
             }
+            // [JACKSON-594]: non-static inner classes too:
+            prop = handleInnerClassValuedProperty(config, prop);
+            
             if (prop != origProp) {
                 _beanProperties.replace(prop);
             }
@@ -390,12 +385,106 @@ public class BeanDeserializer
                 }
             }
         }
-        _unwrappedPropertyHandler = unwrapper;
-        if (unwrapper != null) { // we consider this non-standard, to offline handling
+        _unwrappedPropertyHandler = unwrapped;
+        if (unwrapped != null) { // we consider this non-standard, to offline handling
             _nonStandardCreation = true;
         }
     }
+
+    protected SettableBeanProperty handleManagedReferenceProperty(DeserializationConfig config,
+            SettableBeanProperty prop)
+    {
+        String refName = prop.getManagedReferenceName();
+        if (refName == null) {
+            return prop;
+        }
+        JsonDeserializer<?> valueDeser = prop.getValueDeserializer();
+        SettableBeanProperty backProp = null;
+        boolean isContainer = false;
+        if (valueDeser instanceof BeanDeserializer) {
+            backProp = ((BeanDeserializer) valueDeser).findBackReference(refName);
+        } else if (valueDeser instanceof ContainerDeserializer<?>) {
+            JsonDeserializer<?> contentDeser = ((ContainerDeserializer<?>) valueDeser).getContentDeserializer();
+            if (!(contentDeser instanceof BeanDeserializer)) {
+                throw new IllegalArgumentException("Can not handle managed/back reference '"+refName
+                        +"': value deserializer is of type ContainerDeserializer, but content type is not handled by a BeanDeserializer "
+                        +" (instead it's of type "+contentDeser.getClass().getName()+")");
+            }
+            backProp = ((BeanDeserializer) contentDeser).findBackReference(refName);
+            isContainer = true;
+        } else if (valueDeser instanceof AbstractDeserializer) { // [JACKSON-368]: not easy to fix, alas  
+            throw new IllegalArgumentException("Can not handle managed/back reference for abstract types (property "+_beanType.getRawClass().getName()+"."+prop.getName()+")");
+        } else {
+            throw new IllegalArgumentException("Can not handle managed/back reference '"+refName
+                    +"': type for value deserializer is not BeanDeserializer or ContainerDeserializer, but "
+                    +valueDeser.getClass().getName());
+        }
+        if (backProp == null) {
+            throw new IllegalArgumentException("Can not handle managed/back reference '"+refName+"': no back reference property found from type "
+                    +prop.getType());
+        }
+        // also: verify that type is compatible
+        JavaType referredType = _beanType;
+        JavaType backRefType = backProp.getType();
+        if (!backRefType.getRawClass().isAssignableFrom(referredType.getRawClass())) {
+            throw new IllegalArgumentException("Can not handle managed/back reference '"+refName+"': back reference type ("
+                    +backRefType.getRawClass().getName()+") not compatible with managed type ("
+                    +referredType.getRawClass().getName()+")");
+        }
+        return new SettableBeanProperty.ManagedReferenceProperty(refName, prop, backProp,
+                _forClass.getAnnotations(), isContainer);
+    }
+
+    protected SettableBeanProperty handleUnwrappedProperty(DeserializationConfig config,
+            SettableBeanProperty prop)
+    {
+        AnnotatedMember am = prop.getMember();
+        if (am != null && config.getAnnotationIntrospector().shouldUnwrapProperty(am) == Boolean.TRUE) {
+            JsonDeserializer<Object> orig = prop.getValueDeserializer();
+            JsonDeserializer<Object> unwrapping = orig.unwrappingDeserializer();
+            if (unwrapping != orig && unwrapping != null) {
+                // might be cleaner to create new instance; but difficult to do reliably, so:
+                return prop.withValueDeserializer(unwrapping);
+            }
+        }
+        return null;
+    }
     
+    /**
+     * Helper method that will handle gruesome details of dealing with properties
+     * that have non-static inner class as value...
+     */
+    protected SettableBeanProperty handleInnerClassValuedProperty(DeserializationConfig config,
+            SettableBeanProperty prop)
+    {            
+        /* Should we encounter a property that has non-static inner-class
+         * as value, we need to add some more magic to find the "hidden" constructor...
+         */
+        JsonDeserializer<Object> deser = prop.getValueDeserializer();
+        // ideally wouldn't rely on it being BeanDeserializer; but for now it'll have to do
+        if (deser instanceof BeanDeserializer) {
+            BeanDeserializer bd = (BeanDeserializer) deser;
+            ValueInstantiator vi = bd.getValueInstantiator();
+            if (!vi.canCreateUsingDefault()) { // no default constructor
+                Class<?> valueClass = prop.getType().getRawClass();
+                Class<?> enclosing = ClassUtil.getOuterClass(valueClass);
+                // and is inner class of the bean class...
+                if (enclosing != null && enclosing == _beanType.getRawClass()) {
+                    for (Constructor<?> ctor : valueClass.getConstructors()) {
+                        Class<?>[] paramTypes = ctor.getParameterTypes();
+                        if (paramTypes.length == 1 && paramTypes[0] == enclosing) {
+                            if (config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
+                                ClassUtil.checkAndFixAccess(ctor);
+                            }
+                            return new SettableBeanProperty.InnerClassProperty(prop, ctor);
+                        }
+                    }
+                }
+            }
+        }
+        return prop;
+    }
+
     /*
     /**********************************************************
     /* JsonDeserializer implementation
@@ -492,47 +581,6 @@ public class BeanDeserializer
     {
         // In future could check current token... for now this should be enough:
         return typeDeserializer.deserializeTypedFromObject(jp, ctxt);
-    }
-    
-    /*
-    /**********************************************************
-    /* Other public accessors
-    /**********************************************************
-     */
-
-    public final Class<?> getBeanClass() { return _beanType.getRawClass(); }
-
-    @Override public JavaType getValueType() { return _beanType; }
-
-    /**
-     * 
-     * @since 1.6
-     */
-    public Iterator<SettableBeanProperty> properties()
-    {
-        if (_beanProperties == null) { // since 1.7
-            throw new IllegalStateException("Can only call before BeanDeserializer has been resolved");
-        }
-        return _beanProperties.allProperties();
-    }
-
-    /**
-     * Method needed by {@link BeanDeserializerFactory} to properly link
-     * managed- and back-reference pairs.
-     */
-    public SettableBeanProperty findBackReference(String logicalName)
-    {
-        if (_backRefs == null) {
-            return null;
-        }
-        return _backRefs.get(logicalName);
-    }
-
-    /**
-     * @since 1.9
-     */
-    public ValueInstantiator getValueInstantiator() {
-        return _valueInstantiator;
     }
     
     /*

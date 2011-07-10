@@ -10,6 +10,8 @@ Description:
 
   * [JACKSON-593] Add ObjectMapper.readTree(byte[]), (URL) variants
    (suggested by Bruce P)
+  * [JACKSON-594] Allow deserializing non-static inner class valued properties
+   (suggested by Bruce P)
   * [JACKSON-599] Expose Settability Of SimpleModule Serializers/Deserializers
    (suggested by Bruce P)
 

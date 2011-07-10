@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.util.Annotations;
+import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.InternCache;
 
@@ -214,7 +215,7 @@ public abstract class SettableBeanProperty
     public boolean hasValueDeserializer() { return (_valueDeserializer != null); }
 
     /**
-     * @since 1.8.3
+     * @since 1.9
      */
     public JsonDeserializer<Object> getValueDeserializer() { return _valueDeserializer; }
 
@@ -326,7 +327,7 @@ public abstract class SettableBeanProperty
 
     /*
     /**********************************************************
-    /* Impl classes
+    /* Implementation classes
     /**********************************************************
      */
 
@@ -683,6 +684,95 @@ public abstract class SettableBeanProperty
         }
     }
 
+    /**
+     * This sub-class is used to handle special case of value being a
+     * non-static inner class. If so, we will have to use a special
+     * alternative for default constructor; but otherwise can delegate
+     * to regular implementation.
+     * 
+     * @since 1.9
+     */
+    public final static class InnerClassProperty
+        extends SettableBeanProperty
+    {
+        /**
+         * Actual property that we use after value construction.
+         */
+        protected final SettableBeanProperty _delegate;
+
+        /**
+         * Single-arg constructor we use for value instantiation.
+         */
+        protected final Constructor<?> _creator;
+        
+        public InnerClassProperty(SettableBeanProperty delegate,
+                Constructor<?> ctor)
+        {
+            super(delegate);
+            _delegate = delegate;
+            _creator = ctor;
+        }
+
+        protected InnerClassProperty(InnerClassProperty src, JsonDeserializer<Object> deser)
+        {
+            super(src, deser);
+            _delegate = src._delegate.withValueDeserializer(deser);
+            _creator = src._creator;
+        }
+
+        @Override
+        public InnerClassProperty withValueDeserializer(JsonDeserializer<Object> deser) {
+            return new InnerClassProperty(this, deser);
+        }
+        
+        // // // BeanProperty impl
+        
+        @Override
+        public <A extends Annotation> A getAnnotation(Class<A> acls) {
+            return _delegate.getAnnotation(acls);
+        }
+
+        @Override public AnnotatedMember getMember() {  return _delegate.getMember(); }
+
+        // // //  Overridden methods
+
+        @Override
+        public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,
+                Object bean)
+            throws IOException, JsonProcessingException
+        {
+            // mostly copied from super class impl:
+            JsonToken t = jp.getCurrentToken();
+            Object value;
+            if (t == JsonToken.VALUE_NULL) {
+                value = (_nullProvider == null) ? null : _nullProvider.nullValue(ctxt);
+            } else if (_valueTypeDeserializer != null) {
+                value = _valueDeserializer.deserializeWithType(jp, ctxt, _valueTypeDeserializer);
+            } else  { // the usual case
+                try {
+                    value = _creator.newInstance(bean);
+                } catch (Exception e) {
+                    ClassUtil.unwrapAndThrowAsIAE(e, "Failed to instantiate class "+_creator.getDeclaringClass().getName()+", problem: "+e.getMessage());
+                    value = null;
+                }
+                _valueDeserializer.deserialize(jp, ctxt, value);
+            }
+            set(bean, value);
+        }
+
+        @Override
+        public final void set(Object instance, Object value) throws IOException
+        {
+            _delegate.set(instance, value);
+        }
+    }
+    
+    /*
+    /**********************************************************
+    /* Other helper classes
+    /**********************************************************
+     */
+    
     /**
      * To support [JACKSON-420] we need bit more indirection; this is used to produce
      * artificial failure for primitives that don't accept JSON null as value.
