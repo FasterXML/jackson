@@ -1,10 +1,20 @@
-Version: 1.8.3
+Version: 1.8.4
 
 Release date:
-  08-Jul-2011
+  xx-Aug-2011
 
 Description:
   A patch release for 1.8.
+
+  Fixes:
+
+  * [JACKSON-605] Handle deserialization of Class<T> properties
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.8.3 [08-Jul-2011]
 
   Fixes:
 
@@ -15,10 +25,6 @@ Description:
   * [JACKSON-597] Make ClassDeserializer support primitive types
    (suggested by Bruce P)
   (plus all 1.7 fixes up to 1.7.7)
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.8.2 [15-Jun-2011]
 
