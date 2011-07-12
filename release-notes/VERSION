@@ -6,6 +6,11 @@ Release date:
 Description:
   Another minor release.
 
+  Fixes:
+  
+  * [JACKSON-605] Handle deserialization of typed Class properties correctly
+   (reported by Bruce P)
+
   Improvements:
 
   * [JACKSON-593] Add ObjectMapper.readTree(byte[]), (URL) variants

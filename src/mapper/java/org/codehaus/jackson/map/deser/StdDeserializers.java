@@ -4,14 +4,18 @@ import java.util.*;
 
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.type.*;
-import org.codehaus.jackson.type.JavaType;
 
 /**
- * Helper class used to contain simple/well-known deserializers for core JDK types
+ * Helper class used to contain simple/well-known deserializers for core JDK types.
+ *<p>
+ * Note: as of Jackson 1.9, we use type-erased class for registering, since
+ * some types may come either as type-erased or typed (for example,
+ * <code>java.lang.Class</code>).
  */
 class StdDeserializers
 {
-    final HashMap<JavaType, JsonDeserializer<Object>> _deserializers = new HashMap<JavaType, JsonDeserializer<Object>>();
+    final HashMap<ClassKey, JsonDeserializer<Object>> _deserializers
+        = new HashMap<ClassKey, JsonDeserializer<Object>>();
 
     private StdDeserializers()
     {
@@ -80,7 +84,7 @@ class StdDeserializers
     /**
      * Public accessor to deserializers for core types.
      */
-    public static HashMap<JavaType, JsonDeserializer<Object>> constructAll()
+    public static HashMap<ClassKey, JsonDeserializer<Object>> constructAll()
     {
         return new StdDeserializers()._deserializers;
     }
@@ -96,6 +100,6 @@ class StdDeserializers
         @SuppressWarnings("unchecked")
         JsonDeserializer<Object> deser = (JsonDeserializer<Object>) stdDeser;
         // Not super clean, but default TypeFactory does work here:
-        _deserializers.put(TypeFactory.defaultInstance().constructType(valueClass), deser);
+        _deserializers.put(new ClassKey(valueClass), deser);
     }
 }

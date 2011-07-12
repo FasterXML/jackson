@@ -22,6 +22,24 @@ public class TestJdkTypes
         public float floatValue = 0.25f;
         public double doubleValue = -1.0;
     }
+
+    static class ParamClassBean
+    {
+         public String name = "bar";
+         public Class<String> clazz ;
+
+         public ParamClassBean() { }
+         public ParamClassBean(String name) {
+             this.name = name;
+             clazz = String.class;
+         }
+    }    
+
+    /*
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
+     */
     
     /**
      * Related to issue [JACKSON-155].
@@ -189,5 +207,16 @@ public class TestJdkTypes
         assertSame(Float.TYPE, mapper.readValue(quote("float"), Class.class));
         assertSame(Double.TYPE, mapper.readValue(quote("double"), Class.class));
         assertSame(Void.TYPE, mapper.readValue(quote("void"), Class.class));
+    }
+
+    // [JACKSON-605]
+    public void testClassWithParams() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(new ParamClassBean("Foobar"));
+
+        ParamClassBean result = mapper.readValue(json, ParamClassBean.class);
+        assertEquals("Foobar", result.name);
+        assertSame(String.class, result.clazz);
     }
 }

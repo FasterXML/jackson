@@ -32,7 +32,7 @@ public abstract class BasicDeserializerFactory
      * (that is things other than Collection, Map or array)
      * types. These need not go through factory.
      */
-    final static HashMap<JavaType, JsonDeserializer<Object>> _simpleDeserializers = StdDeserializers.constructAll();
+    final static HashMap<ClassKey, JsonDeserializer<Object>> _simpleDeserializers = StdDeserializers.constructAll();
     
     /* We do some defaulting for abstract Map classes and
      * interfaces, to avoid having to use exact types or annotations in
@@ -518,14 +518,14 @@ public abstract class BasicDeserializerFactory
             DeserializerProvider p, JavaType type, BeanProperty property)
         throws JsonMappingException
     {
+        Class<?> cls = type.getRawClass();
         // note: we do NOT check for custom deserializers here; that's for sub-class to do
-        JsonDeserializer<Object> deser = _simpleDeserializers.get(type);
+        JsonDeserializer<Object> deser = _simpleDeserializers.get(new ClassKey(cls));
         if (deser != null) {
             return deser;
         }
         
         // [JACKSON-283]: AtomicReference is a rather special type...
-        Class<?> cls = type.getRawClass();
         if (AtomicReference.class.isAssignableFrom(cls)) {
             // Must find parameterization
             TypeFactory tf = config.getTypeFactory();
