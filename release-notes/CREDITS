@@ -689,4 +689,6 @@ Ruben Errejon Garcia:
    [1.8.3]
   * Suggested [JACKSON-599] Expose Settability Of SimpleModule Serializers/Deserializers
    [1.9.0]
+  * Suggested [JACKSON-612] Add 'readValues()' methods to JsonParser, ObjectCodec
+   [1.9.0]
    

@@ -18,6 +18,7 @@ package org.codehaus.jackson;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Iterator;
 
 import org.codehaus.jackson.type.TypeReference;
 
@@ -1259,6 +1260,38 @@ public abstract class JsonParser
         return (T) codec.readValue(this, valueTypeRef);
     }
 
+    /**
+     * Method for reading sequence of Objects from parser stream,
+     * all with same specified value type.
+     * 
+     * @since 1.9
+     */
+    public <T> Iterator<T> readValuesAs(Class<T> valueType)
+        throws IOException, JsonProcessingException
+    {
+        ObjectCodec codec = getCodec();
+        if (codec == null) {
+            throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize JSON into Java objects");
+        }
+        return codec.readValues(this, valueType);
+    }
+
+    /**
+     * Method for reading sequence of Objects from parser stream,
+     * all with same specified value type.
+     * 
+     * @since 1.9
+     */
+    public <T> Iterator<T> readValuesAs(TypeReference<?> valueTypeRef)
+        throws IOException, JsonProcessingException
+    {
+        ObjectCodec codec = getCodec();
+        if (codec == null) {
+            throw new IllegalStateException("No ObjectCodec defined for the parser, can not deserialize JSON into Java objects");
+        }
+        return codec.readValues(this, valueTypeRef);
+    }
+    
     /**
      * Method to deserialize JSON content into equivalent "tree model",
      * represented by root {@link JsonNode} of resulting model.

@@ -1,6 +1,7 @@
 package org.codehaus.jackson;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
@@ -39,7 +40,7 @@ public abstract class ObjectCodec
     /**
      * Method to deserialize JSON content into a Java type, reference
      * to which is passed as argument. Type is passed using so-called
-     * "super type token" (see )
+     * "super type token" 
      * and specifically needs to be used if the root type is a 
      * parameterized (generic) container type.
      */
@@ -64,6 +65,33 @@ public abstract class ObjectCodec
      * value event, not container).
      */
     public abstract JsonNode readTree(JsonParser jp)
+        throws IOException, JsonProcessingException;
+
+    /**
+     * Method for reading sequence of Objects from parser stream,
+     * all with same specified value type.
+     * 
+     * @since 1.9
+     */
+    public abstract <T> Iterator<T> readValues(JsonParser jp, Class<T> valueType)
+        throws IOException, JsonProcessingException;
+
+    /**
+     * Method for reading sequence of Objects from parser stream,
+     * all with same specified value type.
+     * 
+     * @since 1.9
+     */
+    public abstract <T> Iterator<T> readValues(JsonParser jp, TypeReference<?> valueTypeRef)
+        throws IOException, JsonProcessingException;
+    
+    /**
+     * Method for reading sequence of Objects from parser stream,
+     * all with same specified value type.
+     * 
+     * @since 1.9
+     */
+    public abstract <T> Iterator<T> readValues(JsonParser jp, JavaType valueType)
         throws IOException, JsonProcessingException;
     
     /*

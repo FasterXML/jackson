@@ -18,7 +18,7 @@ public class TestReadValues extends BaseMapTest
     
     /*
     /**********************************************************
-    /* Unit tests; root-level value sequences
+    /* Unit tests; root-level value sequences via Mapper
     /**********************************************************
      */
 
@@ -71,6 +71,29 @@ public class TestReadValues extends BaseMapTest
         assertFalse(it.hasNext());
     }
 
+    /*
+    /**********************************************************
+    /* Unit tests; root-level value sequences via JsonParser
+    /**********************************************************
+     */
+
+    public void testRootBeansWithParser() throws Exception
+    {
+        final String JSON = "{\"a\":3}{\"a\":27}  ";
+        ObjectMapper mapper = new ObjectMapper();
+        JsonParser jp = mapper.getJsonFactory().createJsonParser(JSON);
+        
+        Iterator<Bean> it = jp.readValuesAs(Bean.class);
+
+        assertTrue(it.hasNext());
+        Bean b = it.next();
+        assertEquals(3, b.a);
+        assertTrue(it.hasNext());
+        b = it.next();
+        assertEquals(27, b.a);
+        assertFalse(it.hasNext());
+    }
+    
     /*
     /**********************************************************
     /* Unit tests; non-root arrays

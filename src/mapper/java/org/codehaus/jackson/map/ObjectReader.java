@@ -2,6 +2,7 @@ package org.codehaus.jackson.map;
 
 import java.io.*;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
@@ -212,6 +213,7 @@ public class ObjectReader
     /**********************************************************
      */
 
+    // not part of ObjectCodec, actually
     @SuppressWarnings("unchecked")
     public <T> T readValue(JsonParser jp)
         throws IOException, JsonProcessingException
@@ -219,11 +221,50 @@ public class ObjectReader
         return (T) _bind(jp);
     }
 
-    @Override // from ObjectCodec
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T readValue(JsonParser jp, Class<T> valueType)
+        throws IOException, JsonProcessingException
+    {
+        return (T) withType(valueType).readValue(jp);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T readValue(JsonParser jp, TypeReference<?> valueTypeRef) throws IOException, JsonProcessingException
+    {            
+        return (T) withType(valueTypeRef).readValue(jp);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T readValue(JsonParser jp, JavaType valueType) throws IOException, JsonProcessingException {
+        return (T) withType(valueType).readValue(jp);
+    }
+    
+    @Override
     public JsonNode readTree(JsonParser jp)
         throws IOException, JsonProcessingException
     {
         return _bindAsTree(jp);
+    }
+
+    @Override
+    public <T> Iterator<T> readValues(JsonParser jp, Class<T> valueType)
+        throws IOException, JsonProcessingException {
+        return withType(valueType).readValues(jp);
+    }
+
+    @Override
+    public <T> Iterator<T> readValues(JsonParser jp, TypeReference<?> valueTypeRef)
+        throws IOException, JsonProcessingException {
+        return withType(valueTypeRef).readValues(jp);
+    }
+    
+    @Override
+    public <T> Iterator<T> readValues(JsonParser jp, JavaType valueType)
+        throws IOException, JsonProcessingException {
+        return withType(valueType).readValues(jp);
     }
     
     /*
@@ -577,27 +618,6 @@ public class ObjectReader
     @Override
     public JsonNode createObjectNode() {
         return _config.getNodeFactory().objectNode();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> T readValue(JsonParser jp, Class<T> valueType)
-            throws IOException, JsonProcessingException
-    {
-        return (T) withType(valueType).readValue(jp);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> T readValue(JsonParser jp, TypeReference<?> valueTypeRef) throws IOException, JsonProcessingException
-    {            
-        return (T) withType(valueTypeRef).readValue(jp);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> T readValue(JsonParser jp, JavaType valueType) throws IOException, JsonProcessingException {
-        return (T) withType(valueType).readValue(jp);
     }
 
     @Override
