@@ -526,9 +526,13 @@ public abstract class BasicDeserializerFactory
         if (deser != null) {
             return deser;
         }
+        Class<?> cls = type.getRawClass();
+	// [JACKSON-605]: May get a generic Class<T> property...
+	if (cls == Class.class) {
+	    return (JsonDeserializer<Object>)(JsonDeserializer<?>) new StdDeserializer.ClassDeserializer();
+	}
         
         // [JACKSON-283]: AtomicReference is a rather special type...
-        Class<?> cls = type.getRawClass();
         if (AtomicReference.class.isAssignableFrom(cls)) {
             // Must find parameterization
             TypeFactory tf = config.getTypeFactory();
