@@ -78,6 +78,7 @@ public class TestAutoDetect
         VisibilityChecker<?> vc = m.getVisibilityChecker();
         vc = vc.withFieldVisibility(JsonAutoDetect.Visibility.ANY);
         m.setVisibilityChecker(vc);
+        
         Map<String,Object> result = writeAndMap(m, new FieldBean());
         assertEquals(3, result.size());
         assertEquals("public", result.get("p1"));
@@ -93,5 +94,20 @@ public class TestAutoDetect
         assertEquals("a", result.get("a"));
         assertEquals("b", result.get("b"));
         assertEquals("c", result.get("c"));
+    }
+
+    // [JACKSON-621]
+    public void testBasicSetup() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        VisibilityChecker<?> vc = m.getVisibilityChecker();
+        vc = vc.with(JsonAutoDetect.Visibility.ANY);
+        m.setVisibilityChecker(vc);
+
+        Map<String,Object> result = writeAndMap(m, new FieldBean());
+        assertEquals(3, result.size());
+        assertEquals("public", result.get("p1"));
+        assertEquals("protected", result.get("p2"));
+        assertEquals("private", result.get("p3"));
     }
 }

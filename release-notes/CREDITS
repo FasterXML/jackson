@@ -681,14 +681,13 @@ Ruben Errejon Garcia:
   * Reported [JACKSON-560] Mix-in annotations ignored when used with views
 
 "Programmer Bruce":
-  * Suggested [JACKSON-593] Add ObjectMapper.readTree(byte[]), (URL) variants
-   [1.9.0]
-  * Suggested [JACKSON-594] Allow deserializing non-static inner class valued properties
-   [1.9.0]
-  * Suggested [JACKSON-597] Make ClassDeserializer support primitive types
-   [1.8.3]
-  * Suggested [JACKSON-599] Expose Settability Of SimpleModule Serializers/Deserializers
-   [1.9.0]
-  * Reported [JACKSON-605] Handle deserialization of typed Class properties correctly
-  * Suggested [JACKSON-612] Add 'readValues()' methods to JsonParser, ObjectCodec
-   [1.9.0]
+  * Suggested these for 1.8.x:
+    - [JACKSON-597] Make ClassDeserializer support primitive types [1.8.3]
+  * Suggested these for 1.9.0:
+     - [JACKSON-593] Add ObjectMapper.readTree(byte[]), (URL) variants
+     - [JACKSON-594] Allow deserializing non-static inner class valued properties
+     - [JACKSON-599] Expose Settability Of SimpleModule Serializers/Deserializers
+     - [JACKSON-605] Handle deserialization of typed Class properties correctly
+     - [JACKSON-612] Add 'readValues()' methods to JsonParser, ObjectCodec
+     - [JACKSON-621] Add new fluent method, VisibilityChecker.with(Visibility)
+  

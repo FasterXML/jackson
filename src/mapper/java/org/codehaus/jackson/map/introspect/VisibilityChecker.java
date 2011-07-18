@@ -14,7 +14,12 @@ import java.lang.reflect.Method;
  * to their visibility modifiers.
  *<p>
  * Note on type declaration: funky recursive type is necessary to
- * support builder/fluid pattern.
+ * support builder/fluent pattern.
+ *<p>
+ * Note on compatibility: 1.9 introduced overloaded "with" method
+ * (which takes {@link Visibility} as value to assign); which could
+ * be potential issue, but assumption here is that all custom implementations
+ * are based on "Std" base class
  * 
  * @author tatu
  * @since 1.5
@@ -29,6 +34,20 @@ public interface VisibilityChecker<T extends VisibilityChecker<T>>
      * given annotation overrides.
      */
     public T with(JsonAutoDetect ann);
+
+    /**
+     * Builder method that will return an instance that has specified
+     * {@link Visibility} value to use for all property elements.
+     * Typical usage would be something like:
+     *<pre>
+     *  mapper.setVisibilityChecker(
+     *     mapper.getVisibilityChecker().with(Visibility.NONE));
+     *</pre>
+     * (which would basically disable all auto-detection)
+     *
+     * @since 1.9
+     */
+    public T with(Visibility v);
     
     /**
      * Builder method that will return a checker instance that has
@@ -181,9 +200,35 @@ public interface VisibilityChecker<T extends VisibilityChecker<T>>
 	    _fieldMinLevel = field;
         }
 		
-        /*
+	/**
+	 * Costructor that will assign given visibility value for all
+	 * properties.
+	 * 
+	 * @param v level to use for all property types
+	 * 
+	 * @since 1.9
+	 */
+        public Std(Visibility v)
+        {
+            // typically we shouldn't get this value; but let's handle it if we do:
+            if (v == Visibility.DEFAULT) {
+                _getterMinLevel = DEFAULT._getterMinLevel;
+                _isGetterMinLevel = DEFAULT._isGetterMinLevel;
+                _setterMinLevel = DEFAULT._setterMinLevel;
+                _creatorMinLevel = DEFAULT._creatorMinLevel;
+                _fieldMinLevel = DEFAULT._fieldMinLevel;
+            } else {
+                _getterMinLevel = v;
+                _isGetterMinLevel = v;
+                _setterMinLevel = v;
+                _creatorMinLevel = v;
+                _fieldMinLevel = v;
+            }
+        }
+
+	/*
         /********************************************************
-	/* Builder/fluid methods for instantiating configured
+	/* Builder/fluent methods for instantiating configured
 	/* instances
 	/********************************************************
 	 */
@@ -209,6 +254,14 @@ public interface VisibilityChecker<T extends VisibilityChecker<T>>
 	    return curr;
 	}
 
+	public Std with(Visibility v)
+	{
+	    if (v == Visibility.DEFAULT) {
+	        return DEFAULT;
+	    }
+	    return new Std(v);
+	}
+	
 	public Std withGetterVisibility(Visibility v) {
 	    if (v == Visibility.DEFAULT)  v = DEFAULT._getterMinLevel;
             if (_getterMinLevel == v) return this;
