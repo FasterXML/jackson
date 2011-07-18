@@ -1,6 +1,9 @@
 package org.codehaus.jackson.main;
 
+import java.io.*;
+
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.io.CharacterEscapes;
 
 /**
  * Set of basic unit tests for verifying that the basic parser
@@ -9,6 +12,30 @@ import org.codehaus.jackson.*;
 public class TestCharEscaping
     extends main.BaseTest
 {
+    // for [JACKSON-627]
+    private final static CharacterEscapes ESC_627 = new CharacterEscapes() {
+        final int[] ascii = CharacterEscapes.standardAsciiEscapesForJSON();
+        {
+          ascii['<'] = CharacterEscapes.ESCAPE_STANDARD;
+          ascii['>'] = CharacterEscapes.ESCAPE_STANDARD;
+        }
+
+        @Override
+        public int[] getEscapeCodesForAscii() {
+          return ascii;
+        }
+
+        @Override
+        public SerializableString getEscapeSequence(int ch) {
+          throw new UnsupportedOperationException("Not implemented for test");
+        }
+      };
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+      */
+
     public void testMissingEscaping()
         throws Exception
     {
@@ -96,5 +123,23 @@ public class TestCharEscaping
         assertToken(JsonToken.VALUE_STRING, jp.nextToken());
         assertEquals("A1234", jp.getText());
     }
+
+    // for [JACKSON-627]
+    public void testWriteLongCustomEscapes() throws Exception
+    {
+        JsonFactory jf = new JsonFactory();
+        jf.setCharacterEscapes(ESC_627); // must set to trigger bug
+        StringBuilder longString = new StringBuilder();
+        while (longString.length() < 2000) {
+          longString.append("\u65e5\u672c\u8a9e");
+        }
+
+        StringWriter writer = new StringWriter();
+        // must call #createJsonGenerator(Writer), #createJsonGenerator(OutputStream) doesn't trigger bug
+        JsonGenerator jgen = jf.createJsonGenerator(writer);
+        jgen.setHighestNonEscapedChar(127); // must set to trigger bug
+        jgen.writeString(longString.toString());
+      }      
+
 }
 

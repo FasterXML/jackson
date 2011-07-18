@@ -9,6 +9,9 @@ Description:
   Fixes:
 
   * [JACKSON-605] Handle deserialization of Class<T> properties
+  * [JACKSON-627] WriterBasedGenerator failure for long Strings,
+    custom character escaping
+    (reported by Lawrence C)
 
 ------------------------------------------------------------------------
 === History: ===

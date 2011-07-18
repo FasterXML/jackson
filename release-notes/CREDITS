@@ -691,3 +691,9 @@ Tom Leccese:
 "Programmer Bruce":
   * Suggested [JACKSON-597] Make ClassDeserializer support primitive types
    [1.8.3]
+
+Lawrence Chang:
+  * Reported [JACKSON-627] WriterBasedGenerator failure for long Strings,
+    custom character escaping, unit test, suggested fix.
+   [1.8.4]
+
