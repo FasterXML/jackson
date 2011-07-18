@@ -12,7 +12,13 @@ public class TestAbstract
     static abstract class Abstract {
         public int x;
     }
-
+    
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+    
     /**
      * Test to verify details of how trying to deserialize into
      * abstract type should fail (if there is no way to determine
