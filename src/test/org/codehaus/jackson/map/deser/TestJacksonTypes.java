@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.util.TokenBuffer;
 
 /**
@@ -89,5 +90,17 @@ public class TestJacksonTypes
         
         assertEquals(JsonToken.END_ARRAY, jp.nextToken());
         assertNull(jp.nextToken());
+    }
+    
+    // @since 1.9
+    public void testJavaType() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        TypeFactory tf = TypeFactory.defaultInstance();
+        // first simple type:
+        String json = mapper.writeValueAsString(tf.constructType(String.class));
+
+        assertEquals(quote(java.lang.String.class.getName()), json);
+
     }
 }

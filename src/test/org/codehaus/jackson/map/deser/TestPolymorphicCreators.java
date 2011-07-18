@@ -11,9 +11,9 @@ public class TestPolymorphicCreators
     extends BaseMapTest
 {
     /*
-    **********************************************
-    * Helper beans
-    **********************************************
+    /**********************************************************
+    /* Helper beans
+    /**********************************************************
      */
 
     static class Animal
@@ -55,6 +55,40 @@ public class TestPolymorphicCreators
 	public void setLikesCream(boolean likesCreamSurely) { likesCream = likesCreamSurely; }
     }
 
+    abstract static class AbstractRoot
+    {
+        private final String opt;
+
+        private AbstractRoot(String opt) {
+            this.opt = opt;
+        }
+
+        @JsonCreator
+        public static final AbstractRoot make(@JsonProperty("which") int which,
+            @JsonProperty("opt") String opt) {
+            if(1 == which) {
+                return new One(opt);
+            }
+            throw new RuntimeException("cannot instantiate " + which);
+        }
+
+        abstract public int getWhich();
+
+        public final String getOpt() {
+                return opt;
+        }
+    }
+
+    static final class One extends AbstractRoot {
+            private One(String opt) {
+                    super(opt);
+            }
+
+            @Override public int getWhich() {
+                    return 1;
+            }
+    }
+    
     /*
     **********************************************
     * Actual tests
@@ -97,5 +131,18 @@ public class TestPolymorphicCreators
 	assertEquals("Venla", animal.name);
 	// bah, of course cats like cream. But let's ensure Jackson won't mess with laws of nature!
 	assertTrue(((Cat) animal).likesCream);
+    }
+
+    public void testManualPolymorphicWithNumbered() throws Exception
+    {
+         final ObjectMapper m = new ObjectMapper();
+         final ObjectWriter w = m.typedWriter(AbstractRoot.class);
+         final ObjectReader r = m.reader(AbstractRoot.class);
+
+        AbstractRoot input = AbstractRoot.make(1, "oh hai!");
+        String json = w.writeValueAsString(input);
+        AbstractRoot result = r.readValue(json);
+        assertNotNull(result);
+        assertEquals("oh hai!", result.getOpt());
     }
 }
