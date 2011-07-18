@@ -6,9 +6,7 @@ import java.util.List;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
-import org.codehaus.jackson.map.BaseMapTest;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.*;
 
 /**
  * Unit tests for checking how combination of interfaces, implementation
@@ -76,7 +74,7 @@ public class TestAbstractTypeNames  extends BaseMapTest
             return _friends;
         }
     }
-    
+
     /*
     /**********************************************************
     /* Unit tests
