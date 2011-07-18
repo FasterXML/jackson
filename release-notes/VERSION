@@ -21,6 +21,9 @@ Description:
    (suggested by Bruce P)
   * [JACKSON-612] Expose 'readValues()' methods via ObjectCodec, JsonParser
    (suggested by Bruce P)
+  * [JACKSON-613] Add ArrayNode/ObjectNode methods for dealing with wrapper
+    values, unboxing, nulls
+   (suggested by Bruce P)
   * [JACKSON-621] Add new fluent method, VisibilityChecker.with(Visibility)
    (suggested by Bruce P)
 

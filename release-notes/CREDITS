@@ -689,5 +689,6 @@ Ruben Errejon Garcia:
      - [JACKSON-599] Expose Settability Of SimpleModule Serializers/Deserializers
      - [JACKSON-605] Handle deserialization of typed Class properties correctly
      - [JACKSON-612] Add 'readValues()' methods to JsonParser, ObjectCodec
+     - [JACKSON-613] Add ArrayNode/ObjectNode methods for dealing with wrappers/unboxing/nulls
      - [JACKSON-621] Add new fluent method, VisibilityChecker.with(Visibility)
   

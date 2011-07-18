@@ -284,7 +284,7 @@ public final class ArrayNode
     
     /*
     /**********************************************************
-    /* Extended ObjectNode API, mutators, generic
+    /* Extended ObjectNode API, mutators, generic; addXxx()/insertXxx()
     /**********************************************************
      */
 
@@ -338,20 +338,76 @@ public final class ArrayNode
     public void add(int v) { _add(numberNode(v)); }
 
     /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void add(Integer value) {
+        if (value == null) {
+            addNull();
+        } else {
+            _add(numberNode(value.intValue()));
+        }
+    }
+    
+    /**
      * Method for setting value of a field to specified numeric value.
      */
     public void add(long v) { _add(numberNode(v)); }
 
+    /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void add(Long value) {
+        if (value == null) {
+            addNull();
+        } else {
+            _add(numberNode(value.longValue()));
+        }
+    }
+    
     /**
      * Method for setting value of a field to specified numeric value.
      */
     public void add(float v) { _add(numberNode(v)); }
 
     /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void add(Float value) {
+        if (value == null) {
+            addNull();
+        } else {
+            _add(numberNode(value.floatValue()));
+        }
+    }
+    
+    /**
      * Method for setting value of a field to specified numeric value.
      */
     public void add(double v) { _add(numberNode(v)); }
 
+    /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void add(Double value) {
+        if (value == null) {
+            addNull();
+        } else {
+            _add(numberNode(value.doubleValue()));
+        }
+    }
+    
     /**
      * Method for setting value of a field to specified numeric value.
      */
@@ -379,6 +435,20 @@ public final class ArrayNode
      */
     public void add(boolean v) { _add(booleanNode(v)); }
 
+    /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void add(Boolean value) {
+        if (value == null) {
+            addNull();
+        } else {
+            _add(booleanNode(value.booleanValue()));
+        }
+    }
+    
     /**
      * Method for setting value of a field to specified binary value
      */
@@ -434,19 +504,75 @@ public final class ArrayNode
     public void insert(int index, int v) { _insert(index, numberNode(v)); }
 
     /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void insert(int index, Integer value) {
+        if (value == null) {
+            insertNull(index);
+        } else {
+            _insert(index, numberNode(value.intValue()));
+        }
+    }
+    
+    /**
      * Method for setting value of a field to specified numeric value.
      */
     public void insert(int index, long v) { _insert(index, numberNode(v)); }
 
+    /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void insert(int index, Long value) {
+        if (value == null) {
+            insertNull(index);
+        } else {
+            _insert(index, numberNode(value.longValue()));
+        }
+    }
+    
     /**
      * Method for setting value of a field to specified numeric value.
      */
     public void insert(int index, float v) { _insert(index, numberNode(v)); }
 
     /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void insert(int index, Float value) {
+        if (value == null) {
+            insertNull(index);
+        } else {
+            _insert(index, numberNode(value.floatValue()));
+        }
+    }
+    
+    /**
      * Method for setting value of a field to specified numeric value.
      */
     public void insert(int index, double v) { _insert(index, numberNode(v)); }
+
+    /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void insert(int index, Double value) {
+        if (value == null) {
+            insertNull(index);
+        } else {
+            _insert(index, numberNode(value.doubleValue()));
+        }
+    }
 
     /**
      * Method for setting value of a field to specified numeric value.
@@ -475,6 +601,20 @@ public final class ArrayNode
      */
     public void insert(int index, boolean v) { _insert(index, booleanNode(v)); }
 
+    /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void insert(int index, Boolean value) {
+        if (value == null) {
+            insertNull(index);
+        } else {
+            _insert(index, booleanNode(value.booleanValue()));
+        }
+    }
+    
     /**
      * Method for setting value of a field to specified binary value
      */

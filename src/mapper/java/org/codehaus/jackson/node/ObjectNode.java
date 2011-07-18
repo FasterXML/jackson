@@ -453,20 +453,76 @@ public class ObjectNode
     public void put(String fieldName, int v) { _put(fieldName, numberNode(v)); }
 
     /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void put(String fieldName, Integer value) {
+        if (value == null) {
+            _put(fieldName, nullNode());
+        } else {
+            _put(fieldName, numberNode(value.intValue()));
+        }
+    }
+    
+    /**
      * Method for setting value of a field to specified numeric value.
      */
     public void put(String fieldName, long v) { _put(fieldName, numberNode(v)); }
 
+    /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void put(String fieldName, Long value) {
+        if (value == null) {
+            _put(fieldName, nullNode());
+        } else {
+            _put(fieldName, numberNode(value.longValue()));
+        }
+    }
+    
     /**
      * Method for setting value of a field to specified numeric value.
      */
     public void put(String fieldName, float v) { _put(fieldName, numberNode(v)); }
 
     /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void put(String fieldName, Float value) {
+        if (value == null) {
+            _put(fieldName, nullNode());
+        } else {
+            _put(fieldName, numberNode(value.floatValue()));
+        }
+    }
+    
+    /**
      * Method for setting value of a field to specified numeric value.
      */
     public void put(String fieldName, double v) { _put(fieldName, numberNode(v)); }
 
+    /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void put(String fieldName, Double value) {
+        if (value == null) {
+            _put(fieldName, nullNode());
+        } else {
+            _put(fieldName, numberNode(value.doubleValue()));
+        }
+    }
+    
     /**
      * Method for setting value of a field to specified numeric value.
      */
@@ -495,11 +551,25 @@ public class ObjectNode
     public void put(String fieldName, boolean v) { _put(fieldName, booleanNode(v)); }
 
     /**
+     * Alternative method that we need to avoid bumping into NPE issues
+     * with auto-unboxing.
+     * 
+     * @since 1.9
+     */
+    public void put(String fieldName, Boolean value) {
+        if (value == null) {
+            _put(fieldName, nullNode());
+        } else {
+            _put(fieldName, booleanNode(value.booleanValue()));
+        }
+    }
+    
+    /**
      * Method for setting value of a field to specified binary value
      */
     public void put(String fieldName, byte[] v) {
         if (v == null) {
-            putNull(fieldName);
+            _put(fieldName, nullNode());
         } else {
             _put(fieldName, binaryNode(v));
         }
