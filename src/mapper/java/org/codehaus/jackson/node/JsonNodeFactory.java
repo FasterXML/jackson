@@ -28,7 +28,7 @@ public class JsonNodeFactory
      */
 
     /**
-     * Factory method for getting an instance of Json boolean value
+     * Factory method for getting an instance of JSON boolean value
      * (either literal 'true' or 'false')
      */
     public BooleanNode booleanNode(boolean v) {
@@ -36,7 +36,7 @@ public class JsonNodeFactory
     }
 
     /**
-     * Factory method for getting an instance of Json null node (which
+     * Factory method for getting an instance of JSON null node (which
      * represents literal null value)
      */
     public NullNode nullNode() { return NullNode.getInstance(); }
@@ -48,49 +48,121 @@ public class JsonNodeFactory
      */
 
     /**
-     * Factory method for getting an instance of Json numeric value
+     * Factory method for getting an instance of JSON numeric value
      * that expresses given 8-bit value
      */
     public NumericNode numberNode(byte v) { return IntNode.valueOf(v); }
 
     /**
-     * Factory method for getting an instance of Json numeric value
+     * Alternate factory method that will handle wrapper value, which may
+     * be null.
+     * Due to possibility of null, returning type is not guaranteed to be
+     * {@link NumericNode}, but just {@link ValueNode}.
+     * 
+     * @since 1.9
+     */
+    public ValueNode numberNode(Byte value) {
+        return (value == null) ? nullNode() : IntNode.valueOf(value.intValue());
+    }
+    
+    /**
+     * Factory method for getting an instance of JSON numeric value
      * that expresses given 16-bit integer value
      */
     public NumericNode numberNode(short v) { return IntNode.valueOf(v); }
 
     /**
-     * Factory method for getting an instance of Json numeric value
+     * Alternate factory method that will handle wrapper value, which may
+     * be null.
+     * Due to possibility of null, returning type is not guaranteed to be
+     * {@link NumericNode}, but just {@link ValueNode}.
+     * 
+     * @since 1.9
+     */
+    public ValueNode numberNode(Short value) {
+        return (value == null) ? nullNode() : IntNode.valueOf(value.shortValue());
+    }
+    
+    /**
+     * Factory method for getting an instance of JSON numeric value
      * that expresses given 32-bit integer value
      */
     public NumericNode numberNode(int v) { return IntNode.valueOf(v); }
 
     /**
-     * Factory method for getting an instance of Json numeric value
+     * Alternate factory method that will handle wrapper value, which may
+     * be null.
+     * Due to possibility of null, returning type is not guaranteed to be
+     * {@link NumericNode}, but just {@link ValueNode}.
+     * 
+     * @since 1.9
+     */
+    public ValueNode numberNode(Integer value) {
+        return (value == null) ? nullNode() : IntNode.valueOf(value.intValue());
+    }
+    
+    /**
+     * Factory method for getting an instance of JSON numeric value
      * that expresses given 64-bit integer value
      */
     public NumericNode numberNode(long v) { return LongNode.valueOf(v); }
 
     /**
-     * Factory method for getting an instance of Json numeric value
+     * Alternate factory method that will handle wrapper value, which may
+     * be null.
+     * Due to possibility of null, returning type is not guaranteed to be
+     * {@link NumericNode}, but just {@link ValueNode}.
+     * 
+     * @since 1.9
+     */
+    public ValueNode numberNode(Long value) {
+        return (value == null) ? nullNode() : LongNode.valueOf(value.longValue());
+    }
+    
+    /**
+     * Factory method for getting an instance of JSON numeric value
      * that expresses given unlimited range integer value
      */
     public NumericNode numberNode(BigInteger v) { return BigIntegerNode.valueOf(v); }
 
     /**
-     * Factory method for getting an instance of Json numeric value
+     * Factory method for getting an instance of JSON numeric value
      * that expresses given 32-bit floating point value
      */
     public NumericNode numberNode(float v) { return DoubleNode.valueOf((double) v); }
 
     /**
-     * Factory method for getting an instance of Json numeric value
+     * Alternate factory method that will handle wrapper value, which may
+     * be null.
+     * Due to possibility of null, returning type is not guaranteed to be
+     * {@link NumericNode}, but just {@link ValueNode}.
+     * 
+     * @since 1.9
+     */
+    public ValueNode numberNode(Float value) {
+        return (value == null) ? nullNode() : DoubleNode.valueOf(value.doubleValue());
+    }
+    
+    /**
+     * Factory method for getting an instance of JSON numeric value
      * that expresses given 64-bit floating point value
      */
     public NumericNode numberNode(double v) { return DoubleNode.valueOf(v); }
 
     /**
-     * Factory method for getting an instance of Json numeric value
+     * Alternate factory method that will handle wrapper value, which may
+     * be null.
+     * Due to possibility of null, returning type is not guaranteed to be
+     * {@link NumericNode}, but just {@link ValueNode}.
+     * 
+     * @since 1.9
+     */
+    public ValueNode numberNode(Double value) {
+        return (value == null) ? nullNode() : DoubleNode.valueOf(value.doubleValue());
+    }
+    
+    /**
+     * Factory method for getting an instance of JSON numeric value
      * that expresses given unlimited precision floating point value
      */
     public NumericNode numberNode(BigDecimal v) { return DecimalNode.valueOf(v); }
@@ -102,7 +174,7 @@ public class JsonNodeFactory
      */
 
     /**
-     * Factory method for constructing a node that represents Json
+     * Factory method for constructing a node that represents JSON
      * String value
      */
     public TextNode textNode(String text) { return TextNode.valueOf(text); }
