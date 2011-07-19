@@ -32,10 +32,10 @@ public class TestParserLinefeeds
     }
 
     /*
-    /////////////////////////////////////////////
-    // Helper methods
-    /////////////////////////////////////////////
-    */
+    /**********************************************************
+    /* Helper methods
+    /**********************************************************
+     */
 
     private void _testLinefeeds(String lf, boolean useStream)
         throws IOException
