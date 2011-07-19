@@ -8,6 +8,10 @@ Description:
 
   Fixes:
 
+  * [JACKSON-629] Fix a buffer boundary problem with SmileParser, 5-7
+    character names
+   (reported by Maxxan)
+
 ------------------------------------------------------------------------
 == History: ==
 ------------------------------------------------------------------------
