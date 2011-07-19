@@ -1,10 +1,18 @@
-Version: 1.7.8
+Version: 1.7.9
 
 Release date:
-  08-Jul-2011
+  xx-Aug-2011
 
 Description:
-  A patch release for 1.7.
+  The last patch release for 1.7.
+
+  Fixes:
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.7.8 [08-Jul-2011]
 
   Fixes:
 
@@ -17,10 +25,6 @@ Description:
    (reported by Tom L)
   * [JACKSON-597] Make ClassDeserializer support primitive types
    (suggested by Bruce P)
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.7.7 [17-May-2011]
 
