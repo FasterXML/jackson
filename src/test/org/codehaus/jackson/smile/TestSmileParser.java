@@ -313,4 +313,53 @@ public class TestSmileParser
             verifyException(e, "Invalid token byte 0x00");
         }
     }
+
+    // [JACKSON-629]
+    public void testNameBoundary() throws IOException
+    {
+        SmileFactory f = smileFactory(true, true, false);
+        // let's create 3 meg docs
+        final int LEN = 3 * 1000 * 1000;
+        final String FIELD = "field01"; // important: 7 chars
+
+        for (int offset = 0; offset < 12; ++offset) {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream(LEN);
+            // To trigger boundary condition, need to shuffle stuff around a bit...
+            for (int i = 0; i < offset; ++i) {
+                bytes.write(0);
+            }
+            
+            // force back-refs off, easier to trigger problem
+            f.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, false);
+            SmileGenerator gen = f.createJsonGenerator(bytes);
+            
+            int count = 0;
+            do {
+                gen.writeStartObject();
+                // importa
+                gen.writeNumberField(FIELD, count % 17);
+                gen.writeEndObject();
+                ++count;
+            } while (bytes.size() < (LEN - 100));
+            gen.close();
+        
+            // and then read back
+            byte[] json = bytes.toByteArray();
+            SmileParser jp = f.createJsonParser(new ByteArrayInputStream(json, offset, json.length-offset));
+            int i = 0;
+
+            while (i < count) {
+                assertToken(JsonToken.START_OBJECT, jp.nextToken());
+                assertToken(JsonToken.FIELD_NAME, jp.nextToken());
+                assertEquals(FIELD, jp.getCurrentName());
+                assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+                assertEquals((i % 17), jp.getIntValue());
+                assertToken(JsonToken.END_OBJECT, jp.nextToken());
+                ++i;
+            }
+            // and should be done now
+            assertNull(jp.nextToken());
+            jp.close();
+        }
+    }
 }
