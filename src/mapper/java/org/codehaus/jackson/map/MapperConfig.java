@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.jsontype.SubtypeResolver;
@@ -196,6 +197,14 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      */
     public abstract T withVisibilityChecker(VisibilityChecker<?> vc);
 
+    /**
+     * Method for constructing and returning a new instance with different
+     * minimal visibility level for specified property type
+     * 
+     * @since 1.9
+     */
+    public abstract T withVisibility(JsonMethod forMethod, JsonAutoDetect.Visibility visibility);
+    
     /**
      * Method for constructing and returning a new instance with different
      * {@link TypeResolverBuilder}
@@ -769,6 +778,13 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
                     _typeResolverBuilder, _dateFormat, _handlerInstantiator);
         }
 
+        public Base withVisibility(JsonMethod forMethod, JsonAutoDetect.Visibility visibility) {
+            return new Base(_classIntrospector, _annotationIntrospector,
+                    _visibilityChecker.withVisibility(forMethod, visibility),
+                    _propertyNamingStrategy, _typeFactory,
+                    _typeResolverBuilder, _dateFormat, _handlerInstantiator);
+        }
+        
         public Base withPropertyNamingStrategy(PropertyNamingStrategy pns) {
             return new Base(_classIntrospector, _annotationIntrospector, _visibilityChecker, pns, _typeFactory,
                     _typeResolverBuilder, _dateFormat, _handlerInstantiator);

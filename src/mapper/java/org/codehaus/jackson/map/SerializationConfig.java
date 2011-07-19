@@ -533,6 +533,11 @@ public class SerializationConfig
     }
 
     @Override
+    public SerializationConfig withVisibility(JsonMethod forMethod, JsonAutoDetect.Visibility visibility) {
+        return new SerializationConfig(this, _base.withVisibility(forMethod, visibility));
+    }
+    
+    @Override
     public SerializationConfig withTypeResolverBuilder(TypeResolverBuilder<?> trb) {
         return new SerializationConfig(this, _base.withTypeResolverBuilder(trb));
     }

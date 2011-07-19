@@ -8,19 +8,15 @@ import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
+import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.io.SegmentedStringWriter;
-import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
-import org.codehaus.jackson.map.deser.StdDeserializationContext;
-import org.codehaus.jackson.map.deser.StdDeserializerProvider;
-import org.codehaus.jackson.map.deser.ValueInstantiators;
+import org.codehaus.jackson.map.deser.*;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
-import org.codehaus.jackson.map.ser.BeanSerializerModifier;
-import org.codehaus.jackson.map.ser.FilterProvider;
-import org.codehaus.jackson.map.ser.StdSerializerProvider;
-import org.codehaus.jackson.map.ser.BeanSerializerFactory;
+import org.codehaus.jackson.map.ser.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.SubtypeResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
@@ -29,11 +25,7 @@ import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.type.SimpleType;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.type.TypeModifier;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.JsonNodeFactory;
-import org.codehaus.jackson.node.TreeTraversingParser;
-import org.codehaus.jackson.node.NullNode;
-import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.node.*;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
@@ -705,6 +697,39 @@ public class ObjectMapper
         _serializationConfig = _serializationConfig.withVisibilityChecker(vc);
     }
 
+    /**
+     * Convenience method that allows changing configuration for
+     * underlying {@link VisibilityChecker}s, to change details of what kinds of
+     * properties are auto-detected.
+     * Basically short cut for doing:
+     *<pre>
+     *  mapper.setVisibilityChecker(
+     *     mapper.getVisibilityChecker().withVisibility(forMethod, visibility)
+     *  );
+     *</pre>
+     * one common use case would be to do:
+     *<pre>
+     *  mapper.setVisibility(JsonMethod.FIELD, Visibility.ANY);
+     *</pre>
+     * which would make all member fields serializable without further annotations,
+     * instead of just public fields (default setting).
+     * 
+     * @param forMethod Type of property descriptor affected (field, getter/isGetter,
+     *     setter, creator)
+     * @param visibility Minimum visibility to require for the property descriptors of type
+     * 
+     * @return Modified mapper instance (that is, "this"), to allow chaining
+     *    of configuration calls
+     * 
+     * @since 1.9
+     */
+    public ObjectMapper setVisibility(JsonMethod forMethod, JsonAutoDetect.Visibility visibility)
+    {
+        _deserializationConfig = _deserializationConfig.withVisibility(forMethod, visibility);
+        _serializationConfig = _serializationConfig.withVisibility(forMethod, visibility);
+        return this;
+    }
+    
     /**
      * @since 1.6
      */

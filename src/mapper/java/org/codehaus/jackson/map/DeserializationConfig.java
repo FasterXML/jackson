@@ -475,6 +475,11 @@ public class DeserializationConfig
     }
 
     @Override
+    public DeserializationConfig withVisibility(JsonMethod forMethod, JsonAutoDetect.Visibility visibility) {
+        return new DeserializationConfig(this, _base.withVisibility(forMethod, visibility));
+    }
+    
+    @Override
     public DeserializationConfig withTypeResolverBuilder(TypeResolverBuilder<?> trb) {
         return new DeserializationConfig(this, _base.withTypeResolverBuilder(trb));
     }
@@ -806,7 +811,6 @@ public class DeserializationConfig
     /**
      * @deprecated Since 1.8 should use variant without arguments
      */
-    @SuppressWarnings("deprecation")
     @Deprecated
     @Override
     public DeserializationConfig createUnshared(TypeResolverBuilder<?> typer,

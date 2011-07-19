@@ -110,4 +110,18 @@ public class TestAutoDetect
         assertEquals("protected", result.get("p2"));
         assertEquals("private", result.get("p3"));
     }
+
+    // [JACKSON-595]
+    public void testMapperShortcutMethods() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.setVisibility(JsonMethod.FIELD, JsonAutoDetect.Visibility.ANY);
+
+        Map<String,Object> result = writeAndMap(m, new FieldBean());
+        assertEquals(3, result.size());
+        assertEquals("public", result.get("p1"));
+        assertEquals("protected", result.get("p2"));
+        assertEquals("private", result.get("p3"));
+    }
+
 }

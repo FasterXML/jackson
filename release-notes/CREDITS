@@ -686,6 +686,7 @@ Ruben Errejon Garcia:
   * Suggested these for 1.9.0:
      - [JACKSON-593] Add ObjectMapper.readTree(byte[]), (URL) variants
      - [JACKSON-594] Allow deserializing non-static inner class valued properties
+     - [JACKSON-595] Terse Visibility Config (ObjectMapper.setVisibility, related)
      - [JACKSON-599] Expose Settability Of SimpleModule Serializers/Deserializers
      - [JACKSON-605] Handle deserialization of typed Class properties correctly
      - [JACKSON-612] Add 'readValues()' methods to JsonParser, ObjectCodec

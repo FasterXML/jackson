@@ -36,7 +36,7 @@ public interface VisibilityChecker<T extends VisibilityChecker<T>>
     public T with(JsonAutoDetect ann);
 
     /**
-     * Builder method that will return an instance that has specified
+     * Builder method that will create and return an instance that has specified
      * {@link Visibility} value to use for all property elements.
      * Typical usage would be something like:
      *<pre>
@@ -48,6 +48,20 @@ public interface VisibilityChecker<T extends VisibilityChecker<T>>
      * @since 1.9
      */
     public T with(Visibility v);
+
+    /**
+     * Builder method that will create and return an instance that has specified
+     * {@link Visibility} value to use for specified property.
+     * Typical usage would be:
+     *<pre>
+     *  mapper.setVisibilityChecker(
+     *     mapper.getVisibilityChecker().withVisibility(JsonMethod.FIELD, Visibility.ANY));
+     *</pre>
+     * (which would basically enable auto-detection for all member fields)
+     *
+     * @since 1.9
+     */
+    public T withVisibility(JsonMethod method, Visibility v);
     
     /**
      * Builder method that will return a checker instance that has
@@ -260,6 +274,27 @@ public interface VisibilityChecker<T extends VisibilityChecker<T>>
 	        return DEFAULT;
 	    }
 	    return new Std(v);
+	}
+
+	public Std withVisibility(JsonMethod method, Visibility v)
+	{
+	    switch (method) {
+	    case GETTER:
+	        return withGetterVisibility(v);
+	    case SETTER:
+	        return withSetterVisibility(v);
+	    case CREATOR:
+	        return withCreatorVisibility(v);
+	    case FIELD:
+	        return withFieldVisibility(v);
+	    case IS_GETTER:
+	        return withIsGetterVisibility(v);
+            case ALL:
+                return with(v);
+            //case NONE:
+            // break;
+	    }
+            return this;
 	}
 	
 	public Std withGetterVisibility(Visibility v) {
