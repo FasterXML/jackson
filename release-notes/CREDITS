@@ -62,6 +62,9 @@ Mike Goodwin:
 Ray Racine:
   * Pointed out [JACKSON-25]: Problems with Maven pom for lgpl version
     [0.9.4-backport]
+  * Reported [JACKSON-619] SmileParser.getCurrentLocation(), getTokenLocation()
+    not reporting actual byte offsets.
+    [1.9.0]
 
 Scott Dixon:
   * Contributed unit test (TestComplexJavaType) for verifying functioning

@@ -65,14 +65,14 @@ public abstract class JsonParserBase
      */
 
     /**
-     * Number of characters that were contained in previous blocks
+     * Number of characters/bytes that were contained in previous blocks
      * (blocks that were already processed prior to the current buffer).
      */
     protected long _currInputProcessed = 0L;
 
     /**
      * Current row location of current point in input buffer, starting
-     * from 1
+     * from 1, if available.
      */
     protected int _currInputRow = 1;
 
@@ -94,7 +94,7 @@ public abstract class JsonParserBase
     // // // Location info at point when current token was started
 
     /**
-     * Total number of characters read before start of current token.
+     * Total number of bytes/characters read before start of current token.
      * For big (gigabyte-sized) sizes are possible, needs to be long,
      * unlike pointers and sizes related to in-memory buffers.
      */
@@ -404,7 +404,11 @@ public abstract class JsonParserBase
 
     public final long getTokenCharacterOffset() { return _tokenInputTotal; }
     public final int getTokenLineNr() { return _tokenInputRow; }
-    public final int getTokenColumnNr() { return _tokenInputCol+1; }
+    public final int getTokenColumnNr() {
+        // note: value of -1 means "not available"; otherwise convert from 0-based to 1-based
+        int col = _tokenInputCol;
+        return (col < 0) ? col : (col + 1);
+    }
 
     /*
     /**********************************************************

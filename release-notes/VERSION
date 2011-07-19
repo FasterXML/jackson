@@ -29,6 +29,9 @@ Description:
   * [JACKSON-613] Add ArrayNode/ObjectNode methods for dealing with wrapper
     values, unboxing, nulls
    (suggested by Bruce P)
+  * [JACKSON-619] SmileParser.getCurrentLocation(), getTokenLocation() did not
+    report actual byte offsets.
+   (reported by Ray R)
   * [JACKSON-621] Add new fluent method, VisibilityChecker.with(Visibility)
    (suggested by Bruce P)
 

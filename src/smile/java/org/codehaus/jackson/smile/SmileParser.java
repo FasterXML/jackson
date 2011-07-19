@@ -332,7 +332,31 @@ public class SmileParser
     public Object getInputSource() {
         return _inputStream;
     }
-    
+
+    /**
+     * Overridden since we do not really have character-based locations,
+     * but we do have byte offset to specify.
+     */
+    @Override
+    public JsonLocation getTokenLocation()
+    {
+        return new JsonLocation(_ioContext.getSourceReference(),
+                _tokenInputTotal, // bytes
+                -1, -1, -1); // char offset, line, column
+    }   
+
+    /**
+     * Overridden since we do not really have character-based locations,
+     * but we do have byte offset to specify.
+     */
+    @Override
+    public JsonLocation getCurrentLocation()
+    {
+        return new JsonLocation(_ioContext.getSourceReference(),
+                _currInputProcessed + _inputPtr, // bytes
+                -1, -1, -1); // char offset, line, column
+    }
+
     /*
     /**********************************************************
     /* Low-level reading, other
@@ -344,7 +368,7 @@ public class SmileParser
         throws IOException
     {
         _currInputProcessed += _inputEnd;
-        _currInputRowStart -= _inputEnd;
+        //_currInputRowStart -= _inputEnd;
         
         if (_inputStream != null) {
             int count = _inputStream.read(_inputBuffer, 0, _inputBuffer.length);
@@ -380,7 +404,7 @@ public class SmileParser
         int amount = _inputEnd - _inputPtr;
         if (amount > 0 && _inputPtr > 0) {
             _currInputProcessed += _inputPtr;
-            _currInputRowStart -= _inputPtr;
+            //_currInputRowStart -= _inputPtr;
             System.arraycopy(_inputBuffer, _inputPtr, _inputBuffer, 0, amount);
             _inputEnd = amount;
         } else {
@@ -509,7 +533,7 @@ public class SmileParser
         if (_tokenIncomplete) {
             _skipIncomplete();
         }
-        _tokenInputTotal = _currInputProcessed + _inputPtr - 1;
+        _tokenInputTotal = _currInputProcessed + _inputPtr;
         // also: clear any data retained so far
         _binaryValue = null;
         // Two main modes: values, and field names.
@@ -625,7 +649,7 @@ public class SmileParser
                 }
                 return _handleSharedString(((ch & 0x3) << 8) + (_inputBuffer[_inputPtr++] & 0xFF));
             case 0x18: // START_ARRAY
-                _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
+                _parsingContext = _parsingContext.createChildArrayContext(-1, -1);
                 return (_currToken = JsonToken.START_ARRAY);
             case 0x19: // END_ARRAY
                 if (!_parsingContext.inArray()) {
@@ -634,7 +658,7 @@ public class SmileParser
                 _parsingContext = _parsingContext.getParent();
                 return (_currToken = JsonToken.END_ARRAY);
             case 0x1A: // START_OBJECT
-                _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
+                _parsingContext = _parsingContext.createChildObjectContext(-1, -1);
                 return (_currToken = JsonToken.START_OBJECT);
             case 0x1B: // not used in this mode; would be END_OBJECT
                 _reportError("Invalid type marker byte 0xFB in value mode (would be END_OBJECT in key mode)");
