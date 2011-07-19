@@ -55,10 +55,21 @@ public class BeanSerializer
      * 
      * @since 1.7
      */
-    protected BeanSerializer(BeanSerializerBase src) {
+    protected BeanSerializer(BeanSerializer src) {
         super(src);
     }
 
+    /**
+     * Alternate copy constructor that can be used to construct
+     * standard {@link BeanSerializer} passing an instance of
+     * "compatible enough" source serializer.
+     * 
+     * @since 1.9
+     */
+    protected BeanSerializer(BeanSerializerBase src) {
+        super(src);
+    }
+    
     /*
     /**********************************************************
     /* Life-cycle: factory methods, fluent factories
