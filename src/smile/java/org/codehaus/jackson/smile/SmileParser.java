@@ -1291,20 +1291,20 @@ public class SmileParser
             int inPtr = _inputPtr;
             final byte[] inBuf = _inputBuffer;
             // First quadbyte is easy
-            int q1 = inBuf[inPtr++] << 8;
-            q1 += (inBuf[inPtr++] & 0xFF);
+            int q1 = (inBuf[inPtr] & 0xFF) << 8;
+            q1 += (inBuf[++inPtr] & 0xFF);
             q1 <<= 8;
-            q1 += (inBuf[inPtr++] & 0xFF);
+            q1 += (inBuf[++inPtr] & 0xFF);
             q1 <<= 8;
-            q1 += (inBuf[inPtr++] & 0xFF);
-            int q2 = (inBuf[inPtr++] & 0xFF);
+            q1 += (inBuf[++inPtr] & 0xFF);
+            int q2 = (inBuf[++inPtr] & 0xFF);
             len -= 5;
             if (len > 0) {
-                q2 = (q2 << 8) + (inBuf[inPtr++] & 0xFF);
-                if (--len >= 0) {
-                    q2 = (q2 << 8) + (inBuf[inPtr++] & 0xFF);
-                    if (--len >= 0) {
-                        q2 = (q2 << 8) + (inBuf[inPtr++] & 0xFF);
+                q2 = (q2 << 8) + (inBuf[++inPtr] & 0xFF);
+                if (--len > 0) {
+                    q2 = (q2 << 8) + (inBuf[++inPtr] & 0xFF);
+                    if (--len > 0) {
+                        q2 = (q2 << 8) + (inBuf[++inPtr] & 0xFF);
                     }
                 }
             }
@@ -1343,11 +1343,11 @@ public class SmileParser
         } while ((len -= 4) > 3);
         // and then leftovers
         if (len > 0) {
-            int q = inBuf[inPtr++] & 0xFF;
-            if (--len >= 0) {
-                q = (q << 8) + (inBuf[inPtr++] & 0xFF);
-                if (--len >= 0) {
-                    q = (q << 8) + (inBuf[inPtr++] & 0xFF);
+            int q = inBuf[inPtr] & 0xFF;
+            if (--len > 0) {
+                q = (q << 8) + (inBuf[++inPtr] & 0xFF);
+                if (--len > 0) {
+                    q = (q << 8) + (inBuf[++inPtr] & 0xFF);
                 }
             }
             _quadBuffer[offset++] = q;
