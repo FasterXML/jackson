@@ -179,9 +179,6 @@ public class BeanSerializerFactory
     /**********************************************************
      */
 
-    @Deprecated
-    protected BeanSerializerFactory() { this(null); }
-
     /**
      * Constructor for creating instances with specified configuration.
      */

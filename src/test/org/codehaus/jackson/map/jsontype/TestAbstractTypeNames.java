@@ -7,6 +7,7 @@ import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.ObjectMapper.DefaultTyping;
 
 /**
  * Unit tests for checking how combination of interfaces, implementation
@@ -75,6 +76,19 @@ public class TestAbstractTypeNames  extends BaseMapTest
         }
     }
 
+    static class BaseValue {
+        public int value = 42;
+
+        public int getValue() { return value; }
+    }
+
+    final static class BeanWithAnon {
+        public BaseValue bean = new BaseValue() {
+            @Override
+            public String toString() { return "sub!"; }
+        };
+    }
+    
     /*
     /**********************************************************
     /* Unit tests
@@ -108,5 +122,15 @@ public class TestAbstractTypeNames  extends BaseMapTest
         assertEquals(2, friends.size());
         assertEquals(DefaultUser.class, friends.get(0).getClass());
         assertEquals(DefaultEmployee.class, friends.get(1).getClass());
-    }    
+    }
+    
+    // [JACKSON-584]: change anonymous non-static inner type into static type:
+    public void testInnerClassWithType() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enableDefaultTyping(DefaultTyping.NON_FINAL);
+        String json = mapper.writeValueAsString(new BeanWithAnon());
+        BeanWithAnon result = mapper.readValue(json, BeanWithAnon.class);
+        assertEquals(BeanWithAnon.class, result.getClass());
+    }
 }

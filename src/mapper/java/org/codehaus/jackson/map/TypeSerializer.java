@@ -20,9 +20,9 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 public abstract class TypeSerializer
 {
     /*
-     **********************************************************
-     * Introspection
-     **********************************************************
+    /**********************************************************
+    /* Introspection
+    /**********************************************************
      */
 
     /**
@@ -45,9 +45,9 @@ public abstract class TypeSerializer
     public abstract TypeIdResolver getTypeIdResolver();
     
     /*
-     **********************************************************
-     * Type serialization methods
-     **********************************************************
+    /**********************************************************
+    /* Type serialization methods
+    /**********************************************************
      */
     
     /**

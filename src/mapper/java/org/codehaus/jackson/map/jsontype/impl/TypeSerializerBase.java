@@ -7,7 +7,6 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 
 /**
  * @since 1.5
- * @author tatus
  */
 public abstract class TypeSerializerBase extends TypeSerializer
 {

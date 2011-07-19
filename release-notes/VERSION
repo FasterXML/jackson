@@ -13,6 +13,9 @@ Description:
 
   Improvements:
 
+  * [JACKSON-584] Serialize type info for non-static anonymous inner classes
+    as that of declared (static) type
+    (suggested by Earl B)
   * [JACKSON-593] Add ObjectMapper.readTree(byte[]), (URL) variants
    (suggested by Bruce P)
   * [JACKSON-594] Allow deserializing non-static inner class valued properties

@@ -7,6 +7,11 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 
+/**
+ * {@link org.codehaus.jackson.map.jsontype.TypeIdResolver} implementation
+ * that converts between fully-qualified
+ * Java class names and (JSON) Strings.
+ */
 public class ClassNameIdResolver
     extends TypeIdResolverBase
 {
@@ -102,6 +107,27 @@ public class ClassNameIdResolver
                      * for other wrappers... (immutable, singleton, synced etc)
                      */
                     str = "java.util.ArrayList";
+                }
+            }
+        } else if (str.indexOf('$') >= 0) {
+            /* Other special handling may be needed for inner classes, [JACKSON-584].
+             * The best way to handle would be to find 'hidden' constructor; pass parent
+             * value etc (which is actually done for non-anonymous static classes!),
+             * but that is just not possible due to various things. So, we will instead
+             * try to generalize type into something we will be more likely to be able
+             * construct.
+             */
+            Class<?> outer = ClassUtil.getOuterClass(cls);
+            if (outer != null) {
+                /* one more check: let's actually not worry if the declared
+                 * static type is non-static as well; if so, deserializer does
+                 * have a chance at figuring it all out.
+                 */
+                Class<?> staticType = _baseType.getRawClass();
+                if (ClassUtil.getOuterClass(staticType) == null) {
+                    // Is this always correct? Seems like it should be...
+                    cls = _baseType.getRawClass();
+                    str = cls.getName();
                 }
             }
         }

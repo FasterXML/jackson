@@ -665,6 +665,10 @@ Sven Jacobs:
     deserializers, type id resolver) are constructed.
    [1.8.0]
 
+Ruben Errejon Garcia:
+  * Reported [JACKSON-560] Mix-in annotations ignored when used with views
+    [1.8.0]
+
 Young Jin Park:
   * Failure to serialize certain Unicode Strings
    [1.8.1]
@@ -677,8 +681,10 @@ Jamie Reilly:
   * Reported [JACKSON-570] Caching of MapSerializer not thread-safe
    [1.8.1]
 
-Ruben Errejon Garcia:
-  * Reported [JACKSON-560] Mix-in annotations ignored when used with views
+Earl Baugh:
+  * Suggested [JACKSON-584] Serialize type info for non-static anonymous inner classes
+    as that of declared (static) type
+   [1.9.0]
 
 "Programmer Bruce":
   * Suggested these for 1.8.x:
