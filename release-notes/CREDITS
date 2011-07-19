@@ -697,3 +697,7 @@ Lawrence Chang:
     custom character escaping, unit test, suggested fix.
    [1.8.4]
 
+Maxxan:
+  * Reported [JACKSON-629] Fix a buffer boundary problem with SmileParser,
+    5-7 character names
+   [1.8.4]

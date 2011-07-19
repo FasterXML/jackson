@@ -12,6 +12,9 @@ Description:
   * [JACKSON-627] WriterBasedGenerator failure for long Strings,
     custom character escaping
     (reported by Lawrence C)
+  * [JACKSON-629] Fix a	buffer boundary problem	with SmileParser, 5-7
+    character names
+    (reported by Maxxan)
 
 ------------------------------------------------------------------------
 === History: ===
