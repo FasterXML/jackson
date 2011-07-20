@@ -705,3 +705,8 @@ Maxxan:
 Tim Bond:
   * Reported [JACKSON-631] Problems decoding Base64Variants.MODIFIED_FOR_URL
    [1.8.4]
+
+Edward Alexandrov:
+  * Reported [JACKSON-632] Handling of UTF-8 BOM incorrect, causing
+    "Internal Error"
+   [1.8.4]

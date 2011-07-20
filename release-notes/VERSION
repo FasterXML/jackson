@@ -17,6 +17,8 @@ Description:
     (reported by Maxxan)
   * [JACKSON-631] Problems decoding Base64Variants.MODIFIED_FOR_URL
     (reported by Tim B)
+  * [JACKSON-632] Handling of UTF-8 BOM incorrect, causing "Internal Error"
+    (reported by Edward A)
 
 ------------------------------------------------------------------------
 === History: ===
