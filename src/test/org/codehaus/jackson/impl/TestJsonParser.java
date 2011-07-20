@@ -447,6 +447,26 @@ public class TestJsonParser
         jp.close();
     }
 
+    // [JACKSON-632]
+    public void testUtf8BOMHandling() throws Exception
+    {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        // first, write BOM:
+        bytes.write(0xEF);
+        bytes.write(0xBB);
+        bytes.write(0xBF);
+        bytes.write("[ 1 ]".getBytes("UTF-8"));
+        JsonFactory jf = new JsonFactory();
+        JsonParser jp = jf.createJsonParser(bytes.toByteArray());
+        assertEquals(JsonToken.START_ARRAY, jp.nextToken());
+        // should also have skipped first 3 bytes of BOM; but do we have offset available?
+        JsonLocation loc = jp.getTokenLocation();
+        /*
+        assertEquals(3, loc.getByteOffset());
+        assertEquals(-1, loc.getCharOffset());
+        */
+    }
+    
     /*
     /**********************************************************
     /* Helper methods

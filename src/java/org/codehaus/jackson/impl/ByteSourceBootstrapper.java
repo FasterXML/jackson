@@ -160,12 +160,20 @@ public final class ByteSourceBootstrapper
         /* Not found yet? As per specs, this means it must be UTF-8. */
         if (!foundEncoding) {
             enc = JsonEncoding.UTF8;
-        } else if (_bytesPerChar == 2) {
-            enc = _bigEndian ? JsonEncoding.UTF16_BE : JsonEncoding.UTF16_LE;
-        } else if (_bytesPerChar == 4) {
-            enc = _bigEndian ? JsonEncoding.UTF32_BE : JsonEncoding.UTF32_LE;
         } else {
-            throw new RuntimeException("Internal error"); // should never get here
+            switch (_bytesPerChar) {
+            case 1:
+                enc = JsonEncoding.UTF8;
+                break;
+            case 2:
+                enc = _bigEndian ? JsonEncoding.UTF16_BE : JsonEncoding.UTF16_LE;
+                break;
+            case 4:
+                enc = _bigEndian ? JsonEncoding.UTF32_BE : JsonEncoding.UTF32_LE;
+                break;
+            default:
+                throw new RuntimeException("Internal error"); // should never get here
+            }
         }
         _context.setEncoding(enc);
         return enc;
