@@ -11,6 +11,8 @@ Description:
   * [JACKSON-629] Fix a buffer boundary problem with SmileParser, 5-7
     character names
    (reported by Maxxan)
+  * [JACKSON-632] Handling of UTF-8 BOM incorrect, causing "Internal Error"
+    (reported by Edward A)
 
 ------------------------------------------------------------------------
 == History: ==
