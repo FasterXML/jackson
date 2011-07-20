@@ -2458,6 +2458,12 @@ public final class Utf8StreamParser
             // First branch: can get padding (-> 1 byte)
             if (bits < 0) {
                 if (bits != Base64Variant.BASE64_VALUE_PADDING) {
+                    // as per [JACKSON-631], could also just be 'missing'  padding
+                    if (ch == '"' && !b64variant.usesPadding()) {
+                        decodedData >>= 4;
+                        builder.append(decodedData);
+                        return builder.toByteArray();
+                    }
                     bits = _decodeBase64Escape(b64variant, ch, 2);
                 }
                 if (bits == Base64Variant.BASE64_VALUE_PADDING) {
@@ -2485,6 +2491,12 @@ public final class Utf8StreamParser
             bits = b64variant.decodeBase64Char(ch);
             if (bits < 0) {
                 if (bits != Base64Variant.BASE64_VALUE_PADDING) {
+                    // as per [JACKSON-631], could also just be 'missing'  padding
+                    if (ch == '"' && !b64variant.usesPadding()) {
+                        decodedData >>= 2;
+                        builder.appendTwoBytes(decodedData);
+                        return builder.toByteArray();
+                    }
                     bits = _decodeBase64Escape(b64variant, ch, 3);
                 }
                 if (bits == Base64Variant.BASE64_VALUE_PADDING) {

@@ -2,6 +2,8 @@ package org.codehaus.jackson.node;
 
 import java.io.IOException;
 
+import static org.junit.Assert.*;
+
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
@@ -20,6 +22,12 @@ public class TestConversions extends BaseMapTest
 
     static class Leaf {
         public int value;
+    }
+    
+    // MixIn for [JACKSON-554]
+    @JsonDeserialize(using = LeafDeserializer.class)
+    public static class LeafMixIn
+    {
     }
     
     /*
@@ -68,12 +76,6 @@ public class TestConversions extends BaseMapTest
         }
     }
 
-    // MixIn for [JACKSON-554]
-    @JsonDeserialize(using = LeafDeserializer.class)
-    public static class LeafMixIn
-    {
-    }
-
     // Test for [JACKSON-554]
     public void testTreeToValue() throws Exception
     {
@@ -87,5 +89,37 @@ public class TestConversions extends BaseMapTest
         assertEquals(13, r1.leaf.value);
         Root r2 = mapper.readValue(root, Root.class);
         assertEquals(13, r2.leaf.value);
+    }
+
+    // Test for [JACKSON-631]
+    public void testBase64Text() throws Exception
+    {
+        // let's actually iterate over sets of encoding modes, lengths
+        
+        final int[] LENS = { 1, 2, 3, 4, 7, 9, 32, 33, 34, 35 };
+        final Base64Variant[] VARIANTS = {
+                Base64Variants.MIME,
+                Base64Variants.MIME_NO_LINEFEEDS,
+                Base64Variants.MODIFIED_FOR_URL,
+                Base64Variants.PEM
+        };
+
+        for (int len : LENS) {
+            byte[] input = new byte[len];
+            for (int i = 0; i < input.length; ++i) {
+                input[i] = (byte) i;
+            }
+            for (Base64Variant variant : VARIANTS) {
+                TextNode n = new TextNode(variant.encode(input));
+                byte[] data = null;
+                try {
+                    data = n.getBinaryValue(variant);
+                } catch (Exception e) {
+                    throw new IOException("Failed (variant "+variant+", data length "+len+"): "+e.getMessage(), e);
+                }
+                assertNotNull(data);
+                assertArrayEquals(data, input);
+            }
+        }
     }
 }
