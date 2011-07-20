@@ -1123,6 +1123,12 @@ public class TokenBuffer
                 decodedData = (decodedData << 6) | bits;
                 // third base64 char; can be padding, but not ws
                 if (ptr >= len) {
+                    // but as per [JACKSON-631] can be end-of-input, iff not using padding
+                    if (!b64variant.usesPadding()) {
+                        decodedData >>= 4;
+                        builder.append(decodedData);
+                        break;
+                    }
                     _reportBase64EOF();
                 }
                 ch = str.charAt(ptr++);
@@ -1150,6 +1156,12 @@ public class TokenBuffer
                 decodedData = (decodedData << 6) | bits;
                 // fourth and last base64 char; can be padding, but not ws
                 if (ptr >= len) {
+                    // but as per [JACKSON-631] can be end-of-input, iff not using padding
+                    if (!b64variant.usesPadding()) {
+                        decodedData >>= 2;
+                        builder.appendTwoBytes(decodedData);
+                        break;
+                    }
                     _reportBase64EOF();
                 }
                 ch = str.charAt(ptr++);
