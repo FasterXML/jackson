@@ -11,6 +11,8 @@ Description:
   * [JACKSON-629] Fix a buffer boundary problem with SmileParser, 5-7
     character names
     (reported by Maxxan)
+  * [JACKSON-631] Problems decoding Base64Variants.MODIFIED_FOR_URL
+    (reported by Tim B)
 
 ------------------------------------------------------------------------
 === History: ===
