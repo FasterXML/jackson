@@ -141,4 +141,13 @@ public class TestCollectionDeserialization
         assertEquals(1, xbeanArray.length);
         assertEquals(XBean.class, xbeanArray[0].getClass());
     }
+
+    // [JACKSON-620]: allow "" to mean 'null' for Maps
+    public void testFromEmptyString() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.configure(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+        List<?> result = m.readValue(quote(""), List.class);
+        assertNull(result);
+    }
 }

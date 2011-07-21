@@ -94,8 +94,8 @@ public class MapDeserializer
      */
     @Deprecated
     public MapDeserializer(JavaType mapType, Constructor<Map<Object,Object>> defCtor,
-                           KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser,
-                           TypeDeserializer valueTypeDeser)
+            KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser,
+            TypeDeserializer valueTypeDeser)
     {
         super(Map.class);
         _mapType = mapType;
@@ -235,6 +235,10 @@ public class MapDeserializer
         // Ok: must point to START_OBJECT, FIELD_NAME or END_OBJECT
         JsonToken t = jp.getCurrentToken();
         if (t != JsonToken.START_OBJECT && t != JsonToken.FIELD_NAME && t != JsonToken.END_OBJECT) {
+            // [JACKSON-620] (empty) String may be ok however:
+            if (t == JsonToken.VALUE_STRING) {
+                return (Map<Object,Object>) _valueInstantiator.createFromString(jp.getText());
+            }
             throw ctxt.mappingException(getMapClass());
         }
         final Map<Object,Object> result = (Map<Object,Object>) _valueInstantiator.createUsingDefault();
@@ -244,7 +248,7 @@ public class MapDeserializer
 
     @Override
     public Map<Object,Object> deserialize(JsonParser jp, DeserializationContext ctxt,
-                                          Map<Object,Object> result)
+            Map<Object,Object> result)
         throws IOException, JsonProcessingException
     {
         // Ok: must point to START_OBJECT or FIELD_NAME

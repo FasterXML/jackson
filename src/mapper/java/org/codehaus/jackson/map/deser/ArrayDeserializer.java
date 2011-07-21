@@ -165,6 +165,15 @@ public class ArrayDeserializer
     private final Object[] handleNonArray(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
+        // [JACKSON-620] Empty String can become null...
+        if ((jp.getCurrentToken() == JsonToken.VALUE_STRING)
+                && ctxt.isEnabled(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)) {
+            String str = jp.getText();
+            if (str.length() == 0) {
+                return null;
+            }
+        }
+        
         // Can we do implicit coercion to a single-element array still?
         if (!ctxt.isEnabled(DeserializationConfig.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)) {
             /* 04-Oct-2009, tatu: One exception; byte arrays are generally

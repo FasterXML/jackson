@@ -1,7 +1,9 @@
 package org.codehaus.jackson.map.deser;
 
 import org.codehaus.jackson.map.BaseMapTest;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.*;
 import java.util.*;
@@ -171,6 +173,16 @@ public class TestArrayDeserialization
         }
     }
 
+    // [JACKSON-620]: allow "" to mean 'null' for Maps
+    public void testFromEmptyString() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.configure(DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+        assertNull(m.readValue(quote(""), Object[].class));
+        assertNull( m.readValue(quote(""), String[].class));
+        assertNull( m.readValue(quote(""), int[].class));
+    }
+    
     /*
     /**********************************************************
     /* Arrays of arrays...

@@ -176,8 +176,17 @@ public class CollectionDeserializer
         if (_delegateDeserializer != null) {
             return (Collection<Object>) _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
         }
-        final Collection<Object> result = (Collection<Object>) _valueInstantiator.createUsingDefault();
-        return deserialize(jp, ctxt, result);
+        /* [JACKSON-620]: empty String may be ok; bit tricky to check, however, since
+         *  there is also possibility of "auto-wrapping" of single-element arrays.
+         *  Hence we only accept empty String here.
+         */
+        if (jp.getCurrentToken() == JsonToken.VALUE_STRING) {
+            String str = jp.getText();
+            if (str.length() == 0) {
+                return (Collection<Object>) _valueInstantiator.createFromString(str);
+            }
+        }
+        return deserialize(jp, ctxt, (Collection<Object>) _valueInstantiator.createUsingDefault());
     }
 
     @Override
