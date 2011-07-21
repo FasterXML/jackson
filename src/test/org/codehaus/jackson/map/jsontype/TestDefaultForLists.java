@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.jsontype;
 import java.util.*;
 
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.ObjectMapper.DefaultTyping;
 
 public class TestDefaultForLists
     extends BaseMapTest
@@ -106,5 +107,17 @@ public class TestDefaultForLists
         assertEquals(2, outputList.size());
         assertTrue(outputList.get(0) instanceof TimeZone);
         assertTrue(outputList.get(1) instanceof Locale);
+    }
+
+    interface Foo { }
+    
+    public void testJackson628() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enableDefaultTyping(DefaultTyping.NON_FINAL);
+        ArrayList<Foo> data = new ArrayList<Foo>();
+        String json = mapper.writeValueAsString(data);
+        List<?> output = mapper.readValue(json, List.class);
+        assertTrue(output.isEmpty());
     }
 }
