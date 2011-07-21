@@ -13,6 +13,9 @@ Description:
 
   Improvements:
 
+  * [JACKSON-531] Comparing actual and default value (for JsonSerialize.Inclusion.NON_DEFAULT)
+    should check array contents
+    (suggested by Christoph S)
   * [JACKSON-584] Serialize type info for non-static anonymous inner classes
     as that of declared (static) type
     (suggested by Earl B)
@@ -32,6 +35,8 @@ Description:
   * [JACKSON-619] SmileParser.getCurrentLocation(), getTokenLocation() did not
     report actual byte offsets.
    (reported by Ray R)
+  * [JACKSON-620] Allow empty String to mean null Map, Collection, array,
+    if 'DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT' enabled
   * [JACKSON-621] Add new fluent method, VisibilityChecker.with(Visibility)
    (suggested by Bruce P)
 
@@ -42,6 +47,8 @@ Description:
     which can be used to suppress serialization of empty JSON arrays (unless
     overridden by per-property annotations).
    (suggested by Fabrice D)
+  * [JACKSON-578] Allow use of @JsonView on JAX-RS resource, with JacksonJsonProvider
+   (suggested by Matt G)
   * [JACKSON-580] Allow registering instantiators (ValueInstantiator) for types (classes)
   * [JACKSON-581] Add 'ObjectMapper.readTree(File)'
    (suggested by Pascal G)

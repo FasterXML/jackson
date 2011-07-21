@@ -138,6 +138,9 @@ Christoph Strebin:
   * Reported [JACKSON-568] Package 'org.codehaus.jackson.util' missing from
     core/lgpl jar
    [1.8.1]
+  * Suggested [JACKSON-531] Comparing actual and default value (for
+    JsonSerialize.Inclusion.NON_DEFAULT) should check array contents
+   [1.9.0]
 
 Peter Harris:
   * Reported [JACKSON-139], provided patch for fixing it: Non-numeric
@@ -684,9 +687,45 @@ Jamie Reilly:
   * Reported [JACKSON-570] Caching of MapSerializer not thread-safe
    [1.8.1]
 
+Pierre-Alexandre Meyer:
+  * Reported [JACKSON-586]: Problems with @JsonValue, method visibility
+   [1.8.2]
+
+Chris Pruett:
+  * Reported [JACKSON-587] TextNode.getValueAsLong() failing with values
+    beyond int range.
+   [1.8.3]
+
+Tom Leccese:
+  * reported [JACKSON-591] JodaDeserializers not throwing wrongTokenException
+   [1.8.3]
+
+Lawrence Chang:
+  * Reported [JACKSON-627] WriterBasedGenerator failure for long Strings,
+    custom character escaping, unit test, suggested fix.
+   [1.8.4]
+
+Maxxan:
+  * Reported [JACKSON-629] Fix a buffer boundary problem with SmileParser,
+    5-7 character names
+   [1.8.4]
+
+Tim Bond:
+  * Reported [JACKSON-631] Problems decoding Base64Variants.MODIFIED_FOR_URL
+   [1.8.4]
+
+Edward Alexandrov:
+  * Reported [JACKSON-632] Handling of UTF-8 BOM incorrect, causing
+    "Internal Error"
+   [1.8.4]
+
 Earl Baugh:
   * Suggested [JACKSON-584] Serialize type info for non-static anonymous inner classes
     as that of declared (static) type
+   [1.9.0]
+
+Matt Goldspink:
+  * Suggested [JACKSON-578] Allow use of @JsonView on JAX-RS resource, with JacksonJsonProvider
    [1.9.0]
 
 "Programmer Bruce":

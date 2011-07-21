@@ -15,8 +15,11 @@ import javax.ws.rs.ext.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
 import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.annotate.JsonView;
 import org.codehaus.jackson.map.type.ClassKey;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.JSONPObject;
@@ -476,10 +479,10 @@ public class JacksonJsonProvider
     }
 
     /**
-     * Method that JAX-RS container calls to serialize given
-     * value.
+     * Method that JAX-RS container calls to serialize given value.
      */
-    public void writeTo(Object value, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String,Object> httpHeaders, OutputStream entityStream) 
+    public void writeTo(Object value, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType,
+            MultivaluedMap<String,Object> httpHeaders, OutputStream entityStream) 
         throws IOException
     {
         /* 27-Feb-2009, tatu: Where can we find desired encoding? Within
@@ -518,13 +521,30 @@ public class JacksonJsonProvider
                 }
             }
         }
-        // [JACKSON-245] Allow automatic JSONP wrapping
-        if (_jsonpFunctionName != null) {
-            mapper.writeValue(jg, new JSONPObject(_jsonpFunctionName, value, rootType));
-        } else if (rootType != null) {
-            mapper.typedWriter(rootType).writeValue(jg, value);
+        // [JACKSON-578]: Allow use of @JsonView in resource methods.
+        Class<?> viewToUse = null;
+        if (annotations != null && annotations.length > 0) {
+            viewToUse = _findView(mapper, annotations);
+        }
+        if (viewToUse != null) {
+            ObjectWriter viewWriter = mapper.viewWriter(viewToUse);
+            // [JACKSON-245] Allow automatic JSONP wrapping
+            if (_jsonpFunctionName != null) {
+                viewWriter.writeValue(jg, new JSONPObject(this._jsonpFunctionName, value, rootType));
+            } else if (rootType != null) {
+                mapper.typedWriter(rootType).withView(viewToUse).writeValue(jg, value);
+            } else {
+                viewWriter.writeValue(jg, value);
+            }
         } else {
-            mapper.writeValue(jg, value);
+            // [JACKSON-245] Allow automatic JSONP wrapping
+            if (_jsonpFunctionName != null) {
+                mapper.writeValue(jg, new JSONPObject(this._jsonpFunctionName, value, rootType));
+            } else if (rootType != null) {
+                mapper.typedWriter(rootType).writeValue(jg, value);
+            } else {
+                mapper.writeValue(jg, value);
+            }
         }
     }
 
@@ -638,5 +658,34 @@ public class JacksonJsonProvider
             }
         }
         return false;
+    }
+
+    protected Class<?> _findView(ObjectMapper mapper, Annotation[] annotations)
+        throws JsonMappingException
+    {
+        /* Ideally we would try to use AnnotationIntrospector here, but current
+         * API expects to get a method/field, not bunch of annotations,
+         * so we would need to change it a bit.
+         * Let's not bother, then, since this works well for now.
+         */
+        for (Annotation annotation : annotations) {
+            if (annotation.annotationType().isAssignableFrom(JsonView.class)) {
+                JsonView jsonView = (JsonView) annotation;
+                Class<?>[] views = jsonView.value();
+                if (views.length > 1) {
+                    StringBuilder s = new StringBuilder("Multiple @JsonView's can not be used on a JAX-RS method. Got ");
+                    s.append(views.length).append(" views: ");
+                    for (int i = 0; i < views.length; i++) {
+                        if (i > 0) {
+                            s.append(", ");
+                        }
+                        s.append(views[i].getName());
+                    }
+                    throw new JsonMappingException(s.toString());
+                }
+                return views[0];
+            }
+        }
+        return null;
     }
 }
