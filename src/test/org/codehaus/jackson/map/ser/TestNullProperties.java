@@ -88,6 +88,11 @@ public class TestNullProperties
         public List<String> strings = new ArrayList<String>();
     }
     
+    @JsonSerialize(include=JsonSerialize.Inclusion.NON_DEFAULT)
+    static class ArrayBean {
+        public int[] ints = new int[] { 1, 2 };
+    }
+
     /*
     /**********************************************************
     /* Unit tests
@@ -192,5 +197,12 @@ public class TestNullProperties
         ObjectMapper m = new ObjectMapper();
         Map<String,Object> result = writeAndMap(m, new LegacyFieldBean());
         assertEquals(0, result.size());
+    }
+
+    // [JACKSON-531]: make NON_DEFAULT work for arrays too
+    public void testNonEmptyDefaultArray() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        assertEquals("{}", m.writeValueAsString(new ArrayBean()));
     }
 }

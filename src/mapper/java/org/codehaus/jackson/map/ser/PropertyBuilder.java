@@ -108,6 +108,11 @@ public class PropertyBuilder
                 suppValue = getDefaultValue(name, m, f);
                 if (suppValue == null) {
                     suppressNulls = true;
+                } else {
+                    // [JACKSON-531]: Allow comparison of arrays too...
+                    if (suppValue.getClass().isArray()) {
+                        suppValue = getDefaultArrayValueChecker(suppValue);
+                    }
                 }
                 break;
             case NON_NULL:
@@ -135,7 +140,7 @@ public class PropertyBuilder
     
     /*
     /**********************************************************
-    /* Helper methods, generic
+    /* Helper methods; annotation access
     /**********************************************************
      */
 
@@ -191,6 +196,12 @@ public class PropertyBuilder
         return useStaticTyping ? declaredType : null;
     }
 
+    /*
+    /**********************************************************
+    /* Helper methods for default value handling
+    /**********************************************************
+     */
+    
     protected Object getDefaultBean()
     {
         if (_defaultBean == null) {
@@ -256,6 +267,45 @@ public class PropertyBuilder
         }
         return null;
     }
+
+    /**
+     * Helper method used for constructing simple value comparator used for
+     * comparing arrays for content equality.
+     * 
+     * @since 1.9
+     */
+    protected Object getDefaultArrayValueChecker(final Object defaultValue)
+    {
+        final int length = Array.getLength(defaultValue);
+        return new Object() {
+            @Override
+            public boolean equals(Object other) {
+                if (other == this) return true;
+                if (other == null || other.getClass() != defaultValue.getClass()) {
+                    return false;
+                }
+                if (Array.getLength(other) != length) return false;
+                // so far so good: compare actual equality; but only shallow one
+                for (int i = 0; i < length; ++i) {
+                    Object value1 = Array.get(defaultValue, i);
+                    Object value2 = Array.get(other, i);
+                    if (value1 == value2) continue;
+                    if (value1 != null) {
+                        if (!value1.equals(value2)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        };
+    }    
+    
+    /*
+    /**********************************************************
+    /* Helper methods for exception handling
+    /**********************************************************
+     */
     
     protected Object _throwWrapped(Exception e, String propName, Object defaultBean)
     {
