@@ -267,10 +267,22 @@ public class TestJdkTypes
     public void testEmptyStringForPrimitives() throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
-        Object ob;
-        ob = mapper.readValue(quote(""), Integer.TYPE);
-        assertNull(ob);
-        ob = mapper.readValue(quote(""), Integer.class);
-        assertNull(ob);
-    }    
+        PrimitivesBean bean;
+        bean = mapper.readValue("{\"booleanValue\":\"\"}", PrimitivesBean.class);
+        assertFalse(bean.booleanValue);
+        bean = mapper.readValue("{\"byteValue\":\"\"}", PrimitivesBean.class);
+        assertEquals((byte) 0, bean.byteValue);
+        bean = mapper.readValue("{\"charValue\":\"\"}", PrimitivesBean.class);
+        assertEquals((char) 0, bean.charValue);
+        bean = mapper.readValue("{\"shortValue\":\"\"}", PrimitivesBean.class);
+        assertEquals((short) 0, bean.shortValue);
+        bean = mapper.readValue("{\"intValue\":\"\"}", PrimitivesBean.class);
+        assertEquals(0, bean.intValue);
+        bean = mapper.readValue("{\"longValue\":\"\"}", PrimitivesBean.class);
+        assertEquals(0L, bean.longValue);
+        bean = mapper.readValue("{\"floatValue\":\"\"}", PrimitivesBean.class);
+        assertEquals(0.0f, bean.floatValue);
+        bean = mapper.readValue("{\"doubleValue\":\"\"}", PrimitivesBean.class);
+        assertEquals(0.0, bean.doubleValue);
+    }
 }

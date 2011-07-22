@@ -163,27 +163,67 @@ public abstract class StdDeserializer<T>
         // Otherwise, no can do:
         throw ctxt.mappingException(_valueClass);
     }
-    
-    protected final Short _parseShort(JsonParser jp, DeserializationContext ctxt)
+
+    protected Byte _parseByte(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.getCurrentToken();
-        if (t == JsonToken.VALUE_NULL) {
-            return null;
+        if (t == JsonToken.VALUE_NUMBER_INT || t == JsonToken.VALUE_NUMBER_FLOAT) { // coercing should work too
+            return jp.getByteValue();
         }
+        if (t == JsonToken.VALUE_STRING) { // let's do implicit re-parse
+            String text = jp.getText().trim();
+            int value;
+            try {
+                int len = text.length();
+                if (len == 0) {
+                    return (Byte) getEmptyValue();
+                }
+                value = NumberInput.parseInt(text);
+            } catch (IllegalArgumentException iae) {
+                throw ctxt.weirdStringException(_valueClass, "not a valid Byte value");
+            }
+            // So far so good: but does it fit?
+            if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
+                throw ctxt.weirdStringException(_valueClass, "overflow, value can not be represented as 8-bit value");
+            }
+            return Byte.valueOf((byte) value);
+        }
+        if (t == JsonToken.VALUE_NULL) {
+            return (Byte) getNullValue();
+        }
+        throw ctxt.mappingException(_valueClass);
+    }
+    
+    protected Short _parseShort(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        JsonToken t = jp.getCurrentToken();
         if (t == JsonToken.VALUE_NUMBER_INT || t == JsonToken.VALUE_NUMBER_FLOAT) { // coercing should work too
             return jp.getShortValue();
         }
-        Integer I = _parseInteger(jp, ctxt);
-        if (I == null) {
-            return null;
+        if (t == JsonToken.VALUE_STRING) { // let's do implicit re-parse
+            String text = jp.getText().trim();
+            int value;
+            try {
+                int len = text.length();
+                if (len == 0) {
+                    return (Short) getEmptyValue();
+                }
+                value = NumberInput.parseInt(text);
+            } catch (IllegalArgumentException iae) {
+                throw ctxt.weirdStringException(_valueClass, "not a valid Short value");
+            }
+            // So far so good: but does it fit?
+            if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
+                throw ctxt.weirdStringException(_valueClass, "overflow, value can not be represented as 16-bit value");
+            }
+            return Short.valueOf((short) value);
         }
-        int value = I.intValue();
-        // So far so good: but does it fit?
-        if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
-            throw ctxt.weirdStringException(_valueClass, "overflow, value can not be represented as 16-bit value");
+        if (t == JsonToken.VALUE_NULL) {
+            return (Short) getNullValue();
         }
-        return Short.valueOf((short) value);
+        throw ctxt.mappingException(_valueClass);
     }
 
     protected final short _parseShortPrimitive(JsonParser jp, DeserializationContext ctxt)
@@ -256,7 +296,7 @@ public abstract class StdDeserializer<T>
                     return Integer.valueOf((int) l);
                 }
                 if (len == 0) {
-                    return null;
+                    return (Integer) getEmptyValue();
                 }
                 return Integer.valueOf(NumberInput.parseInt(text));
             } catch (IllegalArgumentException iae) {
@@ -774,19 +814,7 @@ public abstract class StdDeserializer<T>
         public Byte deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            if (jp.getCurrentToken() == JsonToken.VALUE_NULL) {
-                return (Byte) getNullValue();
-            }
-            Integer I = _parseInteger(jp, ctxt);
-            if (I == null) {
-                return null;
-            }
-            int value = I.intValue();
-            // So far so good: but does it fit?
-            if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
-                throw ctxt.weirdStringException(_valueClass, "overflow, value can not be represented as 8-bit value");
-            }
-            return Byte.valueOf((byte) value);
+            return _parseByte(jp, ctxt);
         }
     }
 
@@ -836,7 +864,7 @@ public abstract class StdDeserializer<T>
                 }
                 // actually, empty should become null?
                 if (text.length() == 0) {
-                    return null;
+                    return (Character) getEmptyValue();
                 }
             }
             throw ctxt.mappingException(_valueClass);
