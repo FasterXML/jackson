@@ -23,6 +23,20 @@ public class TestJdkTypes
         public double doubleValue = -1.0;
     }
 
+    // for [JACKSON-616]
+    static class WrappersBean
+    {
+        public Boolean booleanValue;
+        public Byte byteValue;
+        public Character charValue;
+        public Short shortValue;
+        public Integer intValue;
+        public Long longValue;
+        public Float floatValue;
+        public Double doubleValue;
+    }
+
+    
     static class ParamClassBean
     {
          public String name = "bar";
@@ -166,7 +180,7 @@ public class TestJdkTypes
             verifyException(e, "Can not map JSON null into type double");
         }
     }
- 
+    
     /**
      * Test for [JACKSON-483], allow handling of CharSequence
      */
@@ -219,4 +233,44 @@ public class TestJdkTypes
         assertEquals("Foobar", result.name);
         assertSame(String.class, result.clazz);
     }
+
+    // by default, should return nulls, n'est pas?
+    public void testEmptyStringForWrappers() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        WrappersBean bean;
+
+        // by default, ok to rely on defaults
+        bean = mapper.readValue("{\"booleanValue\":\"\"}", WrappersBean.class);
+        assertNull(bean.booleanValue);
+        bean = mapper.readValue("{\"byteValue\":\"\"}", WrappersBean.class);
+        assertNull(bean.byteValue);
+
+        // char/Character is different... not sure if this should work or not:
+        bean = mapper.readValue("{\"charValue\":\"\"}", WrappersBean.class);
+        assertNull(bean.charValue);
+
+        bean = mapper.readValue("{\"shortValue\":\"\"}", WrappersBean.class);
+        assertNull(bean.shortValue);
+        bean = mapper.readValue("{\"intValue\":\"\"}", WrappersBean.class);
+        assertNull(bean.intValue);
+        bean = mapper.readValue("{\"longValue\":\"\"}", WrappersBean.class);
+        assertNull(bean.longValue);
+        bean = mapper.readValue("{\"floatValue\":\"\"}", WrappersBean.class);
+        assertNull(bean.floatValue);
+        bean = mapper.readValue("{\"doubleValue\":\"\"}", WrappersBean.class);
+        assertNull(bean.doubleValue);
+    }
+
+    // for [JACKSON-616]
+    // @since 1.9
+    public void testEmptyStringForPrimitives() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Object ob;
+        ob = mapper.readValue(quote(""), Integer.TYPE);
+        assertNull(ob);
+        ob = mapper.readValue(quote(""), Integer.class);
+        assertNull(ob);
+    }    
 }

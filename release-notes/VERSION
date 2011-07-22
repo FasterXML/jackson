@@ -32,6 +32,8 @@ Description:
   * [JACKSON-613] Add ArrayNode/ObjectNode methods for dealing with wrapper
     values, unboxing, nulls
    (suggested by Bruce P)
+  * [JACKSON-616] Better handling of primitive deserializers, to avoid NPEs
+   (suggested by Bruce P)
   * [JACKSON-619] SmileParser.getCurrentLocation(), getTokenLocation() did not
     report actual byte offsets.
    (reported by Ray R)

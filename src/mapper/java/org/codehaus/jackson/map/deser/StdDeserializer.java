@@ -139,12 +139,12 @@ public abstract class StdDeserializer<T>
         if (t == JsonToken.VALUE_FALSE) {
             return Boolean.FALSE;
         }
-        if (t == JsonToken.VALUE_NULL) {
-            return null;
-        }
         // [JACKSON-78]: should accept ints too, (0 == false, otherwise true)
         if (t == JsonToken.VALUE_NUMBER_INT) {
             return (jp.getIntValue() == 0) ? Boolean.FALSE : Boolean.TRUE; 
+        }
+        if (t == JsonToken.VALUE_NULL) {
+            return (Boolean) getNullValue();
         }
         // And finally, let's allow Strings to be converted too
         if (t == JsonToken.VALUE_STRING) {
@@ -152,8 +152,11 @@ public abstract class StdDeserializer<T>
             if ("true".equals(text)) {
                 return Boolean.TRUE;
             }
-            if ("false".equals(text) || text.length() == 0) {
+            if ("false".equals(text)) {
                 return Boolean.FALSE;
+            }
+            if (text.length() == 0) {
+                return (Boolean) getEmptyValue();
             }
             throw ctxt.weirdStringException(_valueClass, "only \"true\" or \"false\" recognized");
         }
@@ -171,12 +174,16 @@ public abstract class StdDeserializer<T>
         if (t == JsonToken.VALUE_NUMBER_INT || t == JsonToken.VALUE_NUMBER_FLOAT) { // coercing should work too
             return jp.getShortValue();
         }
-        int value = _parseIntPrimitive(jp, ctxt);
+        Integer I = _parseInteger(jp, ctxt);
+        if (I == null) {
+            return null;
+        }
+        int value = I.intValue();
         // So far so good: but does it fit?
         if (value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
             throw ctxt.weirdStringException(_valueClass, "overflow, value can not be represented as 16-bit value");
         }
-        return (short) value;
+        return Short.valueOf((short) value);
     }
 
     protected final short _parseShortPrimitive(JsonParser jp, DeserializationContext ctxt)
@@ -257,7 +264,7 @@ public abstract class StdDeserializer<T>
             }
         }
         if (t == JsonToken.VALUE_NULL) {
-            return null;
+            return (Integer) getNullValue();
         }
         // Otherwise, no can do:
         throw ctxt.mappingException(_valueClass);
@@ -277,7 +284,7 @@ public abstract class StdDeserializer<T>
             // !!! 05-Jan-2009, tatu: Should we try to limit value space, JDK is too lenient?
             String text = jp.getText().trim();
             if (text.length() == 0) {
-                return null;
+                return (Long) getEmptyValue();
             }
             try {
                 return Long.valueOf(NumberInput.parseLong(text));
@@ -285,7 +292,7 @@ public abstract class StdDeserializer<T>
             throw ctxt.weirdStringException(_valueClass, "not a valid Long value");
         }
         if (t == JsonToken.VALUE_NULL) {
-            return null;
+            return (Long) getNullValue();
         }
         // Otherwise, no can do:
         throw ctxt.mappingException(_valueClass);
@@ -327,7 +334,7 @@ public abstract class StdDeserializer<T>
         if (t == JsonToken.VALUE_STRING) {
             String text = jp.getText().trim();
             if (text.length() == 0) {
-                return null;
+                return (Float) getEmptyValue();
             }
             switch (text.charAt(0)) {
             case 'I':
@@ -352,7 +359,7 @@ public abstract class StdDeserializer<T>
             throw ctxt.weirdStringException(_valueClass, "not a valid Float value");
         }
         if (t == JsonToken.VALUE_NULL) {
-            return null;
+            return (Float) getNullValue();
         }
         // Otherwise, no can do:
         throw ctxt.mappingException(_valueClass);
@@ -411,7 +418,7 @@ public abstract class StdDeserializer<T>
         if (t == JsonToken.VALUE_STRING) {
             String text = jp.getText().trim();
             if (text.length() == 0) {
-                return null;
+                return (Double) getEmptyValue();
             }
             switch (text.charAt(0)) {
             case 'I':
@@ -436,7 +443,7 @@ public abstract class StdDeserializer<T>
             throw ctxt.weirdStringException(_valueClass, "not a valid Double value");
         }
         if (t == JsonToken.VALUE_NULL) {
-            return null;
+            return (Double) getNullValue();
         }
             // Otherwise, no can do:
         throw ctxt.mappingException(_valueClass);
@@ -491,24 +498,27 @@ public abstract class StdDeserializer<T>
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.getCurrentToken();
-        try {
-            if (t == JsonToken.VALUE_NUMBER_INT) {
-                return new java.util.Date(jp.getLongValue());
-            }
-            if (t == JsonToken.VALUE_STRING) {
+        if (t == JsonToken.VALUE_NUMBER_INT) {
+            return new java.util.Date(jp.getLongValue());
+        }
+        if (t == JsonToken.VALUE_NULL) {
+            return (java.util.Date) getNullValue();
+        }
+        if (t == JsonToken.VALUE_STRING) {
+            try {
                 /* As per [JACKSON-203], take empty Strings to mean
                  * null
                  */
                 String str = jp.getText().trim();
                 if (str.length() == 0) {
-                    return null;
+                    return (Date) getEmptyValue();
                 }
                 return ctxt.parseDate(str);
+            } catch (IllegalArgumentException iae) {
+                throw ctxt.weirdStringException(_valueClass, "not a valid representation (error: "+iae.getMessage()+")");
             }
-            throw ctxt.mappingException(_valueClass);
-        } catch (IllegalArgumentException iae) {
-            throw ctxt.weirdStringException(_valueClass, "not a valid representation (error: "+iae.getMessage()+")");
         }
+        throw ctxt.mappingException(_valueClass);
     }
 
     /**
@@ -764,7 +774,14 @@ public abstract class StdDeserializer<T>
         public Byte deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException
         {
-            int value = _parseIntPrimitive(jp, ctxt);
+            if (jp.getCurrentToken() == JsonToken.VALUE_NULL) {
+                return (Byte) getNullValue();
+            }
+            Integer I = _parseInteger(jp, ctxt);
+            if (I == null) {
+                return null;
+            }
+            int value = I.intValue();
             // So far so good: but does it fit?
             if (value < Byte.MIN_VALUE || value > Byte.MAX_VALUE) {
                 throw ctxt.weirdStringException(_valueClass, "overflow, value can not be represented as 8-bit value");
@@ -816,6 +833,10 @@ public abstract class StdDeserializer<T>
                 String text = jp.getText();
                 if (text.length() == 1) {
                     return Character.valueOf(text.charAt(0));
+                }
+                // actually, empty should become null?
+                if (text.length() == 0) {
+                    return null;
                 }
             }
             throw ctxt.mappingException(_valueClass);

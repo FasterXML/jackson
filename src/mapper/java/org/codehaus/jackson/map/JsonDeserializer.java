@@ -118,10 +118,10 @@ public abstract class JsonDeserializer<T>
     
     /**
      * Method that can be called to determine value to be used for
-     * representing null values (values deserialized when Json token
+     * representing null values (values deserialized when JSON token
      * is {@link JsonToken#VALUE_NULL}). Usually this is simply
-     * Java null, but for some types (primitives) it may be
-     * necessary to use actual values.
+     * Java null, but for some types (especially primitives) it may be
+     * necessary to use non-null values.
      *<p>
      * Note that deserializers are allowed to call this just once and
      * then reuse returned value; that is, method is not guaranteed to
@@ -130,6 +130,21 @@ public abstract class JsonDeserializer<T>
      * Default implementation simply returns null.
      */
     public T getNullValue() { return null; }
+
+    /**
+     * Method called to determine value to be used for "empty" values
+     * (most commonly when deserializing from empty JSON Strings).
+     * Usually this is same as {@link #getNullValue} (which in turn
+     * is usually simply Java null), but it can be overridden
+     * for types. Or, if type should never be converted from empty
+     * String, method can also throw an exception.
+     *<p>
+     * Default implementation simple calls {@link #getNullValue} and
+     * returns value.
+     * 
+     * @since 1.9
+     */
+    public T getEmptyValue() { return getNullValue(); }
     
     /*
     /**********************************************************
