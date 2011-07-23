@@ -510,6 +510,24 @@ public class SerializationConfig
         _serializationView = view;
         _filterProvider = src._filterProvider;
     }
+
+    /**
+     * @since 1.9
+     */
+    protected SerializationConfig(SerializationConfig src, JsonSerialize.Inclusion incl)
+    {
+        super(src);
+        _featureFlags = src._featureFlags;
+        _serializationInclusion = incl;
+        // And for some level of backwards compatibility, also...
+        if (incl == JsonSerialize.Inclusion.NON_NULL) {
+            disable(Feature.WRITE_NULL_PROPERTIES);
+        } else {
+            enable(Feature.WRITE_NULL_PROPERTIES);
+        }
+        _serializationView = src._serializationView;
+        _filterProvider = src._filterProvider;
+    }
     
     /*
     /**********************************************************
@@ -597,6 +615,13 @@ public class SerializationConfig
         return new SerializationConfig(this, view);
     }
 
+    /**
+     * @since 1.9
+     */
+    public SerializationConfig withSerializationInclusion(JsonSerialize.Inclusion incl) {
+        return new SerializationConfig(this, incl);
+    }
+        
     /*
     /**********************************************************
     /* MapperConfig implementation
@@ -773,7 +798,11 @@ public class SerializationConfig
      * settings to use for instances of that class) and
      * method/field annotations (overriding settings for the value
      * bean for that getter method or field)
+     * 
+     * @deprecated since 1.9 should either use {@link #withSerializationInclusion}
+     *    to construct new instance, or configure through {@link ObjectMapper}
      */
+    @Deprecated
     public void setSerializationInclusion(JsonSerialize.Inclusion props)
     {
         _serializationInclusion = props;
@@ -836,20 +865,6 @@ public class SerializationConfig
     /* Deprecated methods
     /**********************************************************
      */
-
-    /**
-     * @deprecated Since 1.8 should use variant without arguments
-     */
-    @SuppressWarnings("deprecation")
-    @Deprecated
-    @Override
-    public SerializationConfig createUnshared(TypeResolverBuilder<?> typer,
-            VisibilityChecker<?> vc, SubtypeResolver str)
-    {
-        return createUnshared(str)
-            .withTypeResolverBuilder(typer)
-            .withVisibilityChecker(vc);
-    }
     
     /**
      * One thing to note is that this will set {@link Feature#WRITE_DATES_AS_TIMESTAMPS}

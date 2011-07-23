@@ -275,6 +275,19 @@ public class DeserializationConfig
          */
 
         /**
+         * Feature that determines whether it is acceptable to coerce non-array
+         * (in JSON) values to work with Java collection (arrays, java.util.Collection)
+         * types. If enabled, collection deserializers will try to handle non-array
+         * values as if they had "implicit" surrounding JSON array.
+         * This feature is meant to be used for compatibility/interoperability reasons,
+         * to work with packages (such as XML-to-JSON converters) that leave out JSON
+         * array in cases where there is just a single element in array.
+         * 
+         * @since 1.8
+         */
+        ACCEPT_SINGLE_VALUE_AS_ARRAY(false),
+        
+        /**
          * Feature that was planned to be enabled to handle "wrapped" values
          * (see {@link SerializationConfig.Feature#WRAP_ROOT_VALUE}
          * for details).
@@ -286,6 +299,12 @@ public class DeserializationConfig
          */
         @Deprecated
         WRAP_ROOT_VALUE(false),
+
+        /*
+        /******************************************************
+         *  Value conversion features
+        /******************************************************
+         */
         
         /**
          * Feature that can be enabled to allow JSON empty String
@@ -298,26 +317,7 @@ public class DeserializationConfig
          * 
          * @since 1.8
          */
-        ACCEPT_EMPTY_STRING_AS_NULL_OBJECT(false),
-
-        /**
-         * Feature that determines whether it is acceptable to coerce non-array
-         * (in JSON) values to work with Java collection (arrays, java.util.Collection)
-         * types. If enabled, collection deserializers will try to handle non-array
-         * values as if they had "implicit" surrounding JSON array.
-         * This feature is meant to be used for compatibility/interoperability reasons,
-         * to work with packages (such as XML-to-JSON converters) that leave out JSON
-         * array in cases where there is just a single element in array.
-         * 
-         * @since 1.8
-         */
-        ACCEPT_SINGLE_VALUE_AS_ARRAY(false)
-        
-        /*
-        /******************************************************
-         *  Other features
-        /******************************************************
-         */
+        ACCEPT_EMPTY_STRING_AS_NULL_OBJECT(false)
         
         ;
 
@@ -801,64 +801,4 @@ public class DeserializationConfig
         }
         return (KeyDeserializer) ClassUtil.createInstance(keyDeserClass, canOverrideAccessModifiers());
     }
-    
-    /*
-    /**********************************************************
-    /* Deprecated methods
-    /**********************************************************
-     */
-
-    /**
-     * @deprecated Since 1.8 should use variant without arguments
-     */
-    @Deprecated
-    @Override
-    public DeserializationConfig createUnshared(TypeResolverBuilder<?> typer,
-            VisibilityChecker<?> vc, SubtypeResolver str)
-    {
-        return createUnshared(str)
-            .withTypeResolverBuilder(typer)
-            .withVisibilityChecker(vc);
-    }
-    
-    /**
-     * @since 1.6
-     * 
-     * @deprecated Since 1.8 should use {@link #withNodeFactory} instead
-     */
-    @Deprecated
-    public void setNodeFactory(JsonNodeFactory nf) {
-        _nodeFactory = nf;
-    }
-
-
-    /**
-     * Method for accessing {@link AbstractTypeResolver} configured, if any
-     * (no default) used for resolving abstract types into concrete
-     * types (either by mapping or materializing new classes).
-     * 
-     * @deprecated Since 1.8 resolvers should be registered using Module interface
-     *    Will be removed from Jackson 2.0
-     * 
-     * @since 1.6
-     */
-    @Deprecated
-    public AbstractTypeResolver getAbstractTypeResolver() {
-        return _abstractTypeResolver;
-    }
-    
-    /**
-     * Method for specifying {@link AbstractTypeResolver} to use for resolving
-     * references to abstract types into concrete types (if possible).
-     * 
-     * @since 1.6
-     * 
-     * @deprecated Since 1.8 resolvers should be registered using Module interface.
-     *    Will be removed from Jackson 2.0
-     */
-    @Deprecated
-    public void setAbstractTypeResolver(AbstractTypeResolver atr) {
-        _abstractTypeResolver = atr;
-    }
-    
 }

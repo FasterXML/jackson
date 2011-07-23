@@ -741,4 +741,7 @@ Matt Goldspink:
      - [JACKSON-613] Add ArrayNode/ObjectNode methods for dealing with wrappers/unboxing/nulls
      - [JACKSON-616] Better handling of primitive deserializers, to avoid NPEs
      - [JACKSON-621] Add new fluent method, VisibilityChecker.with(Visibility)
-  
+
+Ed Anuff:
+  * Suggested [JACKSON-602] Add 'JsonSerialize.Inclusion.NON_EMPTY' option
+   [1.9.0]

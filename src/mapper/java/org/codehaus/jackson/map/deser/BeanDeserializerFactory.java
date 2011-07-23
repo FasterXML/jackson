@@ -550,15 +550,6 @@ public class BeanDeserializerFactory
                 }
             }
         }
-        // Also; as a fallback,  we support (until 2.0) old extension point too
-        @SuppressWarnings("deprecation")
-        AbstractTypeResolver resolver = config.getAbstractTypeResolver();
-        if (resolver != null) {
-            JavaType concrete = resolver.findTypeMapping(config, type);
-            if (concrete != null && concrete.getRawClass() != currClass) {
-                return concrete;
-            }
-        }
         return null;
     }
     
@@ -566,28 +557,7 @@ public class BeanDeserializerFactory
             BasicBeanDescription beanDesc)
         throws JsonMappingException
     {
-        // Deprecated registration method, try this one:
-        @SuppressWarnings("deprecation")
-        AbstractTypeResolver resolver = config.getAbstractTypeResolver();
-
-        // Quick shortchut: if nothing registered, return quickly:
-        if (resolver == null && !_factoryConfig.hasAbstractTypeResolvers()) {
-            return null;
-        }
-
         final JavaType abstractType = beanDesc.getType();
-        // Otherwise check that there is no @JsonTypeInfo registered (to avoid conflicts)
-        AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        if (intr.findTypeResolver(config, beanDesc.getClassInfo(), abstractType) != null) {
-            return null;
-        }
-
-        if (resolver != null) {
-            JavaType concrete = resolver.resolveAbstractType(config, abstractType);
-            if (concrete != null) {
-                return concrete;
-            }
-        }
         
         /* [JACKSON-502] (1.8): Now it is possible to have multiple resolvers too,
          *   as they are registered via module interface.

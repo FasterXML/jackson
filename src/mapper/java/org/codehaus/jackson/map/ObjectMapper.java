@@ -12,6 +12,7 @@ import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.io.SegmentedStringWriter;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.deser.*;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
@@ -772,6 +773,20 @@ public class ObjectMapper
         return this;
     }
 
+    /**
+     * Method for setting defalt POJO property inclusion strategy for serialization.
+     * Equivalent to:
+     *<pre>
+     *  mapper.setSerializationConfig(mapper.getSerializationConfig().withSerializationInclusion(incl));
+     *</pre>
+     * 
+     * @since 1.9
+     */
+    public ObjectMapper setSerializationInclusion(JsonSerialize.Inclusion incl) {
+        _serializationConfig = _serializationConfig.withSerializationInclusion(incl);
+        return this;
+    }
+   
     /*
     /**********************************************************
     /* Type information configuration (1.5+)

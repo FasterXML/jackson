@@ -1,16 +1,12 @@
 package org.codehaus.jackson.map.ser;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
-import org.codehaus.jackson.map.BaseMapTest;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 @SuppressWarnings("serial")
@@ -69,12 +65,12 @@ public class TestAnnotationJsonSerialize2
     @JsonSerialize(keyUsing=SimpleKeySerializer.class, contentUsing=SimpleValueSerializer.class)
     static class SimpleValueMapWithSerializer extends HashMap<SimpleKey, ActualValue> { }
     
-    static class ListWrapper
+    static class ListWrapperSimple
     {
         @JsonSerialize(contentAs=SimpleValue.class)
         public final ArrayList<ActualValue> values = new ArrayList<ActualValue>();
         
-        public ListWrapper(String value) {
+        public ListWrapperSimple(String value) {
             values.add(new ActualValue(value));
         }
     }
@@ -89,12 +85,12 @@ public class TestAnnotationJsonSerialize2
         }
     }
     
-    static class MapWrapper
+    static class MapWrapperSimple
     {
         @JsonSerialize(contentAs=SimpleValue.class)
         public final HashMap<SimpleKey, ActualValue> values = new HashMap<SimpleKey, ActualValue>();
         
-        public MapWrapper(String key, String value) {
+        public MapWrapperSimple(String key, String value) {
             values.put(new SimpleKey(key), new ActualValue(value));
         }
     }
@@ -108,7 +104,7 @@ public class TestAnnotationJsonSerialize2
             values.put(new SimpleKey(key), new ActualValue(value));
         }
     }
-    
+
     /*
     /**********************************************************
     /* Test methods
@@ -155,7 +151,7 @@ public class TestAnnotationJsonSerialize2
     public void testSerializedAsListWithPropertyAnnotations() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
-        ListWrapper input = new ListWrapper("bar");
+        ListWrapperSimple input = new ListWrapperSimple("bar");
         assertEquals("{\"values\":[{\"value\":\"bar\"}]}", m.writeValueAsString(input));
     }
 
@@ -170,7 +166,7 @@ public class TestAnnotationJsonSerialize2
     public void testSerializedAsMapWithPropertyAnnotations() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
-        MapWrapper input = new MapWrapper("a", "b");
+        MapWrapperSimple input = new MapWrapperSimple("a", "b");
         assertEquals("{\"values\":{\"toString:a\":{\"value\":\"b\"}}}", m.writeValueAsString(input));
     }
 
@@ -179,5 +175,32 @@ public class TestAnnotationJsonSerialize2
         ObjectMapper m = new ObjectMapper();
         MapWrapperWithSerializer input = new MapWrapperWithSerializer("foo", "b");
         assertEquals("{\"values\":{\"key foo\":\"value b\"}}", m.writeValueAsString(input));
+    }
+
+    // [JACKSON-602]: Include.NON_EMPTY
+    public void testEmptyInclusion() throws IOException
+    {
+        ObjectMapper defMapper = new ObjectMapper();
+        ObjectMapper inclMapper = new ObjectMapper().setSerializationInclusion(JsonSerialize.Inclusion.NON_EMPTY);
+
+        StringWrapper str = new StringWrapper("");
+        assertEquals("{\"str\":\"\"}", defMapper.writeValueAsString(str));
+        assertEquals("{}", inclMapper.writeValueAsString(str));
+        assertEquals("{}", inclMapper.writeValueAsString(new StringWrapper()));
+
+        ListWrapper<String> list = new ListWrapper<String>();
+        assertEquals("{\"list\":[]}", defMapper.writeValueAsString(list));
+        assertEquals("{}", inclMapper.writeValueAsString(list));
+        assertEquals("{}", inclMapper.writeValueAsString(new ListWrapper<String>()));
+
+        MapWrapper<String,Integer> map = new MapWrapper<String,Integer>(new HashMap<String,Integer>());
+        assertEquals("{\"map\":{}}", defMapper.writeValueAsString(map));
+        assertEquals("{}", inclMapper.writeValueAsString(map));
+        assertEquals("{}", inclMapper.writeValueAsString(new MapWrapper<String,Integer>(null)));
+
+        ArrayWrapper<Integer> array = new ArrayWrapper<Integer>(new Integer[0]);
+        assertEquals("{\"array\":[]}", defMapper.writeValueAsString(array));
+        assertEquals("{}", inclMapper.writeValueAsString(array));
+        assertEquals("{}", inclMapper.writeValueAsString(new ArrayWrapper<Integer>(null)));
     }
 }

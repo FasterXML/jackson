@@ -54,6 +54,8 @@ Description:
   * [JACKSON-580] Allow registering instantiators (ValueInstantiator) for types (classes)
   * [JACKSON-581] Add 'ObjectMapper.readTree(File)'
    (suggested by Pascal G)
+  * [JACKSON-602] Add 'JsonSerialize.Inclusion.NON_EMPTY' option
+   (suggested by Ed A)
 
   Issues handled by new external projects:
 

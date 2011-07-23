@@ -140,6 +140,8 @@ public @interface JsonSerialize
      * Enumeration used with {@link JsonSerialize#include} property
      * to define which properties
      * of Java Beans are to be included in serialization
+     *
+     * @since 1.1
      */
     public enum Inclusion
     {
@@ -163,13 +165,38 @@ public @interface JsonSerialize
          * {@link java.util.Map}s, since they have no default values;
          * and if used, works same as {@link #ALWAYS}.
          */
-        NON_DEFAULT;
+        NON_DEFAULT,
+
+        /**
+         * Value that indicates that only properties that have values
+         * that values that are null or what is considered empty are
+         * not to be included.
+         * Emptiness is defined for following type:
+         *<ul>
+         * <li>For {@link java.util.Collection}s and {@link java.util.Map}s,
+         *    method <code>isEmpty()</code> is called;
+         *   </li>
+         * <li>For Java arrays, empty arrays are ones with length of 0
+         *   </li>
+         * <li>For Java {@link java.lang.String}s, <code>length()</code> is called,
+         *   and return value of 0 indicates empty String (note that <code>String.isEmpty()</code>
+         *   was added in Java 1.6 and as such can not be used by Jackson
+         *   </li>
+         * <ul>
+         *  For other types, non-null values are to be included.
+         * 
+         * @since 1.9
+         */
+        NON_EMPTY
+        ;
     }
 
     /**
      * Enumeration used with {@link JsonSerialize#typing} property
      * to define whether type detection is based on dynamic runtime
      * type (DYNAMIC) or declared type (STATIC).
+     * 
+     * @since 1.1
      */
     public enum Typing
     {

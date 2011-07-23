@@ -55,7 +55,6 @@ public abstract class BaseMapTest
         }
     }
 
-
     protected static class ObjectWrapper {
         private final Object object;
         protected ObjectWrapper(final Object object) {
@@ -68,6 +67,36 @@ public abstract class BaseMapTest
         }
     }
 
+    protected static class ListWrapper<T>
+    {
+        public List<T> list;
+
+        public ListWrapper(T... values) {
+            list = new ArrayList<T>();
+            for (T value : values) {
+                list.add(value);
+            }
+        }
+    }
+
+    protected static class MapWrapper<K,V>
+    {
+        public Map<K,V> map;
+
+        public MapWrapper(Map<K,V> m) {
+            map = m;
+        }
+    }
+    
+    protected static class ArrayWrapper<T>
+    {
+        public T[] array;
+
+        public ArrayWrapper(T[] v) {
+            array = v;
+        }
+    }
+    
     /**
      * Enumeration type with sub-classes per value.
      */

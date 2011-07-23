@@ -580,24 +580,6 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      */
 
     /**
-     * @deprecated Since 1.8, use variant that does not take arguments
-     */
-    @Deprecated
-    public abstract T createUnshared(TypeResolverBuilder<?> typer, VisibilityChecker<?> vc,
-            SubtypeResolver subtypeResolver);
-    
-    /**
-     * Method for replacing existing {@link ClassIntrospector} with
-     * specified replacement.
-     * 
-     * @deprecated Since 1.8, use {@link #withClassIntrospector(ClassIntrospector)} instead
-     */
-    @Deprecated
-    public final void setIntrospector(ClassIntrospector<? extends BeanDescription> ci) {
-        _base = _base.withClassIntrospector(ci);
-    }
-
-    /**
      * Method for replacing existing annotation introspector(s) with specified
      * introspector.
      * 
@@ -627,18 +609,6 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
             df = StdDateFormat.instance;
         }
         _base = _base.withDateFormat(df);
-    }        
-
-    /**
-     * Method for overriding subtype resolver used.
-     * 
-     * @since 1.6
-     * 
-     * @deprecated since 1.8, use {@link #withSubtypeResolver(SubtypeResolver)} instead.
-     */
-    @Deprecated
-    public final void setSubtypeResolver(SubtypeResolver str) {
-        _subtypeResolver = str;
     }
     
     /*
