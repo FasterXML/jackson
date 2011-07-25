@@ -293,6 +293,7 @@ compile.smile, compile.mrbean" />
             <classpath>
                <pathelement path="${dir.build.classes.core}"/>
                <pathelement path="${dir.build.classes.mapper}"/>
+               <pathelement path="${dir.build.classes.smile}"/>
             </classpath>
         </javac>
     </target>
