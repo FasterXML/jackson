@@ -252,6 +252,7 @@ javax.ws.rs
 ,javax.ws.rs.ext
 ,org.codehaus.jackson;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.annotate;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.introspect;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.type;version='${IMPL_VERSION}'
 ,org.codehaus.jackson.map.util;version='${IMPL_VERSION}'
