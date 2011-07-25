@@ -96,8 +96,35 @@ public class VerifySmileDocs
 
         while ((t1 = jsonParser.nextToken()) != null) {
             JsonToken t2 = smileParser.nextToken();
+            // first: token types must match
             if (t1 != t2) {
-                smileParser.close();
+                return jsonParser;
+            }
+            // and second, values as well
+            switch (t1) {
+            case VALUE_STRING:
+            case FIELD_NAME:
+                if (!jsonParser.getText().equals(smileParser.getText())) {
+                    return jsonParser;
+                }
+                break;
+            case VALUE_NUMBER_INT:
+                if (jsonParser.getLongValue() != smileParser.getLongValue()) {
+                    return jsonParser;
+                }
+                break;
+            case VALUE_NUMBER_FLOAT:
+                if (jsonParser.getDoubleValue() != smileParser.getDoubleValue()) {
+                    return jsonParser;
+                }
+                break;
+            // others are fine:
+            // Boolean values are distinct tokens;
+            // Object/Array start/end likewise
+            }
+        }
+        if (t1 == null) {
+            if (smileParser.nextToken() != null) {
                 return jsonParser;
             }
         }
