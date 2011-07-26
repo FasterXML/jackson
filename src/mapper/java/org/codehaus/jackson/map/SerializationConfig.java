@@ -205,7 +205,9 @@ public class SerializationConfig
         INDENT_OUTPUT(false),
 
         /**
-         * Feature that defines default property serialization order:
+         * Feature that defines default property serialization order used
+         * for POJO fields (note: does <b>not</b> apply to {@link java.util.Map}
+         * serialization!):
          * if enabled, default ordering is alphabetic (similar to
          * how {@link org.codehaus.jackson.annotate.JsonPropertyOrder#alphabetic()}
          * works); if disabled, order is unspecified (based on what JDK gives
