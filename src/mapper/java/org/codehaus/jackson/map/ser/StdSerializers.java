@@ -296,6 +296,8 @@ public class StdSerializers
                 jgen.writeNumber(value.doubleValue());
             } else if (value instanceof Float) {
                 jgen.writeNumber(value.floatValue());
+            } else if ((value instanceof Byte) || (value instanceof Short)) {
+                jgen.writeNumber(value.intValue()); // doesn't need to be cast to smaller numbers
             } else {
                 // We'll have to use fallback "untyped" number write method
                 jgen.writeNumber(value.toString());
