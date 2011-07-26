@@ -710,3 +710,8 @@ Edward Alexandrov:
   * Reported [JACKSON-632] Handling of UTF-8 BOM incorrect, causing
     "Internal Error"
    [1.8.4]
+
+Paul Marynchev:
+  * Reported [JACKSON-637] NumberSerializer was missing proper handling of
+    Integer, Long
+   [1.8.5]

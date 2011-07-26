@@ -1,10 +1,21 @@
 Version: 1.8.4
 
 Release date:
-  25-Jul-2011
+  xx-Aug-2011
 
 Description:
   A patch release for 1.8.
+
+  Fixes:
+
+  * [JACKSON-637] NumberSerializer was missing proper handling of Integer, Long
+   (reported by Paul M)
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.8.4 [25-Jul-2011]
 
   Fixes:
 
@@ -19,10 +30,6 @@ Description:
     (reported by Tim B)
   * [JACKSON-632] Handling of UTF-8 BOM incorrect, causing "Internal Error"
     (reported by Edward A)
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.8.3 [08-Jul-2011]
 
