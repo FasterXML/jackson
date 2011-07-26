@@ -288,10 +288,14 @@ public class StdSerializers
             /* These shouldn't match (as there are more specific ones),
              * but just to be sure:
              */
+            } else if (value instanceof Integer) {
+                jgen.writeNumber(value.intValue());
+            } else if (value instanceof Long) {
+                jgen.writeNumber(value.longValue());
             } else if (value instanceof Double) {
-                jgen.writeNumber(((Double) value).doubleValue());
+                jgen.writeNumber(value.doubleValue());
             } else if (value instanceof Float) {
-                jgen.writeNumber(((Float) value).floatValue());
+                jgen.writeNumber(value.floatValue());
             } else {
                 // We'll have to use fallback "untyped" number write method
                 jgen.writeNumber(value.toString());
