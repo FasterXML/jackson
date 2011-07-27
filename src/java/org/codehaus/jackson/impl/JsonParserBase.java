@@ -380,7 +380,6 @@ public abstract class JsonParserBase
     /* Public API, access to token information, text
     /**********************************************************
      */
-    
 
     @Override
     public boolean hasTextCharacters()
