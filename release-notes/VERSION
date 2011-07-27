@@ -71,6 +71,41 @@ Description:
 === History: ===
 ------------------------------------------------------------------------
 
+1.8.4 [25-Jul-2011]
+
+  Fixes:
+
+  * [JACKSON-605] Handle deserialization of Class<T> properties
+  * [JACKSON-627] WriterBasedGenerator failure for long Strings,
+    custom character escaping
+    (reported by Lawrence C)
+  * [JACKSON-629] Fix a	buffer boundary problem	with SmileParser, 5-7
+    character names
+    (reported by Maxxan)
+  * [JACKSON-631] Problems decoding Base64Variants.MODIFIED_FOR_URL
+    (reported by Tim B)
+  * [JACKSON-632] Handling of UTF-8 BOM incorrect, causing "Internal Error"
+    (reported by Edward A)
+
+1.8.3 [08-Jul-2011]
+
+  Fixes:
+
+  * [JACKSON-587] TextNode.getValueAsLong() does not work properly
+   (reported by Chris P)
+  * [JACKSON-591] JodaDeserializers not throwing wrongTokenException
+   (reported by Tom L)
+  * [JACKSON-597] Make ClassDeserializer support primitive types
+   (suggested by Bruce P)
+  (plus all 1.7 fixes up to 1.7.8)
+
+1.8.2 [15-Jun-2011]
+
+  Fixes:
+
+  * Problem with FilteredBeanPropertyWriter: was not delegating call
+    to wrapped BeanPropertyWriter, causing problems with modules
+
 1.8.1 [17-May-2011]
 
   Fixes:
@@ -183,6 +218,20 @@ Description:
 
   * [JACKSON-532]: Add support for org.json.JSONObject, org.json.JSONArray;
     created "jackson-module-json-org" at [https://github.com/FasterXML/jackson-module-json-org]
+
+1.7.8 [08-Jul-2011]
+
+  Fixes:
+
+  * [JACKSON-586] Problems with @JsonValue, method access (failed on
+    non-public methods, or public method of non-public class)
+   (reported by Pierre-Alexander M)
+  * [JACKSON-587] TextNode.getValueAsLong() does not work properly
+    (reported by Chris P)
+  * [JACKSON-591] JodaDeserializers not throwing wrongTokenException
+   (reported by Tom L)
+  * [JACKSON-597] Make ClassDeserializer support primitive types
+   (suggested by Bruce P)
 
 1.7.7 [17-May-2011]
 
