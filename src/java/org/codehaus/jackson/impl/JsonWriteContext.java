@@ -151,7 +151,7 @@ public class JsonWriteContext
             } else {
                 sb.append('?');
             }
-            sb.append(']');
+            sb.append('}');
         } else if (_type == TYPE_ARRAY) {
             sb.append('[');
             sb.append(getCurrentIndex());
