@@ -44,23 +44,34 @@ abstract class SmileTestBase
 
     protected byte[] _smileDoc(String json, boolean writeHeader) throws IOException
     {
+        return _smileDoc(new SmileFactory(), json, writeHeader);
+    }
+
+    protected byte[] _smileDoc(SmileFactory smileFactory, String json, boolean writeHeader) throws IOException
+    {
         JsonFactory jf = new JsonFactory();
     	JsonParser jp = jf.createJsonParser(json);
     	ByteArrayOutputStream out = new ByteArrayOutputStream();
     	JsonGenerator jg = smileGenerator(out, writeHeader);
     	
     	while (jp.nextToken() != null) {
-    		jg.copyCurrentEvent(jp);
+    	    jg.copyCurrentEvent(jp);
     	}
     	jp.close();
     	jg.close();
     	return out.toByteArray();
     }
-    
+
     protected SmileGenerator smileGenerator(ByteArrayOutputStream result, boolean addHeader)
         throws IOException
     {
-        SmileFactory f = new SmileFactory();
+        return smileGenerator(new SmileFactory(), result, addHeader);
+    }
+
+    protected SmileGenerator smileGenerator(SmileFactory f,
+            ByteArrayOutputStream result, boolean addHeader)
+        throws IOException
+    {
         f.configure(SmileGenerator.Feature.WRITE_HEADER, addHeader);
         return f.createJsonGenerator(result, null);
     }
