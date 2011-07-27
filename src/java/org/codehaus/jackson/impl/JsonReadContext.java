@@ -172,7 +172,7 @@ public final class JsonReadContext
             } else {
                 sb.append('?');
             }
-            sb.append(']');
+            sb.append('}');
             break;
         }
         return sb.toString();
