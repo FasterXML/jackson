@@ -2,6 +2,7 @@ package org.codehaus.jackson.smile;
 
 import java.io.*;
 
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonToken;
 
 public class TestSmileParser
@@ -44,6 +45,53 @@ public class TestSmileParser
     	p.close();
     }
 
+    public void testCharacters() throws IOException
+    {
+        // ensure we are using both back-ref types
+        SmileFactory sf = new SmileFactory();
+        sf.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
+        sf.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream(100);
+        
+        JsonGenerator jgen = sf.createJsonGenerator(bytes);
+        jgen.writeStartArray();
+        jgen.writeStartObject();
+        jgen.writeStringField("key", "value");
+        jgen.writeEndObject();
+        jgen.writeStartObject();
+        jgen.writeStringField("key", "value");
+        jgen.writeEndObject();
+        jgen.writeEndArray();
+        jgen.close();
+
+        SmileParser p = _smileParser(bytes.toByteArray());
+
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        String str;
+
+        assertToken(JsonToken.START_OBJECT, p.nextToken());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken());
+        str = new String(p.getTextCharacters(), p.getTextOffset(), p.getTextLength());
+        assertEquals("key", str);
+        assertToken(JsonToken.VALUE_STRING, p.nextToken());
+        str = new String(p.getTextCharacters(), p.getTextOffset(), p.getTextLength());
+        assertEquals("value", str);
+        assertToken(JsonToken.END_OBJECT, p.nextToken());
+
+        assertToken(JsonToken.START_OBJECT, p.nextToken());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken());
+        str = new String(p.getTextCharacters(), p.getTextOffset(), p.getTextLength());
+        assertEquals("key", str);
+        assertToken(JsonToken.VALUE_STRING, p.nextToken());
+        str = new String(p.getTextCharacters(), p.getTextOffset(), p.getTextLength());
+        assertEquals("value", str);
+        assertToken(JsonToken.END_OBJECT, p.nextToken());
+        
+        assertToken(JsonToken.END_ARRAY, p.nextToken());
+        assertNull(p.nextToken());
+        p.close();
+    }
+    
     public void testArrayWithString() throws IOException
     {
     	byte[] data = _smileDoc("[ \"abc\" ]");
