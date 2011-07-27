@@ -191,6 +191,7 @@ public class TestMixinsWithViews
     /**********************************************************
      */
     
+    @SuppressWarnings("deprecation")
     private ObjectMapper createObjectMapper( )
     {
       ObjectMapper objectMapper = new ObjectMapper( );

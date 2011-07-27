@@ -160,27 +160,27 @@ public final class TypeFactory
         return instance.constructArrayType(elementType);
     }
 
+    @SuppressWarnings("rawtypes")
     @Deprecated
-    @SuppressWarnings("unchecked")
     public static JavaType collectionType(Class<? extends Collection> collectionType, Class<?> elementType) {
         return instance.constructCollectionType(collectionType, instance.constructType(elementType));
     }
     
+    @SuppressWarnings("rawtypes")
     @Deprecated
-    @SuppressWarnings("unchecked")
     public static JavaType collectionType(Class<? extends Collection> collectionType, JavaType elementType) {
         return instance.constructCollectionType(collectionType, elementType);
     }
     
+    @SuppressWarnings("rawtypes")
     @Deprecated
-    @SuppressWarnings("unchecked")
     public static JavaType mapType(Class<? extends Map> mapClass, Class<?> keyType, Class<?> valueType)
     {
         return instance.constructMapType(mapClass, type(keyType), instance.constructType(valueType));
     }
 
+    @SuppressWarnings("rawtypes")
     @Deprecated
-    @SuppressWarnings("unchecked")
     public static JavaType mapType(Class<? extends Map> mapType, JavaType keyType, JavaType valueType) {
         return instance.constructMapType(mapType, keyType, valueType);
     }
@@ -520,7 +520,7 @@ public final class TypeFactory
      * NOTE: type modifiers are NOT called on Collection type itself; but are called
      * for contained types.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     public CollectionType constructCollectionType(Class<? extends Collection> collectionClass, Class<?> elementClass) {
         return CollectionType.construct(collectionClass, constructType(elementClass));
     }
@@ -531,7 +531,7 @@ public final class TypeFactory
      * NOTE: type modifiers are NOT called on Collection type itself; but are called
      * for contained types.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     public CollectionType constructCollectionType(Class<? extends Collection> collectionClass, JavaType elementType) {
         return CollectionType.construct(collectionClass, elementType);
     }
@@ -568,7 +568,7 @@ public final class TypeFactory
      * 
      * @since 1.8
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     public MapType constructMapType(Class<? extends Map> mapClass, JavaType keyType, JavaType valueType) {
         return MapType.construct(mapClass, keyType, valueType);
     }
@@ -581,7 +581,7 @@ public final class TypeFactory
      * 
      * @since 1.8
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     public MapType constructMapType(Class<? extends Map> mapClass, Class<?> keyClass, Class<?> valueClass) {
         return MapType.construct(mapClass, constructType(keyClass), constructType(valueClass));
     }
