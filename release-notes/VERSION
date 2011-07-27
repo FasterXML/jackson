@@ -41,15 +41,12 @@ Description:
    (reported by Tom L)
   * [JACKSON-597] Make ClassDeserializer support primitive types
    (suggested by Bruce P)
-  (plus all 1.7 fixes up to 1.7.7)
+  (plus all 1.7 fixes up to 1.7.8)
 
 1.8.2 [15-Jun-2011]
 
   Fixes:
 
-  * [JACKSON-586] Problems with @JsonValue, method access (failed on
-    non-public methods, or public method of non-public class)
-   (reported by Pierre-Alexander M)
   * Problem with FilteredBeanPropertyWriter: was not delegating call
     to wrapped BeanPropertyWriter, causing problems with modules
 
