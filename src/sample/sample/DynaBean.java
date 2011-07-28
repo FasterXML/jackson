@@ -6,6 +6,7 @@ import java.util.Map;
 import org.codehaus.jackson.annotate.JsonAnyGetter;
 import org.codehaus.jackson.annotate.JsonAnySetter;
 import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -26,7 +27,7 @@ public class DynaBean
     protected Map<String,Object> other = new HashMap<String,Object>();
 
     @JsonCreator
-    public DynaBean(int id, String name)
+    public DynaBean(@JsonProperty("id") int id, @JsonProperty("name") String name)
     {
         this.id = id;
         this.name = name;
