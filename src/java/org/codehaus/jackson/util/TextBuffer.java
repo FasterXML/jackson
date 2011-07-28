@@ -264,6 +264,12 @@ public final class TextBuffer
         if (_inputStart >= 0) { // shared copy from input buf
             return _inputLen;
         }
+        if (_resultArray != null) {
+            return _resultArray.length;
+        }
+        if (_resultString != null) {
+            return _resultString.length();
+        }
         // local segmented buffers
         return _segmentSize + _currentSize;
     }
@@ -277,11 +283,36 @@ public final class TextBuffer
         return (_inputStart >= 0) ? _inputStart : 0;
     }
 
+    /**
+     * Method that can be used to check whether textual contents can
+     * be efficiently accessed using {@link #getTextBuffer}.
+     * 
+     * @since 1.9
+     */
+    public boolean hasTextAsCharacters()
+    {
+        // if we have array in some form, sure
+        if (_inputStart >= 0 || _resultArray != null) {
+            return true;
+        }
+        // not if we have String as value
+        if (_resultString != null) {
+            return false;
+        }
+        return true;
+    }
+    
     public char[] getTextBuffer()
     {
         // Are we just using shared input buffer?
         if (_inputStart >= 0) {
             return _inputBuffer;
+        }
+        if (_resultArray != null) {
+            return _resultArray;
+        }
+        if (_resultString != null) {
+            return (_resultArray = _resultString.toCharArray());
         }
         // Nope; but does it fit in just one segment?
         if (!_hasSegments) {

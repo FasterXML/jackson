@@ -384,13 +384,11 @@ public abstract class JsonParserBase
     @Override
     public boolean hasTextCharacters()
     {
-        if (_currToken != null) { // null only before/after document
-            switch (_currToken) {
-            case FIELD_NAME:
-                return _nameCopied;
-            case VALUE_STRING:
-                return true; // usually true
-            }        
+        if (_currToken == JsonToken.VALUE_STRING) {
+            return true; // usually true
+        }        
+        if (_currToken == JsonToken.FIELD_NAME) {
+            return _nameCopied;
         }
         return false;
     }

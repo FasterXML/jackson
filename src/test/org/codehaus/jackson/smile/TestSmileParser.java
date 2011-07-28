@@ -8,10 +8,8 @@ import org.codehaus.jackson.JsonToken;
 public class TestSmileParser
     extends SmileTestBase
 {
-    /**
-     * Unit tests for verifying that if header/signature is required,
-     * lacking it is fatal
-     */
+    // Unit tests for verifying that if header/signature is required,
+    // lacking it is fatal
     public void testMandatoryHeader() throws IOException
     {
         // first test failing case
@@ -43,53 +41,6 @@ public class TestSmileParser
     	assertToken(JsonToken.END_ARRAY, p.nextToken());
     	assertNull(p.nextToken());
     	p.close();
-    }
-
-    public void testCharacters() throws IOException
-    {
-        // ensure we are using both back-ref types
-        SmileFactory sf = new SmileFactory();
-        sf.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
-        sf.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream(100);
-        
-        JsonGenerator jgen = sf.createJsonGenerator(bytes);
-        jgen.writeStartArray();
-        jgen.writeStartObject();
-        jgen.writeStringField("key", "value");
-        jgen.writeEndObject();
-        jgen.writeStartObject();
-        jgen.writeStringField("key", "value");
-        jgen.writeEndObject();
-        jgen.writeEndArray();
-        jgen.close();
-
-        SmileParser p = _smileParser(bytes.toByteArray());
-
-        assertToken(JsonToken.START_ARRAY, p.nextToken());
-        String str;
-
-        assertToken(JsonToken.START_OBJECT, p.nextToken());
-        assertToken(JsonToken.FIELD_NAME, p.nextToken());
-        str = new String(p.getTextCharacters(), p.getTextOffset(), p.getTextLength());
-        assertEquals("key", str);
-        assertToken(JsonToken.VALUE_STRING, p.nextToken());
-        str = new String(p.getTextCharacters(), p.getTextOffset(), p.getTextLength());
-        assertEquals("value", str);
-        assertToken(JsonToken.END_OBJECT, p.nextToken());
-
-        assertToken(JsonToken.START_OBJECT, p.nextToken());
-        assertToken(JsonToken.FIELD_NAME, p.nextToken());
-        str = new String(p.getTextCharacters(), p.getTextOffset(), p.getTextLength());
-        assertEquals("key", str);
-        assertToken(JsonToken.VALUE_STRING, p.nextToken());
-        str = new String(p.getTextCharacters(), p.getTextOffset(), p.getTextLength());
-        assertEquals("value", str);
-        assertToken(JsonToken.END_OBJECT, p.nextToken());
-        
-        assertToken(JsonToken.END_ARRAY, p.nextToken());
-        assertNull(p.nextToken());
-        p.close();
     }
     
     public void testArrayWithString() throws IOException
@@ -151,10 +102,8 @@ public class TestSmileParser
     	p.close();
     }
     
-    /**
-     * Test for ascii String values longer than 64 bytes; separate
-     * since handling differs
-     */
+    // Test for ASCII String values longer than 64 bytes; separate
+    // since handling differs
     public void testLongAsciiString() throws IOException
     {
     	final String DIGITS = "1234567890";
@@ -169,10 +118,8 @@ public class TestSmileParser
     	assertNull(p.nextToken());
     }
 
-    /**
-     * Test for non-ASCII String values longer than 64 bytes; separate
-     * since handling differs
-     */
+    //Test for non-ASCII String values longer than 64 bytes; separate
+    // since handling differs
     public void testLongUnicodeString() throws IOException
     {
     	final String DIGITS = "1234567890";
@@ -339,12 +286,8 @@ public class TestSmileParser
         p.close();
     }
 
-    /**
-     * Simple test to verify that byte 0 is not used (an implementation
-     * might mistakenly consider it a string value reference)
-     * 
-     * @throws IOException
-     */
+    // Simple test to verify that byte 0 is not used (an implementation
+    // might mistakenly consider it a string value reference)
     public void testInvalidByte() throws IOException
     {
         byte[] data = new byte[] { SmileConstants.TOKEN_LITERAL_START_ARRAY,
@@ -409,5 +352,53 @@ public class TestSmileParser
             assertNull(jp.nextToken());
             jp.close();
         }
+    }
+
+    // [JACKSON-640]: Problem with getTextCharacters/Offset/Length
+    public void testCharacters() throws IOException
+    {
+        // ensure we are using both back-ref types
+        SmileFactory sf = new SmileFactory();
+        sf.configure(SmileGenerator.Feature.CHECK_SHARED_NAMES, true);
+        sf.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream(100);
+        
+        JsonGenerator jgen = sf.createJsonGenerator(bytes);
+        jgen.writeStartArray();
+        jgen.writeStartObject();
+        jgen.writeStringField("key", "value");
+        jgen.writeEndObject();
+        jgen.writeStartObject();
+        jgen.writeStringField("key", "value");
+        jgen.writeEndObject();
+        jgen.writeEndArray();
+        jgen.close();
+
+        SmileParser p = _smileParser(bytes.toByteArray());
+
+        assertToken(JsonToken.START_ARRAY, p.nextToken());
+        String str;
+
+        assertToken(JsonToken.START_OBJECT, p.nextToken());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken());
+        str = new String(p.getTextCharacters(), p.getTextOffset(), p.getTextLength());
+        assertEquals("key", str);
+        assertToken(JsonToken.VALUE_STRING, p.nextToken());
+        str = new String(p.getTextCharacters(), p.getTextOffset(), p.getTextLength());
+        assertEquals("value", str);
+        assertToken(JsonToken.END_OBJECT, p.nextToken());
+
+        assertToken(JsonToken.START_OBJECT, p.nextToken());
+        assertToken(JsonToken.FIELD_NAME, p.nextToken());
+        str = new String(p.getTextCharacters(), p.getTextOffset(), p.getTextLength());
+        assertEquals("key", str);
+        assertToken(JsonToken.VALUE_STRING, p.nextToken());
+        str = new String(p.getTextCharacters(), p.getTextOffset(), p.getTextLength());
+        assertEquals("value", str);
+        assertToken(JsonToken.END_OBJECT, p.nextToken());
+        
+        assertToken(JsonToken.END_ARRAY, p.nextToken());
+        assertNull(p.nextToken());
+        p.close();
     }
 }

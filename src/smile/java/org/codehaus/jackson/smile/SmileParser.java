@@ -509,6 +509,18 @@ public class SmileParser
             }
         }
     }
+
+    @Override
+    public boolean hasTextCharacters()
+    {
+        if (_currToken == JsonToken.VALUE_STRING) {
+            return _textBuffer.hasTextAsCharacters();
+        }        
+        if (_currToken == JsonToken.FIELD_NAME) {
+            return _nameCopied;
+        }
+        return false;
+    }
     
     /*
     /**********************************************************
