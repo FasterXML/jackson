@@ -13,6 +13,8 @@ Description:
    (reported by Maxxan)
   * [JACKSON-632] Handling of UTF-8 BOM incorrect, causing "Internal Error"
     (reported by Edward A)
+  * [JACKSON-640] SmileParser.getTextCharacters() missing value in some
+    cases (value back-references)
 
 ------------------------------------------------------------------------
 == History: ==
