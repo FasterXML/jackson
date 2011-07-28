@@ -1,4 +1,4 @@
-Version: 1.8.4
+pVersion: 1.8.4
 
 Release date:
   xx-Aug-2011
@@ -10,6 +10,8 @@ Description:
 
   * [JACKSON-637] NumberSerializer was missing proper handling of Integer, Long
    (reported by Paul M)
+  * [JACKSON-640] SmileParser.getTextCharacters() missing value in some
+    cases (value back-references)
 
 ------------------------------------------------------------------------
 === History: ===
