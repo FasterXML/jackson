@@ -178,22 +178,23 @@ public class BasicClassIntrospector
 
     @Override
     public BasicBeanDescription forClassAnnotations(MapperConfig<?> cfg,
-            Class<?> c, MixInResolver r)
+            JavaType type, MixInResolver r)
     {
         boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
         AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(c, (useAnnotations ? ai : null), r);
-        return new BasicBeanDescription(cfg, cfg.constructType(c), ac);
+        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
+        return new BasicBeanDescription(cfg, type, ac);
     }
 
     @Override
     public BasicBeanDescription forDirectClassAnnotations(MapperConfig<?> cfg,
-            Class<?> c, MixInResolver r)
+            JavaType type, MixInResolver r)
     {
         boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
         AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(c, (useAnnotations ? ai : null), r);
-        return new BasicBeanDescription(cfg, cfg.constructType(c), ac);
+        AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(type.getRawClass(),
+                (useAnnotations ? ai : null), r);
+        return new BasicBeanDescription(cfg, type, ac);
     }
     
     /*

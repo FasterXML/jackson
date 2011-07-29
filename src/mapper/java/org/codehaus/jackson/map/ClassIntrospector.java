@@ -12,9 +12,9 @@ import org.codehaus.jackson.type.JavaType;
 public abstract class ClassIntrospector<T extends BeanDescription>
 {
     /*
-    ///////////////////////////////////////////////////////
-    // Helper interfaces
-    ///////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper interfaces
+    /**********************************************************
      */
 
     /**
@@ -34,9 +34,9 @@ public abstract class ClassIntrospector<T extends BeanDescription>
     protected ClassIntrospector() { }
 	
     /*
-    ///////////////////////////////////////////////////////
-    // Public API: factory methods
-    ///////////////////////////////////////////////////////
+    /**********************************************************
+    /* Public API: factory methods
+    /**********************************************************
      */
     
     /**
@@ -44,14 +44,14 @@ public abstract class ClassIntrospector<T extends BeanDescription>
      * information needed for serialization purposes.
      */
     public abstract T forSerialization(SerializationConfig cfg, JavaType type,
-                                       MixInResolver r);
+            MixInResolver r);
 
     /**
      * Factory method that constructs an introspector that has all
      * information needed for deserialization purposes.
      */
     public abstract T forDeserialization(DeserializationConfig cfg, JavaType type,
-                                         MixInResolver r);
+            MixInResolver r);
     
     /**
      * Factory method that constructs an introspector that has
@@ -60,15 +60,15 @@ public abstract class ClassIntrospector<T extends BeanDescription>
      * no information on member methods
      */
     public abstract T forCreation(DeserializationConfig cfg, JavaType type,
-                                  MixInResolver r);
+            MixInResolver r);
 
     /**
      * Factory method that constructs an introspector that only has
      * information regarding annotations class itself (or its supertypes) has,
      * but nothing on methods or constructors.
      */
-    public abstract T forClassAnnotations(MapperConfig<?> cfg, Class<?> c,
-                                          MixInResolver r);
+    public abstract T forClassAnnotations(MapperConfig<?> cfg, JavaType type,
+            MixInResolver r);
 
     /**
      * Factory method that constructs an introspector that only has
@@ -77,8 +77,41 @@ public abstract class ClassIntrospector<T extends BeanDescription>
      * 
      * @since 1.5
      */
-    public abstract T forDirectClassAnnotations(MapperConfig<?> cfg, Class<?> c,
+    public abstract T forDirectClassAnnotations(MapperConfig<?> cfg, JavaType type,
             MixInResolver r);
+    
+    /*
+    /**********************************************************
+    /* Deprecated methods
+    /**********************************************************
+     */
+    
+    /**
+     * Factory method that constructs an introspector that only has
+     * information regarding annotations class itself (or its supertypes) has,
+     * but nothing on methods or constructors.
+     * 
+     * @deprecated since 1.9, use variant that takes JavaType
+     */
+    @Deprecated
+    public T forClassAnnotations(MapperConfig<?> cfg, Class<?> cls,
+            MixInResolver r) {
+        return forClassAnnotations(cfg, cfg.constructType(cls), r);
+    }
 
+    /**
+     * Factory method that constructs an introspector that only has
+     * information regarding annotations class itself has (but NOT including
+     * its supertypes), but nothing on methods or constructors.
+     * 
+     * @since 1.5
+     * 
+     * @deprecated since 1.9, use variant that takes JavaType
+     */
+    @Deprecated
+    public T forDirectClassAnnotations(MapperConfig<?> cfg, Class<?> cls,
+            MixInResolver r) {
+        return forDirectClassAnnotations(cfg, cfg.constructType(cls), r);
+    }
 }
 

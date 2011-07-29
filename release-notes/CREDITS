@@ -358,6 +358,10 @@ Christopher Currie:
   * Reported [JACKSON-319], pointed out solution: issues trying to deserialize
     polymorphic instances with no data (just type info)
    [1.5.5]
+   (requested by Chris C)
+  * Requested [JACKSON-639] Change BasicClassIntrospector.forClassAnnotations
+    to take JavaType (not raw Class)
+   [1.9.0
 
 Steve Crane:
   * Suggested [JACKSON-324], calling releaseBuffers() within finally block
