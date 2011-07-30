@@ -1,5 +1,8 @@
 package org.codehaus.jackson.map.module;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.ValueInstantiator;
@@ -35,6 +38,14 @@ public class SimpleModule extends Module
      * (which may be abstract or concrete)
      */
     protected SimpleValueInstantiators _valueInstantiators = null;
+
+    /**
+     * Lazily-constructed map that contains mix-in definitions, indexed
+     * by target class, value being mix-in to apply.
+     * 
+     * @since 1.9
+     */
+    protected HashMap<Class<?>, Class<?>> _mixins = null;
     
     /*
     /**********************************************************
@@ -175,12 +186,36 @@ public class SimpleModule extends Module
         return this;
     }
 
+    /**
+     * Method for registering {@link ValueInstantiator} to use when deserializing
+     * instances of type <code>beanType</code>.
+     *<p>
+     * Instantiator is
+     * registered when module is registered for <code>ObjectMapper</code>.
+     */
     public SimpleModule addValueInstantiator(Class<?> beanType, ValueInstantiator inst)
     {
         if (_valueInstantiators == null) {
             _valueInstantiators = new SimpleValueInstantiators();
         }
         _valueInstantiators = _valueInstantiators.addValueInstantiator(beanType, inst);
+        return this;
+    }
+
+    /**
+     * Method for specifying that annotations define by <code>mixinClass</code>
+     * should be "mixed in" with annotations that <code>targetType</code>
+     * has (as if they were directly included on it!).
+     *<p>
+     * Mix-in annotations are
+     * registered when module is registered for <code>ObjectMapper</code>.
+     */
+    public SimpleModule setMixInAnnotation(Class<?> targetType, Class<?> mixinClass)
+    {
+        if (_mixins == null) {
+            _mixins = new HashMap<Class<?>, Class<?>>();
+        }
+        _mixins.put(targetType, mixinClass);
         return this;
     }
     
@@ -215,6 +250,11 @@ public class SimpleModule extends Module
         }
         if (_valueInstantiators != null) {
             context.addValueInstantiators(_valueInstantiators);
+        }
+        if (_mixins != null) {
+            for (Map.Entry<Class<?>,Class<?>> entry : _mixins.entrySet()) {
+                context.setMixInAnnotations(entry.getKey(), entry.getValue());
+            }
         }
     }
 

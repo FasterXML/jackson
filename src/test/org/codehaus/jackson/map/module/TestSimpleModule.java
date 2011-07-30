@@ -8,6 +8,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.Version;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.ser.ScalarSerializerBase;
 import org.codehaus.jackson.map.ser.SerializerBase;
@@ -121,6 +122,15 @@ public class TestSimpleModule extends BaseMapTest
             jgen.writeString("Base:"+value.getText());
         }
     }
+
+    static class MixableBean {
+        public int a = 1;
+        public int b = 2;
+        public int c = 3;
+    }
+
+    @JsonPropertyOrder({"c", "a", "b"})
+    static class MixInForOrder { }
     
     /*
     /**********************************************************
@@ -130,7 +140,7 @@ public class TestSimpleModule extends BaseMapTest
 
     /**
      * Basic test to ensure we do not have functioning default
-     * serializers for custom types used in tets.
+     * serializers for custom types used in tests.
      */
     public void testWithoutModule()
     {
@@ -254,5 +264,21 @@ public class TestSimpleModule extends BaseMapTest
         assertEquals(quote("b"), mapper.writeValueAsString(SimpleEnum.B));
         result = mapper.readValue(quote("a"), SimpleEnum.class);
         assertSame(SimpleEnum.A, result);
+    }
+
+    /*
+    /**********************************************************
+    /* Unit tests; other
+    /**********************************************************
+     */
+    
+    // [JACKSON-644]: ability to register mix-ins
+    public void testMixIns() throws Exception
+    {
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.setMixInAnnotation(MixableBean.class, MixInForOrder.class);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(module);
+        assertEquals("{\"c\":3,\"a\":1,\"b\":2}", mapper.writeValueAsString(new MixableBean()));
     }
 }
