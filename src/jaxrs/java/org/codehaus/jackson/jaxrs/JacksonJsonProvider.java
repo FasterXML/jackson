@@ -207,6 +207,9 @@ public class JacksonJsonProvider
      * Constructor to use when a custom mapper (usually components
      * like serializer/deserializer factories that have been configured)
      * is to be used.
+     * 
+     * @annotationsToUse Sets of annotations (Jackson, JAXB) that provider should
+     *   support
      */
     public JacksonJsonProvider(ObjectMapper mapper, Annotations[] annotationsToUse)
     {
