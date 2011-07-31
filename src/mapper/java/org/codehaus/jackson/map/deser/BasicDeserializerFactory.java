@@ -38,7 +38,7 @@ public abstract class BasicDeserializerFactory
      * interfaces, to avoid having to use exact types or annotations in
      * cases where the most common concrete Maps will do.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     final static HashMap<String, Class<? extends Map>> _mapFallbacks =
         new HashMap<String, Class<? extends Map>>();
     static {
@@ -56,7 +56,7 @@ public abstract class BasicDeserializerFactory
             Class<?> key = Class.forName("java.util.ConcurrentNavigableMap");
             Class<?> value = Class.forName("java.util.ConcurrentSkipListMap");
             @SuppressWarnings("unchecked")
-                Class<? extends Map> mapValue = (Class<? extends Map>) value;
+                Class<? extends Map<?,?>> mapValue = (Class<? extends Map<?,?>>) value;
             _mapFallbacks.put(key.getName(), mapValue);
         } catch (ClassNotFoundException cnfe) { // occurs on 1.5
         }
@@ -66,7 +66,7 @@ public abstract class BasicDeserializerFactory
      * interfaces, to avoid having to use exact types or annotations in
      * cases where the most common concrete Collection will do.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     final static HashMap<String, Class<? extends Collection>> _collectionFallbacks =
         new HashMap<String, Class<? extends Collection>>();
     static {

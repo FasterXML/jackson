@@ -172,14 +172,13 @@ public class JdkSerializers
      * Also: default bean access will not do much good with Class.class. But
      * we can just serialize the class name and that should be enough.
      */
-    @SuppressWarnings("unchecked")
     public final static class ClassSerializer
-        extends ScalarSerializerBase<Class>
+        extends ScalarSerializerBase<Class<?>>
     {
-        public ClassSerializer() { super(Class.class); }
+        public ClassSerializer() { super(Class.class, false); }
 
         @Override
-        public void serialize(Class value, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Class<?> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
             jgen.writeString(value.getName());
