@@ -19,15 +19,15 @@ package org.codehaus.jackson.map.type;
 public final class ClassKey
     implements Comparable<ClassKey>
 {
-    String _className;
+    private String _className;
 
-    Class<?> _class;
+    private Class<?> _class;
 
     /**
      * Let's cache hash code straight away, since we are
      * almost certain to need it.
      */
-    int _hashCode;
+    private int _hashCode;
 
     public ClassKey() 
     {
@@ -56,6 +56,7 @@ public final class ClassKey
     /**********************************************************
      */
 
+    @Override
     public int compareTo(ClassKey other)
     {
         // Just need to sort by name, ok to collide (unless used in TreeMap/Set!)

@@ -42,6 +42,8 @@ Description:
     if 'DeserializationConfig.Feature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT' enabled
   * [JACKSON-621] Add new fluent method, VisibilityChecker.with(Visibility)
    (suggested by Bruce P)
+  * [JACKSON-638] TypeFactory methods for constructing "raw" map or collection types
+   (suggested by Christopher C)
   * [JACKSON-639] Change BasicClassIntrospector.forClassAnnotations to take
     JavaType (not raw Class)
    (requested by Chris C)

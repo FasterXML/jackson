@@ -295,13 +295,10 @@ Andrei Voden:
    [1.5.0]
 
 Lars Clausen:
-  * Reported [JACKSON-246]: JAXB property name determination not working correctly.
-   [1.5.0]
-  * Reported [JACKSON-250]: Type name not always detected 
-   [1.5.0]
-  * Reported [JACKSON-251]: Concurrency bug in pre-1.5.0 version of
-    @JsonSubTypes handling
-   [1.5.0]
+  * For 1.5.0:
+    - [JACKSON-246]: JAXB property name determination not working correctly.
+    - [JACKSON-250]: Type name not always detected 
+    - Concurrency bug in pre-1.5.0 version of @JsonSubTypes handling
 
 Pierre-Yves Ricay:
   * Requested [JACKSON-244]: allow private fields processing without having to annotate them
@@ -359,6 +356,8 @@ Christopher Currie:
     polymorphic instances with no data (just type info)
    [1.5.5]
    (requested by Chris C)
+  * Suggested [JACKSON-638] TypeFactory methods for constructing "raw" map or collection types
+   [1.9.0
   * Requested [JACKSON-639] Change BasicClassIntrospector.forClassAnnotations
     to take JavaType (not raw Class)
    [1.9.0

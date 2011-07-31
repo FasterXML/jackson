@@ -470,5 +470,37 @@ public class TestTypeFactory
         String json = mapper.writeValueAsString(new SneakyBean2());
         assertEquals("{\"foobar\":null}", json);
     }
+
+    /*
+    /**********************************************************
+    /* Unit tests: construction of "raw" types
+    /**********************************************************
+     */
+
+    public void testRawCollections()
+    {
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType type = tf.constructRawCollectionType(ArrayList.class);
+        assertTrue(type.isContainerType());
+        assertEquals(TypeFactory.unknownType(), type.getContentType());
+
+        type = tf.constructRawCollectionLikeType(String.class); // class doesn't really matter
+        assertTrue(type.isCollectionLikeType());
+        assertEquals(TypeFactory.unknownType(), type.getContentType());
+    }
+
+    public void testRawMaps()
+    {
+        TypeFactory tf = TypeFactory.defaultInstance();
+        JavaType type = tf.constructRawMapType(HashMap.class);
+        assertTrue(type.isContainerType());
+        assertEquals(TypeFactory.unknownType(), type.getKeyType());
+        assertEquals(TypeFactory.unknownType(), type.getContentType());
+
+        type = tf.constructRawMapLikeType(String.class); // class doesn't really matter
+        assertTrue(type.isMapLikeType());
+        assertEquals(TypeFactory.unknownType(), type.getKeyType());
+        assertEquals(TypeFactory.unknownType(), type.getContentType());
+    }
 }
 

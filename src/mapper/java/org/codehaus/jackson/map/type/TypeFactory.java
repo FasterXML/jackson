@@ -500,7 +500,7 @@ public final class TypeFactory
      * NOTE: type modifiers are NOT called on array type itself; but are called
      * for element type (and other contained types)
      */
-    protected ArrayType constructArrayType(Class<?> elementType) {
+    public ArrayType constructArrayType(Class<?> elementType) {
         return ArrayType.construct(_constructType(elementType, null));
     }
     
@@ -510,7 +510,7 @@ public final class TypeFactory
      * NOTE: type modifiers are NOT called on array type itself; but are called
      * for contained types.
      */
-    protected ArrayType constructArrayType(JavaType elementType) {
+    public ArrayType constructArrayType(JavaType elementType) {
         return ArrayType.construct(elementType);
     }
 
@@ -597,7 +597,7 @@ public final class TypeFactory
     public MapLikeType constructMapLikeType(Class<?> mapClass, JavaType keyType, JavaType valueType) {
         return MapLikeType.construct(mapClass, keyType, valueType);
     }
-
+    
     /**
      * Method for constructing a {@link MapLikeType} instance
      *<p>
@@ -712,7 +712,82 @@ public final class TypeFactory
         }
         return resultType;
     }
-    
+
+    /*
+    /**********************************************************
+    /* Direct factory methods for "raw" variants, used when
+    /* parameterization is unknown
+    /**********************************************************
+     */
+
+    /**
+     * Method that can be used to construct "raw" Collection type; meaning that its
+     * parameterization is unknown.
+     * This is similar to using <code>Object.class</code> parameterization,
+     * and is equivalent to calling:
+     *<pre>
+     *  typeFactory.constructCollectionType(collectionClass, typeFactory.unknownType());
+     *<pre>
+     *<p>
+     * This method should only be used if parameterization is completely unavailable.
+     * 
+     * @since 1.9
+     */
+    public CollectionType constructRawCollectionType(Class<? extends Collection> collectionClass) {
+        return CollectionType.construct(collectionClass, unknownType());
+    }
+
+    /**
+     * Method that can be used to construct "raw" Collection-like type; meaning that its
+     * parameterization is unknown.
+     * This is similar to using <code>Object.class</code> parameterization,
+     * and is equivalent to calling:
+     *<pre>
+     *  typeFactory.constructCollectionLikeType(collectionClass, typeFactory.unknownType());
+     *<pre>
+     *<p>
+     * This method should only be used if parameterization is completely unavailable.
+     * 
+     * @since 1.9
+     */
+    public CollectionLikeType constructRawCollectionLikeType(Class<?> collectionClass) {
+        return CollectionLikeType.construct(collectionClass, unknownType());
+    }
+
+    /**
+     * Method that can be used to construct "raw" Map type; meaning that its
+     * parameterization is unknown.
+     * This is similar to using <code>Object.class</code> parameterization,
+     * and is equivalent to calling:
+     *<pre>
+     *  typeFactory.constructMapType(collectionClass, typeFactory.unknownType(), typeFactory.unknownType());
+     *<pre>
+     *<p>
+     * This method should only be used if parameterization is completely unavailable.
+     * 
+     * @since 1.9
+     */
+    public MapType constructRawMapType(Class<? extends Map> mapClass) {
+        return MapType.construct(mapClass, unknownType(), unknownType());
+    }
+
+    /**
+     * Method that can be used to construct "raw" Map-like type; meaning that its
+     * parameterization is unknown.
+     * This is similar to using <code>Object.class</code> parameterization,
+     * and is equivalent to calling:
+     *<pre>
+     *  typeFactory.constructMapLikeType(collectionClass, typeFactory.unknownType(), typeFactory.unknownType());
+     *<pre>
+     *<p>
+     * This method should only be used if parameterization is completely unavailable.
+     * 
+     * @since 1.9
+     */
+    public MapLikeType constructRawMapLikeType(Class<?> mapClass) {
+        return MapLikeType.construct(mapClass, unknownType(), unknownType());
+    }
+
     /*
     /**********************************************************
     /* Actual factory methods
