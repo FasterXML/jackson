@@ -383,10 +383,7 @@ public class StdSerializerProvider
                 }
             }
         }            
-        if (ser instanceof ContextualSerializer<?>) {
-            return ((ContextualSerializer<Object>) ser).createContextual(_config, property);
-        }
-        return ser;
+        return _handleContextualResolvable(ser, property);
     }
 
     /**
@@ -422,10 +419,7 @@ public class StdSerializerProvider
                 }
             }
         }
-        if (ser instanceof ContextualSerializer<?>) {
-            return ((ContextualSerializer<Object>) ser).createContextual(_config, property);
-        }
-        return ser;
+        return _handleContextualResolvable(ser, property);
     }
     
     /**
@@ -776,6 +770,28 @@ public class StdSerializerProvider
          *   easy to do, but won't add yet since it seems unnecessary.
          */
         return (JsonSerializer<Object>)_serializerFactory.createSerializer(_config, type, property);
+    }
+
+    /**
+     * @since 1.8.5
+     */
+    @SuppressWarnings("unchecked")
+    protected JsonSerializer<Object> _handleContextualResolvable(JsonSerializer<Object> ser,
+            BeanProperty property)
+        throws JsonMappingException
+    {
+        if (!(ser instanceof ContextualSerializer<?>)) {
+            return ser;
+        }
+        JsonSerializer<Object> ctxtSer = ((ContextualSerializer<Object>) ser).createContextual(_config, property);
+        if (ctxtSer != ser) {
+            // need to re-resolve?
+            if (ctxtSer instanceof ResolvableSerializer) {
+                ((ResolvableSerializer) ctxtSer).resolve(this);
+            }
+            ser = ctxtSer;
+        }
+        return ser;
     }
     
     /*

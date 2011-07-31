@@ -1,4 +1,4 @@
-pVersion: 1.8.4
+Version: 1.8.5
 
 Release date:
   xx-Aug-2011
@@ -12,6 +12,8 @@ Description:
    (reported by Paul M)
   * [JACKSON-640] SmileParser.getTextCharacters() missing value in some
     cases (value back-references)
+  * [JACKSON-647] ResolvableSerializer.resolve() not called after creating
+    contextual instance
 
 ------------------------------------------------------------------------
 === History: ===
