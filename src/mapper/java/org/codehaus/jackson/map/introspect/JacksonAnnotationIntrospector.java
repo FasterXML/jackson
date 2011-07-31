@@ -76,8 +76,8 @@ public class JacksonAnnotationIntrospector
     @Override
     public String findRootName(AnnotatedClass ac)
     {
-        // No annotation currently defined for this feature, so:
-        return null;
+        JsonRootName ann = ac.getAnnotation(JsonRootName.class);
+        return (ann == null) ? null : ann.value();
     }
 
     @Override

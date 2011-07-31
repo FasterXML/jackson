@@ -63,6 +63,8 @@ Description:
    (suggested by Pascal G)
   * [JACKSON-602] Add 'JsonSerialize.Inclusion.NON_EMPTY' option
    (suggested by Ed A)
+  * [JACKSON-630] Add @JsonRootName annotation for specifying name of root-level wrapper
+   (requested by Lukasz Strzelecki)
 
   Issues handled by new external projects:
 

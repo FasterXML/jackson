@@ -8,6 +8,7 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonRootName;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 
@@ -36,6 +37,7 @@ public class TestRootType
     {
         public String a = "a";
 
+        @Override
         public int getB() { return 3; }
     }
 
@@ -52,6 +54,11 @@ public class TestRootType
        public String property = "aa";
     }
     
+    @JsonRootName("root")
+    static class WithRootName {
+        public int a = 3;
+    }
+
     /*
     /**********************************************************
     /* Main tests
@@ -75,7 +82,7 @@ public class TestRootType
         // and then using specified typed writer
         ObjectWriter w = mapper.typedWriter(BaseType.class);
         String json = w.writeValueAsString(bean);
-        result = (Map)mapper.readValue(json, Map.class);
+        result = (Map<String,Object>)mapper.readValue(json, Map.class);
         assertEquals(2, result.size());
         assertEquals("a", result.get("a"));
         assertEquals(Integer.valueOf(3), result.get("b"));
@@ -153,8 +160,8 @@ public class TestRootType
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
-        String xml = mapper.writeValueAsString(new StringWrapper("abc"));
-        assertEquals("{\"StringWrapper\":{\"str\":\"abc\"}}", xml);
+        String json = mapper.writeValueAsString(new StringWrapper("abc"));
+        assertEquals("{\"StringWrapper\":{\"str\":\"abc\"}}", json);
     }
 
     /**
@@ -168,5 +175,14 @@ public class TestRootType
         ObjectMapper mapper = new ObjectMapper();
         assertEquals("123", mapper.typedWriter(Integer.TYPE).writeValueAsString(Integer.valueOf(123)));
         assertEquals("456", mapper.typedWriter(Long.TYPE).writeValueAsString(Long.valueOf(456L)));
+    }
+
+    // [JACKSON-630] also, allow annotation to define root name
+    public void testRootNameAnnotation() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
+        String json = mapper.writeValueAsString(new WithRootName());
+        assertEquals("{\"root\":{\"a\":3}}", json);
     }
 }
