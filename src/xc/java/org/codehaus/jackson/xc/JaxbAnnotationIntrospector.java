@@ -19,7 +19,6 @@ import org.codehaus.jackson.Version;
 import org.codehaus.jackson.Versioned;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -852,7 +851,6 @@ public class JaxbAnnotationIntrospector
      * @param includeSuperclasses Whether the annotation can be found on any superclasses of the class of the annotated element.
      * @return The annotation, or null if not found.
      */
-    @SuppressWarnings("unchecked")
     protected <A extends Annotation> A findAnnotation(Class<A> annotationClass, Annotated annotated,
                                                       boolean includePackage, boolean includeClass, boolean includeSuperclasses)
     {
@@ -867,7 +865,7 @@ public class JaxbAnnotationIntrospector
         }
 
         AnnotatedElement annType = annotated.getAnnotated();
-        Class memberClass = null;
+        Class<?> memberClass = null;
         /* 13-Feb-2011, tatu: [JACKSON-495] - need to handle AnnotatedParameter
          *   bit differently, since there is no JDK counterpart. We can still
          *   access annotations directly, just using different calls.
@@ -893,14 +891,14 @@ public class JaxbAnnotationIntrospector
                     }
                 }
             } else if (annType instanceof Class) {
-                memberClass = (Class) annType;
+                memberClass = (Class<?>) annType;
             } else {
                 throw new IllegalStateException("Unsupported annotated member: " + annotated.getClass().getName());
             }
         }
         if (memberClass != null) {
             if (includeSuperclasses) {
-                Class superclass = memberClass.getSuperclass();
+                Class<?> superclass = memberClass.getSuperclass();
                 while (superclass != null && superclass != Object.class) {
                     A annotation = (A) superclass.getAnnotation(annotationClass);
                     if (annotation != null) {
@@ -1122,6 +1120,7 @@ public class JaxbAnnotationIntrospector
         Class<?> adaptedType = adapterInfo.type();
         if (adaptedType == XmlJavaTypeAdapter.DEFAULT.class
                 || adaptedType.isAssignableFrom(typeNeeded)) {
+            @SuppressWarnings("rawtypes")
             Class<? extends XmlAdapter> cls = adapterInfo.value();
             return ClassUtil.createInstance(cls, false);
         }
@@ -1138,6 +1137,7 @@ public class JaxbAnnotationIntrospector
          */
         XmlJavaTypeAdapter adapterInfo = ac.getAnnotated().getAnnotation(XmlJavaTypeAdapter.class);
         if (adapterInfo != null) { // should we try caching this?
+            @SuppressWarnings("rawtypes")
             Class<? extends XmlAdapter> cls = adapterInfo.value();
             return ClassUtil.createInstance(cls, false);
         }
