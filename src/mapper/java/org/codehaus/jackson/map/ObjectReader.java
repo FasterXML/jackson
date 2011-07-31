@@ -485,7 +485,13 @@ public class ObjectReader
          */
         Object result;
         JsonToken t = _initForReading(jp);
-        if (t == JsonToken.VALUE_NULL || t == JsonToken.END_ARRAY || t == JsonToken.END_OBJECT) {
+        if (t == JsonToken.VALUE_NULL) {
+            if (_valueToUpdate == null) {
+                result = _findRootDeserializer(_config, _valueType).getNullValue();
+            } else {
+                result = _valueToUpdate;
+            }
+        } else if (t == JsonToken.END_ARRAY || t == JsonToken.END_OBJECT) {
             result = _valueToUpdate;
         } else { // pointing to event other than null
             DeserializationContext ctxt = _createDeserializationContext(jp, _config);
@@ -510,7 +516,13 @@ public class ObjectReader
         try {
             Object result;
             JsonToken t = _initForReading(jp);
-            if (t == JsonToken.VALUE_NULL || t == JsonToken.END_ARRAY || t == JsonToken.END_OBJECT) {
+            if (t == JsonToken.VALUE_NULL) {
+                if (_valueToUpdate == null) {
+                    result = _findRootDeserializer(_config, _valueType).getNullValue();
+                } else {
+                    result = _valueToUpdate;
+                }
+            } else if (t == JsonToken.END_ARRAY || t == JsonToken.END_OBJECT) {
                 result = _valueToUpdate;
             } else {
                 DeserializationContext ctxt = _createDeserializationContext(jp, _config);

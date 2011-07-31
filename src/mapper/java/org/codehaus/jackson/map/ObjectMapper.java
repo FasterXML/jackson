@@ -398,6 +398,7 @@ public class ObjectMapper
      * 
      * @since 1.6
      */
+    @Override
     public Version version() {
         return VersionUtil.versionFor(getClass());
     }
@@ -444,10 +445,12 @@ public class ObjectMapper
                 return version();
             }
 
+            @Override
             public DeserializationConfig getDeserializationConfig() {
                 return mapper.getDeserializationConfig();
             }
 
+            @Override
             public SerializationConfig getSerializationConfig() {
                 return mapper.getSerializationConfig();
             }
@@ -1653,7 +1656,7 @@ public class ObjectMapper
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.constructType(valueType));
     } 
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T> T readValue(File src, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
@@ -1676,7 +1679,7 @@ public class ObjectMapper
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.constructType(valueType));
     } 
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T> T readValue(URL src, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
@@ -1699,7 +1702,7 @@ public class ObjectMapper
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(content), _typeFactory.constructType(valueType));
     } 
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T> T readValue(String content, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
@@ -1722,7 +1725,7 @@ public class ObjectMapper
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.constructType(valueType));
     } 
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T> T readValue(Reader src, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
@@ -1745,7 +1748,7 @@ public class ObjectMapper
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.constructType(valueType));
     } 
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T> T readValue(InputStream src, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
@@ -1784,14 +1787,14 @@ public class ObjectMapper
     /**
      * @since 1.8
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T> T readValue(byte[] src, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
         return (T) _readMapAndClose(_jsonFactory.createJsonParser(src), _typeFactory.constructType(valueTypeRef));
     } 
     
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T> T readValue(byte[] src, int offset, int len,
                            TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
@@ -1844,7 +1847,7 @@ public class ObjectMapper
      *
      * @since 1.6
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T> T readValue(JsonNode root, TypeReference valueTypeRef)
         throws IOException, JsonParseException, JsonMappingException
     {
@@ -2257,7 +2260,7 @@ public class ObjectMapper
         return (T) _convert(fromValue, _typeFactory.constructType(toValueType));
     } 
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T> T convertValue(Object fromValue, TypeReference toValueTypeRef)
         throws IllegalArgumentException
     {
@@ -2472,7 +2475,10 @@ public class ObjectMapper
          */
         Object result;
         JsonToken t = _initForReading(jp);
-        if (t == JsonToken.VALUE_NULL || t == JsonToken.END_ARRAY || t == JsonToken.END_OBJECT) {
+        if (t == JsonToken.VALUE_NULL) {
+            // [JACKSON-643]: Ask JsonDeserializer what 'null value' to use:
+            result = _findRootDeserializer(cfg, valueType).getNullValue();
+        } else if (t == JsonToken.END_ARRAY || t == JsonToken.END_OBJECT) {
             result = null;
         } else { // pointing to event other than null
             DeserializationContext ctxt = _createDeserializationContext(jp, cfg);
@@ -2491,7 +2497,11 @@ public class ObjectMapper
         try {
             Object result;
             JsonToken t = _initForReading(jp);
-            if (t == JsonToken.VALUE_NULL || t == JsonToken.END_ARRAY || t == JsonToken.END_OBJECT) {
+            if (t == JsonToken.VALUE_NULL) {
+                // [JACKSON-643]: Ask JsonDeserializer what 'null value' to use:
+                // (note: probably no need to make a copy of config for just this access)
+                result = _findRootDeserializer(this._deserializationConfig, valueType).getNullValue();
+            } else if (t == JsonToken.END_ARRAY || t == JsonToken.END_OBJECT) {
                 result = null;
             } else {
                 DeserializationConfig cfg = copyDeserializationConfig();

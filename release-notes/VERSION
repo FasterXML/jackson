@@ -44,6 +44,8 @@ Description:
   * [JACKSON-639] Change BasicClassIntrospector.forClassAnnotations to take
     JavaType (not raw Class)
    (requested by Chris C)
+  * [JACKSON-643] ObjectMapper.readValue() should check JsonDeserializer.getNullValue()
+    when encountering root-level JsonToken.VALUE_NULL
   * [JACKSON-644] Add SimpleModule.setMixInAnnotations()
 
   New features:

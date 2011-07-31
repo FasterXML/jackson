@@ -62,7 +62,7 @@ public final class EnumResolver<T extends Enum<T>>
      * This method is needed because of the dynamic nature of constructing Enum
      * resolvers.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public static EnumResolver<?> constructUnsafe(Class<?> rawEnumCls, AnnotationIntrospector ai)
     {            
         /* This is oh so wrong... but at least ugliness is mostly hidden in just
@@ -78,7 +78,7 @@ public final class EnumResolver<T extends Enum<T>>
      * 
      * @since 1.6
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public static EnumResolver<?> constructUnsafeUsingToString(Class<?> rawEnumCls)
     {            
         // oh so wrong... not much that can be done tho
