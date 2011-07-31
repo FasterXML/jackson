@@ -142,6 +142,40 @@ public class TestContextualSerialization extends BaseMapTest
             return new AnnotatedContextualSerializer(prefix);
         }
     }
+
+    static class ContextualAndResolvable
+        extends JsonSerializer<String>
+        implements ContextualSerializer<String>, ResolvableSerializer
+    {
+        protected boolean isContextual;
+        protected boolean isResolved;
+
+        public ContextualAndResolvable() { this(false); }
+        
+        public ContextualAndResolvable(boolean contextual)
+        {
+            isContextual = contextual;
+            isResolved = false;
+        }
+        
+        @Override
+        public void serialize(String value, JsonGenerator jgen, SerializerProvider provider) throws IOException
+        {
+            jgen.writeString("contextual="+isContextual+",resolved="+isResolved);
+        }
+
+        @Override
+        public JsonSerializer<String> createContextual(SerializationConfig config, BeanProperty property)
+                throws JsonMappingException
+        {
+            return new ContextualAndResolvable(true);
+        }
+
+        @Override
+        public void resolve(SerializerProvider provider) {
+            isResolved = true;
+        }
+    }
     
     /*
     /**********************************************************
@@ -229,5 +263,15 @@ public class TestContextualSerialization extends BaseMapTest
         ObjectMapper mapper = new ObjectMapper();
         AnnotatedContextualBean bean = new AnnotatedContextualBean("abc");
         assertEquals("{\"value\":\"prefix->abc\"}", mapper.writeValueAsString(bean));
+    }
+
+    // [JACKSON-647]: is resolve() called for contextual instances?
+    public void testResolveOnContextual() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addSerializer(String.class, new ContextualAndResolvable());
+        mapper.registerModule(module);
+        assertEquals(quote("contextual=true,resolved=true"), mapper.writeValueAsString("abc"));
     }
 }
