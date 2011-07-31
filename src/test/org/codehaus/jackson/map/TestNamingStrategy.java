@@ -97,16 +97,18 @@ public class TestNamingStrategy extends BaseMapTest
         public FieldBean(int v) { key = v; }
     }
 
-    @JsonPropertyOrder({"firstName", "lastName"})
+    @JsonPropertyOrder({"first_name", "last_name"})
     static class PersonBean {
         public String firstName;
         public String lastName;
+        public int age;
 
-        public PersonBean() { this(null, null); }
-        public PersonBean(String f, String l)
+        public PersonBean() { this(null, null, 0); }
+        public PersonBean(String f, String l, int a)
         {
             firstName = f;
             lastName = l;
+            age = a;
         }
     }
     
@@ -149,12 +151,13 @@ public class TestNamingStrategy extends BaseMapTest
         // First serialize
         ObjectMapper mapper = new ObjectMapper();
         mapper.setPropertyNamingStrategy(new CStyleStrategy());
-        String json = mapper.writeValueAsString(new PersonBean("Joe", "Sixpack"));
-        assertEquals("{\"first_name\":\"Joe\",\"last_name\":\"Sixpack\"}", json);
+        String json = mapper.writeValueAsString(new PersonBean("Joe", "Sixpack", 42));
+        assertEquals("{\"first_name\":\"Joe\",\"last_name\":\"Sixpack\",\"age\":42}", json);
         
         // then deserialize
         PersonBean result = mapper.readValue(json, PersonBean.class);
         assertEquals("Joe", result.firstName);
         assertEquals("Sixpack", result.lastName);
+        assertEquals(42, result.age);
     }
 }

@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.mixins;
 
 import java.util.*;
 
@@ -9,7 +9,7 @@ import org.codehaus.jackson.map.annotate.JsonView;
 
 import org.codehaus.jackson.map.BaseMapTest;
 
-public class TestMixinsWithViews
+public class TestMixinSerWithViews
     extends BaseMapTest
 {
     /*

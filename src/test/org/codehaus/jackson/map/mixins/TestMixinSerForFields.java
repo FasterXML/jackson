@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.mixins;
 
 import java.io.*;
 import java.util.*;
@@ -6,7 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
-public class TestMixinsForFields
+public class TestMixinSerForFields
     extends BaseMapTest
 {
     /*

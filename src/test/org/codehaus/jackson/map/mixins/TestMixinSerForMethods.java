@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.mixins;
 
 import java.io.*;
 import java.util.*;
@@ -6,7 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
-public class TestMixinsForMethods
+public class TestMixinSerForMethods
     extends BaseMapTest
 {
     /*
@@ -62,7 +62,8 @@ public class TestMixinsForMethods
                
     interface ObjectMixIn
     {
-        // and then ditto for hashCode...
+        // and then ditto for hashCode..
+        @Override
         @JsonProperty public int hashCode();
     }
 

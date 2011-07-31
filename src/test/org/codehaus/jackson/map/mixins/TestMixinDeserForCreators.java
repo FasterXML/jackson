@@ -1,11 +1,11 @@
-package org.codehaus.jackson.map.deser;
+package org.codehaus.jackson.map.mixins;
 
 import java.io.*;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
 
-public class TestMixinsForCreators
+public class TestMixinDeserForCreators
     extends BaseMapTest
 {
     /*
