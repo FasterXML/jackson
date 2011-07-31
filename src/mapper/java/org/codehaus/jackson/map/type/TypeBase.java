@@ -1,8 +1,17 @@
 package org.codehaus.jackson.map.type;
 
+import java.io.IOException;
+
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.JsonSerializableWithType;
+import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.type.JavaType;
 
-public abstract class TypeBase extends JavaType
+public abstract class TypeBase
+    extends JavaType
+    implements JsonSerializableWithType
 {
     /**
      * Lazily initialized external representation of the type
@@ -37,6 +46,30 @@ public abstract class TypeBase extends JavaType
 
     @Override
     public abstract StringBuilder getErasedSignature(StringBuilder sb);
+
+    /*
+    /**********************************************************
+    /* JsonSerializableWithType base implementation
+    /**********************************************************
+     */
+
+    @Override
+    public void serializeWithType(JsonGenerator jgen, SerializerProvider provider,
+            TypeSerializer typeSer)
+        throws IOException, JsonProcessingException
+    {
+        typeSer.writeTypePrefixForScalar(this, jgen);
+        this.serialize(jgen, provider);
+        typeSer.writeTypeSuffixForScalar(this, jgen);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void serialize(JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonProcessingException
+    {
+        jgen.writeString(toCanonical());
+    } 
     
     /*
     /**********************************************************

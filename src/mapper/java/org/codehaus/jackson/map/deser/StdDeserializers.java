@@ -3,6 +3,8 @@ package org.codehaus.jackson.map.deser;
 import java.util.*;
 
 import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.deser.impl.JavaTypeDeserializer;
+import org.codehaus.jackson.map.deser.impl.TokenBufferDeserializer;
 import org.codehaus.jackson.map.type.*;
 
 /**
@@ -75,10 +77,12 @@ class StdDeserializers
         // to deserialize Throwable, need stack trace elements:
         add(new StdDeserializer.StackTraceElementDeserializer());
 
-        // Plus TokenBuffer is a core type since 1.5
-        add(new StdDeserializer.TokenBufferDeserializer());
         // [JACKSON-283] need to support atomic types, too
         add(new StdDeserializer.AtomicBooleanDeserializer());
+
+        // including some core Jackson types:
+        add(new TokenBufferDeserializer());
+        add(new JavaTypeDeserializer());
     }
 
     /**

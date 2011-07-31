@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ObjectBuffer;
 import org.codehaus.jackson.node.JsonNodeFactory;
@@ -95,6 +96,13 @@ public abstract class DeserializationContext
      */
     public JavaType constructType(Class<?> cls) {
         return _config.constructType(cls);
+    }
+
+    /**
+     * @since 1.9
+     */
+    public TypeFactory getTypeFactory() {
+        return _config.getTypeFactory();
     }
     
     /*

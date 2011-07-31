@@ -53,7 +53,7 @@ public class TestCustomSerializers
         assertEquals(sw.toString(), "\"element\"");
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void testCustomLists() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();    	

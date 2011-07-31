@@ -15,7 +15,6 @@ import org.codehaus.jackson.io.NumberInput;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.type.JavaType;
-import org.codehaus.jackson.util.TokenBuffer;
 
 /**
  * Base class for common deserializers. Contains shared
@@ -1298,33 +1297,6 @@ public abstract class StdDeserializer<T>
                 return new StackTraceElement(className, methodName, fileName, lineNumber);
             }
             throw ctxt.mappingException(_valueClass);
-        }
-    }
-
-    /**
-     * We also want to directly support deserialization of
-     * {@link TokenBuffer}.
-     *<p>
-     * Note that we use scalar deserializer base just because we claim
-     * to be of scalar for type information inclusion purposes; actual
-     * underlying content can be of any (Object, Array, scalar) type.
-     *
-     * @since 1.5
-     */
-    @JacksonStdImpl
-    public static class TokenBufferDeserializer
-        extends StdScalarDeserializer<TokenBuffer>
-    {
-        public TokenBufferDeserializer() { super(TokenBuffer.class); }
-
-        @Override
-        public TokenBuffer deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
-            TokenBuffer tb = new TokenBuffer(jp.getCodec());
-            // quite simple, given that TokenBuffer is a JsonGenerator:
-            tb.copyCurrentStructure(jp);
-            return tb;
         }
     }
 }

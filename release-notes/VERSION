@@ -32,6 +32,7 @@ Description:
   * [JACKSON-613] Add ArrayNode/ObjectNode methods for dealing with wrapper
     values, unboxing, nulls
    (suggested by Bruce P)
+  * [JACKSON-615] Make JavaType serializable/deserializable
   * [JACKSON-616] Better handling of primitive deserializers, to avoid NPEs
    (suggested by Bruce P)
   * [JACKSON-619] SmileParser.getCurrentLocation(), getTokenLocation() did not
@@ -72,6 +73,7 @@ Description:
 
   * Removed 'org.codehaus.jackson.annotate.JsonClass, JsonKeyClass and
     JsonContentClass (deprecated since 1.1)
+  * Move TokenBufferDeserializer to separate class (from inside StdDeserializer)
 
 ------------------------------------------------------------------------
 === History: ===
