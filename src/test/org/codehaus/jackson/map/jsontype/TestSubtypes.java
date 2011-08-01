@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.jsontype;
 
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
@@ -41,6 +42,16 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
         
         public PropertyBean() { this(null); }
         public PropertyBean(SuperType v) { value = v; }
+    }
+
+    // And then [JACKSON-614]
+    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=As.PROPERTY,
+            property="#type",
+            defaultImpl=DefaultImpl.class)
+    static class SuperTypeWithDefault { }
+
+    static class DefaultImpl extends SuperTypeWithDefault {
+        public int a;
     }
     
     /*
@@ -123,5 +134,27 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
         mapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
         json = mapper.writeValueAsString(new EmptyNonFinal());
         assertEquals("[\"org.codehaus.jackson.map.jsontype.TestSubtypes$EmptyNonFinal\",{}]", json);
+    }
+
+    public void testDefaultImpl() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // first, test with no type information
+        SuperTypeWithDefault bean = mapper.readValue("{\"a\":13}", SuperTypeWithDefault.class);
+        assertEquals(DefaultImpl.class, bean.getClass());
+        assertEquals(13, ((DefaultImpl) bean).a);
+
+        // and then with unmapped info
+        bean = mapper.readValue("{\"a\":14,\"#type\":\"foobar\"}", SuperTypeWithDefault.class);
+        assertEquals(DefaultImpl.class, bean.getClass());
+        assertEquals(14, ((DefaultImpl) bean).a);
+
+        bean = mapper.readValue("{\"#type\":\"foobar\",\"a\":15}", SuperTypeWithDefault.class);
+        assertEquals(DefaultImpl.class, bean.getClass());
+        assertEquals(15, ((DefaultImpl) bean).a);
+
+        bean = mapper.readValue("{\"#type\":\"foobar\"}", SuperTypeWithDefault.class);
+        assertEquals(DefaultImpl.class, bean.getClass());
+        assertEquals(0, ((DefaultImpl) bean).a);
     }
 }

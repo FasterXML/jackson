@@ -109,7 +109,9 @@ public class TestTypeModifiers extends BaseMapTest
             value = v;
         }
 
+        @Override
         public String getKey() { return key; }
+        @Override
         public Integer getValue() { return value; }
     }
 
@@ -122,6 +124,7 @@ public class TestTypeModifiers extends BaseMapTest
             value = v;
         }
 
+        @Override
         public Integer getValue() { return value; }
     }
 

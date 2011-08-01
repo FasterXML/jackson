@@ -56,6 +56,7 @@ public class TestEnumSerialization
     }
 
     protected static interface ToStringMixin {
+        @Override
         @JsonValue public String toString();
     }
 
@@ -65,6 +66,7 @@ public class TestEnumSerialization
 
         private SerializableEnum() { }
         
+        @Override
         public void serializeWithType(JsonGenerator jgen, SerializerProvider provider, TypeSerializer typeSer)
                 throws IOException, JsonProcessingException
         {
@@ -72,6 +74,7 @@ public class TestEnumSerialization
         }
 
         @SuppressWarnings("deprecation")
+        @Override
         public void serialize(JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException
         {
             jgen.writeString("foo");

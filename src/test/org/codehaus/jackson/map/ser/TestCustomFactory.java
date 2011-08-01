@@ -32,6 +32,7 @@ public class TestCustomFactory
     }
 
     static class BeanImpl implements BeanInterface {
+        @Override
         public int foo() { return 13; }
     }
 
@@ -58,7 +59,9 @@ public class TestCustomFactory
     class SubImpl implements SubInterface
     {
         protected int x;
+        @Override
         public int getX() { return x; }
+        @Override
         public void setX(int value) { x = value; }
     }
 

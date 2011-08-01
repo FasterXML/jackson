@@ -129,7 +129,7 @@ public @interface JsonSerialize
      *
      */
     public Inclusion include() default Inclusion.ALWAYS;
-
+    
     /*
     /**********************************************************
     /* Value enumerations needed

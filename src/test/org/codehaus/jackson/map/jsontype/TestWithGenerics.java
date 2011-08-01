@@ -150,6 +150,7 @@ public class TestWithGenerics extends BaseMapTest
         }
     }
     
+    @SuppressWarnings("deprecation")
     public void testJackson387() throws Exception
     {
         ObjectMapper om = new ObjectMapper();

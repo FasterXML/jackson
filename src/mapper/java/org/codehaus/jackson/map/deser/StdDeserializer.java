@@ -125,7 +125,7 @@ public abstract class StdDeserializer<T>
             throw ctxt.weirdStringException(_valueClass, "only \"true\" or \"false\" recognized");
         }
         // Otherwise, no can do:
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
 
     protected final Boolean _parseBoolean(JsonParser jp, DeserializationContext ctxt)
@@ -160,7 +160,7 @@ public abstract class StdDeserializer<T>
             throw ctxt.weirdStringException(_valueClass, "only \"true\" or \"false\" recognized");
         }
         // Otherwise, no can do:
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
 
     protected Byte _parseByte(JsonParser jp, DeserializationContext ctxt)
@@ -191,7 +191,7 @@ public abstract class StdDeserializer<T>
         if (t == JsonToken.VALUE_NULL) {
             return (Byte) getNullValue();
         }
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
     
     protected Short _parseShort(JsonParser jp, DeserializationContext ctxt)
@@ -222,7 +222,7 @@ public abstract class StdDeserializer<T>
         if (t == JsonToken.VALUE_NULL) {
             return (Short) getNullValue();
         }
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
 
     protected final short _parseShortPrimitive(JsonParser jp, DeserializationContext ctxt)
@@ -272,7 +272,7 @@ public abstract class StdDeserializer<T>
             return 0;
         }
         // Otherwise, no can do:
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
 
     protected final Integer _parseInteger(JsonParser jp, DeserializationContext ctxt)
@@ -306,7 +306,7 @@ public abstract class StdDeserializer<T>
             return (Integer) getNullValue();
         }
         // Otherwise, no can do:
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
 
     protected final Long _parseLong(JsonParser jp, DeserializationContext ctxt)
@@ -334,7 +334,7 @@ public abstract class StdDeserializer<T>
             return (Long) getNullValue();
         }
         // Otherwise, no can do:
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
 
     protected final long _parseLongPrimitive(JsonParser jp, DeserializationContext ctxt)
@@ -357,7 +357,7 @@ public abstract class StdDeserializer<T>
         if (t == JsonToken.VALUE_NULL) {
             return 0L;
         }
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
     
     protected final Float _parseFloat(JsonParser jp, DeserializationContext ctxt)
@@ -401,7 +401,7 @@ public abstract class StdDeserializer<T>
             return (Float) getNullValue();
         }
         // Otherwise, no can do:
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
 
     protected final float _parseFloatPrimitive(JsonParser jp, DeserializationContext ctxt)
@@ -443,7 +443,7 @@ public abstract class StdDeserializer<T>
             return 0.0f;
         }
         // Otherwise, no can do:
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
 
     protected final Double _parseDouble(JsonParser jp, DeserializationContext ctxt)
@@ -485,7 +485,7 @@ public abstract class StdDeserializer<T>
             return (Double) getNullValue();
         }
             // Otherwise, no can do:
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
 
     protected final double _parseDoublePrimitive(JsonParser jp, DeserializationContext ctxt)
@@ -529,7 +529,7 @@ public abstract class StdDeserializer<T>
             return 0.0;
         }
             // Otherwise, no can do:
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
 
     
@@ -557,7 +557,7 @@ public abstract class StdDeserializer<T>
                 throw ctxt.weirdStringException(_valueClass, "not a valid representation (error: "+iae.getMessage()+")");
             }
         }
-        throw ctxt.mappingException(_valueClass);
+        throw ctxt.mappingException(_valueClass, t);
     }
 
     /**
@@ -717,7 +717,7 @@ public abstract class StdDeserializer<T>
             if (curr.isScalarValue()) {
                 return jp.getText();
             }
-            throw ctxt.mappingException(_valueClass);
+            throw ctxt.mappingException(_valueClass, curr);
         }
 
         // 1.6: since we can never have type info ("natural type"; String, Boolean, Integer, Double):
@@ -763,7 +763,7 @@ public abstract class StdDeserializer<T>
                     throw ctxt.instantiationException(_valueClass, e);
                 }
             }
-            throw ctxt.mappingException(_valueClass);
+            throw ctxt.mappingException(_valueClass, curr);
         }
     }
 
@@ -866,7 +866,7 @@ public abstract class StdDeserializer<T>
                     return (Character) getEmptyValue();
                 }
             }
-            throw ctxt.mappingException(_valueClass);
+            throw ctxt.mappingException(_valueClass, t);
         }
     }
 
@@ -1024,7 +1024,7 @@ public abstract class StdDeserializer<T>
                 }
             }
             // Otherwise, no can do:
-            throw ctxt.mappingException(_valueClass);
+            throw ctxt.mappingException(_valueClass, t);
         }
 
         /**
@@ -1144,7 +1144,7 @@ public abstract class StdDeserializer<T>
                 }
             }
             // Otherwise, no can do:
-            throw ctxt.mappingException(_valueClass);
+            throw ctxt.mappingException(_valueClass, t);
         }
     }
 
@@ -1178,7 +1178,7 @@ public abstract class StdDeserializer<T>
                 return jp.getDecimalValue().toBigInteger();
             } else if (t != JsonToken.VALUE_STRING) { // let's do implicit re-parse
                 // String is ok too, can easily convert; otherwise, no can do:
-                throw ctxt.mappingException(_valueClass);
+                throw ctxt.mappingException(_valueClass, t);
             }
             text = jp.getText().trim();
             if (text.length() == 0) {
@@ -1296,7 +1296,7 @@ public abstract class StdDeserializer<T>
                 }
                 return new StackTraceElement(className, methodName, fileName, lineNumber);
             }
-            throw ctxt.mappingException(_valueClass);
+            throw ctxt.mappingException(_valueClass, t);
         }
     }
 }

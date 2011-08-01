@@ -1012,7 +1012,7 @@ public abstract class AnnotationIntrospector
             return result;
         }
 
-        @Override        
+        @Override
         public String findTypeName(AnnotatedClass ac)
         {
             String name = _primary.findTypeName(ac);
@@ -1021,7 +1021,7 @@ public abstract class AnnotationIntrospector
             }
             return name;
         }
-
+        
         // // // General member (field, method/constructor) annotations
         
         @Override        

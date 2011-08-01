@@ -19,9 +19,15 @@ import org.codehaus.jackson.type.JavaType;
  */
 public class AsWrapperTypeDeserializer extends TypeDeserializerBase
 {
-    public AsWrapperTypeDeserializer(JavaType bt, TypeIdResolver idRes, BeanProperty property)
+    @Deprecated // since 1.9
+    public AsWrapperTypeDeserializer(JavaType bt, TypeIdResolver idRes, BeanProperty property) {
+        this(bt, idRes, property, null);
+    }
+
+    public AsWrapperTypeDeserializer(JavaType bt, TypeIdResolver idRes, BeanProperty property,
+            Class<?> defaultImpl)
     {
-        super(bt, idRes, property);
+        super(bt, idRes, property, null);
     }
 
     @Override

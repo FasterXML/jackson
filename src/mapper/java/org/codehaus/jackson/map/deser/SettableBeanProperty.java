@@ -181,16 +181,20 @@ public abstract class SettableBeanProperty
     /**********************************************************
      */
     
+    @Override
     public final String getName() { return _propName; }
 
+    @Override
     public JavaType getType() { return _type; }
 
+    @Override
     public abstract <A extends Annotation> A getAnnotation(Class<A> acls);
 
+    @Override
     public abstract AnnotatedMember getMember();
 
-    public <A extends Annotation> A getContextAnnotation(Class<A> acls)
-    {
+    @Override
+    public <A extends Annotation> A getContextAnnotation(Class<A> acls) {
         return _contextAnnotations.get(acls);
     }
 

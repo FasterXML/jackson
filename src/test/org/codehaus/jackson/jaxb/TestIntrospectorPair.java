@@ -13,7 +13,7 @@ import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 /**
- * Simple testing that {@link AnnotationIntrospector.Pair} works as
+ * Simple testing that <code>AnnotationIntrospector.Pair</code> works as
  * expected, when used with Jackson and JAXB-based introspector.
  *
  * @author Tatu Saloranta

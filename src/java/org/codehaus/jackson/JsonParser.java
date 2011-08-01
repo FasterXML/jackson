@@ -346,6 +346,7 @@ public abstract class JsonParser
     /**
      * @since 1.6
      */
+    @Override
     public Version version() {
         return Version.unknownVersion();
     }
@@ -392,6 +393,7 @@ public abstract class JsonParser
      * {@link java.io.File} or {@link java.net.URL} and creates
      * stream or reader it does own them.
      */
+    @Override
     public abstract void close() throws IOException;
 
     /*

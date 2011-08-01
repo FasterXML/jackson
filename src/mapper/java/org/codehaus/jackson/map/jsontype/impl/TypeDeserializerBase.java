@@ -23,19 +23,46 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
     protected final JavaType _baseType;
 
     protected final BeanProperty _property;
+
+    /**
+     * Type to use as the default implementation, if type id is
+     * missing or can not be resolved.
+     * 
+     * @since 1.9
+     */
+    protected final JavaType _defaultImpl;
     
     /**
      * For efficient operation we will lazily build mappings from type ids
      * to actual deserializers, once needed.
      */
     protected final HashMap<String,JsonDeserializer<Object>> _deserializers;
+
+    /**
+     * @since 1.9
+     */
+    protected JsonDeserializer<Object> _defaultImplDeserializer;
     
-    protected TypeDeserializerBase(JavaType baseType, TypeIdResolver idRes, BeanProperty property)
+    /**
+     * @deprecated Since 1.9, use the constructor that takes 'defaultImpl'
+     */
+    @Deprecated
+    protected TypeDeserializerBase(JavaType baseType, TypeIdResolver idRes, BeanProperty property) {
+        this(baseType, idRes, property, null);
+    }
+
+    protected TypeDeserializerBase(JavaType baseType, TypeIdResolver idRes, BeanProperty property,
+            Class<?> defaultImpl)
     {
         _baseType = baseType;
         _idResolver = idRes;
         _property = property;
         _deserializers = new HashMap<String,JsonDeserializer<Object>>();
+        if (defaultImpl == null) {
+            _defaultImpl = null;
+        } else {
+            _defaultImpl = baseType.forcedNarrowBy(defaultImpl);
+        }
     }
 
     @Override
@@ -49,6 +76,11 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
     @Override    
     public TypeIdResolver getTypeIdResolver() { return _idResolver; }
 
+    @Override    
+    public Class<?> getDefaultImpl() {
+        return (_defaultImpl == null) ? null : _defaultImpl.getRawClass();
+    }
+    
     @Override
     public String toString()
     {
@@ -61,9 +93,9 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
     }
     
     /*
-     ************************************************************
-     * Helper methods for sub-classes
-     ************************************************************
+    /**********************************************************
+    /* Helper methods for sub-classes
+    /**********************************************************
      */
 
     protected final JsonDeserializer<Object> _findDeserializer(DeserializationContext ctxt, String typeId)
@@ -76,23 +108,43 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
             if (deser == null) {
                 JavaType type = _idResolver.typeFromId(typeId);
                 if (type == null) {
-                    throw ctxt.unknownTypeException(_baseType, typeId);
+                    // As per [JACKSON-614], use the default impl if no type id available:
+                    if (_defaultImpl == null) {
+                        throw ctxt.unknownTypeException(_baseType, typeId);
+                    }
+                    deser = _findDefaultImplDeserializer(ctxt);
+                } else {
+                    /* 16-Dec-2010, tatu: Since nominal type we get here has no (generic) type parameters,
+                     *   we actually now need to explicitly narrow from base type (which may have parameterization)
+                     *   using raw type.
+                     *   
+                     *   One complication, though; can not change 'type class' (simple type to container); otherwise
+                     *   we may try to narrow a SimpleType (Object.class) into MapType (Map.class), losing actual
+                     *   type in process (getting SimpleType of Map.class which will not work as expected)
+                     */
+                    if (_baseType != null && _baseType.getClass() == type.getClass()) {
+                        type = _baseType.narrowBy(type.getRawClass());
+                    }
+                    deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, _property);
                 }
-                /* 16-Dec-2010, tatu: Since nominal type we get here has no (generic) type parameters,
-                 *   we actually now need to explicitly narrow from base type (which may have parameterization)
-                 *   using raw type.
-                 *   
-                 *   One complication, though; can not change 'type class' (simple type to container); otherwise
-                 *   we may try to narrow a SimpleType (Object.class) into MapType (Map.class), losing actual
-                 *   type in process (getting SimpleType of Map.class which will not work as expected)
-                 */
-                if (_baseType != null &&  _baseType.getClass() == type.getClass()) {
-                    type = _baseType.narrowBy(type.getRawClass());
-                }
-                deser = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(), type, _property);
                 _deserializers.put(typeId, deser);
             }
         }
         return deser;
+    }
+
+    protected final JsonDeserializer<Object> _findDefaultImplDeserializer(DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        if (_defaultImpl == null) {
+            return null;
+        }
+        synchronized (_defaultImpl) {
+            if (_defaultImplDeserializer == null) {
+                _defaultImplDeserializer = ctxt.getDeserializerProvider().findValueDeserializer(ctxt.getConfig(),
+                        _defaultImpl, _property);
+            }
+            return _defaultImplDeserializer;
+        }
     }
 }

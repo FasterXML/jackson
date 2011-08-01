@@ -47,6 +47,16 @@ public abstract class TypeDeserializer
      * types and matching type ids.
      */
     public abstract TypeIdResolver getTypeIdResolver();
+
+    /**
+     * Accessor for "default implementation" type; optionally defined
+     * class to use in cases where type id is not
+     * accessible for some reason (either missing, or can not be
+     * resolved)
+     * 
+     * @since 1.9
+     */
+    public abstract Class<?> getDefaultImpl();
     
     /*
     /*********************************************************

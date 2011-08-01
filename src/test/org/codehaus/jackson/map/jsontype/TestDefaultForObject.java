@@ -352,7 +352,7 @@ public class TestDefaultForObject
         assertEquals(2, entryList.size());
         assertEquals(StringBean.class.getName(), entryList.get(0));
         assertTrue(entryList.get(1) instanceof Map);
-        Map map = (Map) entryList.get(1);
+        Map<?,?> map = (Map<?,?>) entryList.get(1);
         assertEquals(1, map.size());
         assertEquals("abc", map.get("name"));
     }

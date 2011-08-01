@@ -733,6 +733,7 @@ public final class TypeFactory
      * 
      * @since 1.9
      */
+    @SuppressWarnings("rawtypes")
     public CollectionType constructRawCollectionType(Class<? extends Collection> collectionClass) {
         return CollectionType.construct(collectionClass, unknownType());
     }
@@ -767,6 +768,7 @@ public final class TypeFactory
      * 
      * @since 1.9
      */
+    @SuppressWarnings("rawtypes")
     public MapType constructRawMapType(Class<? extends Map> mapClass) {
         return MapType.construct(mapClass, unknownType(), unknownType());
     }

@@ -19,11 +19,17 @@ import org.codehaus.jackson.type.JavaType;
  */
 public class AsArrayTypeDeserializer extends TypeDeserializerBase
 {
-    public AsArrayTypeDeserializer(JavaType bt, TypeIdResolver idRes, BeanProperty property)
-    {
-        super(bt, idRes, property);
+    @Deprecated // since 1.9
+    public AsArrayTypeDeserializer(JavaType bt, TypeIdResolver idRes, BeanProperty property) {
+        this(bt, idRes, property, null);
     }
 
+    public AsArrayTypeDeserializer(JavaType bt, TypeIdResolver idRes, BeanProperty property,
+            Class<?> defaultImpl)
+    {
+        super(bt, idRes, property, defaultImpl);
+    }
+    
     @Override
     public As getTypeInclusion() {
         return As.WRAPPER_ARRAY;

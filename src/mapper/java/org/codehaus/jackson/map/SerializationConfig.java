@@ -702,8 +702,8 @@ public class SerializationConfig
      */
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
-        return (T) getClassIntrospector().forClassAnnotations(this, cls, this);
+    public <T extends BeanDescription> T introspectClassAnnotations(JavaType type) {
+        return (T) getClassIntrospector().forClassAnnotations(this, type, this);
     }
 
     /**
@@ -715,8 +715,8 @@ public class SerializationConfig
      */
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends BeanDescription> T introspectDirectClassAnnotations(Class<?> cls) {
-        return (T) getClassIntrospector().forDirectClassAnnotations(this, cls, this);
+    public <T extends BeanDescription> T introspectDirectClassAnnotations(JavaType type) {
+        return (T) getClassIntrospector().forDirectClassAnnotations(this, type, this);
     }
 
     @Override

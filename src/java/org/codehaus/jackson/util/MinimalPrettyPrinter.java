@@ -57,12 +57,14 @@ public class MinimalPrettyPrinter
         }
     }
     
+    @Override
     public void writeStartObject(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
         jg.writeRaw('{');
     }
     
+    @Override
     public void beforeObjectEntries(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
@@ -76,6 +78,7 @@ public class MinimalPrettyPrinter
      * Default handling will just output a single
      * colon to separate the two, without additional spaces.
      */
+    @Override
     public void writeObjectFieldValueSeparator(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
@@ -89,24 +92,28 @@ public class MinimalPrettyPrinter
      * Default handling (without pretty-printing) will output a single
      * comma to separate the two.
      */
+    @Override
     public void writeObjectEntrySeparator(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
         jg.writeRaw(',');
     }
 
+    @Override
     public void writeEndObject(JsonGenerator jg, int nrOfEntries)
         throws IOException, JsonGenerationException
     {
         jg.writeRaw('}');
     }
     
+    @Override
     public void writeStartArray(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
         jg.writeRaw('[');
     }
     
+    @Override
     public void beforeArrayValues(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
@@ -120,12 +127,14 @@ public class MinimalPrettyPrinter
      * Default handling (without pretty-printing) will output a single
      * comma to separate values.
      */
+    @Override
     public void writeArrayValueSeparator(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
         jg.writeRaw(',');
     }
     
+    @Override
     public void writeEndArray(JsonGenerator jg, int nrOfValues)
         throws IOException, JsonGenerationException
     {

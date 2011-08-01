@@ -28,24 +28,26 @@ public class DataHandlerJsonDeserializer
         final byte[] value = jp.getBinaryValue();
         return new DataHandler(new DataSource()
         {
-            public InputStream getInputStream()
-                throws IOException
+            @Override
+            public InputStream getInputStream() throws IOException
             {
                 return new ByteArrayInputStream(value);
             }
 
-            public OutputStream getOutputStream()
-                throws IOException
+            @Override
+            public OutputStream getOutputStream() throws IOException
             {
                 throw new IOException();
             }
 
+            @Override
             public String getContentType()
             {
                 return "application/octet-stream";
             }
 
-            public String getName()
+            @Override
+           public String getName()
             {
                 return "json-binary-data";
             }

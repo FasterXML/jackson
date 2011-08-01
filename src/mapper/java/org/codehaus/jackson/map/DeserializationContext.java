@@ -182,6 +182,11 @@ public abstract class DeserializationContext
     public abstract JsonMappingException mappingException(Class<?> targetClass);
 
     /**
+     * @since 1.9
+     */
+    public abstract JsonMappingException mappingException(Class<?> targetClass, JsonToken t);
+    
+    /**
      * Helper method for constructing generic mapping exception with specified
      * message and current location information
      * 

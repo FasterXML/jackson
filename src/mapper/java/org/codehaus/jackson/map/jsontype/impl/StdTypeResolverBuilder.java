@@ -26,6 +26,11 @@ public class StdTypeResolverBuilder
 
     protected String _typeProperty;
 
+    /**
+     * @since 1.9
+     */
+    protected Class<?> _defaultImpl;
+    
     // Objects
     
     protected TypeIdResolver _customIdResolver;
@@ -38,6 +43,7 @@ public class StdTypeResolverBuilder
 
     public StdTypeResolverBuilder() { }
     
+    @Override
     public StdTypeResolverBuilder init(JsonTypeInfo.Id idType, TypeIdResolver idRes)
     {
         // sanity checks
@@ -67,6 +73,7 @@ public class StdTypeResolverBuilder
         throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
     }
     
+    @Override
     public TypeDeserializer buildTypeDeserializer(DeserializationConfig config,
             JavaType baseType, Collection<NamedType> subtypes, BeanProperty property)
     {
@@ -75,11 +82,12 @@ public class StdTypeResolverBuilder
         // First, method for converting type info to type id:
         switch (_includeAs) {
         case WRAPPER_ARRAY:
-            return new AsArrayTypeDeserializer(baseType, idRes, property);
+            return new AsArrayTypeDeserializer(baseType, idRes, property, _defaultImpl);
         case PROPERTY:
-            return new AsPropertyTypeDeserializer(baseType, idRes, property, _typeProperty);
+            return new AsPropertyTypeDeserializer(baseType, idRes, property,
+                    _defaultImpl, _typeProperty);
         case WRAPPER_OBJECT:
-            return new AsWrapperTypeDeserializer(baseType, idRes, property);
+            return new AsWrapperTypeDeserializer(baseType, idRes, property, _defaultImpl);
         }
         throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
     }
@@ -90,6 +98,7 @@ public class StdTypeResolverBuilder
     /**********************************************************
      */
 
+    @Override
     public StdTypeResolverBuilder inclusion(JsonTypeInfo.As includeAs) {
         if (includeAs == null) {
             throw new IllegalArgumentException("includeAs can not be null");
@@ -102,6 +111,7 @@ public class StdTypeResolverBuilder
      * Method for constructing an instance with specified type property name
      * (property name to use for type id when using "as-property" inclusion).
      */
+    @Override
     public StdTypeResolverBuilder typeProperty(String typeIdPropName)
     {
         // ok to have null/empty; will restore to use defaults
@@ -112,6 +122,13 @@ public class StdTypeResolverBuilder
         return this;
     }
 
+    @Override
+    public StdTypeResolverBuilder defaultImpl(Class<?> defaultImpl)
+    {
+        _defaultImpl = defaultImpl;
+        return this;
+    }
+    
     /*
     /**********************************************************
     /* Accessors

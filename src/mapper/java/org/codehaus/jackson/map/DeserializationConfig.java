@@ -651,10 +651,10 @@ public class DeserializationConfig
      *<p>
      * Note: part of {@link MapperConfig} since 1.7
      */
-    @Override
     @SuppressWarnings("unchecked")
-    public <T extends BeanDescription> T introspectClassAnnotations(Class<?> cls) {
-        return (T) getClassIntrospector().forClassAnnotations(this, cls, this);
+    @Override
+    public <T extends BeanDescription> T introspectClassAnnotations(JavaType type) {
+        return (T) getClassIntrospector().forClassAnnotations(this, type, this);
     }
 
     /**
@@ -666,10 +666,10 @@ public class DeserializationConfig
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends BeanDescription> T introspectDirectClassAnnotations(Class<?> cls) {
-        return (T) getClassIntrospector().forDirectClassAnnotations(this, cls, this);
+    public <T extends BeanDescription> T introspectDirectClassAnnotations(JavaType type) {
+        return (T) getClassIntrospector().forDirectClassAnnotations(this, type, this);
     }
-
+    
     @Override
     public boolean isAnnotationProcessingEnabled() {
         return isEnabled(Feature.USE_ANNOTATIONS);

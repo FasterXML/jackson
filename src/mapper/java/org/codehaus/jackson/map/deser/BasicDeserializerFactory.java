@@ -274,7 +274,7 @@ public abstract class BasicDeserializerFactory
          * be implementing)
          */
         if (type.isInterface() || type.isAbstract()) {
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings({ "rawtypes" })
             Class<? extends Collection> fallback = _collectionFallbacks.get(collectionClass.getName());
             if (fallback == null) {
                 throw new IllegalArgumentException("Can not find a deserializer for non-concrete Collection type "+type);
@@ -397,7 +397,7 @@ public abstract class BasicDeserializerFactory
          * be implementing)
          */
         if (type.isInterface() || type.isAbstract()) {
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings("rawtypes")
             Class<? extends Map> fallback = _mapFallbacks.get(mapClass.getName());
             if (fallback == null) {
                 throw new IllegalArgumentException("Can not find a deserializer for non-concrete Map type "+type);

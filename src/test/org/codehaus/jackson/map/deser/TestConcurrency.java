@@ -53,6 +53,7 @@ public class TestConcurrency extends BaseMapTest
             return b;
         }
 
+        @Override
         public void resolve(DeserializationConfig config, DeserializerProvider provider)
             throws JsonMappingException
         {
@@ -79,6 +80,7 @@ public class TestConcurrency extends BaseMapTest
         for (int i = 0; i < 5; ++i) {
             final ObjectMapper mapper = new ObjectMapper();
             Runnable r = new Runnable() {
+                @Override
                 public void run() {
                     try {
                         /*Bean b =*/ mapper.readValue(JSON, Bean.class);

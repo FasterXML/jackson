@@ -3,7 +3,7 @@ package org.codehaus.jackson.main;
 import org.codehaus.jackson.*;
 
 /**
- * Unit tests for verifying that additional {@link JsonParser.Feature}
+ * Unit tests for verifying that additional <code>JsonParser.Feature</code>
  * settings work as expected.
  */
 public class TestParserFeatures

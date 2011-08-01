@@ -1,9 +1,6 @@
 package org.codehaus.jackson.annotate;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Annotation used for configuring details of if and how type information is
@@ -37,6 +34,7 @@ import java.lang.annotation.Target;
  * container itself.
  * 
  * @see org.codehaus.jackson.map.annotate.JsonTypeResolver
+ * 
  * @since 1.5 (but available to fields, methods and constructor params since 1.7)
  * 
  * @author tatu
@@ -183,4 +181,36 @@ public @interface JsonTypeInfo
      * type metadata type ({@link #use}) used.
      */
     public String property() default "";
+
+    /**
+     * Optional property that can be used to specify default implementation
+     * class to use if type identifier is either not present, or can not
+     * be mapped to a registered type (which can occur for ids, but not when
+     * specifying explicit class to use).
+     *<p>
+     * Note that while this property allows specification of the default
+     * implementation to use, it does not help with structural issues that
+     * may arise if type information is missing. This means that most often
+     * this is used with type-name -based resolution, to cover cases
+     * where new sub-types are added, but base type is not changed to
+     * reference new sub-types.
+     * 
+     * @since 1.9
+     */
+    public Class<?> defaultImpl() default None.class;
+
+    /*
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
+     */
+
+    /**
+     * This marker class that is only to be used with <code>defaultImpl</code>
+     * annotation property, to indicate that there is no default implementation
+     * specified.
+     * 
+     * @since 1.9
+     */
+    public abstract static class None { }
 }

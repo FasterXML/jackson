@@ -25,10 +25,17 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
 {
     protected final String _typePropertyName;
 
+    @Deprecated // since 1.9
     public AsPropertyTypeDeserializer(JavaType bt, TypeIdResolver idRes, BeanProperty property,
+            String typePropName) {
+        this(bt, idRes, property, null, typePropName);
+    }
+    
+    public AsPropertyTypeDeserializer(JavaType bt, TypeIdResolver idRes, BeanProperty property,
+            Class<?> defaultImpl,
             String typePropName)
     {
-        super(bt, idRes, property);
+        super(bt, idRes, property, defaultImpl);
         _typePropertyName = typePropName;
     }
 
@@ -82,9 +89,27 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
             tb.writeFieldName(name);
             tb.copyCurrentStructure(jp);
         }
-        // Error if we get here...
-        throw ctxt.wrongTokenException(jp, JsonToken.FIELD_NAME,
-                "missing property '"+_typePropertyName+"' that is to contain type id  (for class "+baseTypeName()+")");
+        return _deserializeTypedUsingDefaultImpl(jp, ctxt, tb);
+    }
+    
+    // off-lined to keep main method lean and meand...
+    protected Object _deserializeTypedUsingDefaultImpl(JsonParser jp,
+            DeserializationContext ctxt, TokenBuffer tb)
+        throws IOException, JsonProcessingException
+    {
+        // As per [JACKSON-614], may have default implement to use
+        if (_defaultImpl == null) { // if not, an error
+            throw ctxt.wrongTokenException(jp, JsonToken.FIELD_NAME,
+                    "missing property '"+_typePropertyName+"' that is to contain type id  (for class "+baseTypeName()+")");
+        }
+        JsonDeserializer<Object> deser = _findDefaultImplDeserializer(ctxt);
+        if (tb != null) {
+            tb.writeEndObject();
+            jp = tb.asParser(jp);
+            // must move to point to the first token:
+            jp.nextToken();
+        }
+        return deser.deserialize(jp, ctxt);
     }
 
     /* As per [JACKSON-352], also need to re-route "unknown" version. Need to think

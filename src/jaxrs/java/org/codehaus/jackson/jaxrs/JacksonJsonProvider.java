@@ -222,6 +222,7 @@ public class JacksonJsonProvider
      * 
      * @since 1.6
      */
+    @Override
     public Version version() {
         return VersionUtil.versionFor(getClass());
     }
@@ -367,6 +368,7 @@ public class JacksonJsonProvider
      * for type (iff {@link #checkCanDeserialize} has been called with
      * true argument -- otherwise assumption is there will be a handler)
      */
+    @Override
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
         if (!isJsonType(mediaType)) {
@@ -404,6 +406,7 @@ public class JacksonJsonProvider
      * Method that JAX-RS container calls to deserialize given
      * value.
      */
+    @Override
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String,String> httpHeaders, InputStream entityStream) 
         throws IOException
     {
@@ -430,6 +433,7 @@ public class JacksonJsonProvider
      * that container will determine length from actual serialized
      * output (if needed).
      */
+    @Override
     public long getSize(Object value, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
         /* In general figuring output size requires actual writing; usually not
@@ -449,6 +453,7 @@ public class JacksonJsonProvider
      * for type (iff {@link #checkCanSerialize} has been called with
      * true argument -- otherwise assumption is there will be a handler)
      */
+    @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType)
     {
         if (!isJsonType(mediaType)) {
@@ -484,6 +489,7 @@ public class JacksonJsonProvider
     /**
      * Method that JAX-RS container calls to serialize given value.
      */
+    @Override
     public void writeTo(Object value, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType,
             MultivaluedMap<String,Object> httpHeaders, OutputStream entityStream) 
         throws IOException

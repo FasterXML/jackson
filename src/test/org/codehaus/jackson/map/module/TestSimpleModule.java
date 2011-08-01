@@ -105,6 +105,7 @@ public class TestSimpleModule extends BaseMapTest
     }
     
     static class Impl1 implements Base {
+        @Override
         public String getText() { return "1"; }
     }
 

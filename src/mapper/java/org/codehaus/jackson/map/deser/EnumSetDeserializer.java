@@ -20,13 +20,13 @@ import org.codehaus.jackson.map.TypeDeserializer;
 public final class EnumSetDeserializer
     extends StdDeserializer<EnumSet<?>>
 {
-    @SuppressWarnings("unchecked")
-	final Class<Enum> _enumClass;
+    @SuppressWarnings({ "rawtypes" })
+    protected final Class<Enum> _enumClass;
 
-    final EnumDeserializer _enumDeserializer;
+    protected final EnumDeserializer _enumDeserializer;
 
-    @SuppressWarnings("unchecked")
-	public EnumSetDeserializer(EnumResolver enumRes)
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public EnumSetDeserializer(EnumResolver enumRes)
     {
         super(EnumSet.class);
         _enumDeserializer = new EnumDeserializer(enumRes);
@@ -43,6 +43,7 @@ public final class EnumSetDeserializer
         if (!jp.isExpectedStartArrayToken()) {
             throw ctxt.mappingException(EnumSet.class);
         }
+        @SuppressWarnings("rawtypes")
         EnumSet result = constructSet();
         JsonToken t;
 
@@ -69,7 +70,7 @@ public final class EnumSetDeserializer
         return typeDeserializer.deserializeTypedFromArray(jp, ctxt);
     }
     
-    @SuppressWarnings("unchecked") 
+    @SuppressWarnings({ "unchecked", "rawtypes" }) 
     private EnumSet constructSet()
     {
     	// superbly ugly... but apparently necessary

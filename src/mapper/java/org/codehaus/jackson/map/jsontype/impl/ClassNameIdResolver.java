@@ -19,6 +19,7 @@ public class ClassNameIdResolver
         super(baseType, typeFactory);
     }
 
+    @Override
     public JsonTypeInfo.Id getMechanism() { return JsonTypeInfo.Id.CLASS; }
 
     public void registerSubtype(Class<?> type, String name) {
@@ -37,6 +38,7 @@ public class ClassNameIdResolver
         return _idFrom(value, type);
     }
 
+    @Override
     public JavaType typeFromId(String id)
     {
         /* 30-Jan-2010, tatu: Most ids are basic class names; so let's first

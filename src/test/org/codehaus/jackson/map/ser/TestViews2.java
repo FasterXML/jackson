@@ -34,6 +34,7 @@ public class TestViews2 extends BaseMapTest
   /************************************************************************ 
    */
 
+  @SuppressWarnings("deprecation")
   private ObjectMapper createObjectMapper(Class<?> viewClass)
   {
     ObjectMapper objectMapper = new ObjectMapper( );

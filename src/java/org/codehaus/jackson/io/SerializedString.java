@@ -41,13 +41,16 @@ public class SerializedString implements SerializableString
     /**********************************************************
      */
 
+    @Override
     public final String getValue() { return _value; }
     
     /**
      * Returns length of the String as characters
      */
+    @Override
     public final int charLength() { return _value.length(); }
     
+    @Override
     public final char[] asQuotedChars()
     {
         char[] result = _quotedChars;
@@ -62,6 +65,7 @@ public class SerializedString implements SerializableString
      * Accessor for accessing value that has been quoted using JSON
      * quoting rules, and encoded using UTF-8 encoding.
      */
+    @Override
     public final byte[] asUnquotedUTF8()
     {
         byte[] result = _unquotedUTF8Ref;
@@ -76,6 +80,7 @@ public class SerializedString implements SerializableString
      * Accessor for accessing value as is (without JSON quoting)
      * encoded using UTF-8 encoding.
      */
+    @Override
     public final byte[] asQuotedUTF8()
     {
         byte[] result = _quotedUTF8Ref;

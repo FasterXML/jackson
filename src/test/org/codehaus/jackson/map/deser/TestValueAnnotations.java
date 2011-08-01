@@ -18,9 +18,9 @@ public class TestValueAnnotations
     extends BaseTest
 {
     /*
-    ///////////////////////////////////////////////////
-    // Annotated root classes for @JsonDeserialize#as
-    ///////////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated root classes for @JsonDeserialize#as
+    /**********************************************************
      */
 
     @JsonDeserialize(using=RootStringDeserializer.class)
@@ -34,6 +34,7 @@ public class TestValueAnnotations
 
         public RootStringImpl(String x) { _contents = x; }
 
+        @Override
         public String contents() { return _contents; }
         public String contents2() { return _contents; }
     }
@@ -48,6 +49,7 @@ public class TestValueAnnotations
 
         public RootInterfaceImpl() { }
 
+        @Override
         public String getA() { return a; }
     }
 
@@ -76,9 +78,9 @@ public class TestValueAnnotations
     }
 
     /*
-    ///////////////////////////////////////////////////
-    // Annotated helper classes for @JsonDeserialize#as
-    ///////////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated helper classes for @JsonDeserialize#as
+    /**********************************************************
      */
 
     /* Class for testing valid {@link JsonDeserialize} annotation
@@ -141,9 +143,9 @@ public class TestValueAnnotations
     }
 
     /*
-    //////////////////////////////////////////////////////
-    // Annotated helper classes for @JsonDeserialize.keyAs
-    //////////////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated helper classes for @JsonDeserialize.keyAs
+    /**********************************************************
      */
 
     final static class StringWrapper
@@ -173,9 +175,9 @@ public class TestValueAnnotations
     }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Annotated helper classes for @JsonDeserialize#contentAs
-    ///////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated helper classes for @JsonDeserialize#contentAs
+    /**********************************************************
      */
 
     final static class ListContentHolder
@@ -223,9 +225,9 @@ public class TestValueAnnotations
     }
 
     /*
-    //////////////////////////////////////////////
-    // Test methods for @JsonDeserialize#as
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Test methods for @JsonDeserialize#as
+    /**********************************************************
      */
 
     public void testOverrideClassValid() throws Exception
@@ -279,10 +281,9 @@ public class TestValueAnnotations
     }
 
     /*
-    //////////////////////////////////////////////
-    // Test methods for @JsonDeserialize#as used
-    // for root values
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Test methods for @JsonDeserialize#as used for root values
+    /**********************************************************
      */
 
     public void testRootInterfaceAs() throws Exception
@@ -318,9 +319,9 @@ public class TestValueAnnotations
     }
 
     /*
-    //////////////////////////////////////////////
-    // Test methods for @JsonDeserialize#keyAs
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Test methods for @JsonDeserialize#keyAs
+    /**********************************************************
      */
 
     @SuppressWarnings("unchecked")
@@ -351,9 +352,9 @@ public class TestValueAnnotations
     }
 
     /*
-    //////////////////////////////////////////////
-    // Test methods for @JsonDeserialize#contentAs
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Test methods for @JsonDeserialize#contentAs
+    /**********************************************************
      */
 
     @SuppressWarnings("unchecked")

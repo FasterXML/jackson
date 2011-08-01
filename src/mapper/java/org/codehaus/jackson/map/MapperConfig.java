@@ -401,6 +401,7 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * 
      * @since 1.2
      */
+    @Override
     public final Class<?> findMixInClassFor(Class<?> cls) {
         return (_mixInAnnotations == null) ? null : _mixInAnnotations.get(new ClassKey(cls));
     }
@@ -495,15 +496,36 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * 
      * @since 1.7
      */
-    public abstract <DESC extends BeanDescription> DESC introspectClassAnnotations(Class<?> cls);
+    public <DESC extends BeanDescription> DESC introspectClassAnnotations(Class<?> cls) {
+        return introspectClassAnnotations(constructType(cls));
+    }
+    
+    /**
+     * Accessor for getting bean description that only contains class
+     * annotations: useful if no getter/setter/creator information is needed.
+     * 
+     * @since 1.9
+     */
+    public abstract <DESC extends BeanDescription> DESC introspectClassAnnotations(JavaType type);
 
     /**
      * Accessor for getting bean description that only contains immediate class
      * annotations: ones from the class, and its direct mix-in, if any, but
      * not from super types.
+     * 
+     * @since 1.7
      */
-    public abstract <DESC extends BeanDescription> DESC introspectDirectClassAnnotations(Class<?> cls);
-
+    public <DESC extends BeanDescription> DESC introspectDirectClassAnnotations(Class<?> cls) {
+        return introspectDirectClassAnnotations(constructType(cls));
+    }
+    
+    /**
+     * Accessor for getting bean description that only contains immediate class
+     * annotations: ones from the class, and its direct mix-in, if any, but
+     * not from super types.
+     */
+    public abstract <DESC extends BeanDescription> DESC introspectDirectClassAnnotations(JavaType type);
+    
     /**
      * Method for determining whether annotation processing is enabled or not
      * (default settings are typically that it is enabled; must explicitly disable).

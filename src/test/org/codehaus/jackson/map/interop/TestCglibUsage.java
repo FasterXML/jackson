@@ -19,9 +19,9 @@ public class TestCglibUsage
     extends BaseTest
 {
     /*
-    //////////////////////////////////////////////
-    // Helper classes
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
      */
 
     interface BeanInterface {
@@ -29,9 +29,9 @@ public class TestCglibUsage
     }
 
     /*
-    //////////////////////////////////////////////
-    // Tests
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Tests
+    /**********************************************************
      */
 
     public void testSimpleProxied() throws Exception
@@ -39,6 +39,7 @@ public class TestCglibUsage
         Enhancer enh = new Enhancer();
         enh.setInterfaces(new Class[] { BeanInterface.class });
         enh.setCallback(new MethodInterceptor() {
+            @Override
                 public Object intercept(Object obj, Method method,
                                         Object[] args, MethodProxy proxy)
                     throws Throwable

@@ -74,12 +74,14 @@ public class DefaultPrettyPrinter
     /**********************************************************
      */
 
+    @Override
     public void writeRootValueSeparator(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
         jg.writeRaw(' ');
     }
 
+    @Override
     public void writeStartObject(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
@@ -89,6 +91,7 @@ public class DefaultPrettyPrinter
         }
     }
 
+    @Override
     public void beforeObjectEntries(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
@@ -104,6 +107,7 @@ public class DefaultPrettyPrinter
      * to output a colon as well, but can surround that with other
      * (white-space) decoration.
      */
+    @Override
     public void writeObjectFieldValueSeparator(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
@@ -123,6 +127,7 @@ public class DefaultPrettyPrinter
      * to output a comma as well, but can surround that with other
      * (white-space) decoration.
      */
+    @Override
     public void writeObjectEntrySeparator(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
@@ -130,6 +135,7 @@ public class DefaultPrettyPrinter
         _objectIndenter.writeIndentation(jg, _nesting);
     }
 
+    @Override
     public void writeEndObject(JsonGenerator jg, int nrOfEntries)
         throws IOException, JsonGenerationException
     {
@@ -144,6 +150,7 @@ public class DefaultPrettyPrinter
         jg.writeRaw('}');
     }
 
+    @Override
     public void writeStartArray(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
@@ -153,6 +160,7 @@ public class DefaultPrettyPrinter
         jg.writeRaw('[');
     }
 
+    @Override
     public void beforeArrayValues(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
@@ -168,6 +176,7 @@ public class DefaultPrettyPrinter
      * to output a comma as well, but can surround that with other
      * (white-space) decoration.
      */
+    @Override
     public void writeArrayValueSeparator(JsonGenerator jg)
         throws IOException, JsonGenerationException
     {
@@ -175,6 +184,7 @@ public class DefaultPrettyPrinter
         _arrayIndenter.writeIndentation(jg, _nesting);
     }
 
+    @Override
     public void writeEndArray(JsonGenerator jg, int nrOfValues)
         throws IOException, JsonGenerationException
     {
@@ -202,7 +212,9 @@ public class DefaultPrettyPrinter
         implements Indenter
     {
         public NopIndenter() { }
+        @Override
         public void writeIndentation(JsonGenerator jg, int level) { }
+        @Override
         public boolean isInline() { return true; }
     }
 
@@ -216,12 +228,14 @@ public class DefaultPrettyPrinter
     {
         public FixedSpaceIndenter() { }
 
+        @Override
         public void writeIndentation(JsonGenerator jg, int level)
             throws IOException, JsonGenerationException
         {
             jg.writeRaw(' ');
         }
 
+        @Override
         public boolean isInline() { return true; }
     }
 
@@ -249,8 +263,10 @@ public class DefaultPrettyPrinter
 
         public Lf2SpacesIndenter() { }
 
+        @Override
         public boolean isInline() { return false; }
 
+        @Override
         public void writeIndentation(JsonGenerator jg, int level)
             throws IOException, JsonGenerationException
         {

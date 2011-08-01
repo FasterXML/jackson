@@ -100,6 +100,7 @@ public class JaxbAnnotationIntrospector
      * 
      * @since 1.6
      */
+    @Override
     public Version version() {
         return VersionUtil.versionFor(getClass());
     }
@@ -1168,6 +1169,7 @@ public class JaxbAnnotationIntrospector
             this.pd = pd;
         }
 
+        @Override
         public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
         {
             Method m = pd.getReadMethod();
@@ -1181,6 +1183,7 @@ public class JaxbAnnotationIntrospector
             return false;
         }
 
+        @Override
         public <T extends Annotation> T getAnnotation(Class<T> annotationClass)
         {
             Method m = pd.getReadMethod();
@@ -1197,10 +1200,12 @@ public class JaxbAnnotationIntrospector
             return null;
         }
 
+        @Override
         public Annotation[] getAnnotations() { //not used. we don't need to support this yet.
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public Annotation[] getDeclaredAnnotations() { //not used. we don't need to support this yet.
             throw new UnsupportedOperationException();
         }

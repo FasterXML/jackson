@@ -17,7 +17,7 @@ public final class EnumValues
      */
     private final EnumMap<?,SerializedString> _values;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private EnumValues(Map<Enum<?>,SerializedString> v) {
         _values = new EnumMap(v);
     }

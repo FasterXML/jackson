@@ -32,7 +32,7 @@ public final class EnumMapDeserializer
         _valueDeserializer = valueDes;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public EnumMap<?,?> deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
@@ -70,7 +70,7 @@ public final class EnumMapDeserializer
         return typeDeserializer.deserializeTypedFromObject(jp, ctxt);
     }
     
-    @SuppressWarnings("unchecked") 
+    @SuppressWarnings({ "unchecked", "rawtypes" }) 
     private EnumMap<?,?> constructMap()
     {
         Class<? extends Enum<?>> enumCls = _enumResolver.getEnumClass();

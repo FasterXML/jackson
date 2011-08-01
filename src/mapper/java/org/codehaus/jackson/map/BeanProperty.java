@@ -83,22 +83,27 @@ public interface BeanProperty
             return new Std(_name, type, _contextAnnotations, _member);
         }
         
+        @Override
         public <A extends Annotation> A getAnnotation(Class<A> acls) {
             return _member.getAnnotation(acls);
         }
 
+        @Override
         public <A extends Annotation> A getContextAnnotation(Class<A> acls) {
             return (_contextAnnotations == null) ? null : _contextAnnotations.get(acls);
         }
         
+        @Override
         public String getName() {
             return _name;
         }
 
+        @Override
         public JavaType getType() {
             return _type;
         }
 
+        @Override
         public AnnotatedMember getMember() {
             return _member;
         }

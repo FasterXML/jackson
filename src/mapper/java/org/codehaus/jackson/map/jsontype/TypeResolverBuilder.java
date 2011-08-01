@@ -112,7 +112,7 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
 
     /**
      * Method for specifying name of property used for including type
-     * information. Not used for all inclusiong mechanisms;
+     * information. Not used for all inclusion mechanisms;
      * usually only used with {@link As#PROPERTY}.
      *<p>
      * If not explicitly called, name of property to use is based on
@@ -125,4 +125,12 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
      *   but not necessarily)
      */
     public T typeProperty(String propName);
+
+    /**
+     * Method for specifying default implementation to use if type id 
+     * is either not available, or can not be resolved.
+     * 
+     * @since 1.9
+     */
+    public T defaultImpl(Class<?> defaultImpl);
 }

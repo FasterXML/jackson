@@ -192,10 +192,15 @@ public class StdDeserializationContext
     }
 
     @Override
-    public JsonMappingException mappingException(Class<?> targetClass)
+    public JsonMappingException mappingException(Class<?> targetClass) {
+        return mappingException(targetClass, _parser.getCurrentToken());
+    }
+
+    @Override
+    public JsonMappingException mappingException(Class<?> targetClass, JsonToken token)
     {
         String clsName = _calcName(targetClass);
-        return JsonMappingException.from(_parser, "Can not deserialize instance of "+clsName+" out of "+_parser.getCurrentToken()+" token");
+        return JsonMappingException.from(_parser, "Can not deserialize instance of "+clsName+" out of "+token+" token");
     }
     
     @Override

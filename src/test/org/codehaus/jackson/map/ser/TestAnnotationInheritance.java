@@ -16,9 +16,9 @@ public class TestAnnotationInheritance
     extends BaseTest
 {
     /*
-    //////////////////////////////////////////////
-    // Annotated helper classes
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Annotated helper classes
+    /**********************************************************
      */
 
     /// Base class for testing {@link JsonProperty} annotations
@@ -60,16 +60,18 @@ public class TestAnnotationInheritance
     {
         // Both should be recognized as getters here
 
+        @Override
         public int width() { return 1; }
+        @Override
         public int length() { return 2; }
 
         public int getFoobar() { return 5; }
     }
 
     /*
-    //////////////////////////////////////////////
-    // Main tests
-    //////////////////////////////////////////////
+    /**********************************************************
+    /* Main tests
+    /**********************************************************
      */
 
     public void testSimpleGetterInheritance() throws Exception

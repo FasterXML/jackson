@@ -268,6 +268,7 @@ public interface Deserializers
             return null;
         }
 
+        @Override
         public JsonDeserializer<?> findCollectionLikeDeserializer(CollectionLikeType type, DeserializationConfig config,
                 DeserializerProvider provider, BeanDescription beanDesc, BeanProperty property,
                 TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer)
@@ -286,6 +287,7 @@ public interface Deserializers
             return null;
         }
 
+        @Override
         public JsonDeserializer<?> findMapLikeDeserializer(MapLikeType type, DeserializationConfig config,
                 DeserializerProvider provider, BeanDescription beanDesc, BeanProperty property,
                 KeyDeserializer keyDeserializer,

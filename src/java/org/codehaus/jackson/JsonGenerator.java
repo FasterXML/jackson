@@ -222,6 +222,7 @@ public abstract class JsonGenerator
     /**
      * @since 1.6
      */
+    @Override
     public Version version() {
         return Version.unknownVersion();
     }
@@ -1190,6 +1191,7 @@ public abstract class JsonGenerator
      * If either of above is true, the target is also closed. Otherwise
      * (not managing, feature not enabled), target is not closed.
      */
+    @Override
     public abstract void close()
         throws IOException;
 }

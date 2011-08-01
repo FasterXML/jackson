@@ -13,9 +13,9 @@ import java.io.*;
  * (json content tree)
  *<p>
  * Specifically, features
- * {@link JsonGenerator.Feature#AUTO_CLOSE_TARGET}
+ * <code>JsonGenerator.Feature#AUTO_CLOSE_TARGET</code>
  * and
- * {@link JsonGenerator.Feature#AUTO_CLOSE_JSON_CONTENT}
+ * <code>JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT</code>
  * are tested.
  */
 public class TestGeneratorClosing

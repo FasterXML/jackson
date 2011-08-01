@@ -51,6 +51,7 @@ public class TestCollectionSerialization
             }
         }
 
+        @Override
         public Iterator<Integer> iterator() {
             return _ints.iterator();
         }

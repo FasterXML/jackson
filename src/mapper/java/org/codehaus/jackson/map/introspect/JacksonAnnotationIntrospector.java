@@ -226,7 +226,7 @@ public class JacksonAnnotationIntrospector
         JsonTypeName tn = ac.getAnnotation(JsonTypeName.class);
         return (tn == null) ? null : tn.value();
     }
-
+    
     /*
     /**********************************************************
     /* General method annotations
@@ -725,6 +725,10 @@ public class JacksonAnnotationIntrospector
         b = b.init(info.use(), idRes);
         b = b.inclusion(info.include());
         b = b.typeProperty(info.property());
+        Class<?> defaultImpl = info.defaultImpl();
+        if (defaultImpl != JsonTypeInfo.None.class) {
+            b = b.defaultImpl(defaultImpl);
+        }
         return b;
     }
 
