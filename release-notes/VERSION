@@ -50,6 +50,8 @@ Description:
   * [JACKSON-643] ObjectMapper.readValue() should check JsonDeserializer.getNullValue()
     when encountering root-level JsonToken.VALUE_NULL
   * [JACKSON-644] Add SimpleModule.setMixInAnnotations()
+  * [JACKSON-648] ObjectWriter: allow changing default serialization DateFormat
+    (ObjectMapper.writer(DateFormat), ObjectWriter.withDateFormat(DateFormat))
 
   New features:
 

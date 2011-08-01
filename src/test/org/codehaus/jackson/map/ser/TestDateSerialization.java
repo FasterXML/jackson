@@ -35,13 +35,11 @@ public class TestDateSerialization
     public void testDateOther() throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
-        StringWriter sw = new StringWriter();
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'X'HH:mm:ss");
         df.setTimeZone(TimeZone.getTimeZone("PST"));
         mapper.setDateFormat(df);
         // let's hit epoch start, offset by a bit
-        mapper.writeValue(sw, new Date(0L));
-        assertEquals("\"1969-12-31X16:00:00\"", sw.toString());
+        assertEquals(quote("1969-12-31X16:00:00"), mapper.writeValueAsString(new Date(0L)));
     }
 
     @SuppressWarnings("deprecation")
@@ -60,5 +58,23 @@ public class TestDateSerialization
         String json = mapper.writeValueAsString(input);
         assertEquals(quote("PST"), json);
     }
+
+    // [JACKSON-648]: (re)configuring via ObjectWriter
+    public void testDateUsingObjectWriter() throws IOException
+    {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'X'HH:mm:ss");
+        df.setTimeZone(TimeZone.getTimeZone("PST"));
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(quote("1969-12-31X16:00:00"),
+                mapper.writer(df).writeValueAsString(new Date(0L)));
+        ObjectWriter w = mapper.writer(null);
+        assertEquals("0", w.writeValueAsString(new Date(0L)));
+
+        w = w.withDateFormat(df);
+        assertEquals(quote("1969-12-31X16:00:00"), w.writeValueAsString(new Date(0L)));
+        w = w.withDateFormat(null);
+        assertEquals("0", w.writeValueAsString(new Date(0L)));
+    }
+
 }
 

@@ -149,6 +149,7 @@ public class ObjectReader
      * 
      * @since 1.6
      */
+    @Override
     public Version version() {
         return VersionUtil.versionFor(getClass());
     }

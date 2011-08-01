@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map;
 
 import java.io.*;
+import java.text.DateFormat;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.SegmentedStringWriter;
@@ -180,6 +181,7 @@ public class ObjectWriter
      * 
      * @since 1.6
      */
+    @Override
     public Version version() {
         return VersionUtil.versionFor(getClass());
     }
@@ -283,6 +285,22 @@ public class ObjectWriter
             return this;
         }
         return new ObjectWriter(this, _config, _rootType, _prettyPrinter, schema);
+    }
+
+    /**
+     * Fluent factory method that will construct a new writer instance that will
+     * use specified date format for serializing dates; or if null passed, one
+     * that will serialize dates as numeric timestamps.
+     * 
+     * @since 1.9
+     */
+    public ObjectWriter withDateFormat(DateFormat df)
+    {
+        SerializationConfig newConfig = _config.withDateFormat(df);
+        if (newConfig == _config) {
+            return this;
+        }
+        return new ObjectWriter(this, newConfig);
     }
     
     /*

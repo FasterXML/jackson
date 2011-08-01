@@ -1003,10 +1003,14 @@ public class ObjectMapper
     public JsonFactory getJsonFactory() { return _jsonFactory; }
     
     /**
-     * Method for configuring {@link DateFormat} to use when serializing time
+     * Method for configuring the default {@link DateFormat} to use when serializing time
      * values as Strings, and deserializing from JSON Strings.
      * This is preferably to directly modifying {@link SerializationConfig} and
      * {@link DeserializationConfig} instances.
+     * If you need per-request configuration, use {@link #writer(DateFormat)} to
+     * create properly configured {@link ObjectWriter} and use that; this because
+     * {@link ObjectWriter}s are thread-safe whereas ObjectMapper itself is only
+     * thread-safe when configuring methods (such as this one) are NOT called.
      * 
      * @since 1.8
      */
@@ -2046,6 +2050,18 @@ public class ObjectMapper
      */
     public ObjectWriter writer() {
         return new ObjectWriter(this, copySerializationConfig());
+    }
+
+    /**
+     * Factory method for constructing {@link ObjectWriter} that will
+     * serialize objects using specified {@link DateFormat}; or, if
+     * null passed, using timestamp (64-bit number.
+     * 
+     * @since 1.9
+     */
+    public ObjectWriter writer(DateFormat df) {
+        return new ObjectWriter(this,
+                copySerializationConfig().withDateFormat(df));
     }
     
     /**

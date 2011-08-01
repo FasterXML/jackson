@@ -30,6 +30,7 @@ public class TestAnnotationJsonSerialize
     static class ValueClass
         implements ValueInterface
     {
+        @Override
         public int getX() { return 3; }
         public int getY() { return 5; }
     }
