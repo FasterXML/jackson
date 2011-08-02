@@ -137,6 +137,23 @@ public class TestCreators2
 
         public IgnoredCtor() { }
     }
+
+    static class AbstractBase {
+        @JsonCreator
+        public static AbstractBase create(Map<String,Object> props)
+        {
+            return new AbstractBaseImpl(props);
+        }
+    }
+
+    static class AbstractBaseImpl extends AbstractBase
+    {
+        protected Map<String,Object> props;
+        
+        public AbstractBaseImpl(Map<String,Object> props) {
+            this.props = props;
+        }
+    }
     
     /*
     /**********************************************************
@@ -265,5 +282,16 @@ public class TestCreators2
         } catch (JsonMappingException e) {
             verifyException(e, "no single-String constructor/factory method");
         }
+    }
+
+    public void testAbstractFactory() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        AbstractBase bean = mapper.readValue("{\"a\":3}",
+                AbstractBase.class);
+        assertNotNull(bean);
+        AbstractBaseImpl impl = (AbstractBaseImpl) bean;
+        assertEquals(1, impl.props.size());
+        assertEquals(Integer.valueOf(3), impl.props.get("a"));
     }
 }
