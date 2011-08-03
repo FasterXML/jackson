@@ -466,12 +466,6 @@ public class BeanDeserializerFactory
         if (!isPotentialBeanType(type.getRawClass())) {
             return null;
         }
-        
-        // if we still just have abstract type (but no deserializer), probably need type info, so:
-        if (type.isAbstract()) {
-            return new AbstractDeserializer(type);
-            
-        }
         /* Otherwise we'll just use generic bean introspection
          * to build deserializer
          */
@@ -591,6 +585,11 @@ public class BeanDeserializerFactory
             JavaType type, BasicBeanDescription beanDesc, BeanProperty property)
         throws JsonMappingException
     {
+        // if we still just have abstract type (but no deserializer), probably need type info, so:
+        if (type.isAbstract()) {
+            return new AbstractDeserializer(type);
+            
+        }
         BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(beanDesc);
         builder.setCreators(findDeserializerCreators(config, beanDesc));
          // And then setters for deserializing from JSON Object
