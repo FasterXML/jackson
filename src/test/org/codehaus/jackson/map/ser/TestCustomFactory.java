@@ -123,7 +123,7 @@ public class TestCustomFactory
         sf.addGenericMapping(BeanInterface.class, new BeanSerializer());
         mapper.setSerializerFactory(sf);
 
-        ObjectWriter w = mapper.typedWriter(BeanInterface.class);
+        ObjectWriter w = mapper.writerWithType(BeanInterface.class);
         String result = w.writeValueAsString(new BeanImpl());
 
         assertEquals("true", result);

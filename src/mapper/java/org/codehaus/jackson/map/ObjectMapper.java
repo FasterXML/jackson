@@ -735,6 +735,8 @@ public class ObjectMapper
     }
     
     /**
+     * Method for accessing subtype resolver in use.
+     * 
      * @since 1.6
      */
     public SubtypeResolver getSubtypeResolver() {
@@ -1962,81 +1964,6 @@ public class ObjectMapper
 
     /*
     /**********************************************************
-    /* Extended Public API: serialization using JSON Views
-    /* (since version 1.4)
-    /* 
-    /* NOTE: as of version 1.5, should use ObjectWriter
-    /* instead 
-    /**********************************************************
-     */
-
-    /**
-     * Method for serializing given object using specified view.
-     * Note that this method is essentially just a shortcut: view to use is
-     * by {@link SerializationConfig} and so this method just assigns
-     * given view to a copy of default configuration of this
-     * mapper. So to use other kinds of destinations, just call
-     * {@link #copySerializationConfig}, call
-     * {@link SerializationConfig#setSerializationView} method on it,
-     * and pass that configuration to other methods.
-     *
-     * @param jgen Generator to use for writing JSON content
-     * @param value Value to serialize
-     * @param viewClass (optional) Identifier for View to use. If null,
-     *   equivalent to passing <code>Object.class</code>; both of which
-     *   mean "default view" (all properties always included)
-     *   
-     * @deprecated Use {@link #viewWriter} instead
-     */
-    @Deprecated
-    public void writeValueUsingView(JsonGenerator jgen, Object value, Class<?> viewClass)
-        throws IOException, JsonGenerationException, JsonMappingException
-    {
-        _configAndWriteValue(jgen, value, viewClass);
-    }
-
-    /**
-     * Method for serializing given object using specified view.
-     * As with {@link #writeValueUsingView(JsonGenerator,Object,Class)},
-     * this is a short-cut method.
-     *
-     * @param w Writer used for writing JSON content
-     * @param value Value to serialize
-     * @param viewClass (optional) Identifier for View to use. If null,
-     *   equivalent to passing <code>Object.class</code>; both of which
-     *   mean "default view" (all properties always included)
-     *   
-     * @deprecated Use {@link #viewWriter} instead
-     */
-    @Deprecated
-    public void writeValueUsingView(Writer w, Object value, Class<?> viewClass)
-        throws IOException, JsonGenerationException, JsonMappingException
-    {
-        _configAndWriteValue(_jsonFactory.createJsonGenerator(w), value, viewClass);
-    }
-    
-    /**
-     * Method for serializing given object using specified view.
-     * As with {@link #writeValueUsingView(JsonGenerator,Object,Class)},
-     * this is a short-cut method.
-     *
-     * @param out Output stream used for writing JSON content
-     * @param value Value to serialize
-     * @param viewClass (optional) Identifier for View to use. If null,
-     *   equivalent to passing <code>Object.class</code>; both of which
-     *   mean "default view" (all properties always included)
-     *   
-     * @deprecated Use {@link #viewWriter} instead
-     */
-    @Deprecated
-    public void writeValueUsingView(OutputStream out, Object value, Class<?> viewClass)
-        throws IOException, JsonGenerationException, JsonMappingException
-    {
-        _configAndWriteValue(_jsonFactory.createJsonGenerator(out, JsonEncoding.UTF8), value, viewClass);
-    }
-
-    /*
-    /**********************************************************
     /* Extended Public API: constructing ObjectWriters
     /* for more advanced configuration
     /**********************************************************
@@ -2068,21 +1995,21 @@ public class ObjectMapper
      * Factory method for constructing {@link ObjectWriter} that will
      * serialize objects using specified JSON View (filter).
      * 
-     * @since 1.5
+     * @since 1.9
      */
-    public ObjectWriter viewWriter(Class<?> serializationView) {
+    public ObjectWriter writerWithView(Class<?> serializationView) {
         return new ObjectWriter(this, copySerializationConfig().withView(serializationView));
     }
-
+    
     /**
      * Factory method for constructing {@link ObjectWriter} that will
      * serialize objects using specified root type, instead of actual
      * runtime type of value. Type must be a super-type of runtime
      * type.
-     * 
-     * @since 1.5
+     *
+     * @since 1.9
      */
-    public ObjectWriter typedWriter(Class<?> rootType) {
+    public ObjectWriter writerWithType(Class<?> rootType) {
         JavaType t = (rootType == null) ? null : _typeFactory.constructType(rootType);
         return new ObjectWriter(this, copySerializationConfig(), t, /*PrettyPrinter*/null);
     }
@@ -2092,9 +2019,9 @@ public class ObjectMapper
      * serialize objects using specified root type, instead of actual
      * runtime type of value. Type must be a super-type of runtime type.
      * 
-     * @since 1.5
+     * @since 1.9
      */
-    public ObjectWriter typedWriter(JavaType rootType) {
+    public ObjectWriter writerWithType(JavaType rootType) {
         return new ObjectWriter(this, copySerializationConfig(), rootType, /*PrettyPrinter*/null);
     }
 
@@ -2103,9 +2030,9 @@ public class ObjectMapper
      * serialize objects using specified root type, instead of actual
      * runtime type of value. Type must be a super-type of runtime type.
      * 
-     * @since 1.7
+     * @since 1.9
      */
-    public ObjectWriter typedWriter(TypeReference<?> rootType) {
+    public ObjectWriter writerWithType(TypeReference<?> rootType) {
         JavaType t = (rootType == null) ? null : _typeFactory.constructType(rootType);
         return new ObjectWriter(this, copySerializationConfig(), t, /*PrettyPrinter*/null);
     }
@@ -2115,22 +2042,22 @@ public class ObjectMapper
      * serialize objects using specified pretty printer for indentation
      * (or if null, no pretty printer)
      * 
-     * @since 1.5
+     * @since 1.9
      */
-    public ObjectWriter prettyPrintingWriter(PrettyPrinter pp) {
+    public ObjectWriter writer(PrettyPrinter pp) {
         if (pp == null) { // need to use a marker to indicate explicit disabling of pp
             pp = ObjectWriter.NULL_PRETTY_PRINTER;
         }
         return new ObjectWriter(this, copySerializationConfig(), /*root type*/ null, pp);
     }
-
+    
     /**
      * Factory method for constructing {@link ObjectWriter} that will
      * serialize objects using the default pretty printer for indentation
      * 
-     * @since 1.5
+     * @since 1.9
      */
-    public ObjectWriter defaultPrettyPrintingWriter() {
+    public ObjectWriter writerWithDefaultPrettyPrinter() {
         return new ObjectWriter(this, copySerializationConfig(),
                 /*root type*/ null, _defaultPrettyPrinter());
     }
@@ -2139,13 +2066,13 @@ public class ObjectMapper
      * Factory method for constructing {@link ObjectWriter} that will
      * serialize objects using specified filter provider.
      * 
-     * @since 1.7
+     * @since 1.9
      */
-    public ObjectWriter filteredWriter(FilterProvider filterProvider) {
+    public ObjectWriter writer(FilterProvider filterProvider) {
         return new ObjectWriter(this,
                 copySerializationConfig().withFilters(filterProvider));
     }
-
+    
     /**
      * Factory method for constructing {@link ObjectWriter} that will
      * pass specific schema object to {@link JsonGenerator} used for
@@ -2153,10 +2080,80 @@ public class ObjectMapper
      * 
      * @param schema Schema to pass to generator
      * 
-     * @since 1.8
+     * @since 1.9
      */
-    public ObjectWriter schemaBasedWriter(FormatSchema schema) {
+    public ObjectWriter writer(FormatSchema schema) {
         return new ObjectWriter(this, copySerializationConfig(), schema);
+    }
+    
+    /*
+    /**********************************************************
+    /* Deprecated ObjectWriter creator methods
+    /**********************************************************
+     */
+
+    /**
+     * @deprecated Since 1.9, use {@link #writerWithType(Class)} instead.
+     */
+    @Deprecated
+    public ObjectWriter typedWriter(Class<?> rootType) {
+        return writerWithType(rootType);
+    }
+
+    /**
+     * @deprecated Since 1.9, use {@link #writerWithType(JavaType)} instead.
+     */
+    @Deprecated
+    public ObjectWriter typedWriter(JavaType rootType) {
+        return writerWithType(rootType);
+    }
+
+    /**
+     * @deprecated Since 1.9, use {@link #writerWithType(TypeReference)} instead.
+     */
+    @Deprecated
+    public ObjectWriter typedWriter(TypeReference<?> rootType) {
+        return writerWithType(rootType);
+    }
+    
+    /**
+     * @deprecated Since 1.9, use {@link #writerWithView(Class)} instead.
+     */
+    @Deprecated
+    public ObjectWriter viewWriter(Class<?> serializationView) {
+        return writerWithView(serializationView);
+    }
+    
+    /**
+     * @deprecated Since 1.9, use {@link #writer(FilterProvider)} instead.
+     */
+    @Deprecated
+    public ObjectWriter prettyPrintingWriter(PrettyPrinter pp) {
+        return writer(pp);
+    }
+
+    /**
+     * @deprecated Since 1.9, use {@link #writerWithDefaultPrettyPrinter} instead.
+     */
+    @Deprecated
+    public ObjectWriter defaultPrettyPrintingWriter() {
+        return writerWithDefaultPrettyPrinter();
+    }
+    
+    /**
+     * @deprecated Since 1.9, use {@link #writer(FilterProvider)} instead.
+     */
+    @Deprecated
+    public ObjectWriter filteredWriter(FilterProvider filterProvider) {
+        return writer(filterProvider);
+    }
+    
+    /**
+     * @deprecated Since 1.9, use {@link #writer(FilterProvider)} instead.
+     */
+    @Deprecated
+    public ObjectWriter schemaBasedWriter(FormatSchema schema) {
+        return writer(schema);
     }
     
     /*
@@ -2186,14 +2183,14 @@ public class ObjectMapper
      * Runtime type of value object is used for locating deserializer,
      * unless overridden by other factory methods of {@link ObjectReader}
      * 
-     * @since 1.6
+     * @since 1.9
      */
-    public ObjectReader updatingReader(Object valueToUpdate)
+    public ObjectReader readerForUpdating(Object valueToUpdate)
     {
         JavaType t = _typeFactory.constructType(valueToUpdate.getClass());
         return new ObjectReader(this, copyDeserializationConfig(), t, valueToUpdate, null);
     }
-
+    
     /**
      * Factory method for constructing {@link ObjectReader} that will
      * read or update instances of specified type
@@ -2247,8 +2244,30 @@ public class ObjectMapper
      * 
      * @since 1.8
      */
-    public ObjectReader schemaBasedReader(FormatSchema schema) {
+    public ObjectReader reader(FormatSchema schema) {
         return new ObjectReader(this, copyDeserializationConfig(), null, null, schema);
+    }
+
+    /*
+    /**********************************************************
+    /* Deprecated ObjectReader creator methods
+    /**********************************************************
+     */
+    
+    /**
+     * @deprecated Since 1.9, use {@link #readerForUpdating} instead.
+     */
+    @Deprecated
+    public ObjectReader updatingReader(Object valueToUpdate) {
+        return readerForUpdating(valueToUpdate);
+    }
+    
+    /**
+     * @deprecated Since 1.9, use {@link #reader(FormatSchema)} instead.
+     */
+    @Deprecated
+    public ObjectReader schemaBasedReader(FormatSchema schema) {
+        return reader(schema);
     }
     
     /*

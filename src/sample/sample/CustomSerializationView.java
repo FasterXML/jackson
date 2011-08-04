@@ -168,7 +168,7 @@ public class CustomSerializationView
         /* note: if we wanted use 'writeValueAsString', would have to call
          * 'mapper.getSerializationConfig().setSerializationView(...)' first
          */
-        String json = mapper.viewWriter(String.class).writeValueAsString(bean);
+        String json = mapper.writerWithView(String.class).writeValueAsString(bean);
         System.out.println("With custom serializer: "+json);
     }
 }

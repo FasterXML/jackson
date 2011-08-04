@@ -165,7 +165,7 @@ public class TestMixinSerWithViews
     public void testDataBindingUsage( ) throws Exception
     {
       ObjectMapper objectMapper = createObjectMapper();
-      ObjectWriter objectWriter = objectMapper.viewWriter(Views.View.class).withDefaultPrettyPrinter();
+      ObjectWriter objectWriter = objectMapper.writerWithView(Views.View.class).withDefaultPrettyPrinter();
       Object object = new ComplexTestData();
       String json = objectWriter.writeValueAsString(object);
       assertTrue( json.indexOf( "nameHidden" ) == -1 );
@@ -180,7 +180,7 @@ public class TestMixinSerWithViews
         // Property SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION set to false
         mapper.configure(SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION, Boolean.FALSE);
         mapper.getSerializationConfig().addMixInAnnotations(A.class, AMixInAnnotation.class);
-        String json = mapper.viewWriter(AView.class).writeValueAsString(a);
+        String json = mapper.writerWithView(AView.class).writeValueAsString(a);
 
         assertTrue(json.indexOf("\"name\"") > 0);
     }

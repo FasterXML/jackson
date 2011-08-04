@@ -35,7 +35,7 @@ public class TestFiltering extends BaseMapTest
         ObjectMapper mapper = new ObjectMapper();
         FilterProvider prov = new SimpleFilterProvider().addFilter("RootFilter",
                 SimpleBeanPropertyFilter.filterOutAllExcept("a"));
-        assertEquals("{\"a\":\"a\"}", mapper.filteredWriter(prov).writeValueAsString(new Bean()));
+        assertEquals("{\"a\":\"a\"}", mapper.writer(prov).writeValueAsString(new Bean()));
 
         // [JACKSON-504]: also verify it works via mapper
         mapper = new ObjectMapper();
@@ -48,7 +48,7 @@ public class TestFiltering extends BaseMapTest
         ObjectMapper mapper = new ObjectMapper();
         FilterProvider prov = new SimpleFilterProvider().addFilter("RootFilter",
                 SimpleBeanPropertyFilter.serializeAllExcept("a"));
-        assertEquals("{\"b\":\"b\"}", mapper.filteredWriter(prov).writeValueAsString(new Bean()));
+        assertEquals("{\"b\":\"b\"}", mapper.writer(prov).writeValueAsString(new Bean()));
     }
 
     // should handle missing case gracefully
@@ -68,6 +68,6 @@ public class TestFiltering extends BaseMapTest
     {
         ObjectMapper mapper = new ObjectMapper();
         FilterProvider prov = new SimpleFilterProvider().setDefaultFilter(SimpleBeanPropertyFilter.filterOutAllExcept("b"));
-        assertEquals("{\"b\":\"b\"}", mapper.filteredWriter(prov).writeValueAsString(new Bean()));
+        assertEquals("{\"b\":\"b\"}", mapper.writer(prov).writeValueAsString(new Bean()));
     }
 }

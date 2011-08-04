@@ -160,7 +160,7 @@ public class TestFeatures
 
         // also: let's ensure that ObjectWriter won't interfere with it
         bean = new CloseableBean();
-        m.typedWriter(CloseableBean.class).writeValueAsString(bean);
+        m.writerWithType(CloseableBean.class).writeValueAsString(bean);
         assertTrue(bean.wasClosed);
     }
 

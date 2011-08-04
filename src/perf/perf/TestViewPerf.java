@@ -115,7 +115,7 @@ public final class TestViewPerf
     protected int testViewSer(Object value, int reps, ByteArrayOutputStream result, Class<?> view)
         throws Exception
     {
-    	ObjectWriter w = _mapper.viewWriter(view);
+    	ObjectWriter w = _mapper.writerWithView(view);
         for (int i = 0; i < reps; ++i) {
             result.reset();
             w.writeValue(result, value);

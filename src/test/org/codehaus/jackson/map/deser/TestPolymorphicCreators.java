@@ -136,7 +136,7 @@ public class TestPolymorphicCreators
     public void testManualPolymorphicWithNumbered() throws Exception
     {
          final ObjectMapper m = new ObjectMapper();
-         final ObjectWriter w = m.typedWriter(AbstractRoot.class);
+         final ObjectWriter w = m.writerWithType(AbstractRoot.class);
          final ObjectReader r = m.reader(AbstractRoot.class);
 
         AbstractRoot input = AbstractRoot.make(1, "oh hai!");

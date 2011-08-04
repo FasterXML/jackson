@@ -89,28 +89,28 @@ public class TestViews
 
         // Then with "ViewA", just one property
         sw = new StringWriter();
-        mapper.viewWriter(ViewA.class).writeValue(sw, bean);
+        mapper.writerWithView(ViewA.class).writeValue(sw, bean);
         map = mapper.readValue(sw.toString(), Map.class);
         assertEquals(1, map.size());
         assertEquals("1", map.get("a"));
 
         // "ViewAA", 2 properties
         sw = new StringWriter();
-        mapper.viewWriter(ViewAA.class).writeValue(sw, bean);
+        mapper.writerWithView(ViewAA.class).writeValue(sw, bean);
         map = mapper.readValue(sw.toString(), Map.class);
         assertEquals(2, map.size());
         assertEquals("1", map.get("a"));
         assertEquals("2", map.get("aa"));
 
         // "ViewB", 2 prop2
-        String json = mapper.viewWriter(ViewB.class).writeValueAsString(bean);
+        String json = mapper.writerWithView(ViewB.class).writeValueAsString(bean);
         map = mapper.readValue(json, Map.class);
         assertEquals(2, map.size());
         assertEquals("2", map.get("aa"));
         assertEquals("3", map.get("b"));
 
         // and "ViewBB", 2 as well
-        json = mapper.viewWriter(ViewBB.class).writeValueAsString(bean);
+        json = mapper.writerWithView(ViewBB.class).writeValueAsString(bean);
         map = mapper.readValue(json, Map.class);
         assertEquals(2, map.size());
         assertEquals("2", map.get("aa"));
@@ -131,7 +131,7 @@ public class TestViews
 
         ObjectMapper mapper = new ObjectMapper();
         // default setting: both fields will get included
-        mapper.viewWriter(ViewA.class).writeValue(sw, bean);
+        mapper.writerWithView(ViewA.class).writeValue(sw, bean);
         Map<String,Object> map = mapper.readValue(sw.toString(), Map.class);
         assertEquals(2, map.size());
         assertEquals("1", map.get("a"));
@@ -141,7 +141,7 @@ public class TestViews
         mapper = new ObjectMapper();
         mapper.configure(SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION, false);
         // with this setting, only explicit inclusions count:
-        String json = mapper.viewWriter(ViewA.class).writeValueAsString(bean);
+        String json = mapper.writerWithView(ViewA.class).writeValueAsString(bean);
         map = mapper.readValue(json, Map.class);
         assertEquals(1, map.size());
         assertEquals("1", map.get("a"));
@@ -162,7 +162,7 @@ public class TestViews
         ObjectMapper mapper = new ObjectMapper();
         VisibilityBean bean = new VisibilityBean();
         // Without view setting, should only see "id"
-        String json = mapper.viewWriter(Object.class).writeValueAsString(bean);
+        String json = mapper.writerWithView(Object.class).writeValueAsString(bean);
         //json = mapper.writeValueAsString(bean);
         assertEquals("{\"id\":\"id\"}", json);
     }

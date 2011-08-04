@@ -536,11 +536,13 @@ public class JacksonJsonProvider
             viewToUse = _findView(mapper, annotations);
         }
         if (viewToUse != null) {
+            // TODO: change to use 'writerWithType' for 2.0 (1.9 could use, but let's defer)
             ObjectWriter viewWriter = mapper.viewWriter(viewToUse);
             // [JACKSON-245] Allow automatic JSONP wrapping
             if (_jsonpFunctionName != null) {
                 viewWriter.writeValue(jg, new JSONPObject(this._jsonpFunctionName, value, rootType));
             } else if (rootType != null) {
+                // TODO: change to use 'writerWithType' for 2.0 (1.9 could use, but let's defer)
                 mapper.typedWriter(rootType).withView(viewToUse).writeValue(jg, value);
             } else {
                 viewWriter.writeValue(jg, value);
@@ -550,6 +552,7 @@ public class JacksonJsonProvider
             if (_jsonpFunctionName != null) {
                 mapper.writeValue(jg, new JSONPObject(this._jsonpFunctionName, value, rootType));
             } else if (rootType != null) {
+                // TODO: change to use 'writerWithType' for 2.0 (1.9 could use, but let's defer)
                 mapper.typedWriter(rootType).writeValue(jg, value);
             } else {
                 mapper.writeValue(jg, value);

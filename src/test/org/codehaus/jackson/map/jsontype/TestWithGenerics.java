@@ -144,7 +144,7 @@ public class TestWithGenerics extends BaseMapTest
         Dog dog = new Dog("Fluffy", 3);
         ContainerWithGetter<Animal> c2 = new ContainerWithGetter<Animal>(dog);
         ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.typedWriter(TypeFactory.defaultInstance().constructParametricType(ContainerWithGetter.class, Animal.class)).writeValueAsString(c2);
+        String json = mapper.writerWithType(TypeFactory.defaultInstance().constructParametricType(ContainerWithGetter.class, Animal.class)).writeValueAsString(c2);
         if (json.indexOf("\"object-type\":\"doggy\"") < 0) {
             fail("polymorphic type not kept, result == "+json+"; should contain 'object-type':'...'");
         }

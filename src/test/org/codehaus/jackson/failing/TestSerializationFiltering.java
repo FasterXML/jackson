@@ -39,6 +39,6 @@ public class TestSerializationFiltering extends BaseMapTest
         ObjectMapper mapper = new ObjectMapper();
         FilterProvider prov = new SimpleFilterProvider().addFilter("anyFilter",
                 SimpleBeanPropertyFilter.filterOutAllExcept("b"));
-        assertEquals("{\"a\":\"1\"}", mapper.filteredWriter(prov).writeValueAsString(new AnyBean()));
+        assertEquals("{\"a\":\"1\"}", mapper.writer(prov).writeValueAsString(new AnyBean()));
     }
 }

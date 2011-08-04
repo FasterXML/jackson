@@ -81,7 +81,7 @@ public class TestTypedArraySerialization
         BeanListWrapper beans = new BeanListWrapper();
         assertEquals("{\"beans\":[{\"@type\":\"bean\",\"x\":0}]}", mapper.writeValueAsString(beans));
         // Related to [JACKSON-364]
-        ObjectWriter w = mapper.viewWriter(Object.class);
+        ObjectWriter w = mapper.writerWithView(Object.class);
         assertEquals("{\"beans\":[{\"@type\":\"bean\",\"x\":0}]}", w.writeValueAsString(beans));
     }
     

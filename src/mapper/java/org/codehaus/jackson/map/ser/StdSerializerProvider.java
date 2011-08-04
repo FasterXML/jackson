@@ -123,7 +123,7 @@ public class StdSerializerProvider
 
     /**
      * Serializer used to output non-null keys of Maps (which will get
-     * output as Json Objects).
+     * output as JSON Objects).
      */
     protected JsonSerializer<Object> _keySerializer = DEFAULT_KEY_SERIALIZER;
 

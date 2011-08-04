@@ -67,7 +67,7 @@ public class TestDateSerialization
         ObjectMapper mapper = new ObjectMapper();
         assertEquals(quote("1969-12-31X16:00:00"),
                 mapper.writer(df).writeValueAsString(new Date(0L)));
-        ObjectWriter w = mapper.writer(null);
+        ObjectWriter w = mapper.writer((DateFormat)null);
         assertEquals("0", w.writeValueAsString(new Date(0L)));
 
         w = w.withDateFormat(df);

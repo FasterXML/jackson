@@ -35,7 +35,7 @@ public class TestUpdateValue extends BaseMapTest
         assertEquals(3, bean.c.length);
         assertNull(bean.child);
 
-        Object ob = m.updatingReader(bean).readValue("{ \"b\":\"x\", \"c\":[4,5], \"child\":{ \"a\":\"y\"} }");
+        Object ob = m.readerForUpdating(bean).readValue("{ \"b\":\"x\", \"c\":[4,5], \"child\":{ \"a\":\"y\"} }");
         assertSame(ob, bean);
 
         assertEquals("a", bean.a);
@@ -56,7 +56,7 @@ public class TestUpdateValue extends BaseMapTest
         List<String> strs = new ArrayList<String>();
         strs.add("a");
         // for lists, we will be appending entries
-        Object ob = m.updatingReader(strs).readValue("[ \"b\", \"c\", \"d\" ]");
+        Object ob = m.readerForUpdating(strs).readValue("[ \"b\", \"c\", \"d\" ]");
         assertSame(strs, ob);
         assertEquals(4, strs.size());
         assertEquals("a", strs.get(0));
@@ -72,7 +72,7 @@ public class TestUpdateValue extends BaseMapTest
         strs.put("a", "a");
         strs.put("b", "b");
         // for maps, we will be adding and/or overwriting entries
-        Object ob = m.updatingReader(strs).readValue("{ \"c\" : \"c\", \"a\" : \"z\" }");
+        Object ob = m.readerForUpdating(strs).readValue("{ \"c\" : \"c\", \"a\" : \"z\" }");
         assertSame(strs, ob);
         assertEquals(3, strs.size());
         assertEquals("z", strs.get("a"));

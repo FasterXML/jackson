@@ -80,7 +80,7 @@ public class TestRootType
         assertEquals(Boolean.TRUE, result.get("b2"));
 
         // and then using specified typed writer
-        ObjectWriter w = mapper.typedWriter(BaseType.class);
+        ObjectWriter w = mapper.writerWithType(BaseType.class);
         String json = w.writeValueAsString(bean);
         result = (Map<String,Object>)mapper.readValue(json, Map.class);
         assertEquals(2, result.size());
@@ -94,7 +94,7 @@ public class TestRootType
         SubType bean = new SubType();
 
         // let's constrain by interface:
-        ObjectWriter w = mapper.typedWriter(BaseInterface.class);
+        ObjectWriter w = mapper.writerWithType(BaseInterface.class);
         String json = w.writeValueAsString(bean);
         @SuppressWarnings("unchecked")
         Map<String,Object> result = mapper.readValue(json, Map.class);
@@ -108,7 +108,7 @@ public class TestRootType
         // must force static typing, otherwise won't matter a lot
         mapper.configure(SerializationConfig.Feature.USE_STATIC_TYPING, true);
         SubType[] ob = new SubType[] { new SubType() };
-        String json = mapper.typedWriter(BaseInterface[].class).writeValueAsString(ob);
+        String json = mapper.writerWithType(BaseInterface[].class).writeValueAsString(ob);
         // should propagate interface type through due to root declaration; static typing
         assertEquals("[{\"b\":3}]", json);
     }
@@ -123,7 +123,7 @@ public class TestRootType
         SubType bean = new SubType();
 
         // and then let's try using incompatible type
-        ObjectWriter w = mapper.typedWriter(HashMap.class);
+        ObjectWriter w = mapper.writerWithType(HashMap.class);
         try {
             w.writeValueAsString(bean);
             fail("Should have failed due to incompatible type");
@@ -145,12 +145,12 @@ public class TestRootType
         final String EXP = "[{\"beanClass\":\"TestRootType$TestClass398\",\"property\":\"aa\"}]";
         
         // First simplest way:
-        String json = mapper.typedWriter(collectionType).writeValueAsString(typedList);
+        String json = mapper.writerWithType(collectionType).writeValueAsString(typedList);
         assertEquals(EXP, json);
 
         StringWriter out = new StringWriter();
         JsonFactory f = new JsonFactory();
-        mapper.typedWriter(collectionType).writeValue(f.createJsonGenerator(out), typedList);
+        mapper.writerWithType(collectionType).writeValue(f.createJsonGenerator(out), typedList);
 
         assertEquals(EXP, out.toString());
     }
@@ -173,8 +173,8 @@ public class TestRootType
     public void testIssue456WrapperPart() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
-        assertEquals("123", mapper.typedWriter(Integer.TYPE).writeValueAsString(Integer.valueOf(123)));
-        assertEquals("456", mapper.typedWriter(Long.TYPE).writeValueAsString(Long.valueOf(456L)));
+        assertEquals("123", mapper.writerWithType(Integer.TYPE).writeValueAsString(Integer.valueOf(123)));
+        assertEquals("456", mapper.writerWithType(Long.TYPE).writeValueAsString(Long.valueOf(456L)));
     }
 
     // [JACKSON-630] also, allow annotation to define root name

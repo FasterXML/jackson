@@ -135,7 +135,7 @@ public class TestTypedContainerSerialization
             ArrayList<Animal> animals = new ArrayList<Animal>();
             animals.add(new Dog("Spot"));
             JavaType rootType = TypeFactory.defaultInstance().constructParametricType(Iterator.class, Animal.class);
-            String json = mapper.typedWriter(rootType).writeValueAsString(animals.iterator());
+            String json = mapper.writerWithType(rootType).writeValueAsString(animals.iterator());
             if (json.indexOf("\"object-type\":\"doggy\"") < 0) {
                 fail("No polymorphic type retained, should be; JSON = '"+json+"'");
             }
@@ -148,7 +148,7 @@ public class TestTypedContainerSerialization
             l2.add(new Issue508A());
             l.add(l2);
             TypeReference<?> typeRef = new TypeReference<List<List<Issue508A>>>() {};
-            String json = mapper.typedWriter(typeRef).writeValueAsString(l);
+            String json = mapper.writerWithType(typeRef).writeValueAsString(l);
 
             List<?> output = mapper.readValue(json, typeRef);
             assertEquals(1, output.size());
