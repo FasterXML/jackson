@@ -683,9 +683,12 @@ public class ObjectNode
 
         private NoFieldsIterator() { }
 
+        @Override
         public boolean hasNext() { return false; }
+        @Override
         public Map.Entry<String,JsonNode> next() { throw new NoSuchElementException(); }
 
+        @Override
         public void remove() { // or IllegalOperationException?
             throw new IllegalStateException();
         }

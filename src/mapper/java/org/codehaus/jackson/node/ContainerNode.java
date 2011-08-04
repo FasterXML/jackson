@@ -140,9 +140,12 @@ public abstract class ContainerNode
 
         public static NoNodesIterator instance() { return instance; }
 
+        @Override
         public boolean hasNext() { return false; }
+        @Override
         public JsonNode next() { throw new NoSuchElementException(); }
 
+        @Override
         public void remove() {
             // could as well throw IllegalOperationException?
             throw new IllegalStateException();
@@ -158,9 +161,12 @@ public abstract class ContainerNode
 
         public static NoStringsIterator instance() { return instance; }
 
+        @Override
         public boolean hasNext() { return false; }
+        @Override
         public String next() { throw new NoSuchElementException(); }
 
+        @Override
         public void remove() {
             // could as well throw IllegalOperationException?
             throw new IllegalStateException();

@@ -18,6 +18,7 @@ public final class AnnotationMap implements Annotations
     public AnnotationMap() { }
 
     @SuppressWarnings("unchecked")
+    @Override
     public <A extends Annotation> A get(Class<A> cls)
     {
         if (_annotations == null) {
@@ -26,6 +27,7 @@ public final class AnnotationMap implements Annotations
         return (A) _annotations.get(cls);
     }
 
+    @Override
     public int size() {
         return (_annotations == null) ? 0 : _annotations.size();
     }

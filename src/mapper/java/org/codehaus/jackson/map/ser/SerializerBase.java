@@ -52,6 +52,7 @@ public abstract class SerializerBase<T>
     public abstract void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException;
 
+    @Override
     public abstract JsonNode getSchema(SerializerProvider provider, Type typeHint)
         throws JsonMappingException;
     

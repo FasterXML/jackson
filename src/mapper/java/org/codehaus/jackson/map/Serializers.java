@@ -71,9 +71,9 @@ public interface Serializers
      * no serializers. Its main purpose is to serve as a base class so that
      * sub-classes only need to override methods they need.
      * 
-     * @since 1.8
+     * @since 1.9
      */
-    public static class None implements Serializers
+    public static class Base implements Serializers
     {
         @Override
         public JsonSerializer<?> findSerializer(SerializationConfig config,
@@ -124,4 +124,10 @@ public interface Serializers
             return null;
         }
     }
+
+    /**
+     * @deprecated As of 1.9, use {@link Base} instead
+     */
+    @Deprecated
+    public static class None extends Base { }
 }

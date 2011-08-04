@@ -25,6 +25,7 @@ public class BasicClassIntrospector
     {
         private GetterMethodFilter() { }
     
+        @Override
         public boolean includeMethod(Method m)
         {
             return ClassUtil.hasGetterSignature(m);
@@ -43,6 +44,7 @@ public class BasicClassIntrospector
     public static class SetterMethodFilter
         implements MethodFilter
     {
+        @Override
         public boolean includeMethod(Method m)
         {
             // First: we can't use static methods

@@ -35,15 +35,15 @@ public interface ValueInstantiators
      */
     public ValueInstantiator findValueInstantiator(DeserializationConfig config,
             BeanDescription beanDesc, ValueInstantiator defaultInstantiator);
-    
 
     /**
-     * Basic "NOP" implementation that can be used as the base type for custom instances.
+     * Basic "NOP" implementation that can be used as the base class for custom implementations.
      * Safer to extend (instead of implementing {@link ValueInstantiators}) in case later
      * Jackson versions add new methods in base interface.
      */
-    public static class None implements ValueInstantiators
+    public static class Base implements ValueInstantiators
     {
+        @Override
         public ValueInstantiator findValueInstantiator(DeserializationConfig config,
                 BeanDescription beanDesc, ValueInstantiator defaultInstantiator) {
             return defaultInstantiator;

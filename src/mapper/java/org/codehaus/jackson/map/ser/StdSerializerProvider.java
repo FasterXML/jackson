@@ -351,7 +351,6 @@ public class StdSerializerProvider
      */
 
     @Override
-    @SuppressWarnings("unchecked")
     public JsonSerializer<Object> findValueSerializer(Class<?> valueType,
             BeanProperty property)
         throws JsonMappingException
@@ -391,7 +390,6 @@ public class StdSerializerProvider
      * structured types, not just classes. This is necessary for accurate
      * handling of external type information, to handle polymorphic types.
      */    
-    @SuppressWarnings("unchecked")
     @Override
     public JsonSerializer<Object> findValueSerializer(JavaType valueType, BeanProperty property)
         throws JsonMappingException

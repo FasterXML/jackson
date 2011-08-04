@@ -7,6 +7,7 @@ import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.deser.ValueInstantiator;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
@@ -710,6 +711,17 @@ public abstract class AnnotationIntrospector
     /**********************************************************
     */
 
+    /**
+     * Method getting {@link ValueInstantiator} to use for given
+     * type (class): return value can either be an instance of
+     * instantiator, or class of instantiator to create.
+     * 
+     * @since 1.9
+     */
+    public Object findValueInstantiator(AnnotatedClass ac) {
+        return null;
+    }
+    
     /*
     /**********************************************************
     /* Deserialization: method annotations
@@ -1315,7 +1327,18 @@ public abstract class AnnotationIntrospector
             }
             return result;
         }
-        
+
+        // // // Deserialization: class annotations
+
+        @Override
+        public Object findValueInstantiator(AnnotatedClass ac)
+        {
+            Object result = _primary.findValueInstantiator(ac);
+            if (result == null) {
+                result = _secondary.findValueInstantiator(ac);
+            }
+            return result;
+        }
 
         // // // Deserialization: method annotations
 

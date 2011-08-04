@@ -24,7 +24,7 @@ import org.codehaus.jackson.type.JavaType;
  * 
  * @since 1.7
  */
-public class SimpleSerializers implements Serializers
+public class SimpleSerializers extends Serializers.Base
 {
     /**
      * Class-based mappings that are used both for exact and

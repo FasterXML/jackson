@@ -155,6 +155,7 @@ public final class ArraySerializers
          * Need to get callback to resolve value serializer, which may
          * be overridden by custom serializer
          */
+        @Override
         public void resolve(SerializerProvider provider)
             throws JsonMappingException
         {

@@ -105,6 +105,7 @@ public class AbstractTypeMaterializer
      * 
      * @since 1.6
      */
+    @Override
     public Version version() {
         return VersionUtil.versionFor(getClass());
     }

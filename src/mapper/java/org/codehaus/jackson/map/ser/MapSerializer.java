@@ -397,6 +397,7 @@ public class MapSerializer
      * Need to get callback to resolve value serializer, if static typing
      * is used (either being forced, or because value type is final)
      */
+    @Override
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {

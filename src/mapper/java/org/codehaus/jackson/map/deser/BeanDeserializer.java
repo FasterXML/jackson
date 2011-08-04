@@ -245,7 +245,7 @@ public class BeanDeserializer
     @Override
     public JsonDeserializer<Object> unwrappingDeserializer()
     {
-        /* bit kludge but we don't want to accidentally change type;
+        /* bit kludgy but we don't want to accidentally change type;
          * sub-classes MUST override this method to support unwrapped
          * properties...
          */

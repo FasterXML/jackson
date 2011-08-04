@@ -9,7 +9,7 @@ import org.codehaus.jackson.map.deser.ValueInstantiators;
 import org.codehaus.jackson.map.type.ClassKey;
 
 public class SimpleValueInstantiators
-    extends ValueInstantiators.None
+    extends ValueInstantiators.Base
 {
     /**
      * Mappings from raw (type-erased, i.e. non-generic) types

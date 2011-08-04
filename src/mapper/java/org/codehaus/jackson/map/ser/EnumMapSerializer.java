@@ -181,7 +181,7 @@ public class EnumMapSerializer
         }
     }
 
-    //@Override
+    @Override
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {

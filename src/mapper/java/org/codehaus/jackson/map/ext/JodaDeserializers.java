@@ -28,6 +28,7 @@ import org.codehaus.jackson.map.util.Provider;
 public class JodaDeserializers
     implements Provider<StdDeserializer<?>>
 {
+    @Override
     public Collection<StdDeserializer<?>> provide() {
         return Arrays.asList(new StdDeserializer<?>[] {
                 new DateTimeDeserializer<DateTime>(DateTime.class)

@@ -172,6 +172,7 @@ public final class JsonValueSerializer
      * We can try to find the actual serializer for value, if we can
      * statically figure out what the result type must be.
      */
+    @Override
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {

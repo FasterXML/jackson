@@ -66,6 +66,7 @@ public class JSONPObject
     /**********************************************************
      */
     
+    @Override
     public void serializeWithType(JsonGenerator jgen, SerializerProvider provider, TypeSerializer typeSer)
             throws IOException, JsonProcessingException
     {
@@ -73,6 +74,7 @@ public class JSONPObject
         serialize(jgen, provider);
     }
 
+    @Override
     @SuppressWarnings("deprecation")
     public void serialize(JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonProcessingException

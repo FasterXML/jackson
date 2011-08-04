@@ -270,6 +270,7 @@ public abstract class BeanSerializerBase
     /**********************************************************
      */
 
+    @Override
     public void resolve(SerializerProvider provider)
         throws JsonMappingException
     {

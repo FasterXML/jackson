@@ -51,6 +51,7 @@ public class CoreXMLDeserializers
      * Method called by {@link org.codehaus.jackson.map.deser.BasicDeserializerFactory}
      * to register deserializers this class provides.
      */
+    @Override
     public Collection<StdDeserializer<?>> provide()
     {
         return Arrays.asList(new StdDeserializer<?>[] {

@@ -126,6 +126,7 @@ public class CollectionDeserializer
      * after deserializer itself has been registered. This
      * is needed to handle recursive and transitive dependencies.
      */
+    @Override
     public void resolve(DeserializationConfig config, DeserializerProvider provider)
         throws JsonMappingException
     {

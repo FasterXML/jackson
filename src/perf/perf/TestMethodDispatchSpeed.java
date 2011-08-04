@@ -18,6 +18,7 @@ public class TestMethodDispatchSpeed
 
         public SerializableStringImpl(byte[] in) { stuff = in; }
         
+        @Override
         public byte[] getUTF8() { return stuff; }
     }
 

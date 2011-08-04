@@ -571,6 +571,20 @@ public class JacksonAnnotationIntrospector
 
     /*
     /**********************************************************
+    /* Deserialization: Class annotations
+    /**********************************************************
+     */
+    
+    @Override
+    public Object findValueInstantiator(AnnotatedClass ac)
+    {
+        JsonValueInstantiator ann = ac.getAnnotation(JsonValueInstantiator.class);
+        // no 'null' marker yet, so:
+        return (ann == null) ? null : ann.value();
+    }
+    
+    /*
+    /**********************************************************
     /* Deserialization: Method annotations
     /**********************************************************
      */

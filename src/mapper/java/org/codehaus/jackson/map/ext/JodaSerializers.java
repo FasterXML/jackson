@@ -35,6 +35,7 @@ public class JodaSerializers
 
     public JodaSerializers() { }
     
+    @Override
     public Collection<Map.Entry<Class<?>,JsonSerializer<?>>> provide() {
         return _serializers.entrySet();
     }

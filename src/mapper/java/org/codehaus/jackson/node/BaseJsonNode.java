@@ -106,6 +106,7 @@ public abstract class BaseJsonNode
      * Method called to serialize node instances using given generator.
      */
     @SuppressWarnings("deprecation")
+    @Override
     public abstract void serialize(JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonProcessingException;
 
@@ -113,6 +114,7 @@ public abstract class BaseJsonNode
      * Type information is needed, even if JsonNode instances are "plain" JSON,
      * since they may be mixed with other types.
      */
+    @Override
     public abstract void serializeWithType(JsonGenerator jgen, SerializerProvider provider,
             TypeSerializer typeSer)
         throws IOException, JsonProcessingException;

@@ -12,8 +12,7 @@ import javax.ws.rs.ext.Provider;
  */
 @Provider
 public class JsonMappingExceptionMapper implements ExceptionMapper<JsonMappingException> {
-    // only compiles on 1.6:
-    //@Override
+    @Override
     public Response toResponse(JsonMappingException exception) {
         return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).type("text/plain").build();
     }

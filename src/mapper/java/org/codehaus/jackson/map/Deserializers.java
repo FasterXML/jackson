@@ -246,9 +246,9 @@ public interface Deserializers
      * of methods are not needed (especially enumeration and array deserializers are
      * very rarely overridden).
      * 
-     * @since 1.7
+     * @since 1.9
      */
-    public static class None implements Deserializers
+    public static class Base implements Deserializers
     {
         @Override
         public JsonDeserializer<?> findArrayDeserializer(ArrayType type, DeserializationConfig config,
@@ -325,4 +325,11 @@ public interface Deserializers
             return null;
         }
     }
+
+
+    /**
+     * @deprecated As of 1.9, use {@link Base} instead
+     */
+    @Deprecated
+    public static class None extends Base { }
 }
