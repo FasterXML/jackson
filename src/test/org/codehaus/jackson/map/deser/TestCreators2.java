@@ -138,7 +138,7 @@ public class TestCreators2
         public IgnoredCtor() { }
     }
 
-    static class AbstractBase {
+    abstract static class AbstractBase {
         @JsonCreator
         public static AbstractBase create(Map<String,Object> props)
         {
