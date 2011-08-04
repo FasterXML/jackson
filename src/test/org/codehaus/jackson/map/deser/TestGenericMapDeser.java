@@ -49,6 +49,7 @@ public class TestGenericMapDeser
 
         public StringMap() { }
 
+        @Override
         public Map<String,Long> getEntries() { return entries; }
     }
 

@@ -50,7 +50,7 @@ public class TestDomElementSerialization extends BaseJaxbTest
         }
     }
     
-    private final static class DomSerializers extends Serializers.None
+    private final static class DomSerializers extends Serializers.Base
     {
         @Override
         public JsonSerializer<?> findSerializer(SerializationConfig config,

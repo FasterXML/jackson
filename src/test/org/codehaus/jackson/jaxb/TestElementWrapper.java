@@ -38,6 +38,7 @@ public class TestElementWrapper extends BaseJaxbTest
         public Phone() { }
         
         public Phone(String number) { this.number = number; }
+        @Override
         public String getNumber() { return number; }
         public void setNumber(String number) { this.number = number; }
     }

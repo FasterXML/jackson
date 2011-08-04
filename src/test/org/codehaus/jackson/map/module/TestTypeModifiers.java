@@ -30,7 +30,7 @@ public class TestTypeModifiers extends BaseMapTest
         @Override
         public void setupModule(SetupContext context)
         {
-            context.addSerializers(new Serializers.None() {
+            context.addSerializers(new Serializers.Base() {
                 @Override
                 public JsonSerializer<?> findMapLikeSerializer(SerializationConfig config,
                         MapLikeType type, BeanDescription beanDesc, BeanProperty property,

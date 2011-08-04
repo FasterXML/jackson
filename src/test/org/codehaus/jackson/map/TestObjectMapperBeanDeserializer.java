@@ -30,6 +30,7 @@ public class TestObjectMapperBeanDeserializer
         public CtorValueBean(int value) { _desc = String.valueOf(value); }
         public CtorValueBean(long value) { _desc = String.valueOf(value); }
 
+        @Override
         public void serialize(JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {

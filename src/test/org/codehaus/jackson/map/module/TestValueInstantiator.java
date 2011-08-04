@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonValueInstantiator;
 import org.codehaus.jackson.map.deser.*;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
@@ -235,6 +236,33 @@ public class TestValueInstantiator extends BaseMapTest
             MyMap map = new MyMap(true);
             map.put("value", delegate);
             return map;
+        }
+    }
+
+    @JsonValueInstantiator(AnnotatedBeanInstantiator.class)
+    static class AnnotatedBean {
+        protected final String a;
+        protected final int b;
+        
+        public AnnotatedBean(String a, int b) {
+            this.a = a;
+            this.b = b;
+        }
+    }
+
+    static class AnnotatedBeanInstantiator extends ValueInstantiator
+    {
+        @Override
+        public String getValueTypeDesc() {
+            return MyMap.class.getName();
+        }
+        
+        @Override
+        public boolean canCreateUsingDefault() { return true; }
+
+        @Override
+        public AnnotatedBean createUsingDefault() {
+            return new AnnotatedBean("foo", 3);
         }
     }
     
@@ -476,5 +504,14 @@ public class TestValueInstantiator extends BaseMapTest
         assertNotNull(result);
         assertSame(PolymorphicBean.class, result.getClass());
         assertEquals("Axel", ((PolymorphicBean) result).name);
+    }
+
+    public void testJackson633() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        AnnotatedBean bean = mapper.readValue("{}", AnnotatedBean.class);
+        assertNotNull(bean);
+        assertEquals("foo", bean.a);
+        assertEquals(3, bean.b);
     }
 }

@@ -34,7 +34,7 @@ public class TestJaxbNullProperties
      public void testNullProps() throws Exception
      {
          ObjectMapper mapper = getJaxbMapper();
-         mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+         mapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
          assertEquals("{\"x\":\"y\"}", mapper.writeValueAsString(new Bean()));
      }
 }

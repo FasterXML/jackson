@@ -79,7 +79,7 @@ public class TestExceptionDeserialization
     public void testWithNullMessage() throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        mapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
         String json = mapper.writeValueAsString(new IOException((String) null));
         IOException result = mapper.readValue(json, IOException.class);
         assertNotNull(result);

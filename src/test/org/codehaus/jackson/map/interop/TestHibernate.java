@@ -49,16 +49,17 @@ public class TestHibernate
         Enhancer enh = new Enhancer();
         enh.setInterfaces(new Class[] { BeanInterfaceHib.class });
         enh.setCallback(new MethodInterceptor() {
-                public Object intercept(Object obj, Method method,
-                                        Object[] args, MethodProxy proxy)
-                    throws Throwable
-                {
-                    if ("getX".equals(method.getName ())) {
-                        return Integer.valueOf(13);
-                    }
-                    return proxy.invokeSuper(obj, args);
+            @Override
+            public Object intercept(Object obj, Method method,
+                    Object[] args, MethodProxy proxy)
+                            throws Throwable
+            {
+                if ("getX".equals(method.getName ())) {
+                    return Integer.valueOf(13);
                 }
-            });
+                return proxy.invokeSuper(obj, args);
+            }
+        });
         BeanInterfaceHib bean = (BeanInterfaceHib) enh.create();
         ObjectMapper mapper = new ObjectMapper();
         Map<String,Object> result = writeAndMap(mapper, bean);

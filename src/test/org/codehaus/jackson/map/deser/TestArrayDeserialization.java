@@ -78,6 +78,7 @@ public class TestArrayDeserialization
             _desc = d;
         }
 
+        @Override
         public void serialize(JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonGenerationException
         {
