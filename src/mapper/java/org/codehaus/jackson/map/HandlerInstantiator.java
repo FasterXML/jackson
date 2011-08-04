@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.map.deser.ValueInstantiator;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
@@ -103,27 +104,12 @@ public abstract class HandlerInstantiator
             Annotated annotated, Class<? extends TypeIdResolver> resolverClass);
 
     /**
-     * Default implementation which simply uses reflection to locate
-     * zero-argument constructor of given type, and create instance
-     * using that (possibly forcing access if constructor is not
-     * public; this can be prevented via configuration)
+     * Method called to construct an instance of ValueInstantiator of specified type.
+     * 
+     * @since 1.9
      */
-    /*
-    public static class DefaultImpl
-    {
-        @Override
-        public TypeResolverBuilder<?> typeResolverBuilderInstance(MapperConfig<?> config,
-                Annotated annotated, Class<? extends TypeResolverBuilder<?>> builderClass)
-        {
-            return ClassUtil.createInstance(builderClass, config.canOverrideAccessModifiers());
-        }
-
-        @Override
-        public TypeIdResolver typeIdResolverInstance(MapperConfig<?> config,
-                Annotated annotated, Class<? extends TypeIdResolver> resolverClass)
-        {
-            return ClassUtil.createInstance(resolverClass, config.canOverrideAccessModifiers());
-        }
+    public ValueInstantiator valueInstantiatorInstance(MapperConfig<?> config,
+            Annotated annotated, Class<? extends ValueInstantiator> resolverClass) {
+        return null;
     }
-    */
 }

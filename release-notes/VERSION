@@ -70,6 +70,8 @@ Description:
   * [JACKSON-614] Add JsonTypeInfo.defaultImpl property to indicate type to use if type name missing
   * [JACKSON-630] Add @JsonRootName annotation for specifying name of root-level wrapper
    (requested by Lukasz Strzelecki)
+  * [JACKSON-633] Add @JsonValueInstantiator to allow annotating which ValueInstantiator
+   a type uses.
 
   Issues handled by new external projects:
 

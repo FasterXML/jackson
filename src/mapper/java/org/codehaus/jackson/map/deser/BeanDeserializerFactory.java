@@ -702,11 +702,60 @@ public class BeanDeserializerFactory
             BasicBeanDescription beanDesc)
         throws JsonMappingException
     {
+        ValueInstantiator instantiator;
+        // [JACKSON-633] Check @JsonValueInstantiator before anything else
+        AnnotatedClass ac = beanDesc.getClassInfo();
+        Object instDef = config.getAnnotationIntrospector().findValueInstantiator(ac);
+        if (instDef != null) {
+            if (instDef instanceof ValueInstantiator) {
+                instantiator = (ValueInstantiator) instDef;
+            } else {
+                if (!(instDef instanceof Class)) { // sanity check
+                    throw new IllegalStateException("Invalid value instantiator returned for type "+beanDesc+": neither a Class nor ValueInstantiator");
+                }
+                Class<?> cls = (Class<?>) instDef;
+                if (!ValueInstantiator.class.isAssignableFrom(cls)) {
+                    throw new IllegalStateException("Invalid instantiator Class<?> returned for type "+beanDesc+": "
+                            +cls.getName()+" not a ValueInstantiator");
+                }
+                @SuppressWarnings("unchecked")
+                Class<? extends ValueInstantiator> instClass = (Class<? extends ValueInstantiator>) cls;
+                instantiator = config.valueInstantiatorInstance(ac, (Class<? extends ValueInstantiator>)instClass);
+            }
+        } else {
+            instantiator = constructDefaultValueInstantiator(config, beanDesc);
+        }
+        
+        // finally: anyone want to modify ValueInstantiator?
+        if (_factoryConfig.hasValueInstantiators()) {
+            for (ValueInstantiators insts : _factoryConfig.valueInstantiators()) {
+                instantiator = insts.findValueInstantiator(config, beanDesc, instantiator);
+                // let's do sanity check; easier to spot buggy handlers
+                if (instantiator == null) {
+                    throw new JsonMappingException("Broken registered ValueInstantiators (of type "
+                            +insts.getClass().getName()+"): returned null ValueInstantiator");
+                }
+            }
+        }
+        
+        return instantiator;
+    }
+
+    /**
+     * Method that will construct standard default {@link ValueInstantiator}
+     * using annotations (like @JsonCreator) and visibility rules
+     * 
+     * @since 1.9
+     */
+    protected ValueInstantiator constructDefaultValueInstantiator(DeserializationConfig config,
+            BasicBeanDescription beanDesc)
+        throws JsonMappingException
+    {
         boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
         CreatorCollector creators =  new CreatorCollector(beanDesc, fixAccess);
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         
-        // First, let's figure out constructor/factory-based instantation
+        // First, let's figure out constructor/factory-based instantiation
         // 23-Jan-2010, tatus: but only for concrete types
         if (beanDesc.getType().isConcrete()) {
             AnnotatedConstructor defaultCtor = beanDesc.findAnnotatedDefaultConstructor();
@@ -731,21 +780,7 @@ public class BeanDeserializerFactory
         _addDeserializerFactoryMethods(config, beanDesc, vchecker, intr, creators);
         _addDeserializerConstructors(config, beanDesc, vchecker, intr, creators);
 
-        ValueInstantiator instantiator = creators.constructValueInstantiator(config);
-
-        // finally: anyone want to modify ValueInstantiator?
-        if (_factoryConfig.hasValueInstantiators()) {
-            for (ValueInstantiators inst : _factoryConfig.valueInstantiators()) {
-                instantiator = inst.findValueInstantiator(config, beanDesc, instantiator);
-                // let's do sanity check; easier to spot buggy handlers
-                if (instantiator == null) {
-                    throw new JsonMappingException("Broken registered ValueInstantiators (of type "
-                            +inst.getClass().getName()+"): returned null ValueInstantiator");
-                }
-            }
-        }
-        
-        return instantiator;
+        return creators.constructValueInstantiator(config);
     }
 
     protected void _addDeserializerConstructors

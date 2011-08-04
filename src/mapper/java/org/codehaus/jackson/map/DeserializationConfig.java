@@ -6,6 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.Base64Variant;
 import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.map.deser.ValueInstantiator;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.NopAnnotationIntrospector;
@@ -800,5 +801,18 @@ public class DeserializationConfig
             }
         }
         return (KeyDeserializer) ClassUtil.createInstance(keyDeserClass, canOverrideAccessModifiers());
+    }
+
+    public ValueInstantiator valueInstantiatorInstance(Annotated annotated,
+            Class<? extends ValueInstantiator> instClass)
+    {
+        HandlerInstantiator hi = getHandlerInstantiator();
+        if (hi != null) {
+            ValueInstantiator inst = hi.valueInstantiatorInstance(this, annotated, instClass);
+            if (inst != null) {
+                return (ValueInstantiator) inst;
+            }
+        }
+        return (ValueInstantiator) ClassUtil.createInstance(instClass, canOverrideAccessModifiers());
     }
 }
