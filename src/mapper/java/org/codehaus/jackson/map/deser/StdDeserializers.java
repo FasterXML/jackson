@@ -3,8 +3,8 @@ package org.codehaus.jackson.map.deser;
 import java.util.*;
 
 import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.deser.impl.JavaTypeDeserializer;
-import org.codehaus.jackson.map.deser.impl.TokenBufferDeserializer;
+import org.codehaus.jackson.map.deser.std.JavaTypeDeserializer;
+import org.codehaus.jackson.map.deser.std.TokenBufferDeserializer;
 import org.codehaus.jackson.map.type.*;
 
 /**

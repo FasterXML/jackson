@@ -16,7 +16,7 @@ public class JsonNodeDeserializer
     /**
      * Singleton instance of generic deserializer for {@link JsonNode}
      *
-     * @deprecated Use {@link #getDeserializer} accessor instead
+     * @deprecated Use {@link #getDeserializer} accessor instead: will be removed from 2.0
      */
     @Deprecated
     public final static JsonNodeDeserializer instance = new JsonNodeDeserializer();

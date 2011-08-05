@@ -12,7 +12,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.deser.impl.PropertyBasedCreator;
 import org.codehaus.jackson.map.deser.impl.PropertyValueBuffer;
-import org.codehaus.jackson.map.deser.impl.StdValueInstantiator;
+import org.codehaus.jackson.map.deser.std.StdValueInstantiator;
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedWithParams;
 import org.codehaus.jackson.map.util.ArrayBuilders;

@@ -24,7 +24,7 @@ import org.codehaus.jackson.type.JavaType;
  * like unnecessary extra work.
  *<p>
  * Actual implementations are strongly recommended to be based on
- * {@link org.codehaus.jackson.map.deser.impl.StdValueInstantiator}
+ * {@link org.codehaus.jackson.map.deser.std.StdValueInstantiator}
  * which implements all methods, and as such will be compatible
  * across versions even if new methods were added to this interface.
  * 

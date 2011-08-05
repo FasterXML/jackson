@@ -6,6 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.deser.CreatorProperty;
 import org.codehaus.jackson.map.deser.ValueInstantiator;
+import org.codehaus.jackson.map.deser.std.StdValueInstantiator;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.type.TypeBindings;
 import org.codehaus.jackson.map.util.ClassUtil;

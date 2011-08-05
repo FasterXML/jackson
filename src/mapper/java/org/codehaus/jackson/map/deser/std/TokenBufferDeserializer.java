@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.deser.impl;
+package org.codehaus.jackson.map.deser.std;
 
 import java.io.IOException;
 
