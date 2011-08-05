@@ -891,7 +891,7 @@ public class JaxbAnnotationIntrospector
                         return annotation;
                     }
                 }
-            } else if (annType instanceof Class) {
+            } else if (annType instanceof Class<?>) {
                 memberClass = (Class<?>) annType;
             } else {
                 throw new IllegalStateException("Unsupported annotated member: " + annotated.getClass().getName());

@@ -13,7 +13,6 @@ import org.codehaus.jackson.node.*;
  * This unit test suite tries to verify that JsonNode-based trees
  * can be serialized as expected
  */
-@SuppressWarnings("deprecation")
 public class TestTreeSerialization
     extends BaseMapTest
 {
@@ -26,19 +25,18 @@ public class TestTreeSerialization
 	public void testSimpleViaObjectMapper()
         throws IOException
     {
-        ObjectMapper om = new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
         // also need tree mapper to construct tree to serialize
-        TreeMapper mapper = new TreeMapper();
-        ObjectNode n = mapper.objectNode();
+        ObjectNode n = mapper.getNodeFactory().objectNode();
         n.put("number", 15);
         n.put("string", "abc");
         ObjectNode n2 = n.putObject("ob");
         n2.putArray("arr");
         StringWriter sw = new StringWriter();
-        JsonGenerator jg = om.getJsonFactory().createJsonGenerator(sw);
-        om.writeTree(jg, n);
+        JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(sw);
+        mapper.writeTree(jg, n);
 
-        Map<String,Object> result = (Map<String,Object>) om.readValue(sw.toString(), Map.class);
+        Map<String,Object> result = (Map<String,Object>) mapper.readValue(sw.toString(), Map.class);
 
         assertEquals(3, result.size());
         assertEquals("abc", result.get("string"));
@@ -57,15 +55,14 @@ public class TestTreeSerialization
 	public void testPOJOString()
         throws Exception
     {
-        ObjectMapper om = new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
         // also need tree mapper to construct tree to serialize
-        TreeMapper mapper = new TreeMapper();
-        ObjectNode n = mapper.objectNode();
-        n.put("pojo", mapper.POJONode("abc"));
+        ObjectNode n = mapper.getNodeFactory().objectNode();
+        n.put("pojo", mapper.getNodeFactory().POJONode("abc"));
         StringWriter sw = new StringWriter();
-        JsonGenerator jg = om.getJsonFactory().createJsonGenerator(sw);
-        om.writeTree(jg, n);
-        Map<String,Object> result = (Map<String,Object>) om.readValue(sw.toString(), Map.class);
+        JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(sw);
+        mapper.writeTree(jg, n);
+        Map<String,Object> result = (Map<String,Object>) mapper.readValue(sw.toString(), Map.class);
         assertEquals(1, result.size());
         assertEquals("abc", result.get("pojo"));
     }
@@ -74,15 +71,14 @@ public class TestTreeSerialization
     public void testPOJOIntArray()
         throws IOException
     {
-        ObjectMapper om = new ObjectMapper();
-        TreeMapper mapper = new TreeMapper();
-        ObjectNode n = mapper.objectNode();
-        n.put("pojo", mapper.POJONode(new int[] { 1, 2, 3 }));
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode n = mapper.getNodeFactory().objectNode();
+        n.put("pojo", mapper.getNodeFactory().POJONode(new int[] { 1, 2, 3 }));
         StringWriter sw = new StringWriter();
-        JsonGenerator jg = om.getJsonFactory().createJsonGenerator(sw);
-        om.writeTree(jg, n);
+        JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(sw);
+        mapper.writeTree(jg, n);
 
-        Map<String,Object> result = (Map<String,Object>) om.readValue(sw.toString(), Map.class);
+        Map<String,Object> result = (Map<String,Object>) mapper.readValue(sw.toString(), Map.class);
 
         assertEquals(1, result.size());
         // int array becomes a list when mapped to general Object:
@@ -97,16 +93,15 @@ public class TestTreeSerialization
     public void testPOJOBean()
         throws IOException
     {
-        ObjectMapper om = new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
         // also need tree mapper to construct tree to serialize
-        TreeMapper mapper = new TreeMapper();
-        ObjectNode n = mapper.objectNode();
-        n.put("pojo", mapper.POJONode(new Bean()));
+        ObjectNode n = mapper.getNodeFactory().objectNode();
+        n.put("pojo", mapper.getNodeFactory().POJONode(new Bean()));
         StringWriter sw = new StringWriter();
-        JsonGenerator jg = om.getJsonFactory().createJsonGenerator(sw);
-        om.writeTree(jg, n);
+        JsonGenerator jg = mapper.getJsonFactory().createJsonGenerator(sw);
+        mapper.writeTree(jg, n);
 
-        Map<String,Object> result = (Map<String,Object>) om.readValue(sw.toString(), Map.class);
+        Map<String,Object> result = (Map<String,Object>) mapper.readValue(sw.toString(), Map.class);
 
         assertEquals(1, result.size());
         Map<String,Object> bean = (Map<String,Object>) result.get("pojo");

@@ -710,7 +710,7 @@ public class BeanDeserializerFactory
             if (instDef instanceof ValueInstantiator) {
                 instantiator = (ValueInstantiator) instDef;
             } else {
-                if (!(instDef instanceof Class)) { // sanity check
+                if (!(instDef instanceof Class<?>)) { // sanity check
                     throw new IllegalStateException("Invalid value instantiator returned for type "+beanDesc+": neither a Class nor ValueInstantiator");
                 }
                 Class<?> cls = (Class<?>) instDef;

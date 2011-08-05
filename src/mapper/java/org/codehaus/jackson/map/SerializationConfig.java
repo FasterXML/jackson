@@ -874,7 +874,6 @@ public class SerializationConfig
      * 
      * @deprecated Since 1.8, use {@link #withDateFormat} instead.
      */
-    @SuppressWarnings("deprecation")
     @Override
     @Deprecated
     public final void setDateFormat(DateFormat df) {
