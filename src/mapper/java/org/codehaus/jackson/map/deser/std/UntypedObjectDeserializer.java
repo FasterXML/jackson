@@ -13,9 +13,14 @@ import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.util.ObjectBuffer;
 
 /**
- * This deserializer is only used if it is necessary to bind content of
- * unknown type (or without regular structure) into generic Java container
- * types; Lists, Maps, wrappers, nulls and so on.
+ * Deserializer implementation that is used if it is necessary to bind content of
+ * "unknown" type; something declared as basic {@link java.lang.Object}
+ * (either explicitly, or due to type erasure).
+ * If so, "natural" mapping is used to convert JSON values to their natural
+ * Java object matches: JSON arrays to Java {@link java.util.List}s (or, if configured,
+ * Object[]), JSON objects to {@link java.util.Map}s, numbers to
+ * {@link java.lang.Number}s, booleans to {@link java.lang.Boolean}s and
+ * strings to {@link java.lang.String} (and nulls to nulls).
  *
  * @since 1.9 (moved from higher-level package)
  */
@@ -137,7 +142,7 @@ public class UntypedObjectDeserializer
     /**********************************************************
      */
     
-    protected final List<Object> mapArray(JsonParser jp, DeserializationContext ctxt)
+    protected Object mapArray(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         // Minor optimization to handle small lists (default size for ArrayList is 10)
@@ -163,7 +168,7 @@ public class UntypedObjectDeserializer
         return result;
     }
 
-    protected final Map<String,Object> mapObject(JsonParser jp, DeserializationContext ctxt)
+    protected Object mapObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
         JsonToken t = jp.getCurrentToken();
