@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.deser;
 import java.io.*;
 import java.net.*;
 import java.util.Currency;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -284,5 +285,20 @@ public class TestJdkTypes
         assertEquals(0.0f, bean.floatValue);
         bean = mapper.readValue("{\"doubleValue\":\"\"}", PrimitivesBean.class);
         assertEquals(0.0, bean.doubleValue);
+    }
+
+    // for [JACKSON-652]
+    // @since 1.9
+    public void testUntypedWithJsonArrays() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        // by default we get:
+        Object ob = mapper.readValue("[1]", Object.class);
+        assertTrue(ob instanceof List<?>);
+
+        // but can change to produce Object[]:
+        mapper.configure(DeserializationConfig.Feature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
+        ob = mapper.readValue("[1]", Object.class);
+        assertEquals(Object[].class, ob.getClass());
     }
 }

@@ -137,7 +137,7 @@ public class DeserializationConfig
 
         /*
         /******************************************************
-         *  Type conversion features
+        /* Type conversion features
         /******************************************************
          */
 
@@ -175,6 +175,20 @@ public class DeserializationConfig
          */
         USE_BIG_INTEGER_FOR_INTS(false),
 
+        // [JACKSON-652]
+        /**
+         * Feature that determines whether JSON Array is mapped to
+         * <code>Object[]</code> or <code>List&lt;Object></code> when binding
+         * "untyped" objects (ones with nominal type of <code>java.lang.Object</code>).
+         * If true, binds as <code>Object[]</code>; if false, as <code>List&lt;Object></code>.
+         *<p>
+         * Feature is disabled by default, meaning that JSON arrays are bound as
+         * {@link java.util.List}s.
+         * 
+         * @since 1.9
+         */
+        USE_JAVA_ARRAY_FOR_JSON_ARRAY(false),
+        
         /**
          * Feature that determines standard deserialization mechanism used for
          * Enum values: if enabled, Enums are assumed to have been serialized  using

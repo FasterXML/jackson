@@ -72,6 +72,9 @@ Description:
    (requested by Lukasz Strzelecki)
   * [JACKSON-633] Add @JsonValueInstantiator to allow annotating which ValueInstantiator
    a type uses.
+  * [JACKSON-652] Add 'DeserializationConfig.Feature.USE_JAVA_ARRAY_FOR_JSON_ARRAY' to
+    allow mapping JSON Array to Object[]
+   (suggested by Simone B)
 
   Issues handled by new external projects:
 

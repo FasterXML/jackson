@@ -753,3 +753,9 @@ Ed Anuff:
 Lukasz Strzelecki:
   * Requested [JACKSON-630] Add @JsonRootName annotation for specifying name of root-level wrapper
    [1.9.0]
+
+Simone Bordet:
+  * Requested [JACKSON-652] Add 'DeserializationConfig.Feature.USE_JAVA_ARRAY_FOR_JSON_ARRAY' to
+    allow mapping JSON Array to Object[]
+   [1.9.0]
+   

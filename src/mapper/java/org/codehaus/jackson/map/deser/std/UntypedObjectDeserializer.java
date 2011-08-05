@@ -28,6 +28,8 @@ import org.codehaus.jackson.map.util.ObjectBuffer;
 public class UntypedObjectDeserializer
     extends StdDeserializer<Object>
 {
+    private final static Object[] NO_OBJECTS = new Object[0];
+    
     public UntypedObjectDeserializer() { super(Object.class); }
 
     /*
@@ -142,9 +144,15 @@ public class UntypedObjectDeserializer
     /**********************************************************
      */
     
+    /**
+     * Method called to map a JSON Array into a Java value.
+     */
     protected Object mapArray(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
+        if (ctxt.isEnabled(DeserializationConfig.Feature.USE_JAVA_ARRAY_FOR_JSON_ARRAY)) {
+            return mapArrayToArray(jp, ctxt);
+        }
         // Minor optimization to handle small lists (default size for ArrayList is 10)
         if (jp.nextToken()  == JsonToken.END_ARRAY) {
             return new ArrayList<Object>(4);
@@ -168,6 +176,9 @@ public class UntypedObjectDeserializer
         return result;
     }
 
+    /**
+     * Method called to map a JSON Object into a Java value.
+     */
     protected Object mapObject(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException
     {
@@ -207,5 +218,33 @@ public class UntypedObjectDeserializer
             result.put(fieldName, deserialize(jp, ctxt));
         } while (jp.nextToken() != JsonToken.END_OBJECT);
         return result;
+    }
+
+    /**
+     * Method called to map a JSON Array into a Java Object array (Object[]).
+     * 
+     * @since 1.9
+     */
+    protected Object[] mapArrayToArray(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        // Minor optimization to handle small lists (default size for ArrayList is 10)
+        if (jp.nextToken()  == JsonToken.END_ARRAY) {
+            return NO_OBJECTS;
+        }
+        ObjectBuffer buffer = ctxt.leaseObjectBuffer();
+        Object[] values = buffer.resetAndStart();
+        int ptr = 0;
+        int totalSize = 0;
+        do {
+            Object value = deserialize(jp, ctxt);
+            ++totalSize;
+            if (ptr >= values.length) {
+                values = buffer.appendCompletedChunk(values);
+                ptr = 0;
+            }
+            values[ptr++] = value;
+        } while (jp.nextToken() != JsonToken.END_ARRAY);
+        return buffer.completeAndClearBuffer(values, ptr);
     }
 }
