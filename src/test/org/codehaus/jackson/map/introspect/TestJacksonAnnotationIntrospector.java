@@ -14,7 +14,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonTypeResolver;
-import org.codehaus.jackson.map.deser.StdDeserializer;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
 import org.codehaus.jackson.map.type.TypeFactory;

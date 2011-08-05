@@ -5,7 +5,7 @@ import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.map.deser.FromStringDeserializer;
+import org.codehaus.jackson.map.deser.std.FromStringDeserializer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;

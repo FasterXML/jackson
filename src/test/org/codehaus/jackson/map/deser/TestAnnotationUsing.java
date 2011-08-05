@@ -6,7 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
-import org.codehaus.jackson.map.deser.StdDeserializer;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
 
 /**
  * Unit test suite that tests "usingXxx" properties of

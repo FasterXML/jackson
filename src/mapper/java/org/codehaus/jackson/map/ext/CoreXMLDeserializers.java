@@ -12,9 +12,9 @@ import javax.xml.namespace.QName;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.map.deser.StdDeserializer;
-import org.codehaus.jackson.map.deser.FromStringDeserializer;
-import org.codehaus.jackson.map.deser.StdScalarDeserializer;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
+import org.codehaus.jackson.map.deser.std.FromStringDeserializer;
+import org.codehaus.jackson.map.deser.std.StdScalarDeserializer;
 import org.codehaus.jackson.map.util.Provider;
 
 /**

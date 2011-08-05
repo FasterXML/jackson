@@ -15,8 +15,8 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.deser.StdDeserializer;
-import org.codehaus.jackson.map.deser.StdScalarDeserializer;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
+import org.codehaus.jackson.map.deser.std.StdScalarDeserializer;
 import org.codehaus.jackson.map.util.Provider;
 
 /**

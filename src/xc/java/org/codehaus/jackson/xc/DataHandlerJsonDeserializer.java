@@ -11,7 +11,7 @@ import javax.activation.DataSource;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.map.deser.StdScalarDeserializer;
+import org.codehaus.jackson.map.deser.std.StdScalarDeserializer;
 
 /**
  * @author Ryan Heaton

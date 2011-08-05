@@ -8,6 +8,8 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.deser.impl.*;
+import org.codehaus.jackson.map.deser.std.ContainerDeserializerBase;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedWithParams;
@@ -404,11 +406,11 @@ public class BeanDeserializer
         boolean isContainer = false;
         if (valueDeser instanceof BeanDeserializer) {
             backProp = ((BeanDeserializer) valueDeser).findBackReference(refName);
-        } else if (valueDeser instanceof ContainerDeserializer<?>) {
-            JsonDeserializer<?> contentDeser = ((ContainerDeserializer<?>) valueDeser).getContentDeserializer();
+        } else if (valueDeser instanceof ContainerDeserializerBase<?>) {
+            JsonDeserializer<?> contentDeser = ((ContainerDeserializerBase<?>) valueDeser).getContentDeserializer();
             if (!(contentDeser instanceof BeanDeserializer)) {
                 throw new IllegalArgumentException("Can not handle managed/back reference '"+refName
-                        +"': value deserializer is of type ContainerDeserializer, but content type is not handled by a BeanDeserializer "
+                        +"': value deserializer is of type ContainerDeserializerBase, but content type is not handled by a BeanDeserializer "
                         +" (instead it's of type "+contentDeser.getClass().getName()+")");
             }
             backProp = ((BeanDeserializer) contentDeser).findBackReference(refName);
@@ -417,7 +419,7 @@ public class BeanDeserializer
             throw new IllegalArgumentException("Can not handle managed/back reference for abstract types (property "+_beanType.getRawClass().getName()+"."+prop.getName()+")");
         } else {
             throw new IllegalArgumentException("Can not handle managed/back reference '"+refName
-                    +"': type for value deserializer is not BeanDeserializer or ContainerDeserializer, but "
+                    +"': type for value deserializer is not BeanDeserializer or ContainerDeserializerBase, but "
                     +valueDeser.getClass().getName());
         }
         if (backProp == null) {

@@ -6,7 +6,6 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
-import org.codehaus.jackson.map.deser.StdScalarDeserializer;
 import org.codehaus.jackson.util.TokenBuffer;
 
 /**
@@ -17,7 +16,7 @@ import org.codehaus.jackson.util.TokenBuffer;
  * to be of scalar for type information inclusion purposes; actual
  * underlying content can be of any (Object, Array, scalar) type.
  *
- * @since 1.5
+ * @since 1.9 (moved from higher-level package)
  */
 @JacksonStdImpl
 public class TokenBufferDeserializer

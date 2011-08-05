@@ -295,7 +295,6 @@ public class TestTreeMapperDeserializer
      * Type mappers should be able to gracefully deal with end of
      * input.
      */
-    @SuppressWarnings("deprecation")
     public void testEOF() throws Exception
     {
         String JSON =
@@ -314,7 +313,6 @@ public class TestTreeMapperDeserializer
         assertNull(mapper.readTree(jp));
     }
 
-    @SuppressWarnings("deprecation")
     public void testMultiple() throws Exception
     {
         String JSON = "12  \"string\" [ 1, 2, 3 ]";

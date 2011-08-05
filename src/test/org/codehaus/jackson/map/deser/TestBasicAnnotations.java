@@ -5,6 +5,7 @@ import java.io.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
 /**

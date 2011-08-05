@@ -7,6 +7,7 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
 import org.codehaus.jackson.type.TypeReference;
 
 public class TestEnumDeserialization

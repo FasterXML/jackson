@@ -6,12 +6,22 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.deser.std.AtomicReferenceDeserializer;
+import org.codehaus.jackson.map.deser.std.CollectionDeserializer;
+import org.codehaus.jackson.map.deser.std.EnumDeserializer;
+import org.codehaus.jackson.map.deser.std.EnumMapDeserializer;
+import org.codehaus.jackson.map.deser.std.EnumSetDeserializer;
+import org.codehaus.jackson.map.deser.std.JsonNodeDeserializer;
+import org.codehaus.jackson.map.deser.std.MapDeserializer;
+import org.codehaus.jackson.map.deser.std.ObjectArrayDeserializer;
+import org.codehaus.jackson.map.deser.std.PrimitiveArrayDeserializers;
 import org.codehaus.jackson.map.deser.std.StringCollectionDeserializer;
 import org.codehaus.jackson.map.ext.OptionalHandlerFactory;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.type.*;
+import org.codehaus.jackson.map.util.EnumResolver;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -89,7 +99,8 @@ public abstract class BasicDeserializerFactory
      * And finally, we have special array deserializers for primitive
      * array types
      */
-    protected final static HashMap<JavaType,JsonDeserializer<Object>> _arrayDeserializers = ArrayDeserializers.getAll();
+    protected final static HashMap<JavaType,JsonDeserializer<Object>> _arrayDeserializers
+        = PrimitiveArrayDeserializers.getAll();
 
     /**
      * To support external/optional deserializers, we'll use this helper class
@@ -215,7 +226,7 @@ public abstract class BasicDeserializerFactory
             // 'null' -> arrays have no referring fields
             contentDeser = p.findValueDeserializer(config, elemType, property);
         }
-        return new ArrayDeserializer(type, contentDeser, elemTypeDeser);
+        return new ObjectArrayDeserializer(type, contentDeser, elemTypeDeser);
     }
     
     @Override
@@ -537,7 +548,7 @@ public abstract class BasicDeserializerFactory
                 referencedType = params[0];
             }
             
-            JsonDeserializer<?> d2 = new StdDeserializer.AtomicReferenceDeserializer(referencedType, property);
+            JsonDeserializer<?> d2 = new AtomicReferenceDeserializer(referencedType, property);
             return (JsonDeserializer<Object>)d2;
         }
         // [JACKSON-386]: External/optional type handlers are handled somewhat differently

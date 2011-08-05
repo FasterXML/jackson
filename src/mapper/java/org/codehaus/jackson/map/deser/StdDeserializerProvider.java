@@ -10,6 +10,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.BeanDeserializer;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.deser.std.StdKeyDeserializers;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;

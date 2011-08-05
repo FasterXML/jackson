@@ -1184,12 +1184,22 @@ public class ObjectMapper
         throws IOException, JsonProcessingException
     {
         /* 02-Mar-2009, tatu: One twist; deserialization provider
-         *   will map Json null straight into Java null. But what
+         *   will map JSON null straight into Java null. But what
          *   we want to return is the "null node" instead.
          */
+        /* 05-Aug-2011, tatu: Also, must check for EOF here before
+         *   calling readValue(), since that'll choke on it otherwise
+         */
         DeserializationConfig cfg = copyDeserializationConfig();
+        JsonToken t = jp.getCurrentToken();
+        if (t == null) {
+            t = jp.nextToken();
+            if (t == null) {
+                return null;
+            }
+        }
         JsonNode n = (JsonNode) _readValue(cfg, jp, JSON_NODE_TYPE);
-        return (n == null) ? NullNode.instance : n;
+        return (n == null) ? getNodeFactory().nullNode() : n;
     }
 
     /**

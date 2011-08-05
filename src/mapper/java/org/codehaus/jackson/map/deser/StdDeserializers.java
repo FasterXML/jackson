@@ -3,8 +3,14 @@ package org.codehaus.jackson.map.deser;
 import java.util.*;
 
 import org.codehaus.jackson.map.JsonDeserializer;
+import org.codehaus.jackson.map.deser.std.AtomicBooleanDeserializer;
+import org.codehaus.jackson.map.deser.std.DateDeserializer;
+import org.codehaus.jackson.map.deser.std.FromStringDeserializer;
 import org.codehaus.jackson.map.deser.std.JavaTypeDeserializer;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
+import org.codehaus.jackson.map.deser.std.TimestampDeserializer;
 import org.codehaus.jackson.map.deser.std.TokenBufferDeserializer;
+import org.codehaus.jackson.map.deser.std.UntypedObjectDeserializer;
 import org.codehaus.jackson.map.type.*;
 
 /**
@@ -78,7 +84,8 @@ class StdDeserializers
         add(new StdDeserializer.StackTraceElementDeserializer());
 
         // [JACKSON-283] need to support atomic types, too
-        add(new StdDeserializer.AtomicBooleanDeserializer());
+        // (note: AtomicInteger/Long work due to single-arg constructor)
+        add(new AtomicBooleanDeserializer());
 
         // including some core Jackson types:
         add(new TokenBufferDeserializer());

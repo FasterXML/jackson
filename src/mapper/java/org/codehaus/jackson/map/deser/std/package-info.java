@@ -5,6 +5,10 @@
  * tries to maintain backwards compatibility at higher level
  * than for 'impl' types (although less so than with fully
  * public interfaces).
+ *<p>
+ * Note that since this package was only added relatively late
+ * in development cycle, not all classes that belong here are
+ * included. Plan is to move more classes over time.
  * 
  * @since 1.9
  */

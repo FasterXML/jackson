@@ -3,6 +3,7 @@ package org.codehaus.jackson.map.deser;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
 
 import java.io.IOException;
 import java.util.*;

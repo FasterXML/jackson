@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.deser.StdDeserializer;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 

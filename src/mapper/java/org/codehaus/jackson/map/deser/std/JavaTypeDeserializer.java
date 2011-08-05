@@ -6,9 +6,11 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.map.deser.StdScalarDeserializer;
 import org.codehaus.jackson.type.JavaType;
 
+/**
+ * @since 1.9
+ */
 public class JavaTypeDeserializer
     extends StdScalarDeserializer<JavaType>
 {

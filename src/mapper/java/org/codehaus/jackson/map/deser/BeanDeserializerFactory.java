@@ -6,6 +6,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.impl.CreatorCollector;
+import org.codehaus.jackson.map.deser.std.ThrowableDeserializer;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
