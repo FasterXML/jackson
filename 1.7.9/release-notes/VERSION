@@ -8,6 +8,7 @@ Description:
 
   Fixes:
 
+  * [JACKSON-401] Further fixes to ensure FLUSH_PASSED_TO_STREAM works
   * [JACKSON-629] Fix a buffer boundary problem with SmileParser, 5-7
     character names
     (reported by Maxxan)
