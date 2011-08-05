@@ -43,7 +43,7 @@ import java.lang.annotation.Target;
  *<pre>
  *  public class Parent {
  *    public int age;
- *    @JsonUnwrapped
+ *    @<span />JsonUnwrapped
  *    public Name name;
  *  }
  *</pre>
