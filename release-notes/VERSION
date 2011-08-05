@@ -8,6 +8,7 @@ Description:
 
   Fixes:
 
+  * [JACKSON-401] Further fixes to ensure FLUSH_PASSED_TO_STREAM works
   * [JACKSON-637] NumberSerializer was missing proper handling of Integer, Long
    (reported by Paul M)
   * [JACKSON-640] SmileParser.getTextCharacters() missing value in some

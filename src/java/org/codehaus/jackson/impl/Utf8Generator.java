@@ -1118,11 +1118,13 @@ public class Utf8Generator
          *   One downside: when using UTF8Writer, underlying buffer(s)
          *   may not be properly recycled if we don't close the writer.
          */
-        if (_ioContext.isResourceManaged() || isEnabled(Feature.AUTO_CLOSE_TARGET)) {
-            _outputStream.close();
-        } else {
-            // If we can't close it, we should at least flush
-            _outputStream.flush();
+        if (_outputStream != null) {
+            if (_ioContext.isResourceManaged() || isEnabled(Feature.AUTO_CLOSE_TARGET)) {
+                _outputStream.close();
+            } else  if (isEnabled(Feature.FLUSH_PASSED_TO_STREAM)) {
+                // If we can't close it, we should at least flush
+                _outputStream.flush();
+            }
         }
         // Internal buffer(s) generator has can now be released as well
         _releaseBuffers();
