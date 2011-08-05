@@ -1,10 +1,18 @@
-Version: 1.8.5
+Version: 1.8.6
 
 Release date:
   xx-Aug-2011
 
 Description:
   A patch release for 1.8.
+
+  Fixes:
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.8.5 [04-Aug-2011]
 
   Fixes:
 
@@ -15,10 +23,6 @@ Description:
     cases (value back-references)
   * [JACKSON-647] ResolvableSerializer.resolve() not called after creating
     contextual instance
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.8.4 [25-Jul-2011]
 
