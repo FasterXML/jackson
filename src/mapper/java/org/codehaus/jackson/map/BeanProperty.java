@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.util.Annotations;
+import org.codehaus.jackson.map.util.Named;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -15,11 +16,12 @@ import org.codehaus.jackson.type.JavaType;
  *
  * @since 1.7
  */
-public interface BeanProperty
+public interface BeanProperty extends Named
 {
     /**
      * Method to get logical name of the property
      */
+    @Override
     public String getName();
     
     /**
