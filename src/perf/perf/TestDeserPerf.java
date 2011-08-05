@@ -22,13 +22,13 @@ public final class TestDeserPerf
 
     private TestDeserPerf() {
         // Let's try to guestimate suitable size
-        REPS = 15000;
+        REPS = 25000;
     }
 
     private MediaItem buildItem()
     {
         MediaItem.Content content = new MediaItem.Content();
-        content.setPlayer(MediaItem.Content.Player.JAVA);
+        content.setPlayer(MediaItem.Player.JAVA);
         content.setUri("http://javaone.com/keynote.mpg");
         content.setTitle("Javaone Keynote");
         content.setWidth(640);
@@ -43,8 +43,8 @@ public final class TestDeserPerf
 
         MediaItem item = new MediaItem(content);
 
-        item.addPhoto(new MediaItem.Photo("http://javaone.com/keynote_large.jpg", "Javaone Keynote", 1024, 768, MediaItem.Photo.Size.LARGE));
-        item.addPhoto(new MediaItem.Photo("http://javaone.com/keynote_small.jpg", "Javaone Keynote", 320, 240, MediaItem.Photo.Size.SMALL));
+        item.addPhoto(new MediaItem.Photo("http://javaone.com/keynote_large.jpg", "Javaone Keynote", 1024, 768, MediaItem.Size.LARGE));
+        item.addPhoto(new MediaItem.Photo("http://javaone.com/keynote_small.jpg", "Javaone Keynote", 320, 240, MediaItem.Size.SMALL));
 
         return item;
     }
@@ -68,7 +68,11 @@ public final class TestDeserPerf
 //        smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, true);
         smileFactory.configure(SmileGenerator.Feature.CHECK_SHARED_STRING_VALUES, false);
 
+        // Use Jackson?
         byte[] json = jsonMapper.writeValueAsBytes(item);
+        // or another lib?
+//        byte[] json = com.alibaba.fastjson.JSON.toJSONString(item, com.alibaba.fastjson.serializer.SerializerFeature.WriteEnumUsingToString).getBytes("UTF-8");
+        
         System.out.println("Warmed up: data size is "+json.length+" bytes; "+REPS+" reps -> "
                 +((REPS * json.length) >> 10)+" kB per iteration");
         System.out.println();
@@ -113,14 +117,16 @@ public final class TestDeserPerf
             }
             System.out.println("Verification successful: Smile ok!");
         }
-        
+
+        int round = 0;
         while (true) {
 //            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
-            int round = 2;
+//            int round = 2;
 
             long curr = System.currentTimeMillis();
             String msg;
             boolean lf = (round == 0);
+            round = (++round % 3);
 
             switch (round) {
 
@@ -134,6 +140,7 @@ public final class TestDeserPerf
                 sum += testDeser(jsonMapper.getJsonFactory(), json, REPS);
                 break;
 
+                /*
             case 2:
                 msg = "Deserialize, smile";
                 sum += testDeser(smileMapper, smile, REPS * 2);
@@ -144,10 +151,9 @@ public final class TestDeserPerf
                 sum += testDeser(smileMapper.getJsonFactory(), smile, REPS * 2);
                 break;
 
-                /*
-            case 4:
-                msg = "Deserialize, BSON";
-                sum += testDeser(bsonMapper, bson, REPS);
+            case 2:
+                msg = "Deserialize, fast-json";
+                sum += testFastJson(json, REPS);
                 break;
                 */
                 
@@ -186,6 +192,18 @@ public final class TestDeserPerf
         }
         return item.hashCode(); // just to get some non-optimizable number
     }
+
+    /*
+    protected int testFastJson(byte[] input, int reps)
+        throws Exception
+    {
+        MediaItem item = null;
+        for (int i = 0; i < reps; ++i) {
+            item = com.alibaba.fastjson.JSON.parseObject(input, MediaItem.class);
+        }
+        return item.hashCode(); // just to get some non-optimizable number
+    }
+    */
     
     public static void main(String[] args) throws Exception
     {
