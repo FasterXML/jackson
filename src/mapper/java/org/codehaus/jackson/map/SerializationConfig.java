@@ -119,7 +119,7 @@ public class SerializationConfig
             
         /*
         /******************************************************
-         * Generic output features
+        /* Generic output features
         /******************************************************
          */
 
@@ -222,7 +222,7 @@ public class SerializationConfig
         
         /*
         /******************************************************
-         *  Error handling features
+        /*  Error handling features
         /******************************************************
          */
         
@@ -265,7 +265,7 @@ public class SerializationConfig
 
         /*
         /******************************************************
-         * Output life cycle features
+        /* Output life cycle features
         /******************************************************
          */
         
@@ -289,8 +289,8 @@ public class SerializationConfig
 
         /**
          * Feature that determines whether <code>JsonGenerator.flush()</code> is
-         * called after <code>writeValue()</code> method <b>that takes JsonParser
-         * as an argument</b> completes or not (i.e. does NOT affect methods
+         * called after <code>writeValue()</code> method <b>that takes JsonGenerator
+         * as an argument</b> completes (i.e. does NOT affect methods
          * that use other destinations); same for methods in {@link ObjectWriter}.
          * This usually makes sense; but there are cases where flushing
          * should not be forced: for example when underlying stream is
@@ -303,7 +303,7 @@ public class SerializationConfig
          
         /*
         /******************************************************
-         * Datatype-specific serialization configuration
+        /* Datatype-specific serialization configuration
         /******************************************************
          */
 
