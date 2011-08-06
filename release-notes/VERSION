@@ -75,6 +75,7 @@ Description:
   * [JACKSON-652] Add 'DeserializationConfig.Feature.USE_JAVA_ARRAY_FOR_JSON_ARRAY' to
     allow mapping JSON Array to Object[]
    (suggested by Simone B)
+  * [JACKSON-653] Add 'JsonParser.isNextTokenName()' for more efficient field name matching
 
   Issues handled by new external projects:
 

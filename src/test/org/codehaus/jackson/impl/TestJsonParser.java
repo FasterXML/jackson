@@ -1,6 +1,7 @@
 package org.codehaus.jackson.impl;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.io.SerializedString;
 
 import java.io.*;
 import java.util.*;
@@ -465,6 +466,52 @@ public class TestJsonParser
         assertEquals(3, loc.getByteOffset());
         assertEquals(-1, loc.getCharOffset());
         */
+    }
+
+    // [JACKSON-653]
+    public void testIsNextTokenName() throws Exception
+    {
+        _testIsNextTokenName(false);
+        _testIsNextTokenName(true);
+    }
+
+    private void _testIsNextTokenName(boolean useStream) throws Exception
+    {
+        final String DOC = "{\"name\":123,\"name2\":14,\"x\":\"name\"}";
+        JsonFactory jf = new JsonFactory();
+        JsonParser jp = useStream ?
+            jf.createJsonParser(new ByteArrayInputStream(DOC.getBytes("UTF-8")))
+            : jf.createJsonParser(new StringReader(DOC));
+        SerializedString NAME = new SerializedString("name");
+        assertFalse(jp.isNextTokenName(NAME));
+        assertToken(JsonToken.START_OBJECT, jp.getCurrentToken());
+        assertTrue(jp.isNextTokenName(NAME));
+        assertToken(JsonToken.FIELD_NAME, jp.getCurrentToken());
+        assertEquals(NAME.getValue(), jp.getCurrentName());
+        assertEquals(NAME.getValue(), jp.getText());
+        assertFalse(jp.isNextTokenName(NAME));
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.getCurrentToken());
+        assertEquals(123, jp.getIntValue());
+
+        assertFalse(jp.isNextTokenName(NAME));
+        assertToken(JsonToken.FIELD_NAME, jp.getCurrentToken());
+        assertEquals("name2", jp.getCurrentName());
+        assertToken(JsonToken.VALUE_NUMBER_INT, jp.nextToken());
+
+        assertFalse(jp.isNextTokenName(NAME));
+        assertToken(JsonToken.FIELD_NAME, jp.getCurrentToken());
+        assertEquals("x", jp.getCurrentName());
+
+        assertFalse(jp.isNextTokenName(NAME));
+        assertToken(JsonToken.VALUE_STRING, jp.getCurrentToken());
+
+        assertFalse(jp.isNextTokenName(NAME));
+        assertToken(JsonToken.END_OBJECT, jp.getCurrentToken());
+
+        assertFalse(jp.isNextTokenName(NAME));
+        assertNull(jp.getCurrentToken());
+
+        jp.close();
     }
     
     /*
