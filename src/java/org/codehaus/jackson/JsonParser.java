@@ -590,16 +590,6 @@ public abstract class JsonParser
         throws IOException, JsonParseException;
 
     /**
-     * Method that can be called to determine whether this parser
-     * is closed or not. If it is closed, no new tokens can be
-     * retrieved by calling {@link #nextToken} (and the underlying
-     * stream may be closed). Closing may be due to an explicit
-     * call to {@link #close} or because parser has encountered
-     * end of input.
-     */
-    public abstract boolean isClosed();
-
-    /**
      * Method that fetches next token (as if calling {@link #nextToken}) and
      * verifies whether it is {@link JsonToken#FIELD_NAME} with specified name
      * or not, and returns result of that comparison.
@@ -640,6 +630,16 @@ public abstract class JsonParser
     {
         return (nextToken() == JsonToken.FIELD_NAME) && str.getValue().equals(getCurrentName());
     }
+
+    /**
+     * Method that can be called to determine whether this parser
+     * is closed or not. If it is closed, no new tokens can be
+     * retrieved by calling {@link #nextToken} (and the underlying
+     * stream may be closed). Closing may be due to an explicit
+     * call to {@link #close} or because parser has encountered
+     * end of input.
+     */
+    public abstract boolean isClosed();
     
     /*
     /**********************************************************

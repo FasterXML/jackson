@@ -4,6 +4,7 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.sym.*;
 import org.codehaus.jackson.util.*;
 
@@ -611,6 +612,309 @@ public final class Utf8StreamParser
             _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
         }
         return (_currToken = t);
+    }
+    
+    @Override
+    public boolean isNextTokenName(SerializableString str)
+        throws IOException, JsonParseException
+    {
+        // // // Note: most of code below is copied from nextToken()
+        
+        if (_currToken == JsonToken.FIELD_NAME) { // can't have name right after name
+            _nextAfterName();
+            return false;
+        }
+        if (_tokenIncomplete) {
+            _skipString();
+        }
+        int i = _skipWSOrEnd();
+        if (i < 0) { // end-of-input
+            close();
+            _currToken = null;
+            return false;
+        }
+        _tokenInputTotal = _currInputProcessed + _inputPtr - 1;
+        _tokenInputRow = _currInputRow;
+        _tokenInputCol = _inputPtr - _currInputRowStart - 1;
+
+        // finally: clear any data retained so far
+        _binaryValue = null;
+
+        // Closing scope?
+        if (i == INT_RBRACKET) {
+            if (!_parsingContext.inArray()) {
+                _reportMismatchedEndMarker(i, '}');
+            }
+            _parsingContext = _parsingContext.getParent();
+            _currToken = JsonToken.END_ARRAY;
+            return false;
+        }
+        if (i == INT_RCURLY) {
+            if (!_parsingContext.inObject()) {
+                _reportMismatchedEndMarker(i, ']');
+            }
+            _parsingContext = _parsingContext.getParent();
+            _currToken = JsonToken.END_OBJECT;
+            return false;
+        }
+
+        // Nope: do we then expect a comma?
+        if (_parsingContext.expectComma()) {
+            if (i != INT_COMMA) {
+                _reportUnexpectedChar(i, "was expecting comma to separate "+_parsingContext.getTypeDesc()+" entries");
+            }
+            i = _skipWS();
+        }
+
+        if (!_parsingContext.inObject()) {
+            _nextTokenNotInObject(i);
+            return false;
+        }
+        
+        // // // This part differs, name parsing
+        if (i == INT_QUOTE) {
+            // when doing literal match, must consider escaping:
+            byte[] nameBytes = str.asQuotedUTF8();
+            final int len = nameBytes.length;
+            if ((_inputPtr + len) < _inputEnd) { // maybe...
+                // first check length match by
+                final int end = _inputPtr+len;
+                if (_inputBuffer[end] == INT_QUOTE) {
+                    int offset = 0;
+                    final int ptr = _inputPtr;
+                    while (true) {
+                        if (offset == len) { // yes, match!
+                            _inputPtr = end+1; // skip current value first
+                            // First part is simple; setting of name
+                            _parsingContext.setCurrentName(str.getValue());
+                            _currToken = JsonToken.FIELD_NAME;
+                            // But then we also must handle following value etc
+                            _isNextTokenNameYes();
+                            return true;
+                        }
+                        if (nameBytes[offset] != _inputBuffer[ptr+offset]) {
+                            break;
+                        }
+                        ++offset;
+                    }
+                }
+            }
+        }
+        _isNextTokenNameNo(i);
+        return false;
+    }
+
+    @Override
+    public boolean isNextTokenName(SerializedString str)
+         throws IOException, JsonParseException
+    {
+       // // // Note: most of code below is copied from nextToken()
+        
+        if (_currToken == JsonToken.FIELD_NAME) { // can't have name right after name
+            _nextAfterName();
+            return false;
+        }
+        if (_tokenIncomplete) {
+            _skipString();
+        }
+        int i = _skipWSOrEnd();
+        if (i < 0) { // end-of-input
+            close();
+            _currToken = null;
+            return false;
+        }
+        _tokenInputTotal = _currInputProcessed + _inputPtr - 1;
+        _tokenInputRow = _currInputRow;
+        _tokenInputCol = _inputPtr - _currInputRowStart - 1;
+
+        // finally: clear any data retained so far
+        _binaryValue = null;
+
+        // Closing scope?
+        if (i == INT_RBRACKET) {
+            if (!_parsingContext.inArray()) {
+                _reportMismatchedEndMarker(i, '}');
+            }
+            _parsingContext = _parsingContext.getParent();
+            _currToken = JsonToken.END_ARRAY;
+            return false;
+        }
+        if (i == INT_RCURLY) {
+            if (!_parsingContext.inObject()) {
+                _reportMismatchedEndMarker(i, ']');
+            }
+            _parsingContext = _parsingContext.getParent();
+            _currToken = JsonToken.END_OBJECT;
+            return false;
+        }
+
+        // Nope: do we then expect a comma?
+        if (_parsingContext.expectComma()) {
+            if (i != INT_COMMA) {
+                _reportUnexpectedChar(i, "was expecting comma to separate "+_parsingContext.getTypeDesc()+" entries");
+            }
+            i = _skipWS();
+        }
+
+        if (!_parsingContext.inObject()) {
+            _nextTokenNotInObject(i);
+            return false;
+        }
+        
+        // // // This part differs, name parsing
+        if (i == INT_QUOTE) {
+            // when doing literal match, must consider escaping:
+            byte[] nameBytes = str.asQuotedUTF8();
+            final int len = nameBytes.length;
+            if ((_inputPtr + len) < _inputEnd) { // maybe...
+                // first check length match by
+                final int end = _inputPtr+len;
+                if (_inputBuffer[end] == INT_QUOTE) {
+                    int offset = 0;
+                    final int ptr = _inputPtr;
+                    while (true) {
+                        if (offset == len) { // yes, match!
+                            _inputPtr = end+1; // skip current value first
+                            // First part is simple; setting of name
+                            _parsingContext.setCurrentName(str.getValue());
+                            _currToken = JsonToken.FIELD_NAME;
+                            // But then we also must handle following value etc
+                            _isNextTokenNameYes();
+                            return true;
+                        }
+                        if (nameBytes[offset] != _inputBuffer[ptr+offset]) {
+                            break;
+                        }
+                        ++offset;
+                    }
+                }
+            }
+        }
+        _isNextTokenNameNo(i);
+        return false;
+    }
+
+    private final void _isNextTokenNameYes()
+            throws IOException, JsonParseException
+    {
+        int i = _skipWS();
+        if (i != INT_COLON) {
+            _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+        }
+        i = _skipWS();
+
+        // Ok: we must have a value... what is it? Strings are very common, check first:
+        if (i == INT_QUOTE) {
+            _tokenIncomplete = true;
+            _nextToken = JsonToken.VALUE_STRING;
+            return;
+        }        
+        JsonToken t;
+
+        switch (i) {
+        case INT_LBRACKET:
+            t = JsonToken.START_ARRAY;
+            break;
+        case INT_LCURLY:
+            t = JsonToken.START_OBJECT;
+            break;
+        case INT_RBRACKET:
+        case INT_RCURLY:
+            _reportUnexpectedChar(i, "expected a value");
+        case INT_t:
+            _matchToken("true", 1);
+            t = JsonToken.VALUE_TRUE;
+            break;
+        case INT_f:
+            _matchToken("false", 1);
+             t = JsonToken.VALUE_FALSE;
+            break;
+        case INT_n:
+            _matchToken("null", 1);
+            t = JsonToken.VALUE_NULL;
+            break;
+
+        case INT_MINUS:
+        case INT_0:
+        case INT_1:
+        case INT_2:
+        case INT_3:
+        case INT_4:
+        case INT_5:
+        case INT_6:
+        case INT_7:
+        case INT_8:
+        case INT_9:
+            t = parseNumberText(i);
+            break;
+        default:
+            t = _handleUnexpectedValue(i);
+        }
+        _nextToken = t;
+    }
+    
+    private final void _isNextTokenNameNo(int i)
+            throws IOException, JsonParseException
+    {
+        // // // and this is back to standard nextToken()
+            
+        Name n = _parseFieldName(i);
+        _parsingContext.setCurrentName(n.getName());
+        _currToken = JsonToken.FIELD_NAME;
+        i = _skipWS();
+        if (i != INT_COLON) {
+            _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+        }
+        i = _skipWS();
+
+        // Ok: we must have a value... what is it? Strings are very common, check first:
+        if (i == INT_QUOTE) {
+            _tokenIncomplete = true;
+            _nextToken = JsonToken.VALUE_STRING;
+            return;
+        }        
+        JsonToken t;
+
+        switch (i) {
+        case INT_LBRACKET:
+            t = JsonToken.START_ARRAY;
+            break;
+        case INT_LCURLY:
+            t = JsonToken.START_OBJECT;
+            break;
+        case INT_RBRACKET:
+        case INT_RCURLY:
+            _reportUnexpectedChar(i, "expected a value");
+        case INT_t:
+            _matchToken("true", 1);
+            t = JsonToken.VALUE_TRUE;
+            break;
+        case INT_f:
+            _matchToken("false", 1);
+             t = JsonToken.VALUE_FALSE;
+            break;
+        case INT_n:
+            _matchToken("null", 1);
+            t = JsonToken.VALUE_NULL;
+            break;
+
+        case INT_MINUS:
+        case INT_0:
+        case INT_1:
+        case INT_2:
+        case INT_3:
+        case INT_4:
+        case INT_5:
+        case INT_6:
+        case INT_7:
+        case INT_8:
+        case INT_9:
+            t = parseNumberText(i);
+            break;
+        default:
+            t = _handleUnexpectedValue(i);
+        }
+        _nextToken = t;
     }
     
     @Override
