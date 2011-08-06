@@ -4,12 +4,18 @@ import java.io.IOException;
 import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
+import org.codehaus.jackson.io.SerializedString;
 
 /**
  * Value class for performance tests
  */
+@JsonPropertyOrder({"content", "images"})
 public class MediaItem
 {
+    final static SerializedString NAME_IMAGES = new SerializedString("images");
+    final static SerializedString NAME_CONTENT = new SerializedString("content");
+    
     public enum Player { JAVA, FLASH;  }
     public enum Size { SMALL, LARGE; }
 
@@ -56,7 +62,34 @@ public class MediaItem
         }
         return item;
     }
-
+    
+    private final static void failName(JsonParser jp, SerializableString str) throws IOException {
+        throw new IOException("Expected FIELD_NAME '"+str+"'; got "+jp.getCurrentToken()+" (name '"+jp.getCurrentName()+"')");
+    }
+    
+    /* Alternate deserializer that relies on ordering (just for
+     * test purposes -- would not work for real-world use cases)
+     */
+    public static MediaItem deserializeFaster(JsonParser jp) throws IOException
+    {
+        if (jp.nextToken() != JsonToken.START_OBJECT) {
+            throw new IOException("Need START_OBJECT for MediaItem");
+        }
+        MediaItem item = new MediaItem();
+        if (!jp.isNextTokenName(NAME_CONTENT)) {
+            failName(jp, NAME_CONTENT);
+        }
+        item._content = Content.deserializeFaster(jp);
+        if (!jp.isNextTokenName(NAME_IMAGES)) {
+            failName(jp, NAME_IMAGES);
+        }
+        item._photos = deserializeImagesFaster(jp);
+        if (jp.nextToken() != JsonToken.END_OBJECT) {
+            throw new IOException("Need END_OBJECT to complete MediaItem");
+        }
+        return item;
+    }
+    
     private static List<Photo> deserializeImages(JsonParser jp) throws IOException
     {
         if (jp.nextToken() != JsonToken.START_ARRAY) {
@@ -71,12 +104,33 @@ public class MediaItem
         }
         return images;
     }
+
+    private static List<Photo> deserializeImagesFaster(JsonParser jp) throws IOException
+    {
+        if (jp.nextToken() != JsonToken.START_ARRAY) {
+            throw new IOException("Need START_ARRAY for List of Photos");
+        }
+        ArrayList<Photo> images = new ArrayList<Photo>(4);
+        while (jp.nextToken() == JsonToken.START_OBJECT) {
+            images.add(Photo.deserializeFaster(jp));
+        }
+        if (jp.getCurrentToken() != JsonToken.END_ARRAY) {
+            throw new IOException("Need END_ARRAY to complete List of Photos");
+        }
+        return images;
+    }
     
     // Custom serializer
     public void serialize(JsonGenerator jgen) throws IOException
     {
         jgen.writeStartObject();
 
+        jgen.writeFieldName("content");
+        if (_content == null) {
+            jgen.writeNull();
+        } else {
+            _content.serialize(jgen);
+        }
         if (_photos == null) {
             jgen.writeNullField("images");
         } else {
@@ -85,12 +139,6 @@ public class MediaItem
                 photo.serialize(jgen);
             }
             jgen.writeEndArray();
-        }
-        jgen.writeFieldName("content");
-        if (_content == null) {
-            jgen.writeNull();
-        } else {
-            _content.serialize(jgen);
         }
 
         jgen.writeEndObject();
@@ -102,6 +150,7 @@ public class MediaItem
     /**********************************************************
      */
     
+    @JsonPropertyOrder({"uri","title","width","height","size"})
     public static class Photo
     {
         public final static int F_URI = 1;
@@ -119,7 +168,13 @@ public class MediaItem
             sFields.put("height", F_HEIGHT);
             sFields.put("size", F_SIZE);
         }
-    
+
+        final static SerializedString NAME_URI = new SerializedString("uri");
+        final static SerializedString NAME_TITLE = new SerializedString("title");
+        final static SerializedString NAME_WIDTH = new SerializedString("width");
+        final static SerializedString NAME_HEIGHT = new SerializedString("height");
+        final static SerializedString NAME_SIZE = new SerializedString("size");
+        
       private String _uri;
       private String _title;
       private int _width;
@@ -191,6 +246,46 @@ public class MediaItem
           if (jp.getCurrentToken() != JsonToken.END_OBJECT) {
               throw new IOException("Need END_OBJECT to complete Photo");
           }
+          return photo;
+      }
+
+      public static Photo deserializeFaster(JsonParser jp) throws IOException
+      {
+          Photo photo = new Photo();
+
+          if (!jp.isNextTokenName(NAME_URI)) {
+              failName(jp, NAME_URI);
+          }
+          jp.nextToken();
+          photo.setUri(jp.getText());
+
+          if (!jp.isNextTokenName(NAME_TITLE)) {
+              failName(jp, NAME_TITLE);
+          }
+          jp.nextToken();
+          photo.setTitle(jp.getText());
+
+          if (!jp.isNextTokenName(NAME_WIDTH)) {
+              failName(jp, NAME_WIDTH);
+          }
+          jp.nextToken();
+          photo.setWidth(jp.getIntValue());
+          
+          if (!jp.isNextTokenName(NAME_HEIGHT)) {
+              failName(jp, NAME_HEIGHT);
+          }
+          jp.nextToken();
+          photo.setHeight(jp.getIntValue());
+
+          if (!jp.isNextTokenName(NAME_SIZE)) {
+              failName(jp, NAME_SIZE);
+          }
+          jp.nextToken();
+          photo.setSize(findSize(jp.getText()));
+
+          if (jp.nextToken() != JsonToken.END_OBJECT) {
+              throw new IOException("Need END_OBJECT to complete Photo");
+          }
 
           return photo;
       }
@@ -207,6 +302,7 @@ public class MediaItem
       }          
     }
 
+    @JsonPropertyOrder({"player","uri","title","width","height","format","duration","size","bitrate","persons","copyright"})
     public static class Content
     {
         public final static int F_PLAYER = 0;
@@ -235,7 +331,19 @@ public class MediaItem
             sFields.put("persons", F_PERSONS);
             sFields.put("copyright", F_COPYRIGHT);
         }
-    
+
+        final static SerializedString NAME_PLAYER = new SerializedString("player");
+        final static SerializedString NAME_URI = new SerializedString("uri");
+        final static SerializedString NAME_TITLE = new SerializedString("title");
+        final static SerializedString NAME_WIDTH = new SerializedString("width");
+        final static SerializedString NAME_HEIGHT = new SerializedString("height");
+        final static SerializedString NAME_FORMAT = new SerializedString("format");
+        final static SerializedString NAME_DURATION = new SerializedString("duration");
+        final static SerializedString NAME_SIZE = new SerializedString("size");
+        final static SerializedString NAME_BITRATE = new SerializedString("bitrate");
+        final static SerializedString NAME_PERSONS = new SerializedString("persons");
+        final static SerializedString NAME_COPYRIGHT = new SerializedString("copyright");
+        
         private Player _player;
         private String _uri;
         private String _title;
@@ -347,6 +455,85 @@ public class MediaItem
             return content;
         }
 
+        public static Content deserializeFaster(JsonParser jp) throws IOException
+        {
+            if (jp.nextToken() != JsonToken.START_OBJECT) {
+                throw new IOException("Need START_OBJECT for Content");
+            }
+            Content content = new Content();
+            if (!jp.isNextTokenName(NAME_PLAYER)) {
+                failName(jp, NAME_PLAYER);
+            }
+            jp.nextToken();
+            content.setPlayer(findPlayer(jp.getText()));
+
+            if (!jp.isNextTokenName(NAME_URI)) {
+                failName(jp, NAME_URI);
+            }
+            jp.nextToken();
+            content.setUri(jp.getText());
+            
+            if (!jp.isNextTokenName(NAME_TITLE)) {
+                failName(jp, NAME_TITLE);
+            }
+            jp.nextToken();
+            content.setTitle(jp.getText());
+
+            if (!jp.isNextTokenName(NAME_WIDTH)) {
+                failName(jp, NAME_WIDTH);
+            }
+            jp.nextToken();
+            content.setWidth(jp.getIntValue());
+
+            if (!jp.isNextTokenName(NAME_HEIGHT)) {
+                failName(jp, NAME_HEIGHT);
+            }
+            jp.nextToken();
+            content.setHeight(jp.getIntValue());
+
+            if (!jp.isNextTokenName(NAME_FORMAT)) {
+                failName(jp, NAME_PLAYER);
+            }
+            jp.nextToken();
+            content.setCopyright(jp.getText());
+
+            if (!jp.isNextTokenName(NAME_DURATION)) {
+                failName(jp, NAME_DURATION);
+            }
+            jp.nextToken();
+            content.setDuration(jp.getLongValue());
+
+            if (!jp.isNextTokenName(NAME_SIZE)) {
+                failName(jp, NAME_SIZE);
+            }
+            jp.nextToken();
+            content.setSize(jp.getLongValue());
+            
+            if (!jp.isNextTokenName(NAME_BITRATE)) {
+                failName(jp, NAME_BITRATE);
+            }
+            jp.nextToken();
+            content.setBitrate(jp.getIntValue());
+
+            if (!jp.isNextTokenName(NAME_PERSONS)) {
+                failName(jp, NAME_PERSONS);
+            }
+            jp.nextToken();
+            content.setPersons(deserializePersons(jp));
+
+            if (!jp.isNextTokenName(NAME_COPYRIGHT)) {
+                failName(jp, NAME_COPYRIGHT);
+            }
+            jp.nextToken();
+            content.setCopyright(jp.getText());
+
+            if (jp.nextToken() != JsonToken.END_OBJECT) {
+                throw new IOException("Need END_OBJECT to complete Content");
+            }
+            
+            return content;
+        }
+        
         private static List<String> deserializePersons(JsonParser jp) throws IOException
         {
             if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
@@ -365,7 +552,7 @@ public class MediaItem
         public void serialize(JsonGenerator jgen) throws IOException
         {
             jgen.writeStartObject();
-            jgen.writeStringField("play", (_player == null) ? null : _player.name());
+            jgen.writeStringField("player", (_player == null) ? null : _player.name());
             jgen.writeStringField("uri", _uri);
             jgen.writeStringField("title", _title);
             jgen.writeNumberField("width", _width);

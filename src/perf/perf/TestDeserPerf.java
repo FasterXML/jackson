@@ -118,6 +118,7 @@ public final class TestDeserPerf
             System.out.println("Verification successful: Smile ok!");
         }
 
+        
         int round = 0;
         while (true) {
 //            try {  Thread.sleep(100L); } catch (InterruptedException ie) { }
@@ -140,6 +141,11 @@ public final class TestDeserPerf
                 sum += testDeser(jsonMapper.getJsonFactory(), json, REPS);
                 break;
 
+            case 2:
+                msg = "Deserialize, manual/FAST, JSON";
+                sum += testDeserFaster(jsonMapper.getJsonFactory(), json, REPS);
+                break;
+                
                 /*
             case 2:
                 msg = "Deserialize, smile";
@@ -193,6 +199,18 @@ public final class TestDeserPerf
         return item.hashCode(); // just to get some non-optimizable number
     }
 
+    protected int testDeserFaster(JsonFactory jf, byte[] input, int reps)
+            throws Exception
+        {
+            MediaItem item = null;
+            for (int i = 0; i < reps; ++i) {
+                JsonParser jp = jf.createJsonParser(input);
+                item = MediaItem.deserializeFaster(jp);
+                jp.close();
+            }
+            return item.hashCode(); // just to get some non-optimizable number
+        }
+    
     /*
     protected int testFastJson(byte[] input, int reps)
         throws Exception
