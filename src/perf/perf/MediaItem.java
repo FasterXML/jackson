@@ -76,11 +76,11 @@ public class MediaItem
             throw new IOException("Need START_OBJECT for MediaItem");
         }
         MediaItem item = new MediaItem();
-        if (!jp.isNextTokenName(NAME_CONTENT)) {
+        if (!jp.nextFieldName(NAME_CONTENT)) {
             failName(jp, NAME_CONTENT);
         }
         item._content = Content.deserializeFaster(jp);
-        if (!jp.isNextTokenName(NAME_IMAGES)) {
+        if (!jp.nextFieldName(NAME_IMAGES)) {
             failName(jp, NAME_IMAGES);
         }
         item._photos = deserializeImagesFaster(jp);
@@ -253,35 +253,30 @@ public class MediaItem
       {
           Photo photo = new Photo();
 
-          if (!jp.isNextTokenName(NAME_URI)) {
+          if (!jp.nextFieldName(NAME_URI)) {
               failName(jp, NAME_URI);
           }
-          jp.nextToken();
-          photo.setUri(jp.getText());
+          photo.setUri(jp.nextTextValue());
 
-          if (!jp.isNextTokenName(NAME_TITLE)) {
+          if (!jp.nextFieldName(NAME_TITLE)) {
               failName(jp, NAME_TITLE);
           }
-          jp.nextToken();
-          photo.setTitle(jp.getText());
+          photo.setTitle(jp.nextTextValue());
 
-          if (!jp.isNextTokenName(NAME_WIDTH)) {
+          if (!jp.nextFieldName(NAME_WIDTH)) {
               failName(jp, NAME_WIDTH);
           }
-          jp.nextToken();
-          photo.setWidth(jp.getIntValue());
+          photo.setWidth(jp.nextIntValue(-1));
           
-          if (!jp.isNextTokenName(NAME_HEIGHT)) {
+          if (!jp.nextFieldName(NAME_HEIGHT)) {
               failName(jp, NAME_HEIGHT);
           }
-          jp.nextToken();
-          photo.setHeight(jp.getIntValue());
+          photo.setHeight(jp.nextIntValue(-1));
 
-          if (!jp.isNextTokenName(NAME_SIZE)) {
+          if (!jp.nextFieldName(NAME_SIZE)) {
               failName(jp, NAME_SIZE);
           }
-          jp.nextToken();
-          photo.setSize(findSize(jp.getText()));
+          photo.setSize(findSize(jp.nextTextValue()));
 
           if (jp.nextToken() != JsonToken.END_OBJECT) {
               throw new IOException("Need END_OBJECT to complete Photo");
@@ -461,71 +456,61 @@ public class MediaItem
                 throw new IOException("Need START_OBJECT for Content");
             }
             Content content = new Content();
-            if (!jp.isNextTokenName(NAME_PLAYER)) {
+            if (!jp.nextFieldName(NAME_PLAYER)) {
                 failName(jp, NAME_PLAYER);
             }
-            jp.nextToken();
-            content.setPlayer(findPlayer(jp.getText()));
+            content.setPlayer(findPlayer(jp.nextTextValue()));
 
-            if (!jp.isNextTokenName(NAME_URI)) {
+            if (!jp.nextFieldName(NAME_URI)) {
                 failName(jp, NAME_URI);
             }
-            jp.nextToken();
-            content.setUri(jp.getText());
+            content.setUri(jp.nextTextValue());
             
-            if (!jp.isNextTokenName(NAME_TITLE)) {
+            if (!jp.nextFieldName(NAME_TITLE)) {
                 failName(jp, NAME_TITLE);
             }
-            jp.nextToken();
-            content.setTitle(jp.getText());
+            content.setTitle(jp.nextTextValue());
 
-            if (!jp.isNextTokenName(NAME_WIDTH)) {
+            if (!jp.nextFieldName(NAME_WIDTH)) {
                 failName(jp, NAME_WIDTH);
             }
-            jp.nextToken();
-            content.setWidth(jp.getIntValue());
+            content.setWidth(jp.nextIntValue(-1));
 
-            if (!jp.isNextTokenName(NAME_HEIGHT)) {
+            if (!jp.nextFieldName(NAME_HEIGHT)) {
                 failName(jp, NAME_HEIGHT);
             }
-            jp.nextToken();
-            content.setHeight(jp.getIntValue());
+            content.setHeight(jp.nextIntValue(-1));
 
-            if (!jp.isNextTokenName(NAME_FORMAT)) {
+            if (!jp.nextFieldName(NAME_FORMAT)) {
                 failName(jp, NAME_PLAYER);
             }
-            jp.nextToken();
-            content.setCopyright(jp.getText());
+            content.setCopyright(jp.nextTextValue());
 
-            if (!jp.isNextTokenName(NAME_DURATION)) {
+            if (!jp.nextFieldName(NAME_DURATION)) {
                 failName(jp, NAME_DURATION);
             }
-            jp.nextToken();
-            content.setDuration(jp.getLongValue());
+            content.setDuration(jp.nextLongValue(-1L));
 
-            if (!jp.isNextTokenName(NAME_SIZE)) {
+            if (!jp.nextFieldName(NAME_SIZE)) {
                 failName(jp, NAME_SIZE);
             }
-            jp.nextToken();
-            content.setSize(jp.getLongValue());
+            content.setSize(jp.nextLongValue(-1L));
             
-            if (!jp.isNextTokenName(NAME_BITRATE)) {
+            if (!jp.nextFieldName(NAME_BITRATE)) {
                 failName(jp, NAME_BITRATE);
             }
-            jp.nextToken();
-            content.setBitrate(jp.getIntValue());
+            content.setBitrate(jp.nextIntValue(-1));
 
-            if (!jp.isNextTokenName(NAME_PERSONS)) {
+            if (!jp.nextFieldName(NAME_PERSONS)) {
                 failName(jp, NAME_PERSONS);
             }
             jp.nextToken();
             content.setPersons(deserializePersons(jp));
 
-            if (!jp.isNextTokenName(NAME_COPYRIGHT)) {
+            if (!jp.nextFieldName(NAME_COPYRIGHT)) {
                 failName(jp, NAME_COPYRIGHT);
             }
-            jp.nextToken();
-            content.setCopyright(jp.getText());
+            content.setCopyright(jp.nextTextValue());
 
             if (jp.nextToken() != JsonToken.END_OBJECT) {
                 throw new IOException("Need END_OBJECT to complete Content");

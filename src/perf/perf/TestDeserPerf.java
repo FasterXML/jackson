@@ -126,37 +126,47 @@ public final class TestDeserPerf
 
             long curr = System.currentTimeMillis();
             String msg;
+            round = (++round % 4);
+
+if (true) round = 1;            
+            
             boolean lf = (round == 0);
-            round = (++round % 3);
 
             switch (round) {
 
             case 0:
-                msg = "Deserialize, JSON";
-                sum += testDeser(jsonMapper, json, REPS);
-                break;
-
-            case 1:
                 msg = "Deserialize, manual, JSON";
                 sum += testDeser(jsonMapper.getJsonFactory(), json, REPS);
                 break;
 
-            case 2:
+            case 1:
                 msg = "Deserialize, manual/FAST, JSON";
                 sum += testDeserFaster(jsonMapper.getJsonFactory(), json, REPS);
                 break;
                 
                 /*
             case 2:
+                msg = "Deserialize, bind, JSON";
+                sum += testDeser(jsonMapper, json, REPS);
+                break;
+
+            case 2:
                 msg = "Deserialize, smile";
                 sum += testDeser(smileMapper, smile, REPS * 2);
                 break;
+                */
 
-            case 3:
+            case 2:
                 msg = "Deserialize, manual, Smile";
-                sum += testDeser(smileMapper.getJsonFactory(), smile, REPS * 2);
+                sum += testDeser(smileMapper.getJsonFactory(), smile, REPS);
                 break;
 
+            case 3:
+                msg = "Deserialize, manual/FAST, Smile";
+                sum += testDeserFaster(smileMapper.getJsonFactory(), smile, REPS);
+                break;
+                
+                /*
             case 2:
                 msg = "Deserialize, fast-json";
                 sum += testFastJson(json, REPS);

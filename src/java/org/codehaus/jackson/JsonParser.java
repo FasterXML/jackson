@@ -573,6 +573,127 @@ public abstract class JsonParser
     }
 
     /**
+     * Method that fetches next token (as if calling {@link #nextToken}) and
+     * verifies whether it is {@link JsonToken#FIELD_NAME} with specified name
+     * and returns result of that comparison.
+     * It is functionally equivalent to:
+     *<pre>
+     *  return (nextToken() == JsonToken.FIELD_NAME) && str.getValue().equals(getCurrentName());
+     *</pre>
+     * but may be faster for parser to verify, and can therefore be used if caller
+     * expects to get such a property name from input next.
+     * 
+     * @param str Property name to compare next token to (if next token is <code>JsonToken.FIELD_NAME<code>)
+     * 
+     * @since 1.9
+     */
+    public boolean nextFieldName(SerializableString str)
+        throws IOException, JsonParseException
+    {
+        return (nextToken() == JsonToken.FIELD_NAME) && str.getValue().equals(getCurrentName());
+    }
+
+    /**
+     * Method that fetches next token (as if calling {@link #nextToken}) and
+     * verifies whether it is {@link JsonToken#FIELD_NAME} with specified name
+     * and returns result of that comparison.
+     * It is functionally equivalent to:
+     *<pre>
+     *  return (nextToken() == JsonToken.FIELD_NAME) && str.getValue().equals(getCurrentName());
+     *</pre>
+     * but may be faster for parser to verify, and can therefore be used if caller
+     * expects to get such a property name from input next.
+     * 
+     * @param str Property name to compare next token to (if next token is <code>JsonToken.FIELD_NAME<code>)
+     * 
+     * @since 1.9
+     */
+    public boolean nextFieldName(SerializedString str)
+        throws IOException, JsonParseException
+    {
+        return (nextToken() == JsonToken.FIELD_NAME) && str.getValue().equals(getCurrentName());
+    }
+
+    /**
+     * Method that fetches next token (as if calling {@link #nextToken}) and
+     * if it is {@link JsonToken#VALUE_STRING} returns contained String value;
+     * otherwise returns null.
+     * It is functionally equivalent to:
+     *<pre>
+     *  return (nextToken() == JsonToken.VALUE_STRING) ? getText() : null;
+     *</pre>
+     * but may be faster for parser to process, and can therefore be used if caller
+     * expects to get a String value next from input.
+     * 
+     * @since 1.9
+     */
+    public String nextTextValue()
+        throws IOException, JsonParseException
+    {
+        return (nextToken() == JsonToken.VALUE_STRING) ? getText() : null;
+    }
+
+    /**
+     * Method that fetches next token (as if calling {@link #nextToken}) and
+     * if it is {@link JsonToken#VALUE_NUMBER_INT} returns 32-bit int value;
+     * otherwise returns specified default value
+     * It is functionally equivalent to:
+     *<pre>
+     *  return (nextToken() == JsonToken.VALUE_NUMBER_INT) ? getIntValue() : defaultValue;
+     *</pre>
+     * but may be faster for parser to process, and can therefore be used if caller
+     * expects to get a String value next from input.
+     * 
+     * @since 1.9
+     */
+    public int nextIntValue(int defaultValue)
+        throws IOException, JsonParseException
+    {
+        return (nextToken() == JsonToken.VALUE_NUMBER_INT) ? getIntValue() : defaultValue;
+    }
+
+    /**
+     * Method that fetches next token (as if calling {@link #nextToken}) and
+     * if it is {@link JsonToken#VALUE_NUMBER_INT} returns 64-bit long value;
+     * otherwise returns specified default value
+     * It is functionally equivalent to:
+     *<pre>
+     *  return (nextToken() == JsonToken.VALUE_NUMBER_INT) ? getLongValue() : defaultValue;
+     *</pre>
+     * but may be faster for parser to process, and can therefore be used if caller
+     * expects to get a String value next from input.
+     * 
+     * @since 1.9
+     */
+    public long nextLongValue(long defaultValue)
+        throws IOException, JsonParseException
+    {
+        return (nextToken() == JsonToken.VALUE_NUMBER_INT) ? getLongValue() : defaultValue;
+    }
+
+    /**
+     * Method that fetches next token (as if calling {@link #nextToken}) and
+     * if it is {@link JsonToken#VALUE_TRUE} or {@link JsonToken#VALUE_FALSE}
+     * returns matching Boolean value; otherwise return null.
+     * It is functionally equivalent to:
+     *<pre>
+     *  JsonToken t = nextToken();
+     *  if (t == JsonToken.VALUE_TRUE) return Boolean.TRUE;
+     *  if (t == JsonToken.VALUE_FALSE) return Boolean.FALSE;
+     *  return null;
+     *</pre>
+     * but may be faster for parser to process, and can therefore be used if caller
+     * expects to get a String value next from input.
+     * 
+     * @since 1.9
+     */
+    public long nextBooleanValue(long defaultValue)
+        throws IOException, JsonParseException
+    {
+        return (nextToken() == JsonToken.VALUE_NUMBER_INT) ? getLongValue() : defaultValue;
+    }
+    
+    /**
      * Method that will skip all child tokens of an array or
      * object token that the parser currently points to,
      * iff stream points to 
@@ -588,49 +709,7 @@ public abstract class JsonParser
      */
     public abstract JsonParser skipChildren()
         throws IOException, JsonParseException;
-
-    /**
-     * Method that fetches next token (as if calling {@link #nextToken}) and
-     * verifies whether it is {@link JsonToken#FIELD_NAME} with specified name
-     * or not, and returns result of that comparison.
-     * It is functionally equivalent to:
-     *<pre>
-     *  return (nextToken() == JsonToken.FIELD_NAME) && str.getValue().equals(getCurrentName());
-     *</pre>
-     * but may be faster for parser to verify, and can therefore be used if caller
-     * expects to get such a property name from input next.
-     * 
-     * @param str Property name to compare next token to (if next token is <code>JsonToken.FIELD_NAME<code>)
-     * 
-     * @since 1.9
-     */
-    public boolean isNextTokenName(SerializableString str)
-        throws IOException, JsonParseException
-    {
-        return (nextToken() == JsonToken.FIELD_NAME) && str.getValue().equals(getCurrentName());
-    }
-
-    /**
-     * Method that fetches next token (as if calling {@link #nextToken}) and
-     * verifies whether it is {@link JsonToken#FIELD_NAME} with specified name
-     * or not, and returns result of that comparison.
-     * It is functionally equivalent to:
-     *<pre>
-     *  return (nextToken() == JsonToken.FIELD_NAME) && str.getValue().equals(getCurrentName());
-     *</pre>
-     * but may be faster for parser to verify, and can therefore be used if caller
-     * expects to get such a property name from input next.
-     * 
-     * @param str Property name to compare next token to (if next token is <code>JsonToken.FIELD_NAME<code>)
-     * 
-     * @since 1.9
-     */
-    public boolean isNextTokenName(SerializedString str)
-        throws IOException, JsonParseException
-    {
-        return (nextToken() == JsonToken.FIELD_NAME) && str.getValue().equals(getCurrentName());
-    }
-
+    
     /**
      * Method that can be called to determine whether this parser
      * is closed or not. If it is closed, no new tokens can be

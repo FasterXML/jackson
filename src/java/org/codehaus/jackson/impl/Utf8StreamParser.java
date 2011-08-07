@@ -613,9 +613,9 @@ public final class Utf8StreamParser
         }
         return (_currToken = t);
     }
-    
+
     @Override
-    public boolean isNextTokenName(SerializableString str)
+    public boolean nextFieldName(SerializableString str)
         throws IOException, JsonParseException
     {
         // // // Note: most of code below is copied from nextToken()
@@ -705,7 +705,7 @@ public final class Utf8StreamParser
     }
 
     @Override
-    public boolean isNextTokenName(SerializedString str)
+    public boolean nextFieldName(SerializedString str)
          throws IOException, JsonParseException
     {
        // // // Note: most of code below is copied from nextToken()
@@ -797,43 +797,58 @@ public final class Utf8StreamParser
     private final void _isNextTokenNameYes()
             throws IOException, JsonParseException
     {
-        int i = _skipWS();
-        if (i != INT_COLON) {
-            _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+        // very first thing: common case, colon, value, no white space
+        int i;
+        if (_inputPtr < _inputEnd && _inputBuffer[_inputPtr] == INT_COLON) { // fast case first
+            ++_inputPtr;
+            i = _inputBuffer[_inputPtr++];
+            if (i == INT_QUOTE) {
+                _tokenIncomplete = true;
+                _nextToken = JsonToken.VALUE_STRING;
+                return;
+            }
+            if (i == INT_LCURLY) {
+                _nextToken = JsonToken.START_OBJECT;
+                return;
+            }
+            if (i == INT_LBRACKET) {
+                _nextToken = JsonToken.START_ARRAY;
+                return;
+            }
+            i &= 0xFF;
+            if (i <= INT_SPACE || i == INT_SLASH) {
+                --_inputPtr;
+                i = _skipWS();
+            }
+        } else {
+            i = _skipColon();
         }
-        i = _skipWS();
-
-        // Ok: we must have a value... what is it? Strings are very common, check first:
-        if (i == INT_QUOTE) {
+        switch (i) {
+        case INT_QUOTE:
             _tokenIncomplete = true;
             _nextToken = JsonToken.VALUE_STRING;
             return;
-        }        
-        JsonToken t;
-
-        switch (i) {
         case INT_LBRACKET:
-            t = JsonToken.START_ARRAY;
-            break;
+            _nextToken = JsonToken.START_ARRAY;
+            return;
         case INT_LCURLY:
-            t = JsonToken.START_OBJECT;
-            break;
+            _nextToken = JsonToken.START_OBJECT;
+            return;
         case INT_RBRACKET:
         case INT_RCURLY:
             _reportUnexpectedChar(i, "expected a value");
         case INT_t:
             _matchToken("true", 1);
-            t = JsonToken.VALUE_TRUE;
-            break;
+            _nextToken = JsonToken.VALUE_TRUE;
+            return;
         case INT_f:
             _matchToken("false", 1);
-             t = JsonToken.VALUE_FALSE;
-            break;
+            _nextToken = JsonToken.VALUE_FALSE;
+            return;
         case INT_n:
             _matchToken("null", 1);
-            t = JsonToken.VALUE_NULL;
-            break;
-
+            _nextToken = JsonToken.VALUE_NULL;
+            return;
         case INT_MINUS:
         case INT_0:
         case INT_1:
@@ -845,12 +860,10 @@ public final class Utf8StreamParser
         case INT_7:
         case INT_8:
         case INT_9:
-            t = parseNumberText(i);
-            break;
-        default:
-            t = _handleUnexpectedValue(i);
+            _nextToken = parseNumberText(i);
+            return;
         }
-        _nextToken = t;
+        _nextToken = _handleUnexpectedValue(i);
     }
     
     private final void _isNextTokenNameNo(int i)
@@ -2285,6 +2298,83 @@ public final class Utf8StreamParser
         return -1;
     }
 
+    /**
+     * Helper method for matching and skipping a colon character,
+     * optionally surrounded by white space
+     * 
+     * @since 1.9
+     */
+    private final int _skipColon()
+        throws IOException, JsonParseException
+    {
+        if (_inputPtr >= _inputEnd) {
+            loadMoreGuaranteed();
+        }
+        // first fast case: we just got a colon without white space:
+        int i = _inputBuffer[_inputPtr++];
+        if (i == INT_COLON) {
+            if (_inputPtr < _inputEnd) {
+                i = _inputBuffer[_inputPtr] & 0xFF;
+                if (i > INT_SPACE && i != INT_SLASH) {
+                    ++_inputPtr;
+                    return i;
+                }
+            }
+        } else {
+            // need to skip potential leading space
+            i &= 0xFF;
+
+            space_loop:
+            while (true) {
+                switch (i) {
+                case INT_SPACE:
+                case INT_TAB:
+                case INT_CR:
+                    _skipCR();
+                    break;
+                case INT_LF:
+                    _skipLF();
+                    break;
+                case INT_SLASH:
+                    _skipComment();
+                    break;
+                default:
+                    if (i < INT_SPACE) {
+                        _throwInvalidSpace(i);
+                    }
+                    break space_loop;
+                }
+            }
+            if (_inputPtr >= _inputEnd) {
+                loadMoreGuaranteed();
+            }
+            i = _inputBuffer[_inputPtr++] & 0xFF;
+            if (i != INT_COLON) {
+                _reportUnexpectedChar(i, "was expecting a colon to separate field name and value");
+            }
+        }
+
+            // either way, found colon, skip through trailing WS
+        while (_inputPtr < _inputEnd || loadMore()) {
+            i = _inputBuffer[_inputPtr++] & 0xFF;
+            if (i > INT_SPACE) {
+                if (i != INT_SLASH) {
+                    return i;
+                }
+                _skipComment();
+            } else if (i != INT_SPACE) {
+                if (i == INT_LF) {
+                    _skipLF();
+                } else if (i == INT_CR) {
+                    _skipCR();
+                } else if (i != INT_TAB) {
+                    _throwInvalidSpace(i);
+                }
+            }
+        }
+        throw _constructError("Unexpected end-of-input within/between "+_parsingContext.getTypeDesc()+" entries");
+    }
+    
     private final void _skipComment()
         throws IOException, JsonParseException
     {
