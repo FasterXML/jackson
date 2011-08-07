@@ -20,6 +20,7 @@ import org.codehaus.jackson.map.util.EnumResolver;
  * 
  * @since 1.9 (moved from higher-level package)
  */
+@SuppressWarnings("rawtypes")
 public class EnumSetDeserializer
     extends StdDeserializer<EnumSet<?>>
 {
@@ -27,7 +28,7 @@ public class EnumSetDeserializer
 
     protected final EnumDeserializer _enumDeserializer;
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings("unchecked" )
     public EnumSetDeserializer(EnumResolver enumRes)
     {
         super(EnumSet.class);

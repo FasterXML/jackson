@@ -16,6 +16,7 @@ public class MapDeserializer
     /**
      * @deprecated Since 1.9, use variant that takes ValueInstantiator
      */
+    @SuppressWarnings("deprecation")
     @Deprecated
     public MapDeserializer(JavaType mapType, Constructor<Map<Object,Object>> defCtor,
             KeyDeserializer keyDeser, JsonDeserializer<Object> valueDeser,

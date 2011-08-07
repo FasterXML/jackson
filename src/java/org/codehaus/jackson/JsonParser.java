@@ -687,10 +687,16 @@ public abstract class JsonParser
      * 
      * @since 1.9
      */
-    public long nextBooleanValue(long defaultValue)
+    public Boolean nextBooleanValue()
         throws IOException, JsonParseException
     {
-        return (nextToken() == JsonToken.VALUE_NUMBER_INT) ? getLongValue() : defaultValue;
+        switch (nextToken()) {
+        case VALUE_TRUE:
+            return Boolean.TRUE;
+        case VALUE_FALSE:
+            return Boolean.FALSE;
+        }
+        return null;
     }
     
     /**

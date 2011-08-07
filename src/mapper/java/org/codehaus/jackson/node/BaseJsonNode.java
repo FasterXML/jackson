@@ -105,6 +105,7 @@ public abstract class BaseJsonNode
     /**
      * Method called to serialize node instances using given generator.
      */
+    @SuppressWarnings("deprecation")
     @Override
     public abstract void serialize(JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonProcessingException;
@@ -129,6 +130,7 @@ public abstract class BaseJsonNode
      * Note: this method is deprecated, given that we
      * want to use the standard serialization interface.
      */
+    @SuppressWarnings("deprecation")
     @Override
     public final void writeTo(JsonGenerator jgen)
         throws IOException, JsonGenerationException

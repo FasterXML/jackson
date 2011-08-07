@@ -505,7 +505,7 @@ public class MediaItem
                 failName(jp, NAME_PERSONS);
             }
             jp.nextToken();
-            content.setPersons(deserializePersons(jp));
+            content.setPersons(deserializePersonsFaster(jp));
 
             if (!jp.nextFieldName(NAME_COPYRIGHT)) {
                 failName(jp, NAME_COPYRIGHT);
@@ -527,6 +527,22 @@ public class MediaItem
             ArrayList<String> persons = new ArrayList<String>(4);
             while (jp.nextToken() == JsonToken.VALUE_STRING) {
                 persons.add(jp.getText());
+            }
+            if (jp.getCurrentToken() != JsonToken.END_ARRAY) {
+                throw new IOException("Need END_ARRAY to complete List of Persons");
+            }
+            return persons;
+        }
+
+        private static List<String> deserializePersonsFaster(JsonParser jp) throws IOException
+        {
+            if (jp.getCurrentToken() != JsonToken.START_ARRAY) {
+                throw new IOException("Need START_ARRAY for List of Persons (got "+jp.getCurrentToken()+")");
+            }
+            ArrayList<String> persons = new ArrayList<String>(4);
+            String str;
+            while ((str = jp.nextTextValue()) != null) {
+                persons.add(str);
             }
             if (jp.getCurrentToken() != JsonToken.END_ARRAY) {
                 throw new IOException("Need END_ARRAY to complete List of Persons");

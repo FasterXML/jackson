@@ -235,10 +235,8 @@ public class UntypedObjectDeserializer
         ObjectBuffer buffer = ctxt.leaseObjectBuffer();
         Object[] values = buffer.resetAndStart();
         int ptr = 0;
-        int totalSize = 0;
         do {
             Object value = deserialize(jp, ctxt);
-            ++totalSize;
             if (ptr >= values.length) {
                 values = buffer.appendCompletedChunk(values);
                 ptr = 0;

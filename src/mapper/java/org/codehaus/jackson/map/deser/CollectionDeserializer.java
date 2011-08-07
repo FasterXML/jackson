@@ -16,6 +16,7 @@ public class CollectionDeserializer
     /**
      * @deprecated Since 1.9, use variant that takes ValueInstantiator
      */
+    @SuppressWarnings("deprecation")
     @Deprecated
     public CollectionDeserializer(JavaType collectionType, JsonDeserializer<Object> valueDeser,
             TypeDeserializer valueTypeDeser,
