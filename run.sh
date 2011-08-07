@@ -1,6 +1,6 @@
 #!/bin/sh
 
-java -Xmx64m -server\
+java -Xmx128m -server\
  -XX:-PrintGC -XX:-PrintGCDetails \
  -cp lib/junit/junit-3.8.1.jar\
 :lib/repackaged/\*:lib/xml/\*\

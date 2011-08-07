@@ -118,7 +118,8 @@ public final class TestDeserPerf
             System.out.println("Verification successful: Smile ok!");
         }
 
-        System.err.println("JSON = "+jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(item));
+// for debugging:
+// System.err.println("JSON = "+jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(item));
         
         int round = 0;
         while (true) {
@@ -129,7 +130,8 @@ public final class TestDeserPerf
             String msg;
             round = (++round % 4);
 
-//if (true) round = 1;            
+//if (true) round = 3; 
+if (round < 2) round += 2;
             
             boolean lf = (round == 0);
 

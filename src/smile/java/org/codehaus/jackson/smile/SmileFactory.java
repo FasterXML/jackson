@@ -235,7 +235,8 @@ public class SmileFactory extends JsonFactory
     public SmileParser createJsonParser(byte[] data)
         throws IOException, JsonParseException
     {
-        return _createJsonParser(data, 0, data.length, _createContext(data, true));
+        IOContext ctxt = _createContext(data, true);
+        return _createJsonParser(data, 0, data.length, ctxt);
     }
     
     @Override
