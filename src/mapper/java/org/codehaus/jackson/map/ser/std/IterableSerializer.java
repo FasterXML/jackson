@@ -14,7 +14,7 @@ import org.codehaus.jackson.type.JavaType;
 
 @JacksonStdImpl
 public class IterableSerializer
-    extends AsArraySerializer<Iterable<?>>
+    extends AsArraySerializerBase<Iterable<?>>
 {
     public IterableSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts, BeanProperty property)
     {

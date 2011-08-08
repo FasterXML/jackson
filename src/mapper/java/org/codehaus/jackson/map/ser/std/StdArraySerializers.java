@@ -12,9 +12,9 @@ import org.codehaus.jackson.map.annotate.JacksonStdImpl;
  * Dummy container class to group standard homogenous array serializer implementations
  * (primitive arrays and String array).
  */
-public class ArraySerializers
+public class StdArraySerializers
 {
-    protected ArraySerializers() { }
+    protected StdArraySerializers() { }
 
     /*
     /**********************************************************

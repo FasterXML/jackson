@@ -12,7 +12,7 @@ import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.type.JavaType;
 
 public class EnumSetSerializer
-    extends AsArraySerializer<EnumSet<? extends Enum<?>>>
+    extends AsArraySerializerBase<EnumSet<? extends Enum<?>>>
 {
     public EnumSetSerializer(JavaType elemType, BeanProperty property)
     {

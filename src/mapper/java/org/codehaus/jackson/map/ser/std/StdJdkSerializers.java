@@ -17,7 +17,7 @@ import org.codehaus.jackson.map.util.Provider;
  * are serializer as scalars; some using basic {@link ToStringSerializer},
  * others explicit serializers.
  */
-public class JdkSerializers
+public class StdJdkSerializers
     implements Provider<Map.Entry<Class<?>,Object>>
 {
     /**

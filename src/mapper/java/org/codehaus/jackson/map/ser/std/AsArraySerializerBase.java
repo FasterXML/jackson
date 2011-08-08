@@ -19,7 +19,7 @@ import org.codehaus.jackson.type.JavaType;
  * arrays; typically serializers used for {@link java.util.Collection}
  * and array types.
  */
-public abstract class AsArraySerializer<T>
+public abstract class AsArraySerializerBase<T>
     extends ContainerSerializerBase<T>
     implements ResolvableSerializer
 {
@@ -58,13 +58,13 @@ public abstract class AsArraySerializer<T>
      * @deprecated since 1.8
      */
     @Deprecated
-    protected AsArraySerializer(Class<?> cls, JavaType et, boolean staticTyping,
+    protected AsArraySerializerBase(Class<?> cls, JavaType et, boolean staticTyping,
             TypeSerializer vts, BeanProperty property)
     {
         this(cls, et, staticTyping, vts, property, null);
     }
 
-    protected AsArraySerializer(Class<?> cls, JavaType et, boolean staticTyping,
+    protected AsArraySerializerBase(Class<?> cls, JavaType et, boolean staticTyping,
             TypeSerializer vts, BeanProperty property, JsonSerializer<Object> elementSerializer)
     {
         // typing with generics is messy... have to resort to this:

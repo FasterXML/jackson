@@ -28,7 +28,7 @@ import org.codehaus.jackson.type.JavaType;
  */
 @JacksonStdImpl
 public class ObjectArraySerializer
-    extends ArraySerializers.ArraySerializerBase<Object[]>
+    extends StdArraySerializers.ArraySerializerBase<Object[]>
     implements ResolvableSerializer
 {
     /**

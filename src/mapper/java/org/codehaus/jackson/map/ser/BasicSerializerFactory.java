@@ -12,9 +12,9 @@ import org.codehaus.jackson.map.ext.OptionalHandlerFactory;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
-import org.codehaus.jackson.map.ser.std.ArraySerializers;
+import org.codehaus.jackson.map.ser.std.StdArraySerializers;
 import org.codehaus.jackson.map.ser.std.CalendarSerializer;
-import org.codehaus.jackson.map.ser.std.JdkSerializers;
+import org.codehaus.jackson.map.ser.std.StdJdkSerializers;
 import org.codehaus.jackson.map.ser.std.StdContainerSerializers;
 import org.codehaus.jackson.map.ser.std.DateSerializer;
 import org.codehaus.jackson.map.ser.std.EnumMapSerializer;
@@ -121,7 +121,7 @@ public abstract class BasicSerializerFactory
         _concrete.put(java.sql.Time.class.getName(), new StdSerializers.SqlTimeSerializer());
 
         // And then other standard non-structured JDK types
-        for (Map.Entry<Class<?>,Object> en : new JdkSerializers().provide()) {
+        for (Map.Entry<Class<?>,Object> en : new StdJdkSerializers().provide()) {
             Object value = en.getValue();
             if (value instanceof JsonSerializer<?>) {
                 _concrete.put(en.getKey().getName(), (JsonSerializer<?>) value);
@@ -143,14 +143,14 @@ public abstract class BasicSerializerFactory
         new HashMap<String, JsonSerializer<?>>();
     static {
         // Arrays of various types (including common object types)
-        _arraySerializers.put(boolean[].class.getName(), new ArraySerializers.BooleanArraySerializer());
-        _arraySerializers.put(byte[].class.getName(), new ArraySerializers.ByteArraySerializer());
-        _arraySerializers.put(char[].class.getName(), new ArraySerializers.CharArraySerializer());
-        _arraySerializers.put(short[].class.getName(), new ArraySerializers.ShortArraySerializer());
-        _arraySerializers.put(int[].class.getName(), new ArraySerializers.IntArraySerializer());
-        _arraySerializers.put(long[].class.getName(), new ArraySerializers.LongArraySerializer());
-        _arraySerializers.put(float[].class.getName(), new ArraySerializers.FloatArraySerializer());
-        _arraySerializers.put(double[].class.getName(), new ArraySerializers.DoubleArraySerializer());
+        _arraySerializers.put(boolean[].class.getName(), new StdArraySerializers.BooleanArraySerializer());
+        _arraySerializers.put(byte[].class.getName(), new StdArraySerializers.ByteArraySerializer());
+        _arraySerializers.put(char[].class.getName(), new StdArraySerializers.CharArraySerializer());
+        _arraySerializers.put(short[].class.getName(), new StdArraySerializers.ShortArraySerializer());
+        _arraySerializers.put(int[].class.getName(), new StdArraySerializers.IntArraySerializer());
+        _arraySerializers.put(long[].class.getName(), new StdArraySerializers.LongArraySerializer());
+        _arraySerializers.put(float[].class.getName(), new StdArraySerializers.FloatArraySerializer());
+        _arraySerializers.put(double[].class.getName(), new StdArraySerializers.DoubleArraySerializer());
     }
     
     /**
@@ -616,7 +616,7 @@ public abstract class BasicSerializerFactory
     {
         Class<?> raw = type.getRawClass();
         if (String[].class == raw) {
-            return new ArraySerializers.StringArraySerializer(property);
+            return new StdArraySerializers.StringArraySerializer(property);
         }
         // other standard types?
         JsonSerializer<?> ser = _arraySerializers.get(raw.getName());

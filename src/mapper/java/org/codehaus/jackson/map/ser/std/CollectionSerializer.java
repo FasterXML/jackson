@@ -21,7 +21,7 @@ import org.codehaus.jackson.type.JavaType;
  * to iterate over elements.
  */
 public class CollectionSerializer
-    extends AsArraySerializer<Collection<?>>
+    extends AsArraySerializerBase<Collection<?>>
 {
     public CollectionSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
             BeanProperty property, JsonSerializer<Object> valueSerializer)

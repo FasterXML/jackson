@@ -70,7 +70,7 @@ public class StdContainerSerializers
      */
     @JacksonStdImpl
     public static class IndexedListSerializer
-        extends AsArraySerializer<List<?>>
+        extends AsArraySerializerBase<List<?>>
     {
         public IndexedListSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
                 BeanProperty property, JsonSerializer<Object> valueSerializer)
@@ -192,7 +192,7 @@ public class StdContainerSerializers
 
     @JacksonStdImpl
     public static class IteratorSerializer
-        extends AsArraySerializer<Iterator<?>>
+        extends AsArraySerializerBase<Iterator<?>>
     {
         public IteratorSerializer(JavaType elemType, boolean staticTyping, TypeSerializer vts,
                 BeanProperty property)
