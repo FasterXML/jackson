@@ -4,10 +4,13 @@ import java.util.*;
 
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.deser.std.AtomicBooleanDeserializer;
+import org.codehaus.jackson.map.deser.std.CalendarDeserializer;
+import org.codehaus.jackson.map.deser.std.ClassDeserializer;
 import org.codehaus.jackson.map.deser.std.DateDeserializer;
 import org.codehaus.jackson.map.deser.std.FromStringDeserializer;
 import org.codehaus.jackson.map.deser.std.JavaTypeDeserializer;
 import org.codehaus.jackson.map.deser.std.StdDeserializer;
+import org.codehaus.jackson.map.deser.std.StringDeserializer;
 import org.codehaus.jackson.map.deser.std.TimestampDeserializer;
 import org.codehaus.jackson.map.deser.std.TokenBufferDeserializer;
 import org.codehaus.jackson.map.deser.std.UntypedObjectDeserializer;
@@ -31,10 +34,10 @@ class StdDeserializers
         add(new UntypedObjectDeserializer());
 
         // Then String and String-like converters:
-        StdDeserializer<?> strDeser = new StdDeserializer.StringDeserializer();
+        StdDeserializer<?> strDeser = new StringDeserializer();
         add(strDeser, String.class);
         add(strDeser, CharSequence.class);
-        add(new StdDeserializer.ClassDeserializer());
+        add(new ClassDeserializer());
 
         // Then primitive-wrappers (simple):
         add(new StdDeserializer.BooleanDeserializer(Boolean.class, null));
@@ -63,15 +66,15 @@ class StdDeserializers
         add(new StdDeserializer.BigDecimalDeserializer());
         add(new StdDeserializer.BigIntegerDeserializer());
         
+        add(new CalendarDeserializer());
         add(new DateDeserializer());
-        add(new StdDeserializer.SqlDateDeserializer());
-        add(new TimestampDeserializer());
-        add(new StdDeserializer.CalendarDeserializer());
         /* 24-Jan-2010, tatu: When including type information, we may
          *    know that we specifically need GregorianCalendar...
          */
-        add(new StdDeserializer.CalendarDeserializer(GregorianCalendar.class),
+        add(new CalendarDeserializer(GregorianCalendar.class),
                 GregorianCalendar.class);
+        add(new StdDeserializer.SqlDateDeserializer());
+        add(new TimestampDeserializer());
 
         // From-string deserializers:
         for (StdDeserializer<?> deser : FromStringDeserializer.all()) {

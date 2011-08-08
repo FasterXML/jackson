@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
-import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
@@ -679,93 +678,6 @@ public abstract class StdDeserializer<T>
     
     /*
     /**********************************************************
-    /* First, generic (Object, String, String-like, Class) deserializers
-    /**********************************************************
-     */
-
-    @JacksonStdImpl
-    public final static class StringDeserializer
-        extends StdScalarDeserializer<String>
-    {
-        public StringDeserializer() { super(String.class); }
-
-        @Override
-        public String deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
-            JsonToken curr = jp.getCurrentToken();
-            // Usually should just get string value:
-            if (curr == JsonToken.VALUE_STRING) {
-                return jp.getText();
-            }
-            // [JACKSON-330]: need to gracefully handle byte[] data, as base64
-            if (curr == JsonToken.VALUE_EMBEDDED_OBJECT) {
-                Object ob = jp.getEmbeddedObject();
-                if (ob == null) {
-                    return null;
-                }
-                if (ob instanceof byte[]) {
-                    return Base64Variants.getDefaultVariant().encode((byte[]) ob, false);
-                }
-                // otherwise, try conversion using toString()...
-                return ob.toString();
-            }
-            // Can deserialize any scalar value, but not markers
-            if (curr.isScalarValue()) {
-                return jp.getText();
-            }
-            throw ctxt.mappingException(_valueClass, curr);
-        }
-
-        // 1.6: since we can never have type info ("natural type"; String, Boolean, Integer, Double):
-        // (is it an error to even call this version?)
-        @Override
-        public String deserializeWithType(JsonParser jp, DeserializationContext ctxt,
-                TypeDeserializer typeDeserializer)
-            throws IOException, JsonProcessingException
-        {
-            return deserialize(jp, ctxt);
-        }
-    }
-
-    @JacksonStdImpl
-    public final static class ClassDeserializer
-        extends StdScalarDeserializer<Class<?>>
-    {
-        public ClassDeserializer() { super(Class.class); }
-
-        @Override
-            public Class<?> deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
-            JsonToken curr = jp.getCurrentToken();
-            // Currently will only accept if given simple class name
-            if (curr == JsonToken.VALUE_STRING) {
-                String className = jp.getText();
-                // [JACKSON-597]: support primitive types (and void)
-                if (className.indexOf('.') < 0) {
-                    if ("int".equals(className)) return Integer.TYPE;
-                    if ("long".equals(className)) return Long.TYPE;
-                    if ("float".equals(className)) return Float.TYPE;
-                    if ("double".equals(className)) return Double.TYPE;
-                    if ("boolean".equals(className)) return Boolean.TYPE;
-                    if ("byte".equals(className)) return Byte.TYPE;
-                    if ("char".equals(className)) return Character.TYPE;
-                    if ("short".equals(className)) return Short.TYPE;
-                    if ("void".equals(className)) return Void.TYPE;
-                }
-                try {
-                    return Class.forName(jp.getText());
-                } catch (ClassNotFoundException e) {
-                    throw ctxt.instantiationException(_valueClass, e);
-                }
-            }
-            throw ctxt.mappingException(_valueClass, curr);
-        }
-    }
-
-    /*
-    /**********************************************************
     /* Then primitive/wrapper types
     /**********************************************************
      */
@@ -1132,44 +1044,7 @@ public abstract class StdDeserializer<T>
     /****************************************************
     /* Then trickier things: Date/Calendar types
     /****************************************************
-    */
-
-    @JacksonStdImpl
-    public static class CalendarDeserializer
-        extends StdScalarDeserializer<Calendar>
-    {
-        /**
-         * We may know actual expected type; if so, it will be
-         * used for instantiation.
-         */
-        Class<? extends Calendar> _calendarClass;
-        
-        public CalendarDeserializer() { this(null); }
-        public CalendarDeserializer(Class<? extends Calendar> cc) {
-            super(Calendar.class);
-            _calendarClass = cc;
-        }
-
-        @Override
-        public Calendar deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException
-        {
-            Date d = _parseDate(jp, ctxt);
-            if (d == null) {
-                return null;
-            }
-            if (_calendarClass == null) {
-                return ctxt.constructCalendar(d);
-            }
-            try {
-                Calendar c = _calendarClass.newInstance();            
-                c.setTimeInMillis(d.getTime());
-                return c;
-            } catch (Exception e) {
-                throw ctxt.instantiationException(_calendarClass, e);
-            }
-        }
-    }
+     */
 
     /**
      * Compared to plain old {@link java.util.Date}, SQL version is easier

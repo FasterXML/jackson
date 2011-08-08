@@ -119,7 +119,7 @@ public final class TestDeserPerf
         }
 
 // for debugging:
-// System.err.println("JSON = "+jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(item));
+ System.err.println("JSON = "+jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(item));
         
         int round = 0;
         while (true) {
