@@ -8,7 +8,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.JsonValue;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.ser.ToStringSerializer;
+import org.codehaus.jackson.map.ser.std.ToStringSerializer;
 
 /**
  * Unit tests for verifying serialization of simple basic non-structured

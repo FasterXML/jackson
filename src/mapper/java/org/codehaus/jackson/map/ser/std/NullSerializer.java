@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.ser.std;
 
 import java.lang.reflect.Type;
 import java.io.IOException;

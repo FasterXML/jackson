@@ -9,7 +9,7 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.ser.SerializerBase;
+import org.codehaus.jackson.map.ser.std.SerializerBase;
 import org.codehaus.jackson.map.util.Provider;
 
 /**

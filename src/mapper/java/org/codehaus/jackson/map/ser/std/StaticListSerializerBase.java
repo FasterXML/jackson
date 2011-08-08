@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser.impl;
+package org.codehaus.jackson.map.ser.std;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -6,7 +6,6 @@ import java.util.*;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.ser.SerializerBase;
 import org.codehaus.jackson.node.ObjectNode;
 
 /**

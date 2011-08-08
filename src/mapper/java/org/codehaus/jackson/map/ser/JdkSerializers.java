@@ -9,6 +9,10 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.ser.std.NullSerializer;
+import org.codehaus.jackson.map.ser.std.ScalarSerializerBase;
+import org.codehaus.jackson.map.ser.std.SerializerBase;
+import org.codehaus.jackson.map.ser.std.ToStringSerializer;
 import org.codehaus.jackson.map.util.Provider;
 
 /**

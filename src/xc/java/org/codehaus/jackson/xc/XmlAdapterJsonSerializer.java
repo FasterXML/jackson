@@ -13,7 +13,7 @@ import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.ser.SerializerBase;
+import org.codehaus.jackson.map.ser.std.SerializerBase;
 
 /**
  * @author Ryan Heaton

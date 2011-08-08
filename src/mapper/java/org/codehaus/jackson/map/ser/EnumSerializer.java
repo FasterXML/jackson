@@ -8,6 +8,7 @@ import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.ser.std.ScalarSerializerBase;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.ArrayNode;

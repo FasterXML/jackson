@@ -7,6 +7,8 @@ import org.codehaus.jackson.*;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
+import org.codehaus.jackson.map.ser.std.ContainerSerializerBase;
+import org.codehaus.jackson.map.ser.std.SerializerBase;
 
 /**
  * Dummy container class to group standard homogenous array serializer implementations

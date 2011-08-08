@@ -6,6 +6,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.ser.*;
+import org.codehaus.jackson.map.ser.std.BeanSerializerBase;
 
 public class UnwrappingBeanSerializer
     extends BeanSerializerBase

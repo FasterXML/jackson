@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser.impl;
+package org.codehaus.jackson.map.ser.std;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -15,7 +15,7 @@ import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 import org.codehaus.jackson.map.ser.ArraySerializers;
-import org.codehaus.jackson.map.ser.ContainerSerializerBase;
+import org.codehaus.jackson.map.ser.impl.PropertySerializerMap;
 import org.codehaus.jackson.map.type.ArrayType;
 import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.schema.JsonSchema;
@@ -24,6 +24,8 @@ import org.codehaus.jackson.type.JavaType;
 
 /**
  * Generic serializer for Object arrays (<code>Object[]</code>).
+ * 
+ * @since 1.9 (moved from 'org.codehaus.jackson.map.ser.impl.ObjectArraySerializer')
  */
 @JacksonStdImpl
 public class ObjectArraySerializer

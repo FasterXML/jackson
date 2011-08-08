@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser.impl;
+package org.codehaus.jackson.map.ser.std;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -7,7 +7,6 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
-import org.codehaus.jackson.map.ser.ScalarSerializerBase;
 
 /**
  * Simple serializer for {@link java.net.InetAddress}. Main complexity is

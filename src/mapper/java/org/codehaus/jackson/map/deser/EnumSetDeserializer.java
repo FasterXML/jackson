@@ -9,7 +9,7 @@ import org.codehaus.jackson.map.util.EnumResolver;
 public final class EnumSetDeserializer
     extends org.codehaus.jackson.map.deser.std.EnumSetDeserializer
 {
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings("rawtypes")
     public EnumSetDeserializer(EnumResolver enumRes)
     {
         super(enumRes);

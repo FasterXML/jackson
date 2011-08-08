@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.ser.std;
 
 import org.codehaus.jackson.map.TypeSerializer;
 

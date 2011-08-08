@@ -5,8 +5,8 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.ser.impl.BeanSerializerBase;
 import org.codehaus.jackson.map.ser.impl.UnwrappingBeanSerializer;
+import org.codehaus.jackson.map.ser.std.BeanSerializerBase;
 import org.codehaus.jackson.type.JavaType;
 
 /**

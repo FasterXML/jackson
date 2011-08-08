@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser.impl;
+package org.codehaus.jackson.map.ser.std;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -16,6 +16,8 @@ import org.codehaus.jackson.type.JavaType;
 /**
  * Base class both for the standard bean serializer, and couple
  * of variants that only differ in small details.
+ * Can be used for custom bean serializers as well, although that
+ * is not the primary design goal.
  * 
  * @since 1.9
  */

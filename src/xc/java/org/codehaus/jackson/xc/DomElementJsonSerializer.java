@@ -5,7 +5,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.ser.SerializerBase;
+import org.codehaus.jackson.map.ser.std.SerializerBase;
 import org.codehaus.jackson.node.ObjectNode;
 import org.w3c.dom.*;
 

@@ -16,9 +16,9 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.ser.SerializerBase;
-import org.codehaus.jackson.map.ser.StdSerializers;
-import org.codehaus.jackson.map.ser.ToStringSerializer;
+import org.codehaus.jackson.map.ser.std.CalendarSerializer;
+import org.codehaus.jackson.map.ser.std.SerializerBase;
+import org.codehaus.jackson.map.ser.std.ToStringSerializer;
 import org.codehaus.jackson.map.util.Provider;
 
 /**
@@ -61,12 +61,12 @@ public class CoreXMLSerializers
         @Override
         public void serialize(XMLGregorianCalendar value, JsonGenerator jgen, SerializerProvider provider)
                 throws IOException, JsonGenerationException {
-            StdSerializers.CalendarSerializer.instance.serialize(value.toGregorianCalendar(), jgen, provider);
+            CalendarSerializer.instance.serialize(value.toGregorianCalendar(), jgen, provider);
         }
 
         @Override
         public JsonNode getSchema(SerializerProvider provider, Type typeHint) throws JsonMappingException {
-            return StdSerializers.CalendarSerializer.instance.getSchema(provider, typeHint);
+            return CalendarSerializer.instance.getSchema(provider, typeHint);
         }
     }
 }

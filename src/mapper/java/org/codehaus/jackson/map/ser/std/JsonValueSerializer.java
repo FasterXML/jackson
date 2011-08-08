@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.ser.std;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -12,6 +12,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
+import org.codehaus.jackson.map.ser.BeanSerializer;
 import org.codehaus.jackson.schema.SchemaAware;
 import org.codehaus.jackson.schema.JsonSchema;
 import org.codehaus.jackson.type.JavaType;
@@ -29,7 +30,7 @@ import org.codehaus.jackson.type.JavaType;
  * otherwise we could end up with an infinite loop.
  */
 @JacksonStdImpl
-public final class JsonValueSerializer
+public class JsonValueSerializer
     extends SerializerBase<Object>
     implements ResolvableSerializer, SchemaAware
 {

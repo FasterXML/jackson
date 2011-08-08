@@ -12,11 +12,20 @@ import org.codehaus.jackson.map.ext.OptionalHandlerFactory;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
-import org.codehaus.jackson.map.ser.impl.IndexedStringListSerializer;
-import org.codehaus.jackson.map.ser.impl.InetAddressSerializer;
-import org.codehaus.jackson.map.ser.impl.ObjectArraySerializer;
-import org.codehaus.jackson.map.ser.impl.StringCollectionSerializer;
-import org.codehaus.jackson.map.ser.impl.TimeZoneSerializer;
+import org.codehaus.jackson.map.ser.std.CalendarSerializer;
+import org.codehaus.jackson.map.ser.std.DateSerializer;
+import org.codehaus.jackson.map.ser.std.IndexedStringListSerializer;
+import org.codehaus.jackson.map.ser.std.InetAddressSerializer;
+import org.codehaus.jackson.map.ser.std.JsonValueSerializer;
+import org.codehaus.jackson.map.ser.std.NullSerializer;
+import org.codehaus.jackson.map.ser.std.ObjectArraySerializer;
+import org.codehaus.jackson.map.ser.std.SerializableSerializer;
+import org.codehaus.jackson.map.ser.std.SerializableWithTypeSerializer;
+import org.codehaus.jackson.map.ser.std.StringCollectionSerializer;
+import org.codehaus.jackson.map.ser.std.StringSerializer;
+import org.codehaus.jackson.map.ser.std.TimeZoneSerializer;
+import org.codehaus.jackson.map.ser.std.ToStringSerializer;
+import org.codehaus.jackson.map.ser.std.TokenBufferSerializer;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.EnumValues;
@@ -64,7 +73,7 @@ public abstract class BasicSerializerFactory
         /* String and string-like types (note: date types explicitly
          * not included -- can use either textual or numeric serialization)
          */
-        _concrete.put(String.class.getName(), new StdSerializers.StringSerializer());
+        _concrete.put(String.class.getName(), new StringSerializer());
         final ToStringSerializer sls = ToStringSerializer.instance;
         _concrete.put(StringBuffer.class.getName(), sls);
         _concrete.put(StringBuilder.class.getName(), sls);
@@ -97,12 +106,13 @@ public abstract class BasicSerializerFactory
         
         // Other discrete non-container types:
         // First, Date/Time zoo:
-        _concrete.put(Calendar.class.getName(), StdSerializers.CalendarSerializer.instance);
-        _concrete.put(java.util.Date.class.getName(), StdSerializers.UtilDateSerializer.instance);
+        _concrete.put(Calendar.class.getName(), CalendarSerializer.instance);
+        DateSerializer dateSer = DateSerializer.instance;
+        _concrete.put(java.util.Date.class.getName(), dateSer);
+        // note: timestamps are very similar to java.util.Date, thus serialized as such
+        _concrete.put(java.sql.Timestamp.class.getName(), dateSer);
         _concrete.put(java.sql.Date.class.getName(), new StdSerializers.SqlDateSerializer());
         _concrete.put(java.sql.Time.class.getName(), new StdSerializers.SqlTimeSerializer());
-        // note: timestamps are very similar to java.util.Date, thus serialized as such
-        _concrete.put(java.sql.Timestamp.class.getName(), StdSerializers.UtilDateSerializer.instance);
 
         // And then other standard non-structured JDK types
         for (Map.Entry<Class<?>,Object> en : new JdkSerializers().provide()) {
@@ -120,7 +130,7 @@ public abstract class BasicSerializerFactory
 
         // Jackson-specific type(s)
         // (Q: can this ever be sub-classed?)
-        _concreteLazy.put(TokenBuffer.class.getName(), StdSerializers.TokenBufferSerializer.class);
+        _concreteLazy.put(TokenBuffer.class.getName(), TokenBufferSerializer.class);
     }
 
     protected final static HashMap<String, JsonSerializer<?>> _arraySerializers =
@@ -255,9 +265,9 @@ public abstract class BasicSerializerFactory
         // First: JsonSerializable and related
         if (JsonSerializable.class.isAssignableFrom(raw)) {
             if (JsonSerializableWithType.class.isAssignableFrom(raw)) {
-                return StdSerializers.SerializableWithTypeSerializer.instance;
+                return SerializableWithTypeSerializer.instance;
             }
-            return StdSerializers.SerializableSerializer.instance;
+            return SerializableSerializer.instance;
         }
         // Second: as per [JACKSON-193] consider @JsonValue for any types:
         AnnotatedMethod valueMethod = beanDesc.findJsonValueMethod();
@@ -295,10 +305,10 @@ public abstract class BasicSerializerFactory
             return EnumSerializer.construct(enumClass, config, beanDesc);
         }
         if (Calendar.class.isAssignableFrom(raw)) {
-            return StdSerializers.CalendarSerializer.instance;
+            return CalendarSerializer.instance;
         }
         if (java.util.Date.class.isAssignableFrom(raw)) {
-            return StdSerializers.UtilDateSerializer.instance;
+            return DateSerializer.instance;
         }
         return null;
     }

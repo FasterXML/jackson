@@ -10,8 +10,8 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.ser.ScalarSerializerBase;
-import org.codehaus.jackson.map.ser.SerializerBase;
+import org.codehaus.jackson.map.ser.std.ScalarSerializerBase;
+import org.codehaus.jackson.map.ser.std.SerializerBase;
 
 public class TestSimpleModule extends BaseMapTest
 {

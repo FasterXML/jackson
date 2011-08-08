@@ -24,7 +24,6 @@ import org.codehaus.jackson.*;
  * @see org.codehaus.jackson.map.JsonSerializableWithType
  *
  * @since 1.5
- * @deprecated Use {@link JsonSerializableWithType} instead
  */
 @Deprecated
 public interface JsonSerializable
