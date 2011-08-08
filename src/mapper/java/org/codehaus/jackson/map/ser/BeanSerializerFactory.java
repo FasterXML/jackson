@@ -7,6 +7,7 @@ import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.ser.std.MapSerializer;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.BeanUtil;

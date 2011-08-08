@@ -7,6 +7,7 @@ import java.util.Date;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.ser.impl.FailingSerializer;
 import org.codehaus.jackson.map.ser.impl.ReadOnlyClassToSerializerMap;
+import org.codehaus.jackson.map.ser.impl.SerializerCache;
 import org.codehaus.jackson.map.ser.impl.UnknownSerializer;
 import org.codehaus.jackson.map.ser.std.NullSerializer;
 import org.codehaus.jackson.map.ser.std.StdKeySerializer;

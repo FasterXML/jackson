@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.ser.std;
 
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
@@ -8,8 +8,6 @@ import java.util.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
-import org.codehaus.jackson.map.ser.std.ContainerSerializerBase;
-import org.codehaus.jackson.map.ser.std.SerializerBase;
 import org.codehaus.jackson.map.util.EnumValues;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.node.JsonNodeFactory;

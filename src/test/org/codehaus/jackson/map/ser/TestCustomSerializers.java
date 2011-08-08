@@ -9,6 +9,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.ser.std.CollectionSerializer;
 import org.w3c.dom.Element;
 
 /**
@@ -58,7 +59,7 @@ public class TestCustomSerializers
     {
         ObjectMapper mapper = new ObjectMapper();    	
         CustomSerializerFactory sf = new CustomSerializerFactory();
-        JsonSerializer<?> ser = new ContainerSerializers.CollectionSerializer(null, false, null, null, null);
+        JsonSerializer<?> ser = new CollectionSerializer(null, false, null, null, null);
         final JsonSerializer<Object> collectionSerializer = (JsonSerializer<Object>) ser;
         
         sf.addGenericMapping(Collection.class, new JsonSerializer<Collection>() {

@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.map.ser.std.MapSerializer;
 import org.codehaus.jackson.map.*;
 
 /**

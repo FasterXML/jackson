@@ -14,7 +14,6 @@ import org.codehaus.jackson.map.ResolvableSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.TypeSerializer;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
-import org.codehaus.jackson.map.ser.ArraySerializers;
 import org.codehaus.jackson.map.ser.impl.PropertySerializerMap;
 import org.codehaus.jackson.map.type.ArrayType;
 import org.codehaus.jackson.node.ObjectNode;
@@ -29,7 +28,7 @@ import org.codehaus.jackson.type.JavaType;
  */
 @JacksonStdImpl
 public class ObjectArraySerializer
-    extends ArraySerializers.AsArraySerializer<Object[]>
+    extends ArraySerializers.ArraySerializerBase<Object[]>
     implements ResolvableSerializer
 {
     /**

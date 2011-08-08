@@ -3,7 +3,7 @@ package org.codehaus.jackson.map.ser.impl;
 import java.util.Map;
 
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.ser.SerializerCache.TypeKey;
+import org.codehaus.jackson.map.ser.impl.SerializerCache.TypeKey;
 
 /**
  * Specialized read-only map used for storing and accessing serializers by type.

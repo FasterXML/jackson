@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.ser;
+package org.codehaus.jackson.map.ser.impl;
 
 import java.util.*;
 
@@ -7,7 +7,6 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.ResolvableSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
-import org.codehaus.jackson.map.ser.impl.ReadOnlyClassToSerializerMap;
 
 /**
  * Simple cache object that allows for doing 2-level lookups: first level is

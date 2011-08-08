@@ -4,7 +4,7 @@ import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.ser.SerializerCache.TypeKey;
+import org.codehaus.jackson.map.ser.impl.SerializerCache.TypeKey;
 
 /**
  * Optimized lookup table for accessing two types of serializers; typed

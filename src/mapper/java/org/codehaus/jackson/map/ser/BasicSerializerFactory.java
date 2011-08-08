@@ -12,11 +12,17 @@ import org.codehaus.jackson.map.ext.OptionalHandlerFactory;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
+import org.codehaus.jackson.map.ser.std.ArraySerializers;
 import org.codehaus.jackson.map.ser.std.CalendarSerializer;
+import org.codehaus.jackson.map.ser.std.JdkSerializers;
+import org.codehaus.jackson.map.ser.std.StdContainerSerializers;
 import org.codehaus.jackson.map.ser.std.DateSerializer;
+import org.codehaus.jackson.map.ser.std.EnumMapSerializer;
+import org.codehaus.jackson.map.ser.std.EnumSerializer;
 import org.codehaus.jackson.map.ser.std.IndexedStringListSerializer;
 import org.codehaus.jackson.map.ser.std.InetAddressSerializer;
 import org.codehaus.jackson.map.ser.std.JsonValueSerializer;
+import org.codehaus.jackson.map.ser.std.MapSerializer;
 import org.codehaus.jackson.map.ser.std.NullSerializer;
 import org.codehaus.jackson.map.ser.std.ObjectArraySerializer;
 import org.codehaus.jackson.map.ser.std.SerializableSerializer;
@@ -481,13 +487,13 @@ public abstract class BasicSerializerFactory
             if (elementRaw == String.class) {
                 return new IndexedStringListSerializer(property);
             }
-            return ContainerSerializers.indexedListSerializer(type.getContentType(), staticTyping,
+            return StdContainerSerializers.indexedListSerializer(type.getContentType(), staticTyping,
                     elementTypeSerializer, property, elementValueSerializer);
         }
         if (elementRaw == String.class) {
             return new StringCollectionSerializer(property);
         }
-        return ContainerSerializers.collectionSerializer(type.getContentType(), staticTyping,
+        return StdContainerSerializers.collectionSerializer(type.getContentType(), staticTyping,
                 elementTypeSerializer, property, elementValueSerializer);
     }
 
@@ -502,7 +508,7 @@ public abstract class BasicSerializerFactory
         if (!enumType.isEnumType()) {
             enumType = null;
         }
-        return ContainerSerializers.enumSetSerializer(enumType, property);
+        return StdContainerSerializers.enumSetSerializer(enumType, property);
     }
     
     /**
@@ -637,7 +643,7 @@ public abstract class BasicSerializerFactory
             valueType = TypeFactory.unknownType();
         }
         TypeSerializer vts = createTypeSerializer(config, valueType, property);
-        return ContainerSerializers.iteratorSerializer(valueType,
+        return StdContainerSerializers.iteratorSerializer(valueType,
                 usesStaticTyping(config, beanDesc, vts, property), vts, property);
     }
     
@@ -651,7 +657,7 @@ public abstract class BasicSerializerFactory
             valueType = TypeFactory.unknownType();
         }
         TypeSerializer vts = createTypeSerializer(config, valueType, property);
-        return ContainerSerializers.iterableSerializer(valueType,
+        return StdContainerSerializers.iterableSerializer(valueType,
                 usesStaticTyping(config, beanDesc, vts, property), vts, property);
     }
     
