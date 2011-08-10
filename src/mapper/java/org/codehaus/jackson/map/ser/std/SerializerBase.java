@@ -54,9 +54,15 @@ public abstract class SerializerBase<T>
     public abstract void serialize(T value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException;
 
+    /**
+     * Note: since Jackson 1.9, default implementation claims type is "string"
+     */
     @Override
-    public abstract JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        throws JsonMappingException;
+    public JsonNode getSchema(SerializerProvider provider, Type typeHint)
+        throws JsonMappingException
+    {
+        return createSchemaNode("string");
+    }
     
     protected ObjectNode createObjectNode() {
         return JsonNodeFactory.instance.objectNode();

@@ -2,9 +2,7 @@ package org.codehaus.jackson.map.ser;
 
 import java.io.*;
 import java.text.*;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
+import java.util.*;
 
 import org.codehaus.jackson.map.*;
 
@@ -76,5 +74,19 @@ public class TestDateSerialization
         assertEquals("0", w.writeValueAsString(new Date(0L)));
     }
 
+    // [JACKSON-606]
+    public void testDatesAsMapKeys() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<Date,Integer> map = new HashMap<Date,Integer>();
+        assertFalse(mapper.isEnabled(SerializationConfig.Feature.WRITE_DATE_KEYS_AS_TIMESTAMPS));
+        map.put(new Date(0L), Integer.valueOf(1));
+        // by default will serialize as ISO-8601 values...
+        assertEquals("{\"1970-01-01T00:00:00.000+0000\":1}", mapper.writeValueAsString(map));
+        
+        // but can change to use timestamps too
+        mapper.configure(SerializationConfig.Feature.WRITE_DATE_KEYS_AS_TIMESTAMPS, true);
+        assertEquals("{\"0\":1}", mapper.writeValueAsString(map));
+    }
 }
 

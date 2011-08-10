@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.ser.std;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Date;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
@@ -26,7 +27,11 @@ public class StdKeySerializer
     public void serialize(Object value, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
-        jgen.writeFieldName(value.toString());
+        if (value instanceof Date) {
+            provider.defaultSerializeDateKey((Date) value, jgen);
+        } else {
+            jgen.writeFieldName(value.toString());
+        }
     }
 
     @Override

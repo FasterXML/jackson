@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.ser.impl.SerializerCache;
 import org.codehaus.jackson.map.ser.impl.UnknownSerializer;
 import org.codehaus.jackson.map.ser.std.NullSerializer;
 import org.codehaus.jackson.map.ser.std.StdKeySerializer;
+import org.codehaus.jackson.map.ser.std.StdKeySerializers;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.RootNameLookup;
 import org.codehaus.jackson.node.ObjectNode;
@@ -53,6 +54,10 @@ public class StdSerializerProvider
     public final static JsonSerializer<Object> DEFAULT_NULL_KEY_SERIALIZER =
         new FailingSerializer("Null key for a Map not allowed in JSON (use a converting NullKeySerializer?)");
 
+    /**
+     * @deprecated Since 1.9, use {@link StdKeySerializers} instead
+     */
+    @Deprecated
     public final static JsonSerializer<Object> DEFAULT_KEY_SERIALIZER = new StdKeySerializer();
 
     public final static JsonSerializer<Object> DEFAULT_UNKNOWN_SERIALIZER = new UnknownSerializer();
@@ -90,9 +95,10 @@ public class StdSerializerProvider
 
     /**
      * Serializer used to output non-null keys of Maps (which will get
-     * output as JSON Objects).
+     * output as JSON Objects), if not null; if null, us the standard
+     * default key serializer.
      */
-    protected JsonSerializer<Object> _keySerializer = DEFAULT_KEY_SERIALIZER;
+    protected JsonSerializer<Object> _keySerializer;
 
     /**
      * Serializer used to output a null value. Default implementation
@@ -461,10 +467,14 @@ public class StdSerializerProvider
     {
         JsonSerializer<Object> ser = _serializerFactory.createKeySerializer(_config, keyType, property);
 
-        // First things first: maybe there are registerd custom implementations
+        // First things first: maybe there are registered custom implementations
         // if not, use default one:
         if (ser == null) {
-            ser = _keySerializer;
+            if (_keySerializer == null) {
+                ser = StdKeySerializers.getStdKeySerializer(keyType);
+            } else {
+                ser = _keySerializer;
+            }
         }
         // 25-Feb-2011, tatu: As per [JACKSON-519], need to ensure contextuality works here, too
         if (ser instanceof ContextualSerializer<?>) {
@@ -531,6 +541,38 @@ public class StdSerializerProvider
         }
     }
 
+    @Override
+    public void defaultSerializeDateKey(long timestamp, JsonGenerator jgen)
+        throws IOException, JsonProcessingException
+    {
+        if (isEnabled(SerializationConfig.Feature.WRITE_DATE_KEYS_AS_TIMESTAMPS)) {
+            jgen.writeFieldName(String.valueOf(timestamp));
+        } else {
+            if (_dateFormat == null) {
+                DateFormat blueprint = _config.getDateFormat();
+                // must create a clone since Formats are not thread-safe:
+                _dateFormat = (DateFormat)blueprint.clone();
+            }
+            jgen.writeFieldName(_dateFormat.format(new Date(timestamp)));
+        }
+    }
+
+    @Override
+    public void defaultSerializeDateKey(Date date, JsonGenerator jgen)
+        throws IOException, JsonProcessingException
+    {
+        if (isEnabled(SerializationConfig.Feature.WRITE_DATE_KEYS_AS_TIMESTAMPS)) {
+            jgen.writeFieldName(String.valueOf(date.getTime()));
+        } else {
+            if (_dateFormat == null) {
+                DateFormat blueprint = _config.getDateFormat();
+                // must create a clone since Formats are not thread-safe:
+                _dateFormat = (DateFormat)blueprint.clone();
+            }
+            jgen.writeFieldName(_dateFormat.format(date));
+        }
+    }
+    
     /*
     /**********************************************************
     /* Helper methods: can be overridden by sub-classes

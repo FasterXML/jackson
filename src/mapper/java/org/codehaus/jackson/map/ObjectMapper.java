@@ -1100,6 +1100,30 @@ public class ObjectMapper
     }
 
     /**
+     * Convenience method, equivalent to:
+     *<pre>
+     *  getSerializationConfig().isEnabled(f);
+     *</pre>
+     * 
+     * @since 1.9
+     */
+    public boolean isEnabled(SerializationConfig.Feature f) {
+        return _serializationConfig.isEnabled(f);
+    }
+
+    /**
+     * Convenience method, equivalent to:
+     *<pre>
+     *  getDeserializationConfig().isEnabled(f);
+     *</pre>
+     * 
+     * @since 1.9
+     */
+    public boolean isEnabled(DeserializationConfig.Feature f) {
+        return _deserializationConfig.isEnabled(f);
+    }
+    
+    /**
      * Method that can be used to get hold of {@link JsonNodeFactory}
      * that this mapper will use when directly constructing
      * root {@link JsonNode} instances for Trees.

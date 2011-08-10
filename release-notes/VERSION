@@ -27,6 +27,8 @@ Description:
    (suggested by Bruce P)
   * [JACKSON-599] Expose Settability Of SimpleModule Serializers/Deserializers
    (suggested by Bruce P)
+  * [JACKSON-606] Add Built-in Support for Date Map Keys as Timestamps
+   (SerializationConfig.Feature#WRITE_DATE_KEYS_AS_TIMESTAMPS)
   * [JACKSON-612] Expose 'readValues()' methods via ObjectCodec, JsonParser
    (suggested by Bruce P)
   * [JACKSON-613] Add ArrayNode/ObjectNode methods for dealing with wrapper

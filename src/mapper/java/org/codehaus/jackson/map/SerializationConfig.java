@@ -308,7 +308,7 @@ public class SerializationConfig
          */
 
         /**
-         * Feature that determines whether {@link java.util.Date}s
+         * Feature that determines whether {@link java.util.Date} values
          * (and Date-based things like {@link java.util.Calendar}s) are to be
          * serialized as numeric timestamps (true; the default),
          * or as something else (usually textual representation).
@@ -316,9 +316,26 @@ public class SerializationConfig
          * one returned by a call to {@link #getDateFormat}.
          *<p>
          * Note: whether this feature affects handling of other date-related
-         * types depend on handlers of those types.
+         * types depend on handlers of those types, although ideally they
+         * should use this feature
+         *<p>
+         * Note: whether {@link java.util.Map} keys are serialized as Strings
+         * or not is controlled using {@link #WRITE_DATE_KEYS_AS_TIMESTAMPS}.
          */
         WRITE_DATES_AS_TIMESTAMPS(true),
+
+        /**
+         * Feature that determines whether {@link java.util.Date}s
+         * (and sub-types) used as {@link java.util.Map} keys are serialized
+         * as timestamps or not (if not, will be serialized as textual
+         * values).
+         *<p>
+         * Default value is 'false', meaning that Date-valued Map keys are serialized
+         * as textual (ISO-8601) values.
+         * 
+         * @since 1.9
+         */
+        WRITE_DATE_KEYS_AS_TIMESTAMPS(false),
 
         /**
          * Feature that determines how type <code>char[]</code> is serialized:
