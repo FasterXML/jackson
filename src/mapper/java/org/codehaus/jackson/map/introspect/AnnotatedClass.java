@@ -286,6 +286,11 @@ public final class AnnotatedClass
     protected void resolveClassAnnotations()
     {
         _classAnnotations = new AnnotationMap();
+        // [JACKSON-659] Should skip processing if annotation processing disabled
+        if (_annotationIntrospector == null) {
+            return;
+        }
+        
         // add mix-in annotations first (overrides)
         if (_primaryMixIn != null) {
             _addClassMixIns(_classAnnotations, _class, _primaryMixIn);
