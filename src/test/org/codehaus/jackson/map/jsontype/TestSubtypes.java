@@ -57,7 +57,7 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
         public int a;
     }
 
-    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=As.PROPERTY)
+    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=As.PROPERTY, property="#type")
     static abstract class SuperTypeWithoutDefault { }
 
     static class DefaultImpl505 extends SuperTypeWithoutDefault {
@@ -191,6 +191,11 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
         assertNotNull(bean);
         assertEquals(DefaultImpl505.class, bean.getClass());
         assertEquals(123, ((DefaultImpl505) bean).a);
+
+        bean = mapper.readValue("{\"#type\":\"foobar\"}", SuperTypeWithoutDefault.class);
+        assertEquals(DefaultImpl505.class, bean.getClass());
+        assertEquals(0, ((DefaultImpl505) bean).a);
+    
     }
 }
 
