@@ -173,6 +173,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link ClassIntrospector}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -182,6 +185,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link AnnotationIntrospector} 
      * to use (replacing old one).
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -191,6 +197,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link VisibilityChecker}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -200,6 +209,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link TypeResolverBuilder}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -209,6 +221,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link SubtypeResolver}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -218,6 +233,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link PropertyNamingStrategy}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -227,6 +245,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link TypeFactory}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -236,6 +257,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link DateFormat}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -245,6 +269,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link HandlerInstantiator}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
