@@ -1,8 +1,9 @@
 package org.codehaus.jackson.map;
 
-import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
+import org.codehaus.jackson.map.deser.ValueInstantiator;
 import org.codehaus.jackson.map.deser.ValueInstantiators;
+import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.type.JavaType;
 
@@ -223,6 +224,27 @@ public abstract class DeserializerFactory
      */
 
     /**
+     * Method that can be called to try to resolve an abstract type
+     * (interface, abstract class) into a concrete type, or at least
+     * something "more concrete" (abstract class instead of interface).
+     * Will either return passed type, or a more specific type.
+     * 
+     * @since 1.9
+     */
+    public abstract JavaType mapAbstractType(DeserializationConfig config, JavaType type)
+            throws JsonMappingException;
+
+    /**
+     * Method that is to find all creators (constructors, factory methods)
+     * for the bean type to deserialize.
+     * 
+     * @since 1.9
+     */
+    public abstract ValueInstantiator findValueInstantiator(DeserializationConfig config,
+            BasicBeanDescription beanDesc)
+        throws JsonMappingException;
+    
+    /**
      * Method called to create (or, for completely immutable deserializers,
      * reuse) a deserializer that can convert JSON content into values of
      * specified Java "bean" (POJO) type.
@@ -325,121 +347,5 @@ public abstract class DeserializerFactory
     {
         // Default implementation returns null for backwards compatibility reasons
         return null;
-    }
-    
-    /*
-    /********************************************************
-    /* Older deprecated versions of creator methods
-    /********************************************************
-     */
-    
-    /**
-     *<p>
-     * Note: declared final to prevent sub-classes from overriding; choice is between
-     * hard compile-time error and nastier runtime errors as this method should
-     * not be called by core framework any more.
-     * 
-     * @deprecated Since 1.7 should use method that takes in property definition
-     */
-    @Deprecated
-    final
-    public TypeDeserializer findTypeDeserializer(DeserializationConfig config, JavaType baseType)
-    {
-        return findTypeDeserializer(config, baseType, null);
-    }
-
-    /**
-     *<p>
-     * Note: declared final to prevent sub-classes from overriding; choice is between
-     * hard compile-time error and nastier runtime errors as this method should
-     * not be called by core framework any more.
-     * @deprecated Since 1.7 should use method that takes in property definition
-     */
-    @Deprecated
-    final
-    public JsonDeserializer<Object> createBeanDeserializer(DeserializationConfig config, JavaType type, DeserializerProvider p)
-        throws JsonMappingException
-    {
-        return createBeanDeserializer(config, p, type, null);
-    }
-
-    /**
-     *<p>
-     * Note: declared final to prevent sub-classes from overriding; choice is between
-     * hard compile-time error and nastier runtime errors as this method should
-     * not be called by core framework any more.
-     * 
-     * @deprecated Since 1.7 should use method that takes in property definition
-     */
-    @Deprecated
-    final
-    public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, ArrayType type, DeserializerProvider p)
-        throws JsonMappingException
-    {
-        return createArrayDeserializer(config, p, type, null);
-    }
-    
-    /**
-     *<p>
-     * Note: declared final to prevent sub-classes from overriding; choice is between
-     * hard compile-time error and nastier runtime errors as this method should
-     * not be called by core framework any more.
-     * 
-     * @deprecated Since 1.7 should use method that takes in property definition
-     */
-    @Deprecated
-    final
-    public JsonDeserializer<?> createCollectionDeserializer(DeserializationConfig config, CollectionType type, DeserializerProvider p)
-        throws JsonMappingException
-    {
-        return createCollectionDeserializer(config, p, type, null);
-    }
-    
-    /**
-     *<p>
-     * Note: declared final to prevent sub-classes from overriding; choice is between
-     * hard compile-time error and nastier runtime errors as this method should
-     * not be called by core framework any more.
-     * 
-     * @deprecated Since 1.7 should use method that takes in property definition
-     */
-    @Deprecated
-    final
-    public JsonDeserializer<?> createEnumDeserializer(DeserializationConfig config, Class<?> enumClass, DeserializerProvider p)
-        throws JsonMappingException
-    {
-        return createEnumDeserializer(config, p, config.getTypeFactory().constructType(enumClass), null);
-    }
-    
-    /**
-     *<p>
-     * Note: declared final to prevent sub-classes from overriding; choice is between
-     * hard compile-time error and nastier runtime errors as this method should
-     * not be called by core framework any more.
-     * 
-     * @deprecated Since 1.7 should use method that takes in property definition
-     */
-    @Deprecated
-    final
-    public JsonDeserializer<?> createMapDeserializer(DeserializationConfig config, MapType type, DeserializerProvider p)
-        throws JsonMappingException
-    {
-        return createMapDeserializer(config, p, type, null);
-    }
-
-    /**
-     *<p>
-     * Note: declared final to prevent sub-classes from overriding; choice is between
-     * hard compile-time error and nastier runtime errors as this method should
-     * not be called by core framework any more.
-     * 
-     * @deprecated Since 1.7 should use method that takes in property definition
-     */
-    @Deprecated
-    final
-    public JsonDeserializer<?> createTreeDeserializer(DeserializationConfig config, Class<? extends JsonNode> nodeClass, DeserializerProvider p)
-        throws JsonMappingException
-    {
-        return createTreeDeserializer(config, p, config.getTypeFactory().constructType(nodeClass), null);
     }
 }

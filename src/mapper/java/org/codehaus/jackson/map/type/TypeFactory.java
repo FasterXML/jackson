@@ -676,7 +676,6 @@ public final class TypeFactory
      *
      * @since 1.5
      */
-    @SuppressWarnings("unchecked")
     public JavaType constructParametricType(Class<?> parametrized, JavaType... parameterTypes)
     {
         JavaType resultType;

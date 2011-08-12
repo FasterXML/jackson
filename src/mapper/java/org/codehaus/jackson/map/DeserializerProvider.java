@@ -13,6 +13,12 @@ public abstract class DeserializerProvider
 {
     protected DeserializerProvider() { }
 
+    /*
+    /**********************************************************
+    /* Fluent factory methods
+    /**********************************************************
+     */
+    
     /**
      * Method that sub-classes need to override, to ensure that fluent-factory
      * methods will produce proper sub-type.
@@ -53,6 +59,23 @@ public abstract class DeserializerProvider
      * @since 1.9
      */
     public abstract DeserializerProvider withValueInstantiators(ValueInstantiators instantiators);
+
+    /*
+    /**********************************************************
+    /* Additional type handling methods
+    /**********************************************************
+     */
+
+    /**
+     * Method that can be called to try to resolve an abstract type
+     * (interface, abstract class) into a concrete type, or at least
+     * something "more concrete" (abstract class instead of interface).
+     * Will either return passed type, or a more specific type.
+     * 
+     * @since 1.9
+     */
+    public abstract JavaType mapAbstractType(DeserializationConfig config, JavaType type)
+        throws JsonMappingException;
     
     /*
     /**********************************************************
@@ -116,59 +139,6 @@ public abstract class DeserializerProvider
      * through fields or membership in an array or collection)
      */
     public abstract boolean hasValueDeserializerFor(DeserializationConfig config, JavaType type);
-
-    /*
-    /**********************************************************
-    /* Deprecated deserializer locating methods (pre-1.7)
-    /**********************************************************
-     */
-
-    /**
-     * Deprecated version of accessor method that was used before version 1.7.
-     * Implemented as final to ensure that existing code does not accidentally
-     * try to redefine it (given that it is not called by core mapper code)
-     *   
-     * @deprecated As of version 1.7, use version that exposes property object
-     *    instead of just its type (needed for contextual deserializers)
-     */
-    @Deprecated
-    public final JsonDeserializer<Object> findValueDeserializer(DeserializationConfig config,
-            JavaType type, JavaType referrer, String refPropName)
-        throws JsonMappingException
-    {
-        return findValueDeserializer(config, type, (BeanProperty) null);
-    }
-
-    /**
-     * Deprecated version of accessor method that was used before version 1.7.
-     * Implemented as final to ensure that existing code does not accidentally
-     * try to redefine it (given that it is not called by core mapper code)
-     *   
-     * @deprecated As of version 1.7, use version that exposes context class
-     *    and property, instead of just types
-     */
-    @Deprecated
-    public final JsonDeserializer<Object> findTypedValueDeserializer(DeserializationConfig config,
-            JavaType type)
-        throws JsonMappingException
-    {
-        return findTypedValueDeserializer(config, type, null);
-    }
-
-    /**
-     * Deprecated version of accessor method that was used before version 1.7.
-     * Implemented as final to ensure that existing code does not accidentally
-     * try to redefine it (given that it is not called by core mapper code)
-     *   
-     * @deprecated As of version 1.7, use version that exposes context class
-     *    and property, instead of just types
-     */
-    @Deprecated
-    public final KeyDeserializer findKeyDeserializer(DeserializationConfig config, JavaType keyType)
-        throws JsonMappingException
-    {
-        return findKeyDeserializer(config, keyType, null);
-    }
 
     /*
     /**********************************************************

@@ -165,23 +165,22 @@ public abstract class BasicDeserializerFactory
     protected abstract JsonDeserializer<?> _findCustomTreeNodeDeserializer(Class<? extends JsonNode> type,
             DeserializationConfig config, BeanProperty property)
         throws JsonMappingException;
-
-    /**
-     * Method that is to find all creators (constructors, factory methods)
-     * for the bean type to deserialize.
-     * 
-     * @since 1.9
+    
+    /*
+    /**********************************************************
+    /* JsonDeserializerFactory impl (partial)
+    /**********************************************************
      */
-    protected abstract ValueInstantiator findDeserializerInstantiator(DeserializationConfig config,
+
+    @Override
+    public abstract ValueInstantiator findValueInstantiator(DeserializationConfig config,
             BasicBeanDescription beanDesc)
         throws JsonMappingException;
 
-    /*
-    /**********************************************************
-    /* JsonDeserializerFactory impl
-    /**********************************************************
-     */
-
+    @Override
+    public abstract JavaType mapAbstractType(DeserializationConfig config, JavaType type)
+            throws JsonMappingException;
+    
     @Override
     public JsonDeserializer<?> createArrayDeserializer(DeserializationConfig config, DeserializerProvider p,
             ArrayType type, BeanProperty property)
@@ -295,7 +294,7 @@ public abstract class BasicDeserializerFactory
             // But if so, also need to re-check creators...
             beanDesc = config.introspectForCreation(type);
         }
-        ValueInstantiator inst = findDeserializerInstantiator(config, beanDesc);
+        ValueInstantiator inst = findValueInstantiator(config, beanDesc);
         // 13-Dec-2010, tatu: Can use more optimal deserializer if content type is String, so:
         if (contentType.getRawClass() == String.class) {
             // no value type deserializer because Strings are one of natural/native types:
@@ -418,7 +417,7 @@ public abstract class BasicDeserializerFactory
             // But if so, also need to re-check creators...
             beanDesc = config.introspectForCreation(type);
         }
-        ValueInstantiator inst = findDeserializerInstantiator(config, beanDesc);
+        ValueInstantiator inst = findValueInstantiator(config, beanDesc);
         MapDeserializer md = new MapDeserializer(type, inst, keyDes, contentDeser, contentTypeDeser);
         md.setIgnorableProperties(config.getAnnotationIntrospector().findPropertiesToIgnore(beanDesc.getClassInfo()));
         return md;
@@ -653,9 +652,6 @@ public abstract class BasicDeserializerFactory
     /* Helper methods, value/content/key type introspection
     /**********************************************************
      */
-
-    protected abstract JavaType mapAbstractType(DeserializationConfig config, JavaType type)
-        throws JsonMappingException;
     
     /**
      * Helper method called to check if a class or method

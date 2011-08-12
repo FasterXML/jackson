@@ -1,10 +1,13 @@
 package org.codehaus.jackson.map.jsontype;
 
+import org.codehaus.jackson.Version;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.annotate.JsonTypeInfo.As;
 import org.codehaus.jackson.annotate.JsonTypeName;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.module.SimpleModule;
 
 public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
 {
@@ -48,9 +51,16 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
     @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=As.PROPERTY,
             property="#type",
             defaultImpl=DefaultImpl.class)
-    static class SuperTypeWithDefault { }
+    static abstract class SuperTypeWithDefault { }
 
     static class DefaultImpl extends SuperTypeWithDefault {
+        public int a;
+    }
+
+    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=As.PROPERTY)
+    static abstract class SuperTypeWithoutDefault { }
+
+    static class DefaultImpl505 extends SuperTypeWithoutDefault {
         public int a;
     }
     
@@ -157,4 +167,30 @@ public class TestSubtypes extends org.codehaus.jackson.map.BaseMapTest
         assertEquals(DefaultImpl.class, bean.getClass());
         assertEquals(0, ((DefaultImpl) bean).a);
     }
+
+    // [JACKSON-505]: ok to also default to mapping there might be for base type
+    public void testDefaultImplViaModule() throws Exception
+    {
+        final String JSON = "{\"a\":123}";
+        
+        // first: without registration etc, epic fail:
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            mapper.readValue(JSON, SuperTypeWithoutDefault.class);
+            fail("Expected an exception");
+        } catch (JsonMappingException e) {
+            verifyException(e, "missing property");
+        }
+
+        // but then succeed when we register default impl
+        mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule("test", Version.unknownVersion());
+        module.addAbstractTypeMapping(SuperTypeWithoutDefault.class, DefaultImpl505.class);
+        mapper.registerModule(module);
+        SuperTypeWithoutDefault bean = mapper.readValue(JSON, SuperTypeWithoutDefault.class);
+        assertNotNull(bean);
+        assertEquals(DefaultImpl505.class, bean.getClass());
+        assertEquals(123, ((DefaultImpl505) bean).a);
+    }
 }
+

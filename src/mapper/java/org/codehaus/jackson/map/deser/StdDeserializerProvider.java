@@ -129,6 +129,14 @@ public class StdDeserializerProvider
     /**********************************************************
      */
 
+    @Override
+    public JavaType mapAbstractType(DeserializationConfig config, JavaType type)
+            throws JsonMappingException
+    {
+        return _factory.mapAbstractType(config, type);
+
+    }
+    
     @SuppressWarnings("unchecked")
     @Override
     public JsonDeserializer<Object> findValueDeserializer(DeserializationConfig config,

@@ -441,6 +441,81 @@ public class BeanDeserializerFactory
      */
 
     /**
+     * Method that will find complete abstract type mapping for specified type, doing as
+     * many resolution steps as necessary.
+     */
+    @Override
+    public JavaType mapAbstractType(DeserializationConfig config, JavaType type)
+        throws JsonMappingException
+    {
+        while (true) {
+            JavaType next = _mapAbstractType2(config, type);
+            if (next == null) {
+                return type;
+            }
+            /* Should not have to worry about cycles; but better verify since they will invariably
+             * occur... :-)
+             * (also: guard against invalid resolution to a non-related type)
+             */
+            Class<?> prevCls = type.getRawClass();
+            Class<?> nextCls = next.getRawClass();
+            if ((prevCls == nextCls) || !prevCls.isAssignableFrom(nextCls)) {
+                throw new IllegalArgumentException("Invalid abstract type resolution from "+type+" to "+next+": latter is not a subtype of former");
+            }
+            type = next;
+        }
+    }
+    
+    /**
+     * Value instantiator is created both based on creator annotations,
+     * and on optional externally provided instantiators (registered through
+     * module interface).
+     */
+    @Override
+    public ValueInstantiator findValueInstantiator(DeserializationConfig config,
+            BasicBeanDescription beanDesc)
+        throws JsonMappingException
+    {
+        ValueInstantiator instantiator;
+        // [JACKSON-633] Check @JsonValueInstantiator before anything else
+        AnnotatedClass ac = beanDesc.getClassInfo();
+        Object instDef = config.getAnnotationIntrospector().findValueInstantiator(ac);
+        if (instDef != null) {
+            if (instDef instanceof ValueInstantiator) {
+                instantiator = (ValueInstantiator) instDef;
+            } else {
+                if (!(instDef instanceof Class<?>)) { // sanity check
+                    throw new IllegalStateException("Invalid value instantiator returned for type "+beanDesc+": neither a Class nor ValueInstantiator");
+                }
+                Class<?> cls = (Class<?>) instDef;
+                if (!ValueInstantiator.class.isAssignableFrom(cls)) {
+                    throw new IllegalStateException("Invalid instantiator Class<?> returned for type "+beanDesc+": "
+                            +cls.getName()+" not a ValueInstantiator");
+                }
+                @SuppressWarnings("unchecked")
+                Class<? extends ValueInstantiator> instClass = (Class<? extends ValueInstantiator>) cls;
+                instantiator = config.valueInstantiatorInstance(ac, (Class<? extends ValueInstantiator>)instClass);
+            }
+        } else {
+            instantiator = constructDefaultValueInstantiator(config, beanDesc);
+        }
+        
+        // finally: anyone want to modify ValueInstantiator?
+        if (_factoryConfig.hasValueInstantiators()) {
+            for (ValueInstantiators insts : _factoryConfig.valueInstantiators()) {
+                instantiator = insts.findValueInstantiator(config, beanDesc, instantiator);
+                // let's do sanity check; easier to spot buggy handlers
+                if (instantiator == null) {
+                    throw new JsonMappingException("Broken registered ValueInstantiators (of type "
+                            +insts.getClass().getName()+"): returned null ValueInstantiator");
+                }
+            }
+        }
+        
+        return instantiator;
+    }
+
+    /**
      * Method that {@link DeserializerProvider}s call to create a new
      * deserializer for types other than Collections, Maps, arrays and
      * enums.
@@ -508,33 +583,6 @@ public class BeanDeserializerFactory
         return buildBeanDeserializer(config, type, beanDesc, property);
     }
 
-
-    /**
-     * Method that will find complete abstract type mapping for specified type, doing as
-     * many resolution steps as necessary.
-     */
-    @Override
-    protected JavaType mapAbstractType(DeserializationConfig config, JavaType type)
-        throws JsonMappingException
-    {
-        while (true) {
-            JavaType next = _mapAbstractType2(config, type);
-            if (next == null) {
-                return type;
-            }
-            /* Should not have to worry about cycles; but better verify since they will invariably
-             * occur... :-)
-             * (also: guard against invalid resolution to a non-related type)
-             */
-            Class<?> prevCls = type.getRawClass();
-            Class<?> nextCls = next.getRawClass();
-            if ((prevCls == nextCls) || !prevCls.isAssignableFrom(nextCls)) {
-                throw new IllegalArgumentException("Invalid abstract type resolution from "+type+" to "+next+": latter is not a subtype of former");
-            }
-            type = next;
-        }
-    }
-
     /**
      * Method that will find abstract type mapping for specified type, doing a single
      * lookup through registered abstract type resolvers; will not do recursive lookups.
@@ -592,7 +640,7 @@ public class BeanDeserializerFactory
         throws JsonMappingException
     {
         // First: check what creators we can use, if any
-        ValueInstantiator valueInstantiator = findDeserializerInstantiator(config, beanDesc);
+        ValueInstantiator valueInstantiator = findValueInstantiator(config, beanDesc);
         // ... since often we have nothing to go on, if we have abstract type:
         if (type.isAbstract()) {
             if (!valueInstantiator.canInstantiate()) {
@@ -632,7 +680,7 @@ public class BeanDeserializerFactory
     {
         // first: construct like a regular bean deserializer...
         BeanDeserializerBuilder builder = constructBeanDeserializerBuilder(beanDesc);
-        builder.setValueInstantiator(findDeserializerInstantiator(config, beanDesc));
+        builder.setValueInstantiator(findValueInstantiator(config, beanDesc));
 
         addBeanProps(config, beanDesc, builder);
         // (and assume there won't be any back references)
@@ -696,50 +744,6 @@ public class BeanDeserializerFactory
      */
     protected BeanDeserializerBuilder constructBeanDeserializerBuilder(BasicBeanDescription beanDesc) {
         return new BeanDeserializerBuilder(beanDesc);
-    }
-    
-    @Override
-    protected ValueInstantiator findDeserializerInstantiator(DeserializationConfig config,
-            BasicBeanDescription beanDesc)
-        throws JsonMappingException
-    {
-        ValueInstantiator instantiator;
-        // [JACKSON-633] Check @JsonValueInstantiator before anything else
-        AnnotatedClass ac = beanDesc.getClassInfo();
-        Object instDef = config.getAnnotationIntrospector().findValueInstantiator(ac);
-        if (instDef != null) {
-            if (instDef instanceof ValueInstantiator) {
-                instantiator = (ValueInstantiator) instDef;
-            } else {
-                if (!(instDef instanceof Class<?>)) { // sanity check
-                    throw new IllegalStateException("Invalid value instantiator returned for type "+beanDesc+": neither a Class nor ValueInstantiator");
-                }
-                Class<?> cls = (Class<?>) instDef;
-                if (!ValueInstantiator.class.isAssignableFrom(cls)) {
-                    throw new IllegalStateException("Invalid instantiator Class<?> returned for type "+beanDesc+": "
-                            +cls.getName()+" not a ValueInstantiator");
-                }
-                @SuppressWarnings("unchecked")
-                Class<? extends ValueInstantiator> instClass = (Class<? extends ValueInstantiator>) cls;
-                instantiator = config.valueInstantiatorInstance(ac, (Class<? extends ValueInstantiator>)instClass);
-            }
-        } else {
-            instantiator = constructDefaultValueInstantiator(config, beanDesc);
-        }
-        
-        // finally: anyone want to modify ValueInstantiator?
-        if (_factoryConfig.hasValueInstantiators()) {
-            for (ValueInstantiators insts : _factoryConfig.valueInstantiators()) {
-                instantiator = insts.findValueInstantiator(config, beanDesc, instantiator);
-                // let's do sanity check; easier to spot buggy handlers
-                if (instantiator == null) {
-                    throw new JsonMappingException("Broken registered ValueInstantiators (of type "
-                            +insts.getClass().getName()+"): returned null ValueInstantiator");
-                }
-            }
-        }
-        
-        return instantiator;
     }
 
     /**

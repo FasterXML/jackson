@@ -98,18 +98,19 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
         throws IOException, JsonProcessingException
     {
         // As per [JACKSON-614], may have default implement to use
-        if (_defaultImpl == null) { // if not, an error
-            throw ctxt.wrongTokenException(jp, JsonToken.FIELD_NAME,
-                    "missing property '"+_typePropertyName+"' that is to contain type id  (for class "+baseTypeName()+")");
+        if (_defaultImpl != null) { 
+            JsonDeserializer<Object> deser = _findDefaultImplDeserializer(ctxt);
+            if (tb != null) {
+                tb.writeEndObject();
+                jp = tb.asParser(jp);
+                // must move to point to the first token:
+                jp.nextToken();
+            }
+            return deser.deserialize(jp, ctxt);
         }
-        JsonDeserializer<Object> deser = _findDefaultImplDeserializer(ctxt);
-        if (tb != null) {
-            tb.writeEndObject();
-            jp = tb.asParser(jp);
-            // must move to point to the first token:
-            jp.nextToken();
-        }
-        return deser.deserialize(jp, ctxt);
+        // if not, an error
+        throw ctxt.wrongTokenException(jp, JsonToken.FIELD_NAME,
+                "missing property '"+_typePropertyName+"' that is to contain type id  (for class "+baseTypeName()+")");
     }
 
     /* As per [JACKSON-352], also need to re-route "unknown" version. Need to think

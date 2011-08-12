@@ -581,8 +581,6 @@ public class DeserializationConfig
     public final boolean isEnabled(Feature f) {
         return (_featureFlags & f.getMask()) != 0;
     }
-
-    //protected int getFeatures() { return _generatorFeatures; }
     
     /*
     /**********************************************************
@@ -725,7 +723,7 @@ public class DeserializationConfig
     }
 
     /**
-     * Method for removing all configuring problem handlers; usually done to replace
+     * Method for removing all configured problem handlers; usually done to replace
      * existing handler(s) with different one(s)
      *
      * @since 1.1
