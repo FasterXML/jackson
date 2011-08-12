@@ -303,17 +303,16 @@ public class DeserializationConfig
         ACCEPT_SINGLE_VALUE_AS_ARRAY(false),
         
         /**
-         * Feature that was planned to be enabled to handle "wrapped" values
-         * (see {@link SerializationConfig.Feature#WRAP_ROOT_VALUE}
-         * for details).
-         * <b>NOTE</b>: Not implemented (unlike its counterpart for serialization
-         * which was implemented in 1.7)
+         * Feature to allow "unwrapping" root-level JSON value, to match setting of
+         * {@link SerializationConfig.Feature#WRAP_ROOT_VALUE} used for serialization.
+         * Will verify that the root JSON value is a JSON Object, and that it has
+         * a single property with expected root name. If not, a
+         * {@link JsonMappingException} is thrown; otherwise value of the wrapped property
+         * will be deserialized as if it was the root value.
          * 
-         * @deprecated Never implemented; plus, incorrectly named: should be
-         *    "UNWRAP_ROOT_VALUE" to be of use. Feature such named may be added in future.
+         * @since 1.9
          */
-        @Deprecated
-        WRAP_ROOT_VALUE(false),
+        UNWRAP_ROOT_VALUE(false),
 
         /*
         /******************************************************
@@ -388,12 +387,10 @@ public class DeserializationConfig
     
     /**
      * Factory used for constructing {@link org.codehaus.jackson.JsonNode} instances.
-     *<p>
-     * Non-final to support deprecated legacy methods; should be made final for 2.0
      * 
      * @since 1.6
      */
-    protected JsonNodeFactory _nodeFactory;
+    protected final JsonNodeFactory _nodeFactory;
     
     /*
     /**********************************************************
