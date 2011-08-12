@@ -13,6 +13,9 @@ Description:
 
   Improvements:
 
+  * [JACKSON-505] Handle missing type information gracefully by checking for
+    abstract type mapping to find default implementation, if no valid type
+    information found for @JsonTypeInfo
   * [JACKSON-531] Comparing actual and default value (for JsonSerialize.Inclusion.NON_DEFAULT)
     should check array contents
     (suggested by Christoph S)

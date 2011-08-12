@@ -561,6 +561,7 @@ public abstract class BasicDeserializerFactory
     @Override
     public TypeDeserializer findTypeDeserializer(DeserializationConfig config, JavaType baseType,
             BeanProperty property)
+        throws JsonMappingException
     {
         Class<?> cls = baseType.getRawClass();
         BasicBeanDescription bean = config.introspectClassAnnotations(cls);
@@ -579,6 +580,14 @@ public abstract class BasicDeserializerFactory
             }
         } else {
             subtypes = config.getSubtypeResolver().collectAndResolveSubtypes(ac, config, ai);
+        }
+        // [JACKSON-505]: May need to figure out default implementation, if none found yet
+        // (note: check for abstract type is not 100% mandatory, more of an optimization)
+        if ((b.getDefaultImpl() == null) && baseType.isAbstract()) {
+            JavaType defaultType = mapAbstractType(config, baseType);
+            if (defaultType != null && defaultType.getRawClass() != baseType.getRawClass()) {
+                b = b.defaultImpl(defaultType.getRawClass());
+            }
         }
         return b.buildTypeDeserializer(config, baseType, subtypes, property);
     }
@@ -606,6 +615,7 @@ public abstract class BasicDeserializerFactory
      */
     public TypeDeserializer findPropertyTypeDeserializer(DeserializationConfig config, JavaType baseType,
            AnnotatedMember annotated, BeanProperty property)
+        throws JsonMappingException
     {
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
         TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(config, annotated, baseType);        
@@ -634,6 +644,7 @@ public abstract class BasicDeserializerFactory
      */    
     public TypeDeserializer findPropertyContentTypeDeserializer(DeserializationConfig config, JavaType containerType,
             AnnotatedMember propertyEntity, BeanProperty property)
+        throws JsonMappingException
     {
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
         TypeResolverBuilder<?> b = ai.findPropertyContentTypeResolver(config, propertyEntity, containerType);        
@@ -796,7 +807,8 @@ public abstract class BasicDeserializerFactory
      */
     protected JavaType resolveType(DeserializationConfig config,
             BasicBeanDescription beanDesc, JavaType type, AnnotatedMember member,
-            BeanProperty property)
+            BeanProperty property)                    
+        throws JsonMappingException
     {
         // [JACKSON-154]: Also need to handle keyUsing, contentUsing
         if (type.isContainerType()) {

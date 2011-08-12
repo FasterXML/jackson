@@ -232,7 +232,7 @@ public abstract class DeserializerFactory
      * @since 1.9
      */
     public abstract JavaType mapAbstractType(DeserializationConfig config, JavaType type)
-            throws JsonMappingException;
+        throws JsonMappingException;
 
     /**
      * Method that is to find all creators (constructors, factory methods)
@@ -344,6 +344,7 @@ public abstract class DeserializerFactory
      */
     public TypeDeserializer findTypeDeserializer(DeserializationConfig config, JavaType baseType,
             BeanProperty property)
+        throws JsonMappingException
     {
         // Default implementation returns null for backwards compatibility reasons
         return null;

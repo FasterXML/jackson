@@ -385,16 +385,6 @@ public class DeserializationConfig
      * of the list (tail) without copying the list.
      */
     protected LinkedNode<DeserializationProblemHandler> _problemHandlers;
-
-    /**
-     * To support on-the-fly class generation for interface and abstract classes
-     * it is possible to register "abstract type resolver".
-     *<p>
-     * Non-final to support deprecated legacy methods; should be made final for 2.0
-     * 
-     * @since 1.6
-     */
-    protected AbstractTypeResolver _abstractTypeResolver;
     
     /**
      * Factory used for constructing {@link org.codehaus.jackson.JsonNode} instances.
@@ -451,7 +441,6 @@ public class DeserializationConfig
     {
         super(src, base, src._subtypeResolver);
         _featureFlags = src._featureFlags;
-        _abstractTypeResolver = src._abstractTypeResolver;
         _problemHandlers = src._problemHandlers;
         _nodeFactory = src._nodeFactory;
     }
@@ -463,7 +452,6 @@ public class DeserializationConfig
     {
         super(src);
         _featureFlags = src._featureFlags;
-        _abstractTypeResolver = src._abstractTypeResolver;
         _problemHandlers = src._problemHandlers;
         _nodeFactory = f;
     }

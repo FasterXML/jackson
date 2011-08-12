@@ -34,6 +34,17 @@ public class StdTypeResolverBuilder
     // Objects
     
     protected TypeIdResolver _customIdResolver;
+
+    /*
+    /**********************************************************
+    /* Accessors
+    /**********************************************************
+     */
+
+    @Override
+    public Class<?> getDefaultImpl() {
+        return _defaultImpl;
+    }
     
     /*
     /**********************************************************

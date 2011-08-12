@@ -47,6 +47,21 @@ public interface TypeResolverBuilder<T extends TypeResolverBuilder<T>>
 {
     /*
     /**********************************************************
+    /* Accessors
+    /**********************************************************
+     */
+
+    /**
+     * Accessor for currently configured default type; implementation
+     * class that may be used in case no valid type information is
+     * available during type resolution
+     * 
+     * @since 1.9
+     */
+    public Class<?> getDefaultImpl();
+    
+    /*
+    /**********************************************************
     /* Actual builder methods
     /**********************************************************
      */
