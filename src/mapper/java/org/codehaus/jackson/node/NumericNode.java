@@ -41,32 +41,32 @@ public abstract class NumericNode
      */
     
     @Override
-    public abstract String getValueAsText();
+    public abstract String asText();
 
     @Override
-    public int getValueAsInt() {
+    public int asInt() {
         return getIntValue();
     }
     @Override
-    public int getValueAsInt(int defaultValue) {
+    public int asInt(int defaultValue) {
         return getIntValue();
     }
 
     @Override
-    public long getValueAsLong() {
+    public long asLong() {
         return getLongValue();
     }
     @Override
-    public long getValueAsLong(long defaultValue) {
+    public long asLong(long defaultValue) {
         return getLongValue();
     }
     
     @Override
-    public double getValueAsDouble() {
+    public double asDouble() {
         return getDoubleValue();
     }
     @Override
-    public double getValueAsDouble(double defaultValue) {
+    public double asDouble(double defaultValue) {
         return getDoubleValue();
     }
 }

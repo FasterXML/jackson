@@ -69,7 +69,7 @@ public final class DecimalNode
     public BigDecimal getDecimalValue() { return _value; }
 
     @Override
-    public String getValueAsText() {
+    public String asText() {
         return _value.toString();
     }
 

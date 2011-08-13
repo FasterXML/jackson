@@ -70,12 +70,12 @@ public final class BigIntegerNode
      */
     
     @Override
-    public String getValueAsText() {
+    public String asText() {
         return _value.toString();
     }
 
     @Override
-    public boolean getValueAsBoolean(boolean defaultValue) {
+    public boolean asBoolean(boolean defaultValue) {
         return !BigInteger.ZERO.equals(_value);
     }
     

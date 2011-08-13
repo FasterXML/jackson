@@ -106,7 +106,7 @@ public class TestTreeMapperDeserializer
         assertTrue(result.isBoolean());
         assertType(result, BooleanNode.class);
         assertTrue(result.getBooleanValue());
-        assertEquals("true", result.getValueAsText());
+        assertEquals("true", result.asText());
         assertFalse(result.isMissingNode());
 
         // also, equality should work ok
@@ -135,7 +135,7 @@ public class TestTreeMapperDeserializer
         assertEquals(value, result.getNumberValue().doubleValue());
         assertEquals((int) value, result.getIntValue());
         assertEquals((long) value, result.getLongValue());
-        assertEquals(String.valueOf(value), result.getValueAsText());
+        assertEquals(String.valueOf(value), result.asText());
 
         // also, equality should work ok
         assertEquals(result, DoubleNode.valueOf(value));
@@ -160,7 +160,7 @@ public class TestTreeMapperDeserializer
 
         assertEquals(value, result.getNumberValue().intValue());
         assertEquals(value, result.getIntValue());
-        assertEquals(String.valueOf(value), result.getValueAsText());
+        assertEquals(String.valueOf(value), result.asText());
         assertEquals((double) value, result.getDoubleValue());
         assertEquals((long) value, result.getLongValue());
 
@@ -188,7 +188,7 @@ public class TestTreeMapperDeserializer
 
         assertEquals(value, result.getNumberValue().longValue());
         assertEquals(value, result.getLongValue());
-        assertEquals(String.valueOf(value), result.getValueAsText());
+        assertEquals(String.valueOf(value), result.asText());
         assertEquals((double) value, result.getDoubleValue());
 
         // also, equality should work ok
@@ -205,7 +205,7 @@ public class TestTreeMapperDeserializer
         assertTrue(result.isNull());
         assertFalse(result.isNumber());
         assertFalse(result.isTextual());
-        assertEquals("null", result.getValueAsText());
+        assertEquals("null", result.asText());
 
         // also, equality should work ok
         assertEquals(result, NullNode.instance);
@@ -233,7 +233,7 @@ public class TestTreeMapperDeserializer
         assertFalse(result.isMissingNode());
 
         assertEquals(value, result.getNumberValue());
-        assertEquals(value.toString(), result.getValueAsText());
+        assertEquals(value.toString(), result.asText());
 
         // also, equality should work ok
         assertEquals(result, DecimalNode.valueOf(value));

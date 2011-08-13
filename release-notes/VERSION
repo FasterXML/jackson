@@ -57,6 +57,7 @@ Description:
   * [JACKSON-644] Add SimpleModule.setMixInAnnotations()
   * [JACKSON-648] ObjectWriter: allow changing default serialization DateFormat
     (ObjectMapper.writer(DateFormat), ObjectWriter.withDateFormat(DateFormat))
+  * [JACKSON-661] Add shorter 'JsonNode.asXxx' methods to replace 'JsonNode.getValueAsXxx'
 
   New features:
 

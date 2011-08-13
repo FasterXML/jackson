@@ -73,7 +73,7 @@ public final class DoubleNode
     }
 
     @Override
-    public String getValueAsText() {
+    public String asText() {
         return NumberOutput.toString(_value);
     }
 

@@ -33,18 +33,18 @@ public final class MissingNode
     public boolean isMissingNode() { return true; }
 
     @Override
-    public String getValueAsText() { return null; }
+    public String asText() { return null; }
     
     @Override
-    public int getValueAsInt(int defaultValue) {
+    public int asInt(int defaultValue) {
         return 0;
     }
     @Override
-    public long getValueAsLong(long defaultValue) {
+    public long asLong(long defaultValue) {
         return 0L;
     }
     @Override
-    public double getValueAsDouble(double defaultValue) {
+    public double asDouble(double defaultValue) {
         return 0.0;
     }
     

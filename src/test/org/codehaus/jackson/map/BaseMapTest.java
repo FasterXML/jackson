@@ -137,22 +137,22 @@ public abstract class BaseMapTest
 
     protected void assertNodeNumbersForNonNumeric(JsonNode n)
     { 
-        assertEquals(0, n.getValueAsInt());
-        assertEquals(-42, n.getValueAsInt(-42));
-        assertEquals(0, n.getValueAsLong());
-        assertEquals(12345678901L, n.getValueAsLong(12345678901L));
-        assertEquals(0.0, n.getValueAsDouble());
-        assertEquals(-19.25, n.getValueAsDouble(-19.25));
+        assertEquals(0, n.asInt());
+        assertEquals(-42, n.asInt(-42));
+        assertEquals(0, n.asLong());
+        assertEquals(12345678901L, n.asLong(12345678901L));
+        assertEquals(0.0, n.asDouble());
+        assertEquals(-19.25, n.asDouble(-19.25));
     }
     
     protected void assertNodeNumbers(JsonNode n, int expInt, double expDouble)
     {
-        assertEquals(expInt, n.getValueAsInt());
-        assertEquals(expInt, n.getValueAsInt(-42));
-        assertEquals((long) expInt, n.getValueAsLong());
-        assertEquals((long) expInt, n.getValueAsLong(19L));
-        assertEquals(expDouble, n.getValueAsDouble());
-        assertEquals(expDouble, n.getValueAsDouble(-19.25));
+        assertEquals(expInt, n.asInt());
+        assertEquals(expInt, n.asInt(-42));
+        assertEquals((long) expInt, n.asLong());
+        assertEquals((long) expInt, n.asLong(19L));
+        assertEquals(expDouble, n.asDouble());
+        assertEquals(expDouble, n.asDouble(-19.25));
     }
     
     /*

@@ -79,7 +79,7 @@ public final class BinaryNode
      * but will work correctly.
      */
     @Override
-    public String getValueAsText() {
+    public String asText() {
         return Base64Variants.getDefaultVariant().encode(_data, false);
     }
 

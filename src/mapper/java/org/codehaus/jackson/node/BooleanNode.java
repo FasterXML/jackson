@@ -39,30 +39,30 @@ public final class BooleanNode
     }
 
     @Override
-    public String getValueAsText() {
+    public String asText() {
         return (this == TRUE) ? "true" : "false";
     }
 
     @Override
-    public boolean getValueAsBoolean() {
+    public boolean asBoolean() {
         return (this == TRUE);
     }
 
     @Override
-    public boolean getValueAsBoolean(boolean defaultValue) {
+    public boolean asBoolean(boolean defaultValue) {
         return (this == TRUE);
     }
     
     @Override
-    public int getValueAsInt(int defaultValue) {
+    public int asInt(int defaultValue) {
         return (this == TRUE) ? 1 : 0;
     }
     @Override
-    public long getValueAsLong(long defaultValue) {
+    public long asLong(long defaultValue) {
         return (this == TRUE) ? 1L : 0L;
     }
     @Override
-    public double getValueAsDouble(double defaultValue) {
+    public double asDouble(double defaultValue) {
         return (this == TRUE) ? 1.0 : 0.0;
     }
     

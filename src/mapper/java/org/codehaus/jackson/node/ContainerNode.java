@@ -33,8 +33,18 @@ public abstract class ContainerNode
     @Override
     public abstract JsonToken asToken();
 
+    /* NOTE: must have separate implementations since semantics have
+     * slight difference; deprecated method must return null,
+     * new method empty string.
+     */
+
+    @SuppressWarnings("deprecation")
     @Override
     public String getValueAsText() { return null; }
+    
+    
+    @Override
+    public String asText() { return ""; }
 
     /*
     /**********************************************************

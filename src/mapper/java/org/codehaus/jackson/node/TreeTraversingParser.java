@@ -227,7 +227,7 @@ public class TreeTraversingParser extends JsonParserMinimalBase
             JsonNode n = currentNode();
             if (n != null && n.isBinary()) {
                 // this will convert it to base64
-                return n.getValueAsText();
+                return n.asText();
             }
         }
 

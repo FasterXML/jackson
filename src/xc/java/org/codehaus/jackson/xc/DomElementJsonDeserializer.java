@@ -53,8 +53,8 @@ public class DomElementJsonDeserializer
     protected Element fromNode(Document document, JsonNode jsonNode)
             throws IOException
     {
-        String ns = jsonNode.get("namespace") != null ? jsonNode.get("namespace").getValueAsText() : null;
-        String name = jsonNode.get("name") != null ? jsonNode.get("name").getValueAsText() : null;
+        String ns = jsonNode.get("namespace") != null ? jsonNode.get("namespace").asText() : null;
+        String name = jsonNode.get("name") != null ? jsonNode.get("name").asText() : null;
         if (name == null) {
             throw new JsonMappingException("No name for DOM element was provided in the JSON object.");
         }
@@ -65,9 +65,9 @@ public class DomElementJsonDeserializer
             Iterator<JsonNode> atts = attributesNode.getElements();
             while (atts.hasNext()) {
                 JsonNode node = atts.next();
-                ns = node.get("namespace") != null ? node.get("namespace").getValueAsText() : null;
-                name = node.get("name") != null ? node.get("name").getValueAsText() : null;
-                String value = node.get("$") != null ? node.get("$").getValueAsText() : null;
+                ns = node.get("namespace") != null ? node.get("namespace").asText() : null;
+                name = node.get("name") != null ? node.get("name").asText() : null;
+                String value = node.get("$") != null ? node.get("$").asText() : null;
 
                 if (name != null) {
                     element.setAttributeNS(ns, name, value);
@@ -80,8 +80,8 @@ public class DomElementJsonDeserializer
             Iterator<JsonNode> els = childsNode.getElements();
             while (els.hasNext()) {
                 JsonNode node = els.next();
-                name = node.get("name") != null ? node.get("name").getValueAsText() : null;
-                String value = node.get("$") != null ? node.get("$").getValueAsText() : null;
+                name = node.get("name") != null ? node.get("name").asText() : null;
+                String value = node.get("$") != null ? node.get("$").asText() : null;
 
                 if (value != null) {
                     element.appendChild(document.createTextNode(value));

@@ -46,7 +46,7 @@ public class TestTreeMapperSerializer
             StringWriter sw = new StringWriter();
             if (i == 0) {
                 JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-                root.writeTo(gen);
+                root.serialize(gen, null);
                 gen.close();
             } else {
                 mapper.writeValue(sw, root);
@@ -76,7 +76,7 @@ public class TestTreeMapperSerializer
             StringWriter sw = new StringWriter();
             if (i == 0) {
                 JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-                root.writeTo(gen);
+                root.serialize(gen, null);
                 gen.close();
             } else {
                 mapper.writeValue(sw, root);
@@ -108,7 +108,7 @@ public class TestTreeMapperSerializer
             StringWriter sw = new StringWriter();
             if (type == 0) {
                 JsonGenerator gen = new JsonFactory().createJsonGenerator(sw);
-                root.writeTo(gen);
+                root.serialize(gen, null);
                 gen.close();
             } else {
                 mapper.writeValue(sw, root);

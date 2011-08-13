@@ -63,7 +63,7 @@ public class TestJsonNode
         // [JACKSON-587]
         long value = 127353264013893L;
         TextNode n = TextNode.valueOf(String.valueOf(value));
-        assertEquals(value, n.getValueAsLong());
+        assertEquals(value, n.asLong());
         
         // and then with non-numeric input
         assertNodeNumbersForNonNumeric(TextNode.valueOf("foobar"));
@@ -78,7 +78,7 @@ public class TestJsonNode
         assertSame(f, BooleanNode.valueOf(false));
         assertStandardEquals(f);
         assertFalse(f.getBooleanValue());
-        assertEquals("false", f.getValueAsText());
+        assertEquals("false", f.asText());
         assertEquals(JsonToken.VALUE_FALSE, f.asToken());
 
         // and ditto for true
@@ -88,7 +88,7 @@ public class TestJsonNode
         assertSame(t, BooleanNode.valueOf(true));
         assertStandardEquals(t);
         assertTrue(t.getBooleanValue());
-        assertEquals("true", t.getValueAsText());
+        assertEquals("true", t.asText());
         assertEquals(JsonToken.VALUE_TRUE, t.asToken());
 
         // 1.6:
@@ -107,7 +107,7 @@ public class TestJsonNode
         assertEquals(1L, n.getLongValue());
         assertEquals(BigDecimal.ONE, n.getDecimalValue());
         assertEquals(BigInteger.ONE, n.getBigIntegerValue());
-        assertEquals("1", n.getValueAsText());
+        assertEquals("1", n.asText());
 
         // 1.6:
         assertNodeNumbers(n, 1, 1.0);
@@ -124,7 +124,7 @@ public class TestJsonNode
         assertEquals(1L, n.getLongValue());
         assertEquals(BigDecimal.ONE, n.getDecimalValue());
         assertEquals(BigInteger.ONE, n.getBigIntegerValue());
-        assertEquals("1", n.getValueAsText());
+        assertEquals("1", n.asText());
 
         // 1.6:
         assertNodeNumbers(n, 1, 1.0);
@@ -141,7 +141,7 @@ public class TestJsonNode
         assertEquals(0.25, n.getDoubleValue());
         assertNotNull(n.getDecimalValue());
         assertEquals(BigInteger.ZERO, n.getBigIntegerValue());
-        assertEquals("0.25", n.getValueAsText());
+        assertEquals("0.25", n.asText());
 
         // 1.6:
         assertNodeNumbers(DoubleNode.valueOf(4.5), 4, 4.5);
@@ -161,7 +161,7 @@ public class TestJsonNode
         assertEquals(1, n.getIntValue());
         assertEquals(1L, n.getLongValue());
         assertEquals(BigDecimal.ONE, n.getDecimalValue());
-        assertEquals("1", n.getValueAsText());
+        assertEquals("1", n.asText());
 
         // 1.6:
         assertNodeNumbers(n, 1, 1.0);
@@ -181,7 +181,7 @@ public class TestJsonNode
         assertEquals(1, n.getIntValue());
         assertEquals(1L, n.getLongValue());
         assertEquals(BigInteger.ONE, n.getBigIntegerValue());
-        assertEquals("1", n.getValueAsText());
+        assertEquals("1", n.asText());
         
         // 1.6:
         assertNodeNumbers(n, 1, 1.0);
@@ -218,7 +218,7 @@ public class TestJsonNode
         assertTrue(n.equals(n2));
         assertEquals("\"Aw==\"", n.toString());
 
-        assertEquals("AAMD", new BinaryNode(data).getValueAsText());
+        assertEquals("AAMD", new BinaryNode(data).asText());
 
         // 1.6:
         assertNodeNumbersForNonNumeric(n);
@@ -229,7 +229,7 @@ public class TestJsonNode
         POJONode n = new POJONode("x"); // not really a pojo but that's ok
         assertStandardEquals(n);
         assertEquals(n, new POJONode("x"));
-        assertEquals("x", n.getValueAsText());
+        assertEquals("x", n.asText());
         // not sure if this is what it'll remain as but:
         assertEquals("x", n.toString());
 
@@ -246,7 +246,7 @@ public class TestJsonNode
     {
         MissingNode n = MissingNode.getInstance();
         assertEquals(JsonToken.NOT_AVAILABLE, n.asToken());
-        assertNull(n.getValueAsText());
+        assertNull(n.asText());
         assertStandardEquals(n);
         assertEquals("", n.toString());
 

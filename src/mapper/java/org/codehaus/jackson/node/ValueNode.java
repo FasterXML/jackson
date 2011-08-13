@@ -54,5 +54,5 @@ public abstract class ValueNode
      */
 
     @Override
-    public String toString() { return getValueAsText(); }
+    public String toString() { return asText(); }
 }

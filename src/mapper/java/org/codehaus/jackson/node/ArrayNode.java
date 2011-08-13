@@ -83,7 +83,7 @@ public final class ArrayNode
                  *   JsonSerializable? Let's start with former, change if
                  *   we must.
                  */
-                ((BaseJsonNode)n).writeTo(jg);
+                ((BaseJsonNode)n).serialize(jg, provider);
             }
         }
         jg.writeEndArray();
@@ -97,7 +97,7 @@ public final class ArrayNode
         typeSer.writeTypePrefixForArray(this, jg);
         if (_children != null) {
             for (JsonNode n : _children) {
-                ((BaseJsonNode)n).writeTo(jg);
+                ((BaseJsonNode)n).serialize(jg, provider);
             }
         }
         typeSer.writeTypeSuffixForArray(this, jg);

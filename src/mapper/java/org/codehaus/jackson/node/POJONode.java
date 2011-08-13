@@ -35,12 +35,12 @@ public final class POJONode
      */
 
     @Override
-    public String getValueAsText() {
+    public String asText() {
         return (_value == null) ? "null" : _value.toString();
     }
 
     @Override
-    public boolean getValueAsBoolean(boolean defaultValue)
+    public boolean asBoolean(boolean defaultValue)
     {
         if (_value != null && _value instanceof Boolean) {
             return ((Boolean) _value).booleanValue();
@@ -49,7 +49,7 @@ public final class POJONode
     }
     
     @Override
-    public int getValueAsInt(int defaultValue)
+    public int asInt(int defaultValue)
     {
         if (_value instanceof Number) {
             return ((Number) _value).intValue();
@@ -58,7 +58,7 @@ public final class POJONode
     }
 
     @Override
-    public long getValueAsLong(long defaultValue)
+    public long asLong(long defaultValue)
     {
         if (_value instanceof Number) {
             return ((Number) _value).longValue();
@@ -67,7 +67,7 @@ public final class POJONode
     }
     
     @Override
-    public double getValueAsDouble(double defaultValue)
+    public double asDouble(double defaultValue)
     {
         if (_value instanceof Number) {
             return ((Number) _value).doubleValue();

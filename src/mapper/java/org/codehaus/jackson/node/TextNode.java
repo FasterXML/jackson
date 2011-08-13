@@ -167,14 +167,14 @@ public final class TextNode
      */
 
     @Override
-    public String getValueAsText() {
+    public String asText() {
         return _value;
     }
 
     // note: neither fast nor elegant, but these work for now:
 
     @Override
-    public boolean getValueAsBoolean(boolean defaultValue) {
+    public boolean asBoolean(boolean defaultValue) {
         if (_value != null) {
             if ("true".equals(_value.trim())) {
                 return true;
@@ -184,17 +184,17 @@ public final class TextNode
     }
     
     @Override
-    public int getValueAsInt(int defaultValue) {
+    public int asInt(int defaultValue) {
         return NumberInput.parseAsInt(_value, defaultValue);
     }
 
     @Override
-    public long getValueAsLong(long defaultValue) {
+    public long asLong(long defaultValue) {
         return NumberInput.parseAsLong(_value, defaultValue);
     }
     
     @Override
-    public double getValueAsDouble(double defaultValue) {
+    public double asDouble(double defaultValue) {
         return NumberInput.parseAsDouble(_value, defaultValue);
     }
     

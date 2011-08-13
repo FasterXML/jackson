@@ -96,28 +96,28 @@ public class TestGenerateJsonSchema
         assertNotNull(JsonSchema.getDefaultSchemaNode());
 
 	ObjectNode root = jsonSchema.getSchemaNode();
-        assertEquals("object", root.get("type").getValueAsText());
+        assertEquals("object", root.get("type").asText());
         assertEquals(false, root.path("required").getBooleanValue());
         JsonNode propertiesSchema = root.get("properties");
         assertNotNull(propertiesSchema);
         JsonNode property1Schema = propertiesSchema.get("property1");
         assertNotNull(property1Schema);
-        assertEquals("integer", property1Schema.get("type").getValueAsText());
+        assertEquals("integer", property1Schema.get("type").asText());
         assertEquals(false, property1Schema.path("required").getBooleanValue());
         JsonNode property2Schema = propertiesSchema.get("property2");
         assertNotNull(property2Schema);
-        assertEquals("string", property2Schema.get("type").getValueAsText());
+        assertEquals("string", property2Schema.get("type").asText());
         assertEquals(false, property2Schema.path("required").getBooleanValue());
         JsonNode property3Schema = propertiesSchema.get("property3");
         assertNotNull(property3Schema);
-        assertEquals("array", property3Schema.get("type").getValueAsText());
+        assertEquals("array", property3Schema.get("type").asText());
         assertEquals(false, property3Schema.path("required").getBooleanValue());
-        assertEquals("string", property3Schema.get("items").get("type").getValueAsText());
+        assertEquals("string", property3Schema.get("items").get("type").asText());
         JsonNode property4Schema = propertiesSchema.get("property4");
         assertNotNull(property4Schema);
-        assertEquals("array", property4Schema.get("type").getValueAsText());
+        assertEquals("array", property4Schema.get("type").asText());
         assertEquals(false, property4Schema.path("required").getBooleanValue());
-        assertEquals("number", property4Schema.get("items").get("type").getValueAsText());
+        assertEquals("number", property4Schema.get("items").get("type").asText());
     }
 
     /**

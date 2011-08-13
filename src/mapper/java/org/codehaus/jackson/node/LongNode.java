@@ -65,12 +65,12 @@ public final class LongNode
     public BigInteger getBigIntegerValue() { return BigInteger.valueOf(_value); }
 
     @Override
-    public String getValueAsText() {
+    public String asText() {
         return NumberOutput.toString(_value);
     }
 
     @Override
-    public boolean getValueAsBoolean(boolean defaultValue) {
+    public boolean asBoolean(boolean defaultValue) {
         return _value != 0;
     }
     

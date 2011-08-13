@@ -279,16 +279,16 @@ public abstract class JsonNode
     /* Public API, value access with conversion(s)/coercion(s)
     /**********************************************************
      */
-    
+
     /**
      * Method that will return valid String representation of
      * the container value, if the node is a value node
-     * (method {@link #isValueNode} returns true), otherwise null.
-     *<p>
-     * Note: to serialize nodes of any type, you should call
-     * {@link #toString} instead.
+     * (method {@link #isValueNode} returns true), otherwise
+     * empty String.
+     * 
+     * @since 1.9 (replaces <code>getValueAsText</code>)
      */
-    public abstract String getValueAsText();
+    public abstract String asText();
 
     /**
      * Method that will try to convert value of this node to a Java <b>int</b>.
@@ -300,10 +300,10 @@ public abstract class JsonNode
      * like Objects and Arrays),
      * default value of <b>0</b> will be returned; no exceptions are thrown.
      * 
-     * @since 1.6
+     * @since 1.9 (replaces <code>getValueAsInt</code>)
      */
-    public int getValueAsInt() {
-        return getValueAsInt(0);
+    public int asInt() {
+        return asInt(0);
     }
     
     /**
@@ -316,9 +316,9 @@ public abstract class JsonNode
      * like Objects and Arrays),
      * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
      * 
-     * @since 1.6
+     * @since 1.9 (replaces <code>getValueAsInt</code>)
      */
-    public int getValueAsInt(int defaultValue) {
+    public int asInt(int defaultValue) {
         return defaultValue;
     }
 
@@ -332,10 +332,10 @@ public abstract class JsonNode
      * like Objects and Arrays),
      * default value of <b>0</b> will be returned; no exceptions are thrown.
      * 
-     * @since 1.6
+     * @since 1.9 (replaces <code>getValueAsLong</code>)
      */
-    public long getValueAsLong() {
-        return getValueAsLong(0);
+    public long asLong() {
+        return asLong(0L);
     }
     
     /**
@@ -348,9 +348,9 @@ public abstract class JsonNode
      * like Objects and Arrays),
      * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
      * 
-     * @since 1.6
+     * @since 1.9 (replaces <code>getValueAsLong</code>)
      */
-    public long getValueAsLong(long defaultValue) {
+    public long asLong(long defaultValue) {
         return defaultValue;
     }
     
@@ -364,10 +364,10 @@ public abstract class JsonNode
      * like Objects and Arrays),
      * default value of <b>0.0</b> will be returned; no exceptions are thrown.
      * 
-     * @since 1.6
+     * @since 1.9 (replaces <code>getValueAsDouble</code>)
      */
-    public double getValueAsDouble() {
-        return getValueAsDouble(0.0);
+    public double asDouble() {
+        return asDouble(0.0);
     }
     
     /**
@@ -380,9 +380,9 @@ public abstract class JsonNode
      * like Objects and Arrays),
      * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
      * 
-     * @since 1.6
+     * @since 1.9 (replaces <code>getValueAsLong</code>)
      */
-    public double getValueAsDouble(double defaultValue) {
+    public double asDouble(double defaultValue) {
         return defaultValue;
     }
 
@@ -396,10 +396,10 @@ public abstract class JsonNode
      * like Objects and Arrays),
      * default value of <b>false</b> will be returned; no exceptions are thrown.
      * 
-     * @since 1.7
+     * @since 1.9 (replaces <code>getValueAsBoolean</code>)
      */
-    public boolean getValueAsBoolean() {
-        return getValueAsBoolean(false);
+    public boolean asBoolean() {
+        return asBoolean(false);
     }
     
     /**
@@ -412,11 +412,166 @@ public abstract class JsonNode
      * like Objects and Arrays),
      * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
      * 
-     * @since 1.7
+     * @since 1.9 (replaces <code>getValueAsBoolean</code>)
      */
-    public boolean getValueAsBoolean(boolean defaultValue) {
+    public boolean asBoolean(boolean defaultValue) {
         return defaultValue;
     }
+    
+    /*
+    /**********************************************************
+    /* Public API, value access with conversion(s)/coercion(s)
+    /**********************************************************
+     */
+    
+    /**
+     * Method that will return valid String representation of
+     * the container value, if the node is a value node
+     * (method {@link #isValueNode} returns true), otherwise null.
+     *<p>
+     * Note: to serialize nodes of any type, you should call
+     * {@link #toString} instead.
+     * 
+     * @deprecated Since 1.9, use {@link #asText} instead
+     */
+    @Deprecated
+    public String getValueAsText() { return asText(); }
+
+    /**
+     * Method that will try to convert value of this node to a Java <b>int</b>.
+     * Numbers are coerced using default Java rules; booleans convert to 0 (false)
+     * and 1 (true), and Strings are parsed using default Java language integer
+     * parsing rules.
+     *<p>
+     * If representation can not be converted to an int (including structured types
+     * like Objects and Arrays),
+     * default value of <b>0</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.6
+     * 
+     * @deprecated Since 1.9, use {@link #asInt} instead
+     */
+    @Deprecated
+    public int getValueAsInt() { return asInt(0); }
+    
+    /**
+     * Method that will try to convert value of this node to a Java <b>int</b>.
+     * Numbers are coerced using default Java rules; booleans convert to 0 (false)
+     * and 1 (true), and Strings are parsed using default Java language integer
+     * parsing rules.
+     *<p>
+     * If representation can not be converted to an int (including structured types
+     * like Objects and Arrays),
+     * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.6
+     * 
+     * @deprecated Since 1.9, use {@link #asInt} instead
+     */
+    @Deprecated
+    public int getValueAsInt(int defaultValue) { return asInt(defaultValue); }
+
+    /**
+     * Method that will try to convert value of this node to a Java <b>long</b>.
+     * Numbers are coerced using default Java rules; booleans convert to 0 (false)
+     * and 1 (true), and Strings are parsed using default Java language integer
+     * parsing rules.
+     *<p>
+     * If representation can not be converted to an long (including structured types
+     * like Objects and Arrays),
+     * default value of <b>0</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.6
+     * 
+     * @deprecated Since 1.9, use {@link #asLong} instead
+     */
+    @Deprecated
+    public long getValueAsLong() { return asLong(0L); }
+    
+    /**
+     * Method that will try to convert value of this node to a Java <b>long</b>.
+     * Numbers are coerced using default Java rules; booleans convert to 0 (false)
+     * and 1 (true), and Strings are parsed using default Java language integer
+     * parsing rules.
+     *<p>
+     * If representation can not be converted to an long (including structured types
+     * like Objects and Arrays),
+     * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.6
+     * 
+     * @deprecated Since 1.9, use {@link #asLong} instead
+     */
+    @Deprecated
+    public long getValueAsLong(long defaultValue) { return asLong(defaultValue); }
+    
+    /**
+     * Method that will try to convert value of this node to a Java <b>double</b>.
+     * Numbers are coerced using default Java rules; booleans convert to 0.0 (false)
+     * and 1.0 (true), and Strings are parsed using default Java language integer
+     * parsing rules.
+     *<p>
+     * If representation can not be converted to an int (including structured types
+     * like Objects and Arrays),
+     * default value of <b>0.0</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.6
+     * 
+     * @deprecated Since 1.9, use {@link #asDouble} instead
+     */
+    @Deprecated
+    public double getValueAsDouble() { return asDouble(0.0); }
+    
+    /**
+     * Method that will try to convert value of this node to a Java <b>double</b>.
+     * Numbers are coerced using default Java rules; booleans convert to 0.0 (false)
+     * and 1.0 (true), and Strings are parsed using default Java language integer
+     * parsing rules.
+     *<p>
+     * If representation can not be converted to an int (including structured types
+     * like Objects and Arrays),
+     * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.6
+     * 
+     * @deprecated Since 1.9, use {@link #asDouble} instead
+     */
+    @Deprecated
+    public double getValueAsDouble(double defaultValue) { return asDouble(defaultValue); }
+
+    /**
+     * Method that will try to convert value of this node to a Java <b>boolean</b>.
+     * JSON booleans map naturally; integer numbers other than 0 map to true, and
+     * 0 maps to false
+     * and Strings 'true' and 'false' map to corresponding values.
+     *<p>
+     * If representation can not be converted to a boolean value (including structured types
+     * like Objects and Arrays),
+     * default value of <b>false</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.7
+     * 
+     * @deprecated Since 1.9, use {@link #asBoolean} instead
+     */
+    @Deprecated
+    public boolean getValueAsBoolean() { return asBoolean(false); }
+    
+    /**
+     * Method that will try to convert value of this node to a Java <b>boolean</b>.
+     * JSON booleans map naturally; integer numbers other than 0 map to true, and
+     * 0 maps to false
+     * and Strings 'true' and 'false' map to corresponding values.
+     *<p>
+     * If representation can not be converted to a boolean value (including structured types
+     * like Objects and Arrays),
+     * specified <b>defaultValue</b> will be returned; no exceptions are thrown.
+     * 
+     * @since 1.7
+     * 
+     * @deprecated Since 1.9, use {@link #asBoolean} instead
+     */
+    @Deprecated
+    public boolean getValueAsBoolean(boolean defaultValue) { return asBoolean(defaultValue); }
     
     /*
     /**********************************************************
@@ -572,28 +727,6 @@ public abstract class JsonNode
     public abstract List<JsonNode> findValues(String fieldName, List<JsonNode> foundSoFar);
     public abstract List<String> findValuesAsText(String fieldName, List<String> foundSoFar);
     public abstract List<JsonNode> findParents(String fieldName, List<JsonNode> foundSoFar);
-    
-    /*
-    /**********************************************************
-    /* Public API, deprecated accessor
-    /**********************************************************
-     */
-    
-    /**
-     * Alias for {@link #get(String)}.
-     *
-     * @deprecated Use {@link #get(String)} instead.
-     */
-    @Deprecated
-    public final JsonNode getFieldValue(String fieldName) { return get(fieldName); }
-
-    /**
-     * Alias for {@link #get(int)}.
-     *
-     * @deprecated Use {@link #get(int)} instead.
-     */
-    @Deprecated
-    public final JsonNode getElementValue(int index) { return get(index); }
 
     /*
     /**********************************************************
@@ -701,24 +834,6 @@ public abstract class JsonNode
         throw new UnsupportedOperationException("JsonNode not of type ObjectNode (but "
                 +getClass().getName()+"), can not call with() on it");
     }
-    
-    /*
-    /**********************************************************
-    /* Public API, serialization
-    /**********************************************************
-     */
-
-    /**
-     * Method that can be called to serialize this node and
-     * all of its descendants using specified JSON generator.
-     *
-     * @deprecated Use methods that are part of {@link JsonGenerator}
-     *   or {@link org.codehaus.jackson.map.ObjectMapper}
-     *   instead.
-     */
-    @Deprecated
-    public abstract void writeTo(JsonGenerator jg)
-        throws IOException, JsonGenerationException;
 
     /*
     /**********************************************************
@@ -730,8 +845,8 @@ public abstract class JsonNode
      * Method for constructing a {@link JsonParser} instance for
      * iterating over contents of the tree that this
      * node is root of.
-     * Functionally equivalent to first serializing tree
-     * using {@link #writeTo} and then re-parsing but much
+     * Functionally equivalent to first serializing tree using
+     * {@link ObjectCodec} and then re-parsing but
      * more efficient.
      */
     public abstract JsonParser traverse();

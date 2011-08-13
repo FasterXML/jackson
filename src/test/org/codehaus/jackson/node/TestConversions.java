@@ -38,28 +38,28 @@ public class TestConversions extends BaseMapTest
     
     public void testAsInt() throws Exception
     {
-        assertEquals(9, IntNode.valueOf(9).getValueAsInt());
-        assertEquals(7, LongNode.valueOf(7L).getValueAsInt());
-        assertEquals(13, new TextNode("13").getValueAsInt());
-        assertEquals(0, new TextNode("foobar").getValueAsInt());
-        assertEquals(27, new TextNode("foobar").getValueAsInt(27));
-        assertEquals(1, BooleanNode.TRUE.getValueAsInt());
+        assertEquals(9, IntNode.valueOf(9).asInt());
+        assertEquals(7, LongNode.valueOf(7L).asInt());
+        assertEquals(13, new TextNode("13").asInt());
+        assertEquals(0, new TextNode("foobar").asInt());
+        assertEquals(27, new TextNode("foobar").asInt(27));
+        assertEquals(1, BooleanNode.TRUE.asInt());
     }
 
     public void testAsBoolean() throws Exception
     {
-        assertEquals(false, BooleanNode.FALSE.getValueAsBoolean());
-        assertEquals(true, BooleanNode.TRUE.getValueAsBoolean());
-        assertEquals(false, IntNode.valueOf(0).getValueAsBoolean());
-        assertEquals(true, IntNode.valueOf(1).getValueAsBoolean());
-        assertEquals(false, LongNode.valueOf(0).getValueAsBoolean());
-        assertEquals(true, LongNode.valueOf(-34L).getValueAsBoolean());
-        assertEquals(true, new TextNode("true").getValueAsBoolean());
-        assertEquals(false, new TextNode("false").getValueAsBoolean());
-        assertEquals(false, new TextNode("barf").getValueAsBoolean());
-        assertEquals(true, new TextNode("barf").getValueAsBoolean(true));
+        assertEquals(false, BooleanNode.FALSE.asBoolean());
+        assertEquals(true, BooleanNode.TRUE.asBoolean());
+        assertEquals(false, IntNode.valueOf(0).asBoolean());
+        assertEquals(true, IntNode.valueOf(1).asBoolean());
+        assertEquals(false, LongNode.valueOf(0).asBoolean());
+        assertEquals(true, LongNode.valueOf(-34L).asBoolean());
+        assertEquals(true, new TextNode("true").asBoolean());
+        assertEquals(false, new TextNode("false").asBoolean());
+        assertEquals(false, new TextNode("barf").asBoolean());
+        assertEquals(true, new TextNode("barf").asBoolean(true));
 
-        assertEquals(true, new POJONode(Boolean.TRUE).getValueAsBoolean());
+        assertEquals(true, new POJONode(Boolean.TRUE).asBoolean());
     }
     
     // Deserializer to trigger the problem described in [JACKSON-554]

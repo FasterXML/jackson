@@ -118,27 +118,5 @@ public abstract class BaseJsonNode
     public abstract void serializeWithType(JsonGenerator jgen, SerializerProvider provider,
             TypeSerializer typeSer)
         throws IOException, JsonProcessingException;
-
-    /*
-    /**********************************************************
-    /* Other
-    /**********************************************************
-     */
-
-    /**
-     *<p>
-     * Note: this method is deprecated, given that we
-     * want to use the standard serialization interface.
-     */
-    @SuppressWarnings("deprecation")
-    @Override
-    public final void writeTo(JsonGenerator jgen)
-        throws IOException, JsonGenerationException
-    {
-        /* it's ok to pass null, as long as other nodes handle
-         * it properly...
-         */
-        serialize(jgen, null);
-    }
 }
 

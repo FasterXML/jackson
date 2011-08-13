@@ -160,7 +160,7 @@ public class ObjectNode
                     if (foundSoFar == null) {
                         foundSoFar = new ArrayList<String>();
                     }
-                    foundSoFar.add(entry.getValue().getValueAsText());
+                    foundSoFar.add(entry.getValue().asText());
                 } else { // only add children if parent not added
                     foundSoFar = entry.getValue().findValuesAsText(fieldName, foundSoFar);
                 }
