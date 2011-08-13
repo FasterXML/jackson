@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.Versioned;
 import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
@@ -93,6 +95,26 @@ public abstract class Module
          * @since 1.7.1 (1.7.0 unfortunately had a typo in method name!)
          */
         public SerializationConfig getSerializationConfig();
+
+        /**
+         * @since 1.9.0
+         */
+        public boolean isEnabled(DeserializationConfig.Feature f);
+
+        /**
+         * @since 1.9.0
+         */
+        public boolean isEnabled(SerializationConfig.Feature f);
+
+        /**
+         * @since 1.9.0
+         */
+        public boolean isEnabled(JsonParser.Feature f);
+
+        /**
+         * @since 1.9.0
+         */
+        public boolean isEnabled(JsonGenerator.Feature f);
         
         /*
         /**********************************************************

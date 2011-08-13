@@ -527,6 +527,16 @@ public class DeserializationConfig
     public DeserializationConfig withHandlerInstantiator(HandlerInstantiator hi) {
         return (hi == _base.getHandlerInstantiator()) ? this : new DeserializationConfig(this, _base.withHandlerInstantiator(hi));
     }
+
+    @Override
+    public DeserializationConfig withInsertedAnnotationIntrospector(AnnotationIntrospector ai) {
+        return new DeserializationConfig(this, _base.withInsertedAnnotationIntrospector(ai));
+    }
+
+    @Override
+    public DeserializationConfig withAppendedAnnotationIntrospector(AnnotationIntrospector ai) {
+        return new DeserializationConfig(this, _base.withAppendedAnnotationIntrospector(ai));
+    }
     
     /*
     /**********************************************************

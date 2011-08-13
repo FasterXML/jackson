@@ -455,6 +455,26 @@ public class ObjectMapper
             public SerializationConfig getSerializationConfig() {
                 return mapper.getSerializationConfig();
             }
+
+            @Override
+            public boolean isEnabled(DeserializationConfig.Feature f) {
+                return mapper.isEnabled(f);
+            }
+
+            @Override
+            public boolean isEnabled(SerializationConfig.Feature f) {
+                return mapper.isEnabled(f);
+            }
+
+            @Override
+            public boolean isEnabled(JsonParser.Feature f) {
+                return mapper.isEnabled(f);
+            }
+
+            @Override
+            public boolean isEnabled(JsonGenerator.Feature f) {
+                return mapper.isEnabled(f);
+            }
             
             // // // Methods for registering handlers: deserializers, serializers
             
@@ -509,14 +529,14 @@ public class ObjectMapper
             
             @Override
             public void insertAnnotationIntrospector(AnnotationIntrospector ai) {
-                mapper._deserializationConfig.insertAnnotationIntrospector(ai);
-                mapper._serializationConfig.insertAnnotationIntrospector(ai);
+                mapper._deserializationConfig = mapper._deserializationConfig.withInsertedAnnotationIntrospector(ai);
+                mapper._serializationConfig = mapper._serializationConfig.withInsertedAnnotationIntrospector(ai);
             }
             
             @Override
             public void appendAnnotationIntrospector(AnnotationIntrospector ai) {
-                mapper._deserializationConfig.appendAnnotationIntrospector(ai);
-                mapper._serializationConfig.appendAnnotationIntrospector(ai);
+                mapper._deserializationConfig = mapper._deserializationConfig.withAppendedAnnotationIntrospector(ai);
+                mapper._serializationConfig = mapper._serializationConfig.withAppendedAnnotationIntrospector(ai);
             }
 
             @Override
@@ -1173,6 +1193,30 @@ public class ObjectMapper
      */
     public boolean isEnabled(DeserializationConfig.Feature f) {
         return _deserializationConfig.isEnabled(f);
+    }
+
+    /**
+     * Convenience method, equivalent to:
+     *<pre>
+     *  getJsonFactory().isEnabled(f);
+     *</pre>
+     * 
+     * @since 1.9
+     */
+    public boolean isEnabled(JsonParser.Feature f) {
+        return _jsonFactory.isEnabled(f);
+    }
+
+    /**
+     * Convenience method, equivalent to:
+     *<pre>
+     *  getJsonFactory().isEnabled(f);
+     *</pre>
+     * 
+     * @since 1.9
+     */
+    public boolean isEnabled(JsonGenerator.Feature f) {
+        return _jsonFactory.isEnabled(f);
     }
     
     /**

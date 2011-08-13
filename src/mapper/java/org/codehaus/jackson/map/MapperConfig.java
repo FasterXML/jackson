@@ -23,6 +23,13 @@ import org.codehaus.jackson.type.JavaType;
  * serialization and deserialization configuration objects;
  * accessors to mode-independent configuration settings
  * and such.
+ *<p>
+ * As of version 1.9, the goal is to make this class eventually immutable.
+ * Because of this, existing methods that allow changing state of this
+ * instance are deprecated in favor of methods that create new instances
+ * with different configuration ("fluent factories").
+ * One major remaining issue is that of handling mix-in annotations, which
+ * still represent bit of mutable state.
  *
  * @since 1.2 -- major change in 1.8, changed from interface to
  *   abstract class
@@ -263,6 +270,22 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.8
      */
     public abstract T withHandlerInstantiator(HandlerInstantiator hi);
+
+    /**
+     * Method for constructing and returning a new instance with additional
+     * {@link AnnotationIntrospector} inserted (as the highest priority one)
+     * 
+     * @since 1.9
+     */
+    public abstract T withInsertedAnnotationIntrospector(AnnotationIntrospector introspector);
+
+    /**
+     * Method for constructing and returning a new instance with additional
+     * {@link AnnotationIntrospector} appended (as the lowest priority one)
+     * 
+     * @since 1.9
+     */
+    public abstract T withAppendedAnnotationIntrospector(AnnotationIntrospector introspector);
     
     /*
     /**********************************************************
@@ -292,7 +315,11 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @param introspector Annotation introspector to register.
      * 
      * @since 1.7
+     * 
+     * @deprecated Since 1.9 use {@link #withInsertedAnnotationIntrospector(AnnotationIntrospector)} instead;
+     *   this method is deprecated as it changes state, preventing immutability of instances
      */
+    @Deprecated
     public final void insertAnnotationIntrospector(AnnotationIntrospector introspector) {
         _base = _base.withAnnotationIntrospector(AnnotationIntrospector.Pair.create(introspector,
                 getAnnotationIntrospector()));
@@ -306,7 +333,11 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @param introspector Annotation introspector to register.
      * 
      * @since 1.7
+     * 
+     * @deprecated Since 1.9 use {@link #withAppendedAnnotationIntrospector(AnnotationIntrospector)} instead;
+     *   this method is deprecated as it changes state, preventing immutability of instances
      */
+    @Deprecated
     public final void appendAnnotationIntrospector(AnnotationIntrospector introspector) {
         _base = _base.withAnnotationIntrospector(AnnotationIntrospector.Pair.create(getAnnotationIntrospector(),
                 introspector));
@@ -770,6 +801,14 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
                     _typeResolverBuilder, _dateFormat, _handlerInstantiator);
         }
 
+        public Base withInsertedAnnotationIntrospector(AnnotationIntrospector ai) {
+            return withAnnotationIntrospector(AnnotationIntrospector.Pair.create(ai, _annotationIntrospector));
+        }
+
+        public Base withAppendedAnnotationIntrospector(AnnotationIntrospector ai) {
+            return withAnnotationIntrospector(AnnotationIntrospector.Pair.create(_annotationIntrospector, ai));
+        }
+        
         public Base withVisibilityChecker(VisibilityChecker<?> vc) {
             return new Base(_classIntrospector, _annotationIntrospector, vc, _propertyNamingStrategy, _typeFactory,
                     _typeResolverBuilder, _dateFormat, _handlerInstantiator);

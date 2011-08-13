@@ -582,6 +582,16 @@ public class SerializationConfig
     }
 
     @Override
+    public SerializationConfig withInsertedAnnotationIntrospector(AnnotationIntrospector ai) {
+        return new SerializationConfig(this, _base.withInsertedAnnotationIntrospector(ai));
+    }
+
+    @Override
+    public SerializationConfig withAppendedAnnotationIntrospector(AnnotationIntrospector ai) {
+        return new SerializationConfig(this, _base.withAppendedAnnotationIntrospector(ai));
+    }
+    
+    @Override
     public SerializationConfig withVisibilityChecker(VisibilityChecker<?> vc) {
         return new SerializationConfig(this, _base.withVisibilityChecker(vc));
     }
