@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.map.deser.StdDeserializationContext;
 import org.codehaus.jackson.map.type.SimpleType;
 import org.codehaus.jackson.node.JsonNodeFactory;
@@ -45,6 +46,14 @@ public class ObjectReader
      * can use copy-constructor to create modified instances as necessary.
      */
     protected final DeserializationConfig _config;
+
+    /**
+     * Flag that indicates whether root values are expected to be unwrapped
+     * or not
+     * 
+     * @since 1.9
+     */
+    protected final boolean _unwrapRoot;
     
     /**
      * Root-level cached deserializers
@@ -121,6 +130,7 @@ public class ObjectReader
             throw new IllegalArgumentException("Can not update an array value");
         }
         _schema = schema;
+        _unwrapRoot = config.isEnabled(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE);
     }
     
     /**
@@ -141,6 +151,7 @@ public class ObjectReader
             throw new IllegalArgumentException("Can not update an array value");
         }
         _schema = schema;
+        _unwrapRoot = config.isEnabled(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE);
     }
 
     /**
@@ -496,11 +507,16 @@ public class ObjectReader
             result = _valueToUpdate;
         } else { // pointing to event other than null
             DeserializationContext ctxt = _createDeserializationContext(jp, _config);
-            if (_valueToUpdate == null) {
-                result = _findRootDeserializer(_config, _valueType).deserialize(jp, ctxt);
+            JsonDeserializer<Object> deser = _findRootDeserializer(_config, _valueType);
+            if (_unwrapRoot) {
+                result = _unwrapAndDeserialize(jp, ctxt, _valueType, deser);
             } else {
-                _findRootDeserializer(_config, _valueType).deserialize(jp, ctxt, _valueToUpdate);
-                result = _valueToUpdate;
+                if (_valueToUpdate == null) {
+                    result = deser.deserialize(jp, ctxt);
+                } else {
+                    deser.deserialize(jp, ctxt, _valueToUpdate);
+                    result = _valueToUpdate;
+                }
             }
         }
         // Need to consume the token too
@@ -527,11 +543,16 @@ public class ObjectReader
                 result = _valueToUpdate;
             } else {
                 DeserializationContext ctxt = _createDeserializationContext(jp, _config);
-                if (_valueToUpdate == null) {
-                    result = _findRootDeserializer(_config, _valueType).deserialize(jp, ctxt);
+                JsonDeserializer<Object> deser = _findRootDeserializer(_config, _valueType);
+                if (_unwrapRoot) {
+                    result = _unwrapAndDeserialize(jp, ctxt, _valueType, deser);
                 } else {
-                    _findRootDeserializer(_config, _valueType).deserialize(jp, ctxt, _valueToUpdate);
-                    result = _valueToUpdate;                    
+                    if (_valueToUpdate == null) {
+                        result = deser.deserialize(jp, ctxt);
+                    } else {
+                        deser.deserialize(jp, ctxt, _valueToUpdate);
+                        result = _valueToUpdate;                    
+                    }
                 }
             }
             return result;
@@ -551,8 +572,12 @@ public class ObjectReader
             result = NullNode.instance;
         } else {
             DeserializationContext ctxt = _createDeserializationContext(jp, _config);
-            // Bit more complicated, since we may need to override node factory:
-            result = (JsonNode) _findRootDeserializer(_config, JSON_NODE_TYPE).deserialize(jp, ctxt);
+            JsonDeserializer<Object> deser = _findRootDeserializer(_config, JSON_NODE_TYPE);
+            if (_unwrapRoot) {
+                result = (JsonNode) _unwrapAndDeserialize(jp, ctxt, JSON_NODE_TYPE, deser);
+            } else {
+                result = (JsonNode) deser.deserialize(jp, ctxt);
+            }
         }
         // Need to consume the token too
         jp.clearCurrentToken();
@@ -617,6 +642,41 @@ public class ObjectReader
         return new StdDeserializationContext(cfg, jp, _provider);
     }
 
+    protected Object _unwrapAndDeserialize(JsonParser jp, DeserializationContext ctxt,
+            JavaType rootType, JsonDeserializer<Object> deser)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        SerializedString rootName = _provider.findExpectedRootName(ctxt.getConfig(), rootType);
+        if (jp.getCurrentToken() != JsonToken.START_OBJECT) {
+            throw JsonMappingException.from(jp, "Current token not START_OBJECT (needed to unwrap root name '"
+                    +rootName+"'), but "+jp.getCurrentToken());
+        }
+        if (jp.nextToken() != JsonToken.FIELD_NAME) {
+            throw JsonMappingException.from(jp, "Current token not FIELD_NAME (to contain expected root name '"
+                    +rootName+"'), but "+jp.getCurrentToken());
+        }
+        String actualName = jp.getCurrentName();
+        if (!rootName.getValue().equals(actualName)) {
+            throw JsonMappingException.from(jp, "Root name '"+actualName+"' does not match expected ('"+rootName
+                    +"') for type "+rootType);
+        }
+        // ok, then move to value itself....
+        jp.nextToken();
+        Object result;
+        if (_valueToUpdate == null) {
+            result = deser.deserialize(jp, ctxt);
+        } else {
+            deser.deserialize(jp, ctxt, _valueToUpdate);
+            result = _valueToUpdate;                    
+        }
+        // and last, verify that we now get matching END_OBJECT
+        if (jp.nextToken() != JsonToken.END_OBJECT) {
+            throw JsonMappingException.from(jp, "Current token not END_OBJECT (to match wrapper object with root name '"
+                    +rootName+"'), but "+jp.getCurrentToken());
+        }
+        return result;
+    }
+    
     /*
     /**********************************************************
     /* Implementation of rest of ObjectCodec methods

@@ -75,6 +75,9 @@ public class StdSerializerProvider
      */
     final protected SerializerCache _serializerCache;
 
+    /**
+     * Helper object for keeping track of introspected root names
+     */
     final protected RootNameLookup _rootNames;
     
     /*

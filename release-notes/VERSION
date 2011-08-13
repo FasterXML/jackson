@@ -65,6 +65,9 @@ Description:
     which can be used to suppress serialization of empty JSON arrays (unless
     overridden by per-property annotations).
    (suggested by Fabrice D)
+  * [JACKSON-558] Add 'DeserializationConfig.Feature.UNWRAP_ROOT_VALUE' as
+    matching counterpart for 'SerializationConfig.Feature.WRAP_ROOT_VALUE'
+   (requested by Anand H)
   * [JACKSON-578] Allow use of @JsonView on JAX-RS resource, with JacksonJsonProvider
    (suggested by Matt G)
   * [JACKSON-580] Allow registering instantiators (ValueInstantiator) for types (classes)

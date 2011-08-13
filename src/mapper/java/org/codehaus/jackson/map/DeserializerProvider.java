@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map;
 
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.map.deser.BeanDeserializerModifier;
 import org.codehaus.jackson.map.deser.ValueInstantiators;
 import org.codehaus.jackson.type.JavaType;
@@ -59,23 +60,6 @@ public abstract class DeserializerProvider
      * @since 1.9
      */
     public abstract DeserializerProvider withValueInstantiators(ValueInstantiators instantiators);
-
-    /*
-    /**********************************************************
-    /* Additional type handling methods
-    /**********************************************************
-     */
-
-    /**
-     * Method that can be called to try to resolve an abstract type
-     * (interface, abstract class) into a concrete type, or at least
-     * something "more concrete" (abstract class instead of interface).
-     * Will either return passed type, or a more specific type.
-     * 
-     * @since 1.9
-     */
-    public abstract JavaType mapAbstractType(DeserializationConfig config, JavaType type)
-        throws JsonMappingException;
     
     /*
     /**********************************************************
@@ -140,6 +124,32 @@ public abstract class DeserializerProvider
      */
     public abstract boolean hasValueDeserializerFor(DeserializationConfig config, JavaType type);
 
+    /*
+    /**********************************************************
+    /* Additional type handling methods, related
+    /**********************************************************
+     */
+
+    /**
+     * Method that can be called to try to resolve an abstract type
+     * (interface, abstract class) into a concrete type, or at least
+     * something "more concrete" (abstract class instead of interface).
+     * Will either return passed type, or a more specific type.
+     * 
+     * @since 1.9
+     */
+    public abstract JavaType mapAbstractType(DeserializationConfig config, JavaType type)
+        throws JsonMappingException;
+
+
+    /**
+     * Method that can be used to try find expected root name for given type
+     * 
+     * @since 1.9
+     */
+    public abstract SerializedString findExpectedRootName(DeserializationConfig config, JavaType type)
+        throws JsonMappingException;
+    
     /*
     /**********************************************************
     /* Access to caching aspects

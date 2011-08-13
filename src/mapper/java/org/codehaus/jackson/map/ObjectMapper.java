@@ -12,6 +12,7 @@ import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.io.SegmentedStringWriter;
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.deser.*;
 import org.codehaus.jackson.map.introspect.BasicClassIntrospector;
@@ -220,7 +221,7 @@ public class ObjectMapper
      * (mostly to support types of non-Java JVM languages)
      */
     protected TypeFactory _typeFactory;
-    
+
     /*
     /**********************************************************
     /* Configuration settings, serialization
@@ -2199,7 +2200,8 @@ public class ObjectMapper
 
     /**
      * Factory method for constructing {@link ObjectReader} with
-     * default settings.
+     * default settings. Note that instance is NOT usable as is, without
+     * defining expected value type.
      * 
      * @since 1.6
      */
@@ -2399,7 +2401,7 @@ public class ObjectMapper
 
     /*
     /**********************************************************
-    /* Internal methods, overridable
+    /* Internal methods for serialization, overridable
     /**********************************************************
      */
 
@@ -2506,7 +2508,7 @@ public class ObjectMapper
             }
         }
     }
-
+    
     /**
      * Helper method used when value to serialize is {@link Closeable} and its <code>close()</code>
      * method is to be called right after serialization has been called
@@ -2531,6 +2533,12 @@ public class ObjectMapper
             }
         }
     }
+
+    /*
+    /**********************************************************
+    /* Internal methods for deserialization, overridable
+    /**********************************************************
+     */
     
     /**
      * Actual implementation of value reading+binding operation.
@@ -2551,8 +2559,13 @@ public class ObjectMapper
             result = null;
         } else { // pointing to event other than null
             DeserializationContext ctxt = _createDeserializationContext(jp, cfg);
+            JsonDeserializer<Object> deser = _findRootDeserializer(cfg, valueType);
             // ok, let's get the value
-            result = _findRootDeserializer(cfg, valueType).deserialize(jp, ctxt);
+            if (cfg.isEnabled(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE)) {
+                result = _unwrapAndDeserialize(jp, valueType, ctxt, deser);
+            } else {
+                result = deser.deserialize(jp, ctxt);
+            }
         }
         // Need to consume the token too
         jp.clearCurrentToken();
@@ -2575,7 +2588,12 @@ public class ObjectMapper
             } else {
                 DeserializationConfig cfg = copyDeserializationConfig();
                 DeserializationContext ctxt = _createDeserializationContext(jp, cfg);
-                result = _findRootDeserializer(cfg, valueType).deserialize(jp, ctxt);
+                JsonDeserializer<Object> deser = _findRootDeserializer(cfg, valueType);
+                if (cfg.isEnabled(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE)) {
+                    result = _unwrapAndDeserialize(jp, valueType, ctxt, deser);
+                } else {
+                    result = deser.deserialize(jp, ctxt);
+                }
             }
             // Need to consume the token too
             jp.clearCurrentToken();
@@ -2586,7 +2604,7 @@ public class ObjectMapper
             } catch (IOException ioe) { }
         }
     }
-
+    
     /**
      * Method called to ensure that given parser is ready for reading
      * content for data binding.
@@ -2614,7 +2632,7 @@ public class ObjectMapper
             // and then we must get something...
             t = jp.nextToken();
             if (t == null) {
-                /* [JACKSON-99] Should throw EOFException, closed thing
+                /* [JACKSON-99] Should throw EOFException, closest thing
                  *   semantically
                  */
                 throw new EOFException("No content to map to Object due to end of input");
@@ -2623,6 +2641,36 @@ public class ObjectMapper
         return t;
     }
 
+    protected Object _unwrapAndDeserialize(JsonParser jp, JavaType rootType,
+            DeserializationContext ctxt, JsonDeserializer<Object> deser)
+        throws IOException, JsonParseException, JsonMappingException
+    {
+        SerializedString rootName = _deserializerProvider.findExpectedRootName(ctxt.getConfig(), rootType);
+        if (jp.getCurrentToken() != JsonToken.START_OBJECT) {
+            throw JsonMappingException.from(jp, "Current token not START_OBJECT (needed to unwrap root name '"
+                    +rootName+"'), but "+jp.getCurrentToken());
+        }
+        if (jp.nextToken() != JsonToken.FIELD_NAME) {
+            throw JsonMappingException.from(jp, "Current token not FIELD_NAME (to contain expected root name '"
+                    +rootName+"'), but "+jp.getCurrentToken());
+        }
+        String actualName = jp.getCurrentName();
+        if (!rootName.getValue().equals(actualName)) {
+            throw JsonMappingException.from(jp, "Root name '"+actualName+"' does not match expected ('"+rootName
+                    +"') for type "+rootType);
+        }
+        // ok, then move to value itself....
+        jp.nextToken();
+        
+        Object result = deser.deserialize(jp, ctxt);
+        // and last, verify that we now get matching END_OBJECT
+        if (jp.nextToken() != JsonToken.END_OBJECT) {
+            throw JsonMappingException.from(jp, "Current token not END_OBJECT (to match wrapper object with root name '"
+                    +rootName+"'), but "+jp.getCurrentToken());
+        }
+        return result;
+    }
+    
     /*
     /**********************************************************
     /* Internal methods, other
@@ -2651,7 +2699,6 @@ public class ObjectMapper
     
     protected DeserializationContext _createDeserializationContext(JsonParser jp, DeserializationConfig cfg)
     {
-        // 04-Jan-2010, tatu: we do actually need the provider too... (for polymorphic deser)
         return new StdDeserializationContext(cfg, jp, _deserializerProvider);
     }
     

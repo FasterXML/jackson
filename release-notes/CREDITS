@@ -722,6 +722,11 @@ Edward Alexandrov:
     "Internal Error"
    [1.8.4]
 
+Anand Hatrwalne:
+  * Requested [JACKSON-558] Add 'DeserializationConfig.Feature.UNWRAP_ROOT_VALUE' as
+    matching counterpart for 'SerializationConfig.Feature.WRAP_ROOT_VALUE'
+   [1.9.0]
+
 Earl Baugh:
   * Suggested [JACKSON-584] Serialize type info for non-static anonymous inner classes
     as that of declared (static) type

@@ -7,12 +7,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.BeanDeserializer;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.deser.std.StdKeyDeserializers;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ClassUtil;
+import org.codehaus.jackson.map.util.RootNameLookup;
 import org.codehaus.jackson.type.JavaType;
 
 /**
@@ -57,6 +59,8 @@ public class StdDeserializerProvider
      */
     final protected HashMap<JavaType, JsonDeserializer<Object>> _incompleteDeserializers
         = new HashMap<JavaType, JsonDeserializer<Object>>(8);
+
+    final protected RootNameLookup _rootNames;
     
     /*
     /**********************************************************
@@ -86,6 +90,7 @@ public class StdDeserializerProvider
 
     public StdDeserializerProvider(DeserializerFactory f) {
         _factory = f;
+        _rootNames = new RootNameLookup();
     }
 
     @Override
@@ -134,7 +139,13 @@ public class StdDeserializerProvider
             throws JsonMappingException
     {
         return _factory.mapAbstractType(config, type);
+    }
 
+    @Override
+    public SerializedString findExpectedRootName(DeserializationConfig config, JavaType type)
+         throws JsonMappingException
+    {
+        return _rootNames.findRootName(type, config);
     }
     
     @SuppressWarnings("unchecked")
