@@ -58,6 +58,8 @@ Description:
   * [JACKSON-648] ObjectWriter: allow changing default serialization DateFormat
     (ObjectMapper.writer(DateFormat), ObjectWriter.withDateFormat(DateFormat))
   * [JACKSON-661] Add shorter 'JsonNode.asXxx' methods to replace 'JsonNode.getValueAsXxx'
+  * [JACKSON-662] Add 'ObjectMapper.enable()' and 'ObjectMapper.disable()' to allow
+    enabling/disabling multiple features with a single call.
 
   New features:
 

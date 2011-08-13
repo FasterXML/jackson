@@ -31,6 +31,11 @@ import org.codehaus.jackson.type.JavaType;
  * effect if called after constructing relevant mapper or deserializer
  * instance. This because some objects may be configured, constructed and
  * cached first time they are needed.
+ *<p>
+ * As of version 1.9, the goal is to make this class eventually immutable.
+ * Because of this, existing methods that allow changing state of this
+ * instance are deprecated in favor of methods that create new instances
+ * with different configuration ("fluent factories")
  */
 public class DeserializationConfig
     extends MapperConfig<DeserializationConfig>
@@ -452,6 +457,17 @@ public class DeserializationConfig
         _problemHandlers = src._problemHandlers;
         _nodeFactory = f;
     }
+
+    /**
+     * @since 1.9
+     */
+    protected DeserializationConfig(DeserializationConfig src, int featureFlags)
+    {
+        super(src);
+        _featureFlags = featureFlags;
+        _problemHandlers = src._problemHandlers;
+        _nodeFactory = src._nodeFactory;
+    }
     
     /*
     /**********************************************************
@@ -527,6 +543,36 @@ public class DeserializationConfig
     public DeserializationConfig withNodeFactory(JsonNodeFactory f) {
         return new DeserializationConfig(this, f);
     }
+
+    /**
+     * Fluent factory method that will construct and return a new configuration
+     * object instance with specified features enabled.
+     * 
+     * @since 1.9
+     */
+    public DeserializationConfig with(Feature... features)
+    {
+        int flags = _featureFlags;
+        for (Feature f : features) {
+            flags |= f.getMask();
+        }
+        return new DeserializationConfig(this, flags);
+    }
+
+    /**
+     * Fluent factory method that will construct and return a new configuration
+     * object instance with specified features disabled.
+     * 
+     * @since 1.9
+     */
+    public DeserializationConfig without(Feature... features)
+    {
+        int flags = _featureFlags;
+        for (Feature f : features) {
+            flags &= ~f.getMask();
+        }
+        return new DeserializationConfig(this, flags);
+    }
     
     /*
     /**********************************************************
@@ -535,22 +581,38 @@ public class DeserializationConfig
      */
 
     /**
-     * Method for enabling specified  feature.
+     * Method for enabling specified feature.
+     * 
+     * @deprecated Since 1.9, it is preferable to use {@link #with} instead;
+     *    this method is deprecated as it modifies current instance instead of
+     *    creating a new one (as the goal is to make this class immutable)
      */
+    @Deprecated
     public void enable(Feature f) {
         _featureFlags |= f.getMask();
     }
 
     /**
      * Method for disabling specified feature.
+     * 
+     * @deprecated Since 1.9, it is preferable to use {@link #without} instead;
+     *    this method is deprecated as it modifies current instance instead of
+     *    creating a new one (as the goal is to make this class immutable)
      */
+    @Deprecated
     public void disable(Feature f) {
         _featureFlags &= ~f.getMask();
     }
 
     /**
      * Method for enabling or disabling specified feature.
+     * 
+     * @deprecated Since 1.9, it is preferable to use {@link #with} and
+     * {@link #without} methods instead;
+     *    this method is deprecated as it modifies current instance instead of
+     *    creating a new one (as the goal is to make this class immutable)
      */
+    @Deprecated
     public void set(Feature f, boolean state)
     {
         if (state) {
@@ -588,7 +650,12 @@ public class DeserializationConfig
      * 
      * @param cls Class of which class annotations to use
      *   for changing configuration settings
+     *   
+     * @deprecated Since 1.9, it is preferably to explicitly configure
+     *   instances; this method also modifies existing instance which is
+     *   against immutable design goals of this class.
      */
+    @Deprecated
     @Override
     public void fromAnnotations(Class<?> cls)
     {

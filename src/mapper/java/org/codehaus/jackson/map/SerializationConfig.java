@@ -28,6 +28,11 @@ import org.codehaus.jackson.type.JavaType;
  * effect if called after constructing relevant mapper or serializer
  * instance. This because some objects may be configured, constructed and
  * cached first time they are needed.
+ *<p>
+ * As of version 1.9, the goal is to make this class eventually immutable.
+ * Because of this, existing methods that allow changing state of this
+ * instance are deprecated in favor of methods that create new instances
+ * with different configuration ("fluent factories")
  */
 public class SerializationConfig
     extends MapperConfig<SerializationConfig>
@@ -547,6 +552,18 @@ public class SerializationConfig
         _serializationView = src._serializationView;
         _filterProvider = src._filterProvider;
     }
+
+    /**
+     * @since 1.9
+     */
+    protected SerializationConfig(SerializationConfig src, int features)
+    {
+        super(src);
+        _featureFlags = features;
+        _serializationInclusion = src._serializationInclusion;
+        _serializationView = src._serializationView;
+        _filterProvider = src._filterProvider;
+    }
     
     /*
     /**********************************************************
@@ -640,7 +657,37 @@ public class SerializationConfig
     public SerializationConfig withSerializationInclusion(JsonSerialize.Inclusion incl) {
         return new SerializationConfig(this, incl);
     }
-        
+
+    /**
+     * Fluent factory method that will construct and return a new configuration
+     * object instance with specified features enabled.
+     * 
+     * @since 1.9
+     */
+    public SerializationConfig with(Feature... features)
+    {
+        int flags = _featureFlags;
+        for (Feature f : features) {
+            flags |= f.getMask();
+        }
+        return new SerializationConfig(this, flags);
+    }
+
+    /**
+     * Fluent factory method that will construct and return a new configuration
+     * object instance with specified features disabled.
+     * 
+     * @since 1.9
+     */
+    public SerializationConfig without(Feature... features)
+    {
+        int flags = _featureFlags;
+        for (Feature f : features) {
+            flags &= ~f.getMask();
+        }
+        return new SerializationConfig(this, flags);
+    }
+    
     /*
     /**********************************************************
     /* MapperConfig implementation
@@ -664,7 +711,12 @@ public class SerializationConfig
      * 
      * @param cls Class of which class annotations to use
      *   for changing configuration settings
+     *   
+     * @deprecated Since 1.9, it is preferably to explicitly configure
+     *   instances; this method also modifies existing instance which is
+     *   against immutable design goals of this class.
      */
+    @Deprecated
     @Override
     public void fromAnnotations(Class<?> cls)
     {
@@ -754,21 +806,37 @@ public class SerializationConfig
 
     /**
      * Method for enabling specified feature.
+     * 
+     * @deprecated Since 1.9, it is preferable to use {@link #with} instead;
+     *    this method is deprecated as it modifies current instance instead of
+     *    creating a new one (as the goal is to make this class immutable)
      */
+    @Deprecated
     public void enable(Feature f) {
         _featureFlags |= f.getMask();
     }
 
     /**
      * Method for disabling specified feature.
+     * 
+     * @deprecated Since 1.9, it is preferable to use {@link #without} instead;
+     *    this method is deprecated as it modifies current instance instead of
+     *    creating a new one (as the goal is to make this class immutable)
      */
+    @Deprecated
     public void disable(Feature f) {
         _featureFlags &= ~f.getMask();
     }
 
     /**
      * Method for enabling or disabling specified feature.
+     * 
+     * @deprecated Since 1.9, it is preferable to use {@link #with} and
+     * {@link #without} methods instead;
+     *    this method is deprecated as it modifies current instance instead of
+     *    creating a new one (as the goal is to make this class immutable)
      */
+    @Deprecated
     public void set(Feature f, boolean state)
     {
         if (state) {

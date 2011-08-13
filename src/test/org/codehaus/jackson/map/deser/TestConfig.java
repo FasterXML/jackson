@@ -58,6 +58,7 @@ public class TestConfig
         assertNull(cfg.getAnnotationIntrospector());
     }
 
+    @SuppressWarnings("deprecation")
     public void testFromAnnotations()
     {
         ObjectMapper m = new ObjectMapper();

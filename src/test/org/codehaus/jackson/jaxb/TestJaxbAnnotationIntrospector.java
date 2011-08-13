@@ -300,7 +300,7 @@ public class TestJaxbAnnotationIntrospector
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-        mapper.getSerializationConfig().set(SerializationConfig.Feature.INDENT_OUTPUT, true);
+        mapper.enable(SerializationConfig.Feature.INDENT_OUTPUT);
         JaxbExample ex = new JaxbExample();
         QName qname = new QName("urn:hi", "hello");
         ex.setQname(qname);
@@ -385,7 +385,7 @@ public class TestJaxbAnnotationIntrospector
         ObjectMapper mapper = new ObjectMapper();
         mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-        mapper.getSerializationConfig().set(SerializationConfig.Feature.INDENT_OUTPUT, true);
+        mapper.enable(SerializationConfig.Feature.INDENT_OUTPUT);
         ParentJAXBBean parentJaxbBean = new ParentJAXBBean();
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("sampleKey", "sampleValue");

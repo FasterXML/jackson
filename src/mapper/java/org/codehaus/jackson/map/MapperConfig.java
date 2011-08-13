@@ -157,7 +157,12 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * annotated with them, but with global scope. Note that not all
      * annotations have global significance, and thus only subset of
      * Jackson annotations will have any effect.
+     * 
+     * @deprecated Since 1.9, it is preferably to explicitly configure
+     *   instances; this method also modifies existing instance which is
+     *   against immutable design goals of this class.
      */
+    @Deprecated
     public abstract void fromAnnotations(Class<?> cls);
 
     /**

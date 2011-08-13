@@ -105,6 +105,7 @@ public class TestConfig
          */
     }
 
+    @SuppressWarnings("deprecation")
     public void testFromAnnotations()
     {
         ObjectMapper m = new ObjectMapper();

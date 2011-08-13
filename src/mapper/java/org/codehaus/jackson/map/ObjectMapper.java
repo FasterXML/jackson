@@ -533,6 +533,11 @@ public class ObjectMapper
      *  mapper.registerModule(module);
      *  return mapper;
      *</pre>
+     * NOTE: name is unfortunately misleading in suggesting that a new instance
+     * might be created (as is the case with most other 'withXxx()' methods
+     * for Jackson core objects) -- this is not the case; rather, this is just
+     * a variant of {@link #registerModule} but one that returns 'this'
+     * (like it should return, but does not for historical reasons).
      * 
      * @since 1.8
      */
@@ -1050,6 +1055,7 @@ public class ObjectMapper
      * {@link SerializationConfig#set} on the shared {@link SerializationConfig}
      * object with given arguments.
      */
+    @SuppressWarnings("deprecation")
     public ObjectMapper configure(SerializationConfig.Feature f, boolean state) {
         _serializationConfig.set(f, state);
         return this;
@@ -1063,6 +1069,7 @@ public class ObjectMapper
      * {@link DeserializationConfig#set} on the shared {@link DeserializationConfig}
      * object with given arguments.
      */
+    @SuppressWarnings("deprecation")
     public ObjectMapper configure(DeserializationConfig.Feature f, boolean state) {
         _deserializationConfig.set(f, state);
         return this;
@@ -1100,6 +1107,50 @@ public class ObjectMapper
         return this;
     }
 
+    /**
+     * Method for enabling specified {@link DeserializationConfig} features.
+     * Modifies and returns this instance; no new object is created.
+     * 
+     * @since 1.9
+     */
+    public ObjectMapper enable(DeserializationConfig.Feature... f) {
+        _deserializationConfig = _deserializationConfig.with(f);
+        return this;
+    }
+
+    /**
+     * Method for enabling specified {@link DeserializationConfig} features.
+     * Modifies and returns this instance; no new object is created.
+     * 
+     * @since 1.9
+     */
+    public ObjectMapper disable(DeserializationConfig.Feature... f) {
+        _deserializationConfig = _deserializationConfig.without(f);
+        return this;
+    }
+
+    /**
+     * Method for enabling specified {@link DeserializationConfig} features.
+     * Modifies and returns this instance; no new object is created.
+     * 
+     * @since 1.9
+     */
+    public ObjectMapper enable(SerializationConfig.Feature... f) {
+        _serializationConfig = _serializationConfig.with(f);
+        return this;
+    }
+
+    /**
+     * Method for enabling specified {@link DeserializationConfig} features.
+     * Modifies and returns this instance; no new object is created.
+     * 
+     * @since 1.9
+     */
+    public ObjectMapper disable(SerializationConfig.Feature... f) {
+        _serializationConfig = _serializationConfig.without(f);
+        return this;
+    }
+    
     /**
      * Convenience method, equivalent to:
      *<pre>
