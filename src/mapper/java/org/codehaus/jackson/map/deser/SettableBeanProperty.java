@@ -209,6 +209,12 @@ public abstract class SettableBeanProperty
      * 
      * @since 1.7
      */
+    public int getPropertyIndex() { return _propertyIndex; }
+
+    /**
+     * @deprecated Use {@link #getPropertyIndex} instead.
+     */
+    @Deprecated
     public int getProperytIndex() { return _propertyIndex; }
     
     /*
