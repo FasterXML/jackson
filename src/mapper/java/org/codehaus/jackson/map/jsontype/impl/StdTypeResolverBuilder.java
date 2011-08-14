@@ -80,6 +80,8 @@ public class StdTypeResolverBuilder
             return new AsPropertyTypeSerializer(idRes, property, _typeProperty);
         case WRAPPER_OBJECT:
             return new AsWrapperTypeSerializer(idRes, property);
+        case EXTERNAL_PROPERTY:
+            return new AsExternalTypeSerializer(idRes, property, _typeProperty);
         }
         throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
     }
@@ -99,6 +101,9 @@ public class StdTypeResolverBuilder
                     _defaultImpl, _typeProperty);
         case WRAPPER_OBJECT:
             return new AsWrapperTypeDeserializer(baseType, idRes, property, _defaultImpl);
+        case EXTERNAL_PROPERTY:
+            return new AsExternalTypeDeserializer(baseType, idRes, property,
+                    _defaultImpl, _typeProperty);
         }
         throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
     }

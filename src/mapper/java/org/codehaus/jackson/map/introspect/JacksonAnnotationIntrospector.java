@@ -737,7 +737,15 @@ public class JacksonAnnotationIntrospector
             idRes.init(baseType);
         }
         b = b.init(info.use(), idRes);
-        b = b.inclusion(info.include());
+        /* 13-Aug-2011, tatu: One complication wrt [JACKSON-453]; external id
+         *   only works for properties; so if declared for a Class, we will need
+         *   to map it to "PROPERTY" instead of "EXTERNAL_PROPERTY"
+         */
+        JsonTypeInfo.As inclusion = info.include();
+        if (inclusion == JsonTypeInfo.As.EXTERNAL_PROPERTY && (ann instanceof AnnotatedClass)) {
+            inclusion = JsonTypeInfo.As.PROPERTY;
+        }
+        b = b.inclusion(inclusion);
         b = b.typeProperty(info.property());
         Class<?> defaultImpl = info.defaultImpl();
         if (defaultImpl != JsonTypeInfo.None.class) {

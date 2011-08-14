@@ -221,8 +221,18 @@ public abstract class SettableBeanProperty
     /**
      * @since 1.9
      */
+    public boolean hasValueTypeDeserializer() { return (_valueTypeDeserializer != null); }
+    
+    /**
+     * @since 1.9
+     */
     public JsonDeserializer<Object> getValueDeserializer() { return _valueDeserializer; }
 
+    /**
+     * @since 1.9
+     */
+    public TypeDeserializer getValueTypeDeserializer() { return _valueTypeDeserializer; }
+    
     /**
      * Method for accessing unique index of this property; indexes are
      * assigned once all properties of a {@link BeanDeserializer} have

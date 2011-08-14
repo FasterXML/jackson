@@ -131,6 +131,6 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
     }    
     
     // These are fine from base class:
-    //public Object deserializeTypedArray(JsonParser jp, DeserializationContext ctxt)
-    //public Object deserializeTypedScalar(JsonParser jp, DeserializationContext ctxt)    
+    //public Object deserializeTypedFromArray(JsonParser jp, DeserializationContext ctxt)
+    //public Object deserializeTypedFromScalar(JsonParser jp, DeserializationContext ctxt)    
 }

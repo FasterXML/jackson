@@ -12,11 +12,11 @@ import java.lang.annotation.*;
  * Some examples of typical annotations:
  *<pre>
  *  // Include Java class name ("com.myempl.ImplClass") as JSON property "class"
- *  \@JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY, property="class")
+ *  &#064;JsonTypeInfo(use=Id.CLASS, include=As.PROPERTY, property="class")
  *  
  *  // Include logical type name (defined in impl classes) as wrapper; 2 annotations
- *  \@JsonTypeInfo(use=Id.NAME, include=As.WRAPPER_OBJECT)
- *  \@JsonSubTypes({com.myemp.Impl1.class, com.myempl.Impl2.class})
+ *  &#064;JsonTypeInfo(use=Id.NAME, include=As.WRAPPER_OBJECT)
+ *  &#064;JsonSubTypes({com.myemp.Impl1.class, com.myempl.Impl2.class})
  *</pre>
  * Alternatively you can also define fully customized type handling by using
  * {@link org.codehaus.jackson.map.annotate.JsonTypeResolver} annotation.
@@ -147,6 +147,18 @@ public @interface JsonTypeInfo
          * as JSON Object.
          */
         WRAPPER_ARRAY,
+        
+        /**
+         * Inclusion mechanism similar to <code>PROPERTY</code>, except that
+         * property is included one-level higher in hierarchy, i.e. as sibling
+         * property at same level as JSON Object to type.
+         * Note that this choice <b>can only be used for properties</b>, not
+         * for types (classes). Trying to use it for classes will result in
+         * inclusion strategy of basic <code>PROPERTY</code> instead.
+         * 
+         * @since 1.9
+         */
+        EXTERNAL_PROPERTY
         ;
     }
     

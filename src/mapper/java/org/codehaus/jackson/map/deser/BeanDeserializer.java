@@ -341,9 +341,9 @@ public class BeanDeserializer
                 prop = prop.withValueDeserializer(findDeserializer(config, provider, prop.getType(), prop));
             }
             // [JACKSON-235]: need to link managed references with matching back references
-            prop = handleManagedReferenceProperty(config, prop);
+            prop = _resolveManagedReferenceProperty(config, prop);
             // [JACKSON-132]: support unwrapped values (via @JsonUnwrapped)
-            SettableBeanProperty u = handleUnwrappedProperty(config, prop);
+            SettableBeanProperty u = _resolveUnwrappedProperty(config, prop);
             if (u != null) {
                 prop = u;
                 if (unwrapped == null) {
@@ -352,7 +352,7 @@ public class BeanDeserializer
                 unwrapped.addProperty(prop);
             }
             // [JACKSON-594]: non-static inner classes too:
-            prop = handleInnerClassValuedProperty(config, prop);
+            prop = _resolveInnerClassValuedProperty(config, prop);
             
             if (prop != origProp) {
                 _beanProperties.replace(prop);
@@ -394,7 +394,13 @@ public class BeanDeserializer
         }
     }
 
-    protected SettableBeanProperty handleManagedReferenceProperty(DeserializationConfig config,
+    /**
+     * Helper method called to see if given property is part of 'managed' property
+     * pair (managed + back reference), and if so, handle resolution details.
+     * 
+     * @since 1.9
+     */
+    protected SettableBeanProperty _resolveManagedReferenceProperty(DeserializationConfig config,
             SettableBeanProperty prop)
     {
         String refName = prop.getManagedReferenceName();
@@ -438,7 +444,13 @@ public class BeanDeserializer
                 _forClass.getAnnotations(), isContainer);
     }
 
-    protected SettableBeanProperty handleUnwrappedProperty(DeserializationConfig config,
+    /**
+     * Helper method called to see if given property might be so-called unwrapped
+     * property: these require special handling.
+     * 
+     * @since 1.9
+     */
+    protected SettableBeanProperty _resolveUnwrappedProperty(DeserializationConfig config,
             SettableBeanProperty prop)
     {
         AnnotatedMember am = prop.getMember();
@@ -456,8 +468,10 @@ public class BeanDeserializer
     /**
      * Helper method that will handle gruesome details of dealing with properties
      * that have non-static inner class as value...
+     * 
+     * @since 1.9
      */
-    protected SettableBeanProperty handleInnerClassValuedProperty(DeserializationConfig config,
+    protected SettableBeanProperty _resolveInnerClassValuedProperty(DeserializationConfig config,
             SettableBeanProperty prop)
     {            
         /* Should we encounter a property that has non-static inner-class
