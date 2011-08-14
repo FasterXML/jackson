@@ -130,6 +130,34 @@ public final class BeanPropertyMap
          */
         _buckets[index] = new Bucket(tail, name, property);
     }
+
+    /**
+     * Specialized method for removing specified existing entry.
+     * NOTE: entry MUST exist, otherwise an exception is thrown.
+     * 
+     * @since 1.9
+     */
+    public void remove(SettableBeanProperty property)
+    {
+        // Mostly this is the same as code with 'replace', just bit simpler...
+        String name = property.getName();
+        int index = name.hashCode() & (_buckets.length-1);
+        Bucket tail = null;
+        boolean found = false;
+        // slightly complex just because chain is immutable, must recreate
+        for (Bucket bucket = _buckets[index]; bucket != null; bucket = bucket.next) {
+            // match to remove?
+            if (!found && bucket.key.equals(name)) {
+                found = true;
+            } else {
+                tail = new Bucket(tail, bucket.key, bucket.value);
+            }
+        }
+        if (!found) { // must be found
+            throw new NoSuchElementException("No entry '"+property+"' found, can't remove");
+        }
+        _buckets[index] = tail;
+    }
     
     /*
     /**********************************************************

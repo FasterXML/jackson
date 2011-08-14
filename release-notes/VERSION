@@ -68,6 +68,8 @@ Description:
     which can be used to suppress serialization of empty JSON arrays (unless
     overridden by per-property annotations).
    (suggested by Fabrice D)
+  * [JACKSON-453] Support "external type id" with new @JsonTypeInfo.As enum value,
+    EXTERNAL_PROPERTY
   * [JACKSON-558] Add 'DeserializationConfig.Feature.UNWRAP_ROOT_VALUE' as
     matching counterpart for 'SerializationConfig.Feature.WRAP_ROOT_VALUE'
    (requested by Anand H)

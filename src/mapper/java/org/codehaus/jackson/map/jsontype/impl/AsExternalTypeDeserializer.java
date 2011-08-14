@@ -7,19 +7,24 @@ import org.codehaus.jackson.type.JavaType;
 
 /**
  * Type deserializer used with {@link As#EXTERNAL_PROPERTY} inclusion mechanism.
- * Functioning is actually very similar, but just because of pre-processing
- * done by {@link org.codehaus.jackson.map.deser.BeanDeserializer}; to basically
- * "move" external type identifier to look like internal one.
+ * Actual implementation may look bit strange since it depends on comprehensive
+ * pre-processing done by {@link org.codehaus.jackson.map.deser.BeanDeserializer}
+ * to basically transform external type id into structure that looks more like
+ * "wrapper-array" style inclusion. This intermediate form is chosen to allow
+ * supporting all possible JSON structures.
  * 
  * @since 1.9
  */
-public class AsExternalTypeDeserializer extends AsPropertyTypeDeserializer
+public class AsExternalTypeDeserializer extends AsArrayTypeDeserializer
 {
+    protected final String _typePropertyName;
+    
     public AsExternalTypeDeserializer(JavaType bt, TypeIdResolver idRes, BeanProperty property,
             Class<?> defaultImpl,
             String typePropName)
     {
-        super(bt, idRes, property, defaultImpl, typePropName);
+        super(bt, idRes, property, defaultImpl);
+        _typePropertyName = typePropName;
     }
 
     @Override
@@ -27,4 +32,6 @@ public class AsExternalTypeDeserializer extends AsPropertyTypeDeserializer
         return As.EXTERNAL_PROPERTY;
     }
 
+    @Override
+    public String getPropertyName() { return _typePropertyName; }
 }

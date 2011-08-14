@@ -5,6 +5,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonCachable;
 import org.codehaus.jackson.map.deser.impl.*;
@@ -52,7 +53,8 @@ public class BeanDeserializer
 
     /**
      * Property that contains value to be deserialized using
-     * deserializer
+     * deserializer; mostly needed to find contextual annotations
+     * for subtypes.
      * 
      * @since 1.7
      */
@@ -151,6 +153,12 @@ public class BeanDeserializer
      * @since 1.9
      */
     protected UnwrappedPropertyHandler _unwrappedPropertyHandler;
+
+    /**
+     * Handler that we need iff any of properties uses external
+     * type id.
+     */
+    protected ExternalTypeHandler _externalTypeIdHandler;
     
     /*
     /**********************************************************
@@ -332,6 +340,7 @@ public class BeanDeserializer
     {
         Iterator<SettableBeanProperty> it = _beanProperties.allProperties();
         UnwrappedPropertyHandler unwrapped = null;
+        ExternalTypeHandler.Builder extTypes = null;
         
         while (it.hasNext()) {
             SettableBeanProperty origProp = it.next();
@@ -353,9 +362,23 @@ public class BeanDeserializer
             }
             // [JACKSON-594]: non-static inner classes too:
             prop = _resolveInnerClassValuedProperty(config, prop);
-            
             if (prop != origProp) {
                 _beanProperties.replace(prop);
+            }
+            
+            /* one more thing: if this property uses "external property" type inclusion
+             * (see [JACKSON-453]), it needs different handling altogether
+             */
+            if (prop.hasValueTypeDeserializer()) {
+                TypeDeserializer typeDeser = prop.getValueTypeDeserializer();
+                if (typeDeser.getTypeInclusion() == JsonTypeInfo.As.EXTERNAL_PROPERTY) {
+                    if (extTypes == null) {
+                        extTypes = new ExternalTypeHandler.Builder();
+                    }
+                    extTypes.addExternal(prop, typeDeser.getPropertyName());
+                    // In fact, remove from list of known properties to simplify later handling
+                    _beanProperties.remove(prop);
+                }
             }
         }
 
@@ -388,6 +411,12 @@ public class BeanDeserializer
                 }
             }
         }
+        if (extTypes != null) {
+            _externalTypeIdHandler = extTypes.build();
+            // we consider this non-standard, to offline handling
+            _nonStandardCreation = true;
+        }
+        
         _unwrappedPropertyHandler = unwrapped;
         if (unwrapped != null) { // we consider this non-standard, to offline handling
             _nonStandardCreation = true;
@@ -556,6 +585,9 @@ public class BeanDeserializer
         if (_unwrappedPropertyHandler != null) {
             return deserializeWithUnwrapped(jp, ctxt, bean);
         }
+        if (_externalTypeIdHandler != null) {
+            return deserializeWithExternalTypeId(jp, ctxt, bean);
+        }
         JsonToken t = jp.getCurrentToken();
         // 23-Mar-2010, tatu: In some cases, we start with full JSON object too...
         if (t == JsonToken.START_OBJECT) {
@@ -612,6 +644,9 @@ public class BeanDeserializer
         if (_nonStandardCreation) {
             if (_unwrappedPropertyHandler != null) {
                 return deserializeWithUnwrapped(jp, ctxt);
+            }
+            if (_externalTypeIdHandler != null) {
+                return deserializeWithExternalTypeId(jp, ctxt);
             }
             return deserializeFromObjectUsingNonDefault(jp, ctxt);
         }
@@ -1076,6 +1111,142 @@ public class BeanDeserializer
             return null; // never gets here
         }
         return _unwrappedPropertyHandler.processUnwrapped(jp, ctxt, bean, tokens);
+    }
+
+    /*
+    /**********************************************************
+    /* Handling for cases where we have property/-ies wth
+    /* external type id
+    /**********************************************************
+     */
+    
+    protected Object deserializeWithExternalTypeId(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        if (_propertyBasedCreator != null) {
+            return deserializeUsingPropertyBasedWithExternalTypeId(jp, ctxt);
+        }
+        return deserializeWithExternalTypeId(jp, ctxt, _valueInstantiator.createUsingDefault());
+    }
+
+    protected Object deserializeWithExternalTypeId(JsonParser jp, DeserializationContext ctxt,
+            Object bean)
+        throws IOException, JsonProcessingException
+    {
+        final ExternalTypeHandler ext = _externalTypeIdHandler.start();
+        for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
+            String propName = jp.getCurrentName();
+            jp.nextToken();
+            SettableBeanProperty prop = _beanProperties.find(propName);
+            if (prop != null) { // normal case
+                try {
+                    prop.deserializeAndSet(jp, ctxt, bean);
+                } catch (Exception e) {
+                    wrapAndThrow(e, bean, propName, ctxt);
+                }
+                continue;
+            }
+            // ignorable things should be ignored
+            if (_ignorableProps != null && _ignorableProps.contains(propName)) {
+                jp.skipChildren();
+                continue;
+            }
+            // but others are likely to be part of external type id thingy...
+            if (ext.handleToken(jp, ctxt, propName, bean)) {
+                continue;
+            }
+            // if not, the usual fallback handling:
+            if (_anySetter != null) {
+                try {
+                    _anySetter.deserializeAndSet(jp, ctxt, bean, propName);
+                } catch (Exception e) {
+                    wrapAndThrow(e, bean, propName, ctxt);
+                }
+                continue;
+            } else {
+                // Unknown: let's call handler method
+                handleUnknownProperty(jp, ctxt, bean, propName);         
+            }
+        }
+        // and when we get this far, let's try finalizing the deal:
+        return ext.complete(jp, ctxt, bean);
+    }        
+
+    protected Object deserializeUsingPropertyBasedWithExternalTypeId(JsonParser jp, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException
+    {
+        final ExternalTypeHandler ext = _externalTypeIdHandler.start();
+        final PropertyBasedCreator creator = _propertyBasedCreator;
+        PropertyValueBuffer buffer = creator.startBuilding(jp, ctxt);
+
+        TokenBuffer tokens = new TokenBuffer(jp.getCodec());
+        tokens.writeStartObject();
+
+        JsonToken t = jp.getCurrentToken();
+        for (; t == JsonToken.FIELD_NAME; t = jp.nextToken()) {
+            String propName = jp.getCurrentName();
+            jp.nextToken(); // to point to value
+            // creator property?
+            CreatorProperty creatorProp = creator.findCreatorProperty(propName);
+            if (creatorProp != null) {
+                // Last creator property to set?
+                Object value = creatorProp.deserialize(jp, ctxt);
+                if (buffer.assignParameter(creatorProp.getCreatorIndex(), value)) {
+                    t = jp.nextToken(); // to move to following FIELD_NAME/END_OBJECT
+                    Object bean;
+                    try {
+                        bean = creator.build(buffer);
+                    } catch (Exception e) {
+                        wrapAndThrow(e, _beanType.getRawClass(), propName, ctxt);
+                        continue; // never gets here
+                    }
+                    // if so, need to copy all remaining tokens into buffer
+                    while (t == JsonToken.FIELD_NAME) {
+                        jp.nextToken(); // to skip name
+                        tokens.copyCurrentStructure(jp);
+                        t = jp.nextToken();
+                    }
+                    if (bean.getClass() != _beanType.getRawClass()) {
+                        // !!! 08-Jul-2011, tatu: Could probably support; but for now
+                        //   it's too complicated, so bail out
+                        throw ctxt.mappingException("Can not create polymorphic instances with unwrapped values");
+                    }
+                    return ext.complete(jp, ctxt, bean);
+                }
+                continue;
+            }
+            // regular property? needs buffering
+            SettableBeanProperty prop = _beanProperties.find(propName);
+            if (prop != null) {
+                buffer.bufferProperty(prop, prop.deserialize(jp, ctxt));
+                continue;
+            }
+            // external type id (or property that depends on it)?
+            if (ext.handleToken(jp, ctxt, propName, null)) {
+                continue;
+            }
+            /* As per [JACKSON-313], things marked as ignorable should not be
+             * passed to any setter
+             */
+            if (_ignorableProps != null && _ignorableProps.contains(propName)) {
+                jp.skipChildren();
+                continue;
+            }
+            // "any property"?
+            if (_anySetter != null) {
+                buffer.bufferAnyProperty(_anySetter, propName, _anySetter.deserialize(jp, ctxt));
+            }
+        }
+
+        // We hit END_OBJECT, so:
+        Object bean;
+        try {
+            bean = creator.build(buffer);
+        } catch (Exception e) {
+            wrapInstantiationProblem(e, ctxt);
+            return null; // never gets here
+        }
+        return ext.complete(jp, ctxt, bean);
     }
     
     /*
