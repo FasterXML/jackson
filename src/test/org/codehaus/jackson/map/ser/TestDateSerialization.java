@@ -9,6 +9,22 @@ import org.codehaus.jackson.map.*;
 public class TestDateSerialization
     extends BaseMapTest
 {
+    static class TimeZoneBean {
+        private TimeZone tz;
+        
+        public TimeZoneBean(String name) {
+            tz = TimeZone.getTimeZone(name);
+        }
+
+        public TimeZone getTz() { return tz; }
+    }
+
+    /*
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
+     */
+    
     public void testDateNumeric() throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -57,6 +73,14 @@ public class TestDateSerialization
         assertEquals(quote("PST"), json);
     }
 
+    // [JACKSON-663]
+    public void testTimeZoneInBean() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(new TimeZoneBean("PST"));
+        assertEquals("{\"tz\":\"PST\"}", json);
+    }
+    
     // [JACKSON-648]: (re)configuring via ObjectWriter
     public void testDateUsingObjectWriter() throws IOException
     {

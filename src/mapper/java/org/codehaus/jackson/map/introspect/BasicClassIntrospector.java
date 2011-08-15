@@ -136,8 +136,8 @@ public class BasicClassIntrospector
         boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
-        // False -> no need to collect ignorable member list
-        ac.resolveMemberMethods(getSerializationMethodFilter(cfg), false);
+        // True -> process ignorals, false -> no need to collect ignorable member list
+        ac.resolveMemberMethods(getSerializationMethodFilter(cfg), true, false);
         /* only the default constructor needed here (that's needed
          * in case we need to check default bean property values,
          * to omit them)
@@ -146,8 +146,8 @@ public class BasicClassIntrospector
          *   for resolving [JACKSON-170] as well
          */
         ac.resolveCreators(true);
-        // False -> no need to collect ignorable field list
-        ac.resolveFields(false);
+        // True -> process ignorals, false -> no need to collect ignorable field list
+        ac.resolveFields(true, false);
         return new BasicBeanDescription(cfg, type, ac);
     }
 
@@ -159,11 +159,11 @@ public class BasicClassIntrospector
         AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
         // everything needed for deserialization, including ignored methods
-        ac.resolveMemberMethods(getDeserializationMethodFilter(cfg), true);
+        ac.resolveMemberMethods(getDeserializationMethodFilter(cfg), true, true);
         // include all kinds of creator methods:
         ac.resolveCreators(true);
         // yes, we need info on ignored fields as well
-        ac.resolveFields(true);
+        ac.resolveFields(true, true);
         // Note: can't pass null AnnotationIntrospector for this...
         return new BasicBeanDescription(cfg, type, ac);
     }

@@ -266,12 +266,10 @@ public final class AnnotatedClass
         }
         return _ignoredFields;
     }
-    
+
     /*
     /**********************************************************
-    /* Methods for resolving class annotations
-    /* (resolution consisting of inheritance, overrides,
-    /* and injection of mix-ins as necessary)
+    /* Public API, main-level resolution methods
     /**********************************************************
      */
 
@@ -283,7 +281,7 @@ public final class AnnotatedClass
      * Starting with 1.2, it will also apply mix-in annotations,
      * as per [JACKSON-76]
      */
-    protected void resolveClassAnnotations()
+    public void resolveClassAnnotations()
     {
         _classAnnotations = new AnnotationMap();
         // [JACKSON-659] Should skip processing if annotation processing disabled
@@ -323,51 +321,6 @@ public final class AnnotatedClass
          */
         _addClassMixIns(_classAnnotations, Object.class);
     }
-
-    /**
-     * Helper method for adding any mix-in annotations specified
-     * class might have.
-     */
-    protected void _addClassMixIns(AnnotationMap annotations, Class<?> toMask)
-    {
-        if (_mixInResolver != null) {
-            _addClassMixIns(annotations, toMask, _mixInResolver.findMixInClassFor(toMask));
-        }
-    }
-
-    protected void _addClassMixIns(AnnotationMap annotations, Class<?> toMask,
-                                   Class<?> mixin)
-    {
-        if (mixin == null) {
-            return;
-        }
-        // Ok, first: annotations from mix-in class itself:
-        for (Annotation a : mixin.getDeclaredAnnotations()) {
-            if (_annotationIntrospector.isHandled(a)) {
-                annotations.addIfNotPresent(a);
-            }
-        }
-        /* And then from its supertypes, if any. But note that we will
-         *  only consider super-types up until reaching the masked
-         * class (if found); this because often mix-in class
-         * is a sub-class (for convenience reasons). And if so, we
-         * absolutely must NOT include super types of masked class,
-         * as that would inverse precedence of annotations.
-         */
-        for (Class<?> parent : ClassUtil.findSuperTypes(mixin, toMask)) {
-            for (Annotation a : parent.getDeclaredAnnotations()) {
-                if (_annotationIntrospector.isHandled(a)) {
-                    annotations.addIfNotPresent(a);
-                }
-            }
-        }
-    }
-
-    /*
-    /**********************************************************
-    /* Methods for populating creator (ctor, factory) information
-    /**********************************************************
-     */
 
     /**
      * Initialization method that will find out all constructors
@@ -462,6 +415,187 @@ public final class AnnotatedClass
         }
     }
 
+    /**
+     * @deprecated Since 1.9, use method that takes 3 arguments
+     */
+    @Deprecated
+    public void resolveMemberMethods(MethodFilter methodFilter, boolean collectIgnored)
+    {
+        resolveMemberMethods(methodFilter, true, collectIgnored);
+    }
+    
+    /**
+     * Method for resolving member method information: aggregating all non-static methods
+     * and combining annotations (to implement method-annotation inheritance)
+     * 
+     * @param methodFilter Filter used to determine which methods to include
+     * @param removeIgnored Whether to remove methods marked as ignorable by annotations
+     * @param collectIgnored Whether to collect list of ignored methods for later retrieval
+     * 
+     * @since 1.9
+     */
+    public void resolveMemberMethods(MethodFilter methodFilter, boolean removeIgnored,
+            boolean collectIgnored)
+    {
+        _memberMethods = new AnnotatedMethodMap();
+        AnnotatedMethodMap mixins = new AnnotatedMethodMap();
+        // first: methods from the class itself
+        _addMemberMethods(_class, methodFilter, _memberMethods, _primaryMixIn, mixins);
+
+        // and then augment these with annotations from super-types:
+        for (Class<?> cls : _superTypes) {
+            Class<?> mixin = (_mixInResolver == null) ? null : _mixInResolver.findMixInClassFor(cls);
+            _addMemberMethods(cls, methodFilter, _memberMethods, mixin, mixins);
+        }
+        // Special case: mix-ins for Object.class? (to apply to ALL classes)
+        if (_mixInResolver != null) {
+            Class<?> mixin = _mixInResolver.findMixInClassFor(Object.class);
+            if (mixin != null) {
+                _addMethodMixIns(methodFilter, _memberMethods, mixin, mixins);
+            }
+        }
+
+        /* Any unmatched mix-ins? Most likely error cases (not matching
+         * any method); but there is one possible real use case:
+         * exposing Object#hashCode (alas, Object#getClass can NOT be
+         * exposed, see [JACKSON-140])
+         */
+        // 14-Feb-2011, tatu: AnnotationIntrospector is null if annotations not enabled; if so, can skip:
+        if (_annotationIntrospector != null) {
+            if (!mixins.isEmpty()) {
+                Iterator<AnnotatedMethod> it = mixins.iterator();
+                while (it.hasNext()) {
+                    AnnotatedMethod mixIn = it.next();
+                    try {
+                        Method m = Object.class.getDeclaredMethod(mixIn.getName(), mixIn.getParameterClasses());
+                        if (m != null) {
+                            AnnotatedMethod am = _constructMethod(m);
+                            _addMixOvers(mixIn.getAnnotated(), am, false);
+                            _memberMethods.add(am);
+                        }
+                    } catch (Exception e) { }
+                }
+            }
+    
+            /* And last but not least: let's remove all methods that are
+             * deemed to be ignorable after all annotations have been
+             * properly collapsed.
+             */
+            if (removeIgnored) {
+                Iterator<AnnotatedMethod> it = _memberMethods.iterator();
+                while (it.hasNext()) {
+                    AnnotatedMethod am = it.next();
+                    if (_annotationIntrospector.isIgnorableMethod(am)) {
+                        it.remove();
+                        if (collectIgnored) {
+                            _ignoredMethods = ArrayBuilders.addToList(_ignoredMethods, am);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @deprecated Since 1.9, use method that takes 3 arguments
+     */
+    @Deprecated
+    public void resolveFields(boolean collectIgnored)
+    {
+        resolveFields(true, collectIgnored);
+    }
+    
+    /**
+     * Method that will collect all member (non-static) fields
+     * that are either public, or have at least a single annotation
+     * associated with them.
+     *
+     * @param removeIgnored Whether to remove methods marked as ignorable by annotations
+     * @param collectIgnored Whether to collect list of ignored fields for later retrieval
+     * 
+     * @since 1.9
+     */
+    public void resolveFields(boolean removeIgnored, boolean collectIgnored)
+    {
+        LinkedHashMap<String,AnnotatedField> foundFields = new LinkedHashMap<String,AnnotatedField>();
+        _addFields(foundFields, _class);
+
+        /* And last but not least: let's remove all fields that are deemed
+         * ignorable after all annotations have been properly collapsed.
+         */
+        if (removeIgnored && (_annotationIntrospector != null)) {
+            Iterator<Map.Entry<String,AnnotatedField>> it = foundFields.entrySet().iterator();
+            while (it.hasNext()) {
+                AnnotatedField f = it.next().getValue();
+                if (_annotationIntrospector.isIgnorableField(f)) {
+                    it.remove();
+                    if (collectIgnored) {
+                        _ignoredFields = ArrayBuilders.addToList(_ignoredFields, f);
+                    }
+                }
+            }
+        }
+        if (foundFields.isEmpty()) {
+            _fields = Collections.emptyList();
+        } else {
+            _fields = new ArrayList<AnnotatedField>(foundFields.size());
+            _fields.addAll(foundFields.values());
+        }
+    }
+
+    /*
+    /**********************************************************
+    /* Helper methods for resolving class annotations
+    /* (resolution consisting of inheritance, overrides,
+    /* and injection of mix-ins as necessary)
+    /**********************************************************
+     */
+    
+    /**
+     * Helper method for adding any mix-in annotations specified
+     * class might have.
+     */
+    protected void _addClassMixIns(AnnotationMap annotations, Class<?> toMask)
+    {
+        if (_mixInResolver != null) {
+            _addClassMixIns(annotations, toMask, _mixInResolver.findMixInClassFor(toMask));
+        }
+    }
+
+    protected void _addClassMixIns(AnnotationMap annotations, Class<?> toMask,
+                                   Class<?> mixin)
+    {
+        if (mixin == null) {
+            return;
+        }
+        // Ok, first: annotations from mix-in class itself:
+        for (Annotation a : mixin.getDeclaredAnnotations()) {
+            if (_annotationIntrospector.isHandled(a)) {
+                annotations.addIfNotPresent(a);
+            }
+        }
+        /* And then from its supertypes, if any. But note that we will
+         *  only consider super-types up until reaching the masked
+         * class (if found); this because often mix-in class
+         * is a sub-class (for convenience reasons). And if so, we
+         * absolutely must NOT include super types of masked class,
+         * as that would inverse precedence of annotations.
+         */
+        for (Class<?> parent : ClassUtil.findSuperTypes(mixin, toMask)) {
+            for (Annotation a : parent.getDeclaredAnnotations()) {
+                if (_annotationIntrospector.isHandled(a)) {
+                    annotations.addIfNotPresent(a);
+                }
+            }
+        }
+    }
+
+    /*
+    /**********************************************************
+    /* Helper methods for populating creator (ctor, factory) information
+    /**********************************************************
+     */
+
     protected void _addConstructorMixIns(Class<?> mixin)
     {
         MemberKey[] ctorKeys = null;
@@ -522,74 +656,9 @@ public final class AnnotatedClass
 
     /*
     /**********************************************************
-    /* Methods for populating method information
+    /* Helper methods for populating method information
     /**********************************************************
      */
-
-    /**
-     * Method for resolving member method information: aggregating all non-static methods
-     * and combining annotations (to implement method-annotation inheritance)
-     * 
-     * @param collectIgnored Whether to collect list of ignored methods for later retrieval
-     */
-    public void resolveMemberMethods(MethodFilter methodFilter, boolean collectIgnored)
-    {
-        _memberMethods = new AnnotatedMethodMap();
-        AnnotatedMethodMap mixins = new AnnotatedMethodMap();
-        // first: methods from the class itself
-        _addMemberMethods(_class, methodFilter, _memberMethods, _primaryMixIn, mixins);
-
-        // and then augment these with annotations from super-types:
-        for (Class<?> cls : _superTypes) {
-            Class<?> mixin = (_mixInResolver == null) ? null : _mixInResolver.findMixInClassFor(cls);
-            _addMemberMethods(cls, methodFilter, _memberMethods, mixin, mixins);
-        }
-        // Special case: mix-ins for Object.class? (to apply to ALL classes)
-        if (_mixInResolver != null) {
-            Class<?> mixin = _mixInResolver.findMixInClassFor(Object.class);
-            if (mixin != null) {
-                _addMethodMixIns(methodFilter, _memberMethods, mixin, mixins);
-            }
-        }
-
-        /* Any unmatched mix-ins? Most likely error cases (not matching
-         * any method); but there is one possible real use case:
-         * exposing Object#hashCode (alas, Object#getClass can NOT be
-         * exposed, see [JACKSON-140])
-         */
-        // 14-Feb-2011, tatu: AnnotationIntrospector is null if annotations not enabled; if so, can skip:
-        if (_annotationIntrospector != null) {
-            if (!mixins.isEmpty()) {
-                Iterator<AnnotatedMethod> it = mixins.iterator();
-                while (it.hasNext()) {
-                    AnnotatedMethod mixIn = it.next();
-                    try {
-                        Method m = Object.class.getDeclaredMethod(mixIn.getName(), mixIn.getParameterClasses());
-                        if (m != null) {
-                            AnnotatedMethod am = _constructMethod(m);
-                            _addMixOvers(mixIn.getAnnotated(), am, false);
-                            _memberMethods.add(am);
-                        }
-                    } catch (Exception e) { }
-                }
-            }
-    
-            /* And last but not least: let's remove all methods that are
-             * deemed to be ignorable after all annotations have been
-             * properly collapsed.
-             */
-            Iterator<AnnotatedMethod> it = _memberMethods.iterator();
-            while (it.hasNext()) {
-                AnnotatedMethod am = it.next();
-                if (_annotationIntrospector.isIgnorableMethod(am)) {
-                    it.remove();
-                    if (collectIgnored) {
-                        _ignoredMethods = ArrayBuilders.addToList(_ignoredMethods, am);
-                    }
-                }
-            }
-        }
-    }
 
     protected void _addMemberMethods(Class<?> cls,
             MethodFilter methodFilter, AnnotatedMethodMap methods,
@@ -663,44 +732,9 @@ public final class AnnotatedClass
 
     /*
     /**********************************************************
-    /* Methods for populating field information
+    /* Helper methods for populating field information
     /**********************************************************
      */
-
-    /**
-     * Method that will collect all member (non-static) fields
-     * that are either public, or have at least a single annotation
-     * associated with them.
-     *
-     * @param collectIgnored Whether to collect list of ignored methods for later retrieval
-     */
-    public void resolveFields(boolean collectIgnored)
-    {
-        LinkedHashMap<String,AnnotatedField> foundFields = new LinkedHashMap<String,AnnotatedField>();
-        _addFields(foundFields, _class);
-
-        /* And last but not least: let's remove all fields that are deemed
-         * ignorable after all annotations have been properly collapsed.
-         */
-        if (_annotationIntrospector != null) {
-            Iterator<Map.Entry<String,AnnotatedField>> it = foundFields.entrySet().iterator();
-            while (it.hasNext()) {
-                AnnotatedField f = it.next().getValue();
-                if (_annotationIntrospector.isIgnorableField(f)) {
-                    it.remove();
-                    if (collectIgnored) {
-                        _ignoredFields = ArrayBuilders.addToList(_ignoredFields, f);
-                    }
-                }
-            }
-        }
-        if (foundFields.isEmpty()) {
-            _fields = Collections.emptyList();
-        } else {
-            _fields = new ArrayList<AnnotatedField>(foundFields.size());
-            _fields.addAll(foundFields.values());
-        }
-    }
 
     protected void _addFields(Map<String,AnnotatedField> fields, Class<?> c)
     {
