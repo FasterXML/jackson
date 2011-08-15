@@ -107,6 +107,10 @@ public class BasicBeanDescription extends BeanDescription
     }
 
     /**
+     * Method called to create a "default instance" of the bean, currently
+     * only needed for obtaining default field values which may be used for
+     * suppressing serialization of fields that have "not changed".
+     * 
      * @param fixAccess If true, method is allowed to fix access to the
      *   default constructor (to be able to call non-public constructor);
      *   if false, has to use constructor as is.

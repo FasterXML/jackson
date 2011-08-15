@@ -133,8 +133,9 @@ public class BasicClassIntrospector
     public BasicBeanDescription forSerialization(SerializationConfig cfg,
             JavaType type, MixInResolver r)
     {
+        boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
         AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), ai, r);
+        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
         // False -> no need to collect ignorable member list
         ac.resolveMemberMethods(getSerializationMethodFilter(cfg), false);
         /* only the default constructor needed here (that's needed
