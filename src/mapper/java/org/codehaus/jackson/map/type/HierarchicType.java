@@ -40,16 +40,42 @@ public class HierarchicType
             throw new IllegalArgumentException("Type "+type.getClass().getName()+" can not be used to construct HierarchicType");
         }
     }
+
+    private HierarchicType(Type actualType, Class<?> rawClass, ParameterizedType genericType,
+        HierarchicType superType, HierarchicType subType)
+    {
+        _actualType = actualType;
+        _rawClass = rawClass;
+        _genericType = genericType;
+        _superType = superType;
+        _subType = subType;
+    }
+    
+    /**
+     * Method that can be used to create a deep clone of this hierarchic type, including
+     * super types (but not subtypes)
+     * 
+     * @since 1.9
+     */
+    public HierarchicType deepCloneWithoutSubtype()
+    {
+        HierarchicType sup = (_superType == null) ? null : _superType.deepCloneWithoutSubtype();
+        HierarchicType result = new HierarchicType(_actualType, _rawClass, _genericType, sup, null);
+        if (sup != null) {
+            sup.setSubType(result);
+        }
+        return result;
+    }
     
     public void setSuperType(HierarchicType sup) { _superType = sup; }
-    public HierarchicType getSuperType() { return _superType; }
+    public final HierarchicType getSuperType() { return _superType; }
     public void setSubType(HierarchicType sub) { _subType = sub; }
-    public HierarchicType getSubType() { return _subType; }
+    public final HierarchicType getSubType() { return _subType; }
     
-    public boolean isGeneric() { return _genericType != null; }
-    public ParameterizedType asGeneric() { return _genericType; }
+    public final boolean isGeneric() { return _genericType != null; }
+    public final ParameterizedType asGeneric() { return _genericType; }
 
-    public Class<?> getRawClass() { return _rawClass; }
+    public final Class<?> getRawClass() { return _rawClass; }
     
     @Override
     public String toString() {
