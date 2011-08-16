@@ -32,6 +32,30 @@ public class ThrowableDeserializer
         super(baseDeserializer);
     }
 
+    /**
+     * Alternative constructor used when creating "unwrapping" deserializers
+     * 
+     * @since 1.9
+     */
+    protected ThrowableDeserializer(BeanDeserializer src, boolean ignoreAllUnknown)
+    {
+        super(src, ignoreAllUnknown);
+    }
+    
+    @Override
+    public JsonDeserializer<Object> unwrappingDeserializer()
+    {
+        if (getClass() != ThrowableDeserializer.class) {
+            return this;
+        }
+        /* main thing really is to just enforce ignoring of unknown
+         * properties; since there may be multiple unwrapped values
+         * and properties for all may be interleaved...
+         */
+        return new ThrowableDeserializer(this, true);
+    }
+
+    
     /*
     /************************************************************
     /* Overridden methods
@@ -53,10 +77,12 @@ public class ThrowableDeserializer
             throw JsonMappingException.from(jp, "Can not instantiate abstract type "+_beanType
                     +" (need to add/enable type information?)");
         }
+        boolean hasStringCreator = _valueInstantiator.canCreateFromString();
+        boolean hasDefaultCtor = _valueInstantiator.canCreateUsingDefault();
         // and finally, verify we do have single-String arg constructor (if no @JsonCreator)
-        if (!_valueInstantiator.canCreateFromString()) {
+        if (!hasStringCreator && !hasDefaultCtor) {
             throw new JsonMappingException("Can not deserialize Throwable of type "+_beanType
-                    +" without having either single-String-arg constructor; or explicit @JsonCreator");
+                    +" without having a default contructor, a single-String-arg constructor; or explicit @JsonCreator");
         }
         
         Object throwable = null;
@@ -85,16 +111,18 @@ public class ThrowableDeserializer
 
             // Maybe it's "message"?
             if (PROP_NAME_MESSAGE.equals(propName)) {
-                throwable = _valueInstantiator.createFromString(jp.getText());
-                // any pending values?
-                if (pending != null) {
-                    for (int i = 0, len = pendingIx; i < len; i += 2) {
-                        prop = (SettableBeanProperty)pending[i];
-                        prop.set(throwable, pending[i+1]);
+                if (hasStringCreator) {
+                    throwable = _valueInstantiator.createFromString(jp.getText());
+                    // any pending values?
+                    if (pending != null) {
+                        for (int i = 0, len = pendingIx; i < len; i += 2) {
+                            prop = (SettableBeanProperty)pending[i];
+                            prop.set(throwable, pending[i+1]);
+                        }
+                        pending = null;
                     }
-                    pending = null;
+                    continue;
                 }
-                continue;
             }
             /* As per [JACKSON-313], things marked as ignorable should not be
              * passed to any setter
@@ -118,7 +146,11 @@ public class ThrowableDeserializer
              *   Should probably allow use of default constructor, too...
              */
             //throw new JsonMappingException("No 'message' property found: could not deserialize "+_beanType);
-            throwable = _valueInstantiator.createFromString(null);
+            if (hasStringCreator) {
+                throwable = _valueInstantiator.createFromString(null);
+            } else {
+                throwable = _valueInstantiator.createUsingDefault();
+            }
             // any pending values?
             if (pending != null) {
                 for (int i = 0, len = pendingIx; i < len; i += 2) {
