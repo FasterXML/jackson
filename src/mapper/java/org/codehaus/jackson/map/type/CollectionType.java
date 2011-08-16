@@ -14,14 +14,15 @@ public final class CollectionType
     /**********************************************************
      */
 
-    private CollectionType(Class<?> collT, JavaType elemT)
+    private CollectionType(Class<?> collT, JavaType elemT,
+            Object valueHandler, Object typeHandler)
     {
-        super(collT,  elemT);
+        super(collT,  elemT, valueHandler, typeHandler);
     }
 
     @Override
     protected JavaType _narrow(Class<?> subclass) {
-        return new CollectionType(subclass, _elementType);
+        return new CollectionType(subclass, _elementType, null, null);
     }
 
     @Override
@@ -31,7 +32,8 @@ public final class CollectionType
         if (contentClass == _elementType.getRawClass()) {
             return this;
         }
-        return new CollectionType(_class, _elementType.narrowBy(contentClass)).copyHandlers(this);
+        return new CollectionType(_class, _elementType.narrowBy(contentClass),
+                _valueHandler, _typeHandler);
     }
 
     @Override
@@ -41,29 +43,29 @@ public final class CollectionType
         if (contentClass == _elementType.getRawClass()) {
             return this;
         }
-        return new CollectionType(_class, _elementType.widenBy(contentClass)).copyHandlers(this);
+        return new CollectionType(_class, _elementType.widenBy(contentClass),
+                _valueHandler, _typeHandler);
     }
     
     public static CollectionType construct(Class<?> rawType, JavaType elemT)
     {
         // nominally component types will be just Object.class
-        return new CollectionType(rawType, elemT);
+        return new CollectionType(rawType, elemT, null, null);
     }
 
     // Since 1.7:
     @Override
     public CollectionType withTypeHandler(Object h)
     {
-        CollectionType newInstance = new CollectionType(_class, _elementType);
-        newInstance._typeHandler = h;
-        return newInstance;
+        return new CollectionType(_class, _elementType, _valueHandler, h);
     }
 
     // Since 1.7:
     @Override
     public CollectionType withContentTypeHandler(Object h)
     {
-        return new CollectionType(_class, _elementType.withTypeHandler(h));
+        return new CollectionType(_class, _elementType.withTypeHandler(h),
+                _valueHandler, _typeHandler);
     }
 
     /*

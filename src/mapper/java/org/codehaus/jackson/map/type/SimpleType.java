@@ -1,11 +1,5 @@
 package org.codehaus.jackson.map.type;
 
-/*
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-*/
-
 import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
@@ -37,12 +31,19 @@ public final class SimpleType
      */
 
     protected SimpleType(Class<?> cls) {
-        this(cls, null, null);
+        this(cls, null, null, null);
     }
 
+    @Deprecated // since 1.9
     protected SimpleType(Class<?> cls, String[] typeNames, JavaType[] typeParams)
     {
-        super(cls, 0);
+        this(cls, typeNames, typeParams, null);
+    }
+
+    protected SimpleType(Class<?> cls, String[] typeNames, JavaType[] typeParams,
+            Object typeHandler)
+    {
+        super(cls, 0, null, typeHandler);
         if (typeNames == null || typeNames.length == 0) {
             _typeNames = null;
             _typeParameters = null;
@@ -59,14 +60,14 @@ public final class SimpleType
      * not in same package
      */
     public static SimpleType constructUnsafe(Class<?> raw) {
-        return new SimpleType(raw, null, null);
+        return new SimpleType(raw, null, null, null);
     }
     
     @Override
     protected JavaType _narrow(Class<?> subclass)
     {
         // Should we check that there is a sub-class relationship?
-        return new SimpleType(subclass, _typeNames, _typeParameters);
+        return new SimpleType(subclass, _typeNames, _typeParameters, _typeHandler);
     }
 
     @Override
@@ -105,9 +106,7 @@ public final class SimpleType
     @Override
     public SimpleType withTypeHandler(Object h)
     {
-        SimpleType newInstance = new SimpleType(_class, _typeNames, _typeParameters);
-        newInstance._typeHandler = h;
-        return newInstance;
+        return new SimpleType(_class, _typeNames, _typeParameters, h);
     }
 
     // Since 1.7:

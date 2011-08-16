@@ -26,6 +26,7 @@ public class CollectionLikeType extends TypeBase
     /**********************************************************
      */
 
+    @Deprecated // since 1.9
     protected CollectionLikeType(Class<?> collT, JavaType elemT)
     {
         super(collT,  elemT.hashCode());

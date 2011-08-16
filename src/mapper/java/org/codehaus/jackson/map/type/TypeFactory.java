@@ -644,7 +644,7 @@ public final class TypeFactory
         for (int i = 0, len = typeVars.length; i < len; ++i) {
             names[i] = typeVars[i].getName();
         }
-        JavaType resultType = new SimpleType(rawType, names, parameterTypes);
+        JavaType resultType = new SimpleType(rawType, names, parameterTypes, null);
         return resultType;
     } 
 
@@ -658,7 +658,7 @@ public final class TypeFactory
      * @since 1.8
      */
     public JavaType uncheckedSimpleType(Class<?> cls) {
-        return new SimpleType(cls, null, null);
+        return new SimpleType(cls, null, null, null);
     }
     
     /**
@@ -1039,7 +1039,7 @@ public final class TypeFactory
     }
     
     protected JavaType _unknownType() {
-        return new SimpleType(Object.class, null, null);
+        return new SimpleType(Object.class, null, null, null);
     }
 
     /*

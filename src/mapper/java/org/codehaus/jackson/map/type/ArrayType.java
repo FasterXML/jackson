@@ -15,21 +15,14 @@ public final class ArrayType
     /**
      * Type of elements in the array.
      */
-    final JavaType _componentType;
+    protected final JavaType _componentType;
 
     /**
      * We will also keep track of shareable instance of empty array,
      * since it usually needs to be constructed any way; and because
      * it is essentially immutable and thus can be shared.
      */
-    final Object _emptyArray;
-    
-    private ArrayType(JavaType componentType, Object emptyInstance)
-    {
-        super(emptyInstance.getClass(), componentType.hashCode());
-        _componentType = componentType;
-        _emptyArray = emptyInstance;
-    }
+    protected final Object _emptyArray;
 
     private ArrayType(JavaType componentType, Object emptyInstance,
             Object valueHandler, Object typeHandler)
@@ -49,7 +42,7 @@ public final class ArrayType
          * passing that in).
          */
         Object emptyInstance = Array.newInstance(componentType.getRawClass(), 0);
-        return new ArrayType(componentType, emptyInstance);
+        return new ArrayType(componentType, emptyInstance, null, null);
     }                                   
 
     // Since 1.7:

@@ -29,6 +29,8 @@ public abstract class JavaType
      *<p>
      * Note: untyped (i.e. caller has to cast) because it is used for
      * different kinds of handlers, with unrelated types.
+     *<p>
+     * TODO: possibly could be made final for 2.0
      *
      * @since 1.3
      */
@@ -40,6 +42,8 @@ public abstract class JavaType
      *<p>
      * Note: untyped (i.e. caller has to cast) because it is used for
      * different kinds of handlers, with unrelated types.
+     *<p>
+     * TODO: can be made final for 2.0
      *
      * @since 1.5
      */
@@ -58,6 +62,26 @@ public abstract class JavaType
         _hashCode = name.hashCode() + hash;
     }
 
+    /**
+     * Constructor that should be used for 2.0; takes additional
+     * handlers which should be immutable (but are not, for now).
+     * Should not yet be used for 1.9 however, since it adds
+     * unnecessary (as of yet anyway) coupling between minor
+     * revisions of mapper and core; it's fine to add this for 2.0.
+     * 
+     * @param raw "Raw" (type-erased) class for this type
+     * @param additionalHash Additional hash code to use, in addition
+     *   to hash code of the class name 
+     * 
+     * @since 1.9
+     */
+    protected JavaType(Class<?> raw, int additionalHash,
+            Object valueHandler, Object typeHandler)
+    {
+        _class = raw;
+        _hashCode = raw.getName().hashCode() + additionalHash;
+    }
+    
     /**
      * "Copy method" that will construct a new instance that is identical to
      * this instance, except that it will have specified type handler assigned.
