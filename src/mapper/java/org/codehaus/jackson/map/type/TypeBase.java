@@ -21,7 +21,20 @@ public abstract class TypeBase
     protected TypeBase(Class<?> raw, int hash) {
         super(raw, hash);
     }
-    
+
+    /**
+     * Copy-constructor
+     * 
+     * @since 1.9
+     */
+    protected TypeBase(Class<?> raw, int hash,
+            Object valueHandler, Object typeHandler)
+    {
+        super(raw, hash);
+        _valueHandler = valueHandler;
+        _typeHandler = typeHandler;
+    }
+
     @Override
     public String toCanonical()
     {
@@ -46,7 +59,7 @@ public abstract class TypeBase
 
     @Override
     public abstract StringBuilder getErasedSignature(StringBuilder sb);
-
+    
     /*
     /**********************************************************
     /* JsonSerializableWithType base implementation
@@ -63,7 +76,6 @@ public abstract class TypeBase
         typeSer.writeTypeSuffixForScalar(this, jgen);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void serialize(JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonProcessingException
