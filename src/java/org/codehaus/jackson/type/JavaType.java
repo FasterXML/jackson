@@ -96,10 +96,10 @@ public abstract class JavaType
         // Otherwise, ensure compatibility
         _assertSubclass(subclass, _class);
         JavaType result = _narrow(subclass);
-        if (_valueHandler != null) {
+        if (_valueHandler != result._valueHandler) {
             result.setValueHandler(_valueHandler);
         }
-        if (_typeHandler != null) {
+        if (_typeHandler != result._typeHandler) {
             result = result.withTypeHandler(_typeHandler);
         }
         return result;
@@ -118,10 +118,10 @@ public abstract class JavaType
             return this;
         }
         JavaType result = _narrow(subclass);
-        if (_valueHandler != null) {
+        if (_valueHandler != result._valueHandler) {
             result.setValueHandler(_valueHandler);
         }
-        if (_typeHandler != null) {
+        if (_typeHandler != result._typeHandler) {
             result = result.withTypeHandler(_typeHandler);
         }
         return result;
@@ -178,30 +178,6 @@ public abstract class JavaType
             		+"]; old handler of type "+_valueHandler.getClass().getName()+", new handler of type "+h.getClass().getName());
         }
         _valueHandler = h;
-    }
-
-    /**
-     * Method for assigning type handler to associate with this type; or
-     * if null passed, to remove such assignment
-     * 
-     * @since 1.5
-     * 
-     * @deprecated Used {@link #withTypeHandler} instead -- this method is dangerous as
-     *   it changes state, whereas all other functionality is stateless
-     */
-    @Deprecated
-    public void setTypeHandler(Object h)
-    {
-        // sanity check, should be assigned just once
-        /* 03-Nov-2010: NOTE - some care has to be taken to ensure that types are not reused
-         *   between requests; one case I had to fix was that of passing root type by ObjectWriter
-         *   and ObjectReader (must clone/copy types!)
-         */
-        if (h != null && _typeHandler != null) {
-            throw new IllegalStateException("Trying to reset type handler for type ["+toString()
-            		+"]; old handler of type "+_typeHandler.getClass().getName()+", new handler of type "+h.getClass().getName());
-        }
-        _typeHandler = h;
     }
     
     /*
