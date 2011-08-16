@@ -32,9 +32,17 @@ public class CollectionLikeType extends TypeBase
         _elementType = elemT;
     }
 
+    protected CollectionLikeType(Class<?> collT, JavaType elemT,
+            Object valueHandler, Object typeHandler)
+    {
+        super(collT, elemT.hashCode(), valueHandler, typeHandler);
+        _elementType = elemT;
+    }
+    
     @Override
     protected JavaType _narrow(Class<?> subclass) {
-        return new CollectionLikeType(subclass, _elementType);
+        return new CollectionLikeType(subclass, _elementType,
+                _valueHandler, _typeHandler);
     }
 
     @Override

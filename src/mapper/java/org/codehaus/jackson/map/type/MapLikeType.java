@@ -32,6 +32,7 @@ public class MapLikeType extends TypeBase
     /**********************************************************
      */
 
+    @Deprecated // since 1.9
     protected MapLikeType(Class<?> mapType, JavaType keyT, JavaType valueT)
     {
         super(mapType, keyT.hashCode() ^ valueT.hashCode());
@@ -39,16 +40,24 @@ public class MapLikeType extends TypeBase
         _valueType = valueT;
     }
 
+    protected MapLikeType(Class<?> mapType, JavaType keyT, JavaType valueT,
+            Object valueHandler, Object typeHandler)
+    {
+        super(mapType, keyT.hashCode() ^ valueT.hashCode(), valueHandler, typeHandler);
+        _keyType = keyT;
+        _valueType = valueT;
+    }
+    
     public static MapLikeType construct(Class<?> rawType, JavaType keyT, JavaType valueT)
     {
         // nominally component types will be just Object.class
-        return new MapLikeType(rawType, keyT, valueT);
+        return new MapLikeType(rawType, keyT, valueT, null, null);
     }
 
     @Override
     protected JavaType _narrow(Class<?> subclass)
     {
-        return new MapLikeType(subclass, _keyType, _valueType);
+        return new MapLikeType(subclass, _keyType, _valueType, _valueHandler, _typeHandler);
     }
 
     @Override
@@ -58,7 +67,8 @@ public class MapLikeType extends TypeBase
         if (contentClass == _valueType.getRawClass()) {
             return this;
         }
-        return new MapLikeType(_class, _keyType, _valueType.narrowBy(contentClass)).copyHandlers(this);
+        return new MapLikeType(_class, _keyType, _valueType.narrowBy(contentClass),
+               _valueHandler, _typeHandler);
     }
 
     @Override

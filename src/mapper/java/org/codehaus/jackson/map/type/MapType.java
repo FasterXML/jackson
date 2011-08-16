@@ -13,18 +13,25 @@ public final class MapType extends MapLikeType
     /**********************************************************
      */
 
+    @Deprecated
     private MapType(Class<?> mapType, JavaType keyT, JavaType valueT) {
-        super(mapType, keyT, valueT);
+        this(mapType, keyT, valueT, null, null);
     }
 
+    private MapType(Class<?> mapType, JavaType keyT, JavaType valueT,
+            Object valueHandler, Object typeHandler) {
+        super(mapType, keyT, valueT, valueHandler, typeHandler);
+    }
+    
     public static MapType construct(Class<?> rawType, JavaType keyT, JavaType valueT) {
         // nominally component types will be just Object.class
-        return new MapType(rawType, keyT, valueT);
+        return new MapType(rawType, keyT, valueT, null, null);
     }
 
     @Override
     protected JavaType _narrow(Class<?> subclass) {
-        return new MapType(subclass, _keyType, _valueType);
+        return new MapType(subclass, _keyType, _valueType,
+                _valueHandler, _typeHandler);
     }
 
     @Override
@@ -34,7 +41,8 @@ public final class MapType extends MapLikeType
         if (contentClass == _valueType.getRawClass()) {
             return this;
         }
-        return new MapType(_class, _keyType, _valueType.narrowBy(contentClass)).copyHandlers(this);
+        return new MapType(_class, _keyType, _valueType.narrowBy(contentClass),
+                _valueHandler, _typeHandler);
     }
 
     @Override
@@ -43,7 +51,8 @@ public final class MapType extends MapLikeType
         if (contentClass == _valueType.getRawClass()) {
             return this;
         }
-        return new MapType(_class, _keyType, _valueType.widenBy(contentClass)).copyHandlers(this);
+        return new MapType(_class, _keyType, _valueType.widenBy(contentClass),
+                _valueHandler, _typeHandler);
     }
     
     @Override
@@ -53,7 +62,8 @@ public final class MapType extends MapLikeType
         if (keySubclass == _keyType.getRawClass()) {
             return this;
         }
-        return new MapType(_class, _keyType.narrowBy(keySubclass), _valueType).copyHandlers(this);
+        return new MapType(_class, _keyType.narrowBy(keySubclass), _valueType,
+                _valueHandler, _typeHandler);
     }
 
     /**
@@ -66,23 +76,24 @@ public final class MapType extends MapLikeType
         if (keySubclass == _keyType.getRawClass()) {
             return this;
         }
-        return new MapType(_class, _keyType.widenBy(keySubclass), _valueType).copyHandlers(this);
+        return new MapType(_class, _keyType.widenBy(keySubclass), _valueType,
+                _valueHandler, _typeHandler);
     }
     
     // Since 1.7:
     @Override
     public MapType withTypeHandler(Object h)
     {
-        MapType newInstance = new MapType(_class, _keyType, _valueType);
-        newInstance._typeHandler = h;
-        return newInstance;
+        return new MapType(_class, _keyType, _valueType,
+                _valueHandler, h);
     }
 
     // Since 1.7:
     @Override
     public MapType withContentTypeHandler(Object h)
     {
-        return new MapType(_class, _keyType, _valueType.withTypeHandler(h));
+        return new MapType(_class, _keyType, _valueType.withTypeHandler(h),
+                _valueHandler, _typeHandler);
     }
     
     

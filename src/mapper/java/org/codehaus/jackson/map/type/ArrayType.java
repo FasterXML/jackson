@@ -31,6 +31,15 @@ public final class ArrayType
         _emptyArray = emptyInstance;
     }
 
+    private ArrayType(JavaType componentType, Object emptyInstance,
+            Object valueHandler, Object typeHandler)
+    {
+        super(emptyInstance.getClass(), componentType.hashCode(),
+                valueHandler, typeHandler);
+        _componentType = componentType;
+        _emptyArray = emptyInstance;
+    }
+    
     public static ArrayType construct(JavaType componentType)
     {
         /* This is bit messy: there is apparently no other way to
@@ -47,16 +56,21 @@ public final class ArrayType
     @Override
     public ArrayType withTypeHandler(Object h)
     {
-        ArrayType newInstance = new ArrayType(_componentType, _emptyArray);
-        newInstance._typeHandler = h;
-        return newInstance;
+        if (h == _typeHandler) {
+            return this;
+        }
+        return new ArrayType(_componentType, _emptyArray, _valueHandler, h);
     }
 
     // Since 1.7:
     @Override
     public ArrayType withContentTypeHandler(Object h)
     {
-        return new ArrayType(_componentType.withTypeHandler(h), _emptyArray);
+        if (h == _componentType.getTypeHandler()) {
+            return this;
+        }
+        return new ArrayType(_componentType.withTypeHandler(h), _emptyArray,
+                _valueHandler, _typeHandler);
     }
     
     @Override
