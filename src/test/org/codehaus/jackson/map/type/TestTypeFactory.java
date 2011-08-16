@@ -281,7 +281,8 @@ public class TestTypeFactory
      */
     public void testSuperTypeDetectionClass()
     {
-        HierarchicType sub = TypeFactory._findSuperTypeChain(MyStringIntMap.class, HashMap.class);
+        TypeFactory tf = TypeFactory.defaultInstance();
+        HierarchicType sub = tf._findSuperTypeChain(MyStringIntMap.class, HashMap.class);
         assertNotNull(sub);
         assertEquals(2, _countSupers(sub));
         assertSame(MyStringIntMap.class, sub.getRawClass());
@@ -298,7 +299,8 @@ public class TestTypeFactory
     public void testSuperTypeDetectionInterface()
     {
         // List first
-        HierarchicType sub = TypeFactory._findSuperTypeChain(MyList.class, List.class);
+        TypeFactory tf = TypeFactory.defaultInstance();
+        HierarchicType sub = tf._findSuperTypeChain(MyList.class, List.class);
         assertNotNull(sub);
         assertEquals(2, _countSupers(sub));
         assertSame(MyList.class, sub.getRawClass());
@@ -309,7 +311,7 @@ public class TestTypeFactory
         assertNull(sup2.getSuperType());
         
         // Then Map
-        sub = TypeFactory._findSuperTypeChain(MyMap.class, Map.class);
+        sub = tf._findSuperTypeChain(MyMap.class, Map.class);
         assertNotNull(sub);
         assertEquals(2, _countSupers(sub));
         assertSame(MyMap.class, sub.getRawClass());
@@ -327,7 +329,7 @@ public class TestTypeFactory
     {
         TypeFactory tf = TypeFactory.defaultInstance();
         JavaType type = tf.constructType(new TypeReference<AtomicReference<long[]>>() { });
-        HierarchicType sub = TypeFactory._findSuperTypeChain(type.getRawClass(), AtomicReference.class);
+        HierarchicType sub = tf._findSuperTypeChain(type.getRawClass(), AtomicReference.class);
         assertNotNull(sub);
         assertEquals(0, _countSupers(sub));
         assertTrue(AtomicReference.class.isAssignableFrom(type.getRawClass()));
