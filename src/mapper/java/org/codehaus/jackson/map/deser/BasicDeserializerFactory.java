@@ -730,7 +730,7 @@ public abstract class BasicDeserializerFactory
      *
      * @throws JsonMappingException if invalid annotation is found
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "deprecation" })
     protected <T extends JavaType> T modifyTypeByAnnotation(DeserializationConfig config,
             Annotated a, T type, String propName)
         throws JsonMappingException
@@ -769,9 +769,12 @@ public abstract class BasicDeserializerFactory
                 Class<? extends KeyDeserializer> kdClass = intr.findKeyDeserializer(a);
                 if (kdClass != null && kdClass != KeyDeserializer.None.class) {
                     KeyDeserializer kd = config.keyDeserializerInstance(a, kdClass);
-//                    keyType.setValueHandler(kd);
+                    // !!! TODO: For 2.0, change to use this instead:
+                    /*
                     type = (T) ((MapLikeType) type).withKeyValueHandler(kd);
                     keyType = type.getKeyType(); // just in case it's used below
+                    */
+                    keyType.setValueHandler(kd);
                 }
             }            
             
@@ -790,8 +793,11 @@ public abstract class BasicDeserializerFactory
                 Class<? extends JsonDeserializer<?>> cdClass = intr.findContentDeserializer(a);
                 if (cdClass != null && cdClass != JsonDeserializer.None.class) {
                     JsonDeserializer<Object> cd = config.deserializerInstance(a, cdClass);
-//                    type.getContentType().setValueHandler(cd);
+                    // !!! TODO: For 2.0, change to use this instead:
+                    /*
                     type = (T) type.withContentValueHandler(cd);
+                    */
+                    type.getContentType().setValueHandler(cd);
                 }
             }
         }
@@ -808,6 +814,7 @@ public abstract class BasicDeserializerFactory
      * Starting with version 1.3, this method will also resolve instances
      * of key and content deserializers if defined by annotations.
      */
+    @SuppressWarnings("deprecation")
     protected JavaType resolveType(DeserializationConfig config,
             BasicBeanDescription beanDesc, JavaType type, AnnotatedMember member,
             BeanProperty property)                    
@@ -821,17 +828,23 @@ public abstract class BasicDeserializerFactory
                 Class<? extends KeyDeserializer> kdClass = intr.findKeyDeserializer(member);
                 if (kdClass != null && kdClass != KeyDeserializer.None.class) {
                     KeyDeserializer kd = config.keyDeserializerInstance(member, kdClass);
-//                  keyType.setValueHandler(kd);
+                    // !!! TODO: For 2.0, change to use this instead:
+                    /*
                     type = ((MapLikeType) type).withKeyValueHandler(kd);
                     keyType = type.getKeyType(); // just in case it's used below
+                    */
+                    keyType.setValueHandler(kd);
                 }
             }
             // and all container types have content types...
             Class<? extends JsonDeserializer<?>> cdClass = intr.findContentDeserializer(member);
             if (cdClass != null && cdClass != JsonDeserializer.None.class) {
                 JsonDeserializer<Object> cd = config.deserializerInstance(member, cdClass);
-//                type.getContentType().setValueHandler(cd);
+                // !!! TODO: For 2.0, change to use this instead:
+                /*
                 type = type.withContentValueHandler(cd);
+                */
+                type.getContentType().setValueHandler(cd);
             }
             /* 04-Feb-2010, tatu: Need to figure out JAXB annotations that indicate type
              *    information to use for polymorphic members; and specifically types for
