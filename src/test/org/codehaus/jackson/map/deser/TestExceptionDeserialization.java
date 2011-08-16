@@ -42,6 +42,12 @@ public class TestExceptionDeserialization
             stuff.put(key, value);
         }
     }
+
+    @SuppressWarnings("serial")
+    static class MyNoArgException extends Exception
+    {
+        @JsonCreator MyNoArgException() { }
+    }
     
     /*
     /**********************************************************
@@ -84,5 +90,11 @@ public class TestExceptionDeserialization
         IOException result = mapper.readValue(json, IOException.class);
         assertNotNull(result);
         assertNull(result.getMessage());
+    }
+
+    public void testNoArgsException() throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        MyNoArgException exc = mapper.readValue("{}", MyNoArgException.class);
     }
 }
