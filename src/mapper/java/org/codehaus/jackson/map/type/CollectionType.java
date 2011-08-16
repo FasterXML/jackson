@@ -55,8 +55,7 @@ public final class CollectionType
 
     // Since 1.7:
     @Override
-    public CollectionType withTypeHandler(Object h)
-    {
+    public CollectionType withTypeHandler(Object h) {
         return new CollectionType(_class, _elementType, _valueHandler, h);
     }
 
@@ -68,6 +67,19 @@ public final class CollectionType
                 _valueHandler, _typeHandler);
     }
 
+    // Since 1.9:
+    @Override
+    public CollectionType withValueHandler(Object h) {
+        return new CollectionType(_class, _elementType, h, _typeHandler);
+    }
+
+    // Since 1.9:
+    @Override
+    public  CollectionType withContentValueHandler(Object h) {
+        return new CollectionType(_class, _elementType.withValueHandler(h),
+                _valueHandler, _typeHandler);
+    }
+    
     /*
     /**********************************************************
     /* Standard methods

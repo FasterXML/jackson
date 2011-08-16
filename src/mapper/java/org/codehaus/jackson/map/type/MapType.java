@@ -82,10 +82,8 @@ public final class MapType extends MapLikeType
     
     // Since 1.7:
     @Override
-    public MapType withTypeHandler(Object h)
-    {
-        return new MapType(_class, _keyType, _valueType,
-                _valueHandler, h);
+    public MapType withTypeHandler(Object h) {
+        return new MapType(_class, _keyType, _valueType, _valueHandler, h);
     }
 
     // Since 1.7:
@@ -96,6 +94,43 @@ public final class MapType extends MapLikeType
                 _valueHandler, _typeHandler);
     }
     
+    // Since 1.9:
+    @Override
+    public MapType withValueHandler(Object h) {
+        return new MapType(_class, _keyType, _valueType, h, _typeHandler);
+    }
+
+    // Since 1.9:
+    @Override
+    public MapType withContentValueHandler(Object h) {
+        return new MapType(_class, _keyType, _valueType.withValueHandler(h),
+                _valueHandler, _typeHandler);
+    }
+
+    /*
+    /**********************************************************
+    /* Extended API
+    /**********************************************************
+     */
+    
+    /**
+     * @since 1.9
+     */
+    @Override
+    public MapType withKeyTypeHandler(Object h)
+    {
+        return new MapType(_class, _keyType.withTypeHandler(h), _valueType,
+                _valueHandler, _typeHandler);
+    }
+
+    /**
+     * @since 1.9
+     */
+    @Override
+    public MapType withKeyValueHandler(Object h) {
+        return new MapType(_class, _keyType.withValueHandler(h), _valueType,
+                _valueHandler, _typeHandler);
+    }
     
     /*
     /**********************************************************

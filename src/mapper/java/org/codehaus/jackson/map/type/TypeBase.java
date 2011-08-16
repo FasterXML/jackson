@@ -32,10 +32,9 @@ public abstract class TypeBase
             Object valueHandler, Object typeHandler)
     {
         super(raw, hash);
-        // @TODO: !!! 16-Aug-2011, tatu: change to use this constructor instead
-        //   when we can rely on having it available (since 1.9)
-        //super(raw, hash, valueHandler, typeHandler);
-        
+        // @TODO: !!! 16-Aug-2011, tatu: With 2.0, we will move value and type
+        //   handles higher in type hierarchy, make final
+
         // and then comment out these:
         _valueHandler = valueHandler;
         _typeHandler = typeHandler;
@@ -58,6 +57,14 @@ public abstract class TypeBase
 
     @Override
     public abstract StringBuilder getErasedSignature(StringBuilder sb);
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getValueHandler() { return (T) _valueHandler; }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getTypeHandler() { return (T) _typeHandler; }
     
     /*
     /**********************************************************

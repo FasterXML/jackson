@@ -76,6 +76,25 @@ public final class ArrayType
         return new ArrayType(_componentType.withTypeHandler(h), _emptyArray,
                 _valueHandler, _typeHandler);
     }
+
+    // Since 1.9:
+    @Override
+    public ArrayType withValueHandler(Object h) {
+        if (h == _valueHandler) {
+            return this;
+        }
+        return new ArrayType(_componentType, _emptyArray, h, _typeHandler);
+    }
+
+    // Since 1.9:
+    @Override
+    public ArrayType withContentValueHandler(Object h) {
+        if (h == _componentType.getValueHandler()) {
+            return this;
+        }
+        return new ArrayType(_componentType.withValueHandler(h), _emptyArray,
+                _valueHandler, _typeHandler);
+    }
     
     @Override
     protected String buildCanonicalName() {

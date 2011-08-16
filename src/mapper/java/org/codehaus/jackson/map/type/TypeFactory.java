@@ -319,11 +319,12 @@ public final class TypeFactory
                     throw new IllegalArgumentException("Class "+subclass.getClass().getName()+" not subtype of "+baseType);
                 }
                 // this _should_ work, right?
-                JavaType subtype = instance._fromClass(subclass, new TypeBindings(this, baseType.getRawClass()));
+                JavaType subtype = _fromClass(subclass, new TypeBindings(this, baseType.getRawClass()));
                 // one more thing: handlers to copy?
                 Object h = baseType.getValueHandler();
                 if (h != null) {
-                    subtype.setValueHandler(h);
+//                  subtype.setValueHandler(h);
+                    subtype = subtype.withValueHandler(h);
                 }
                 h = baseType.getTypeHandler();
                 if (h != null) {
@@ -644,7 +645,7 @@ public final class TypeFactory
         for (int i = 0, len = typeVars.length; i < len; ++i) {
             names[i] = typeVars[i].getName();
         }
-        JavaType resultType = new SimpleType(rawType, names, parameterTypes, null);
+        JavaType resultType = new SimpleType(rawType, names, parameterTypes, null, null);
         return resultType;
     } 
 
@@ -658,7 +659,7 @@ public final class TypeFactory
      * @since 1.8
      */
     public JavaType uncheckedSimpleType(Class<?> cls) {
-        return new SimpleType(cls, null, null, null);
+        return new SimpleType(cls);
     }
     
     /**
@@ -1039,7 +1040,7 @@ public final class TypeFactory
     }
     
     protected JavaType _unknownType() {
-        return new SimpleType(Object.class, null, null, null);
+        return new SimpleType(Object.class);
     }
 
     /*

@@ -30,7 +30,7 @@ public abstract class JavaType
      * Note: untyped (i.e. caller has to cast) because it is used for
      * different kinds of handlers, with unrelated types.
      *<p>
-     * TODO: possibly could be made final for 2.0
+     * TODO: make final and possible promote to sub-classes
      *
      * @since 1.3
      */
@@ -43,7 +43,7 @@ public abstract class JavaType
      * Note: untyped (i.e. caller has to cast) because it is used for
      * different kinds of handlers, with unrelated types.
      *<p>
-     * TODO: can be made final for 2.0
+     * TODO: make final and possible promote to sub-classes
      *
      * @since 1.5
      */
@@ -55,35 +55,17 @@ public abstract class JavaType
     /**********************************************************
      */
 
-    protected JavaType(Class<?> clz, int hash)
-    {
-        _class = clz;
-        String name = clz.getName();
-        _hashCode = name.hashCode() + hash;
-        _valueHandler = null;
-        _typeHandler = null;
-    }
-
     /**
-     * Constructor that should be used for 2.0; takes additional
-     * handlers which should be immutable (but are not, for now).
-     * Should not yet be used for 1.9 however, since it adds
-     * unnecessary (as of yet anyway) coupling between minor
-     * revisions of mapper and core; it's fine to add this for 2.0.
-     * 
      * @param raw "Raw" (type-erased) class for this type
      * @param additionalHash Additional hash code to use, in addition
      *   to hash code of the class name 
-     * 
-     * @since 1.9
      */
-    protected JavaType(Class<?> raw, int additionalHash,
-            Object valueHandler, Object typeHandler)
+    protected JavaType(Class<?> raw, int additionalHash)
     {
         _class = raw;
         _hashCode = raw.getName().hashCode() + additionalHash;
-        _valueHandler = valueHandler;
-        _typeHandler = typeHandler;
+        _valueHandler = null;
+        _typeHandler = null;
     }
     
     /**
@@ -106,6 +88,60 @@ public abstract class JavaType
      * @since 1.7
      */
     public abstract JavaType withContentTypeHandler(Object h);
+
+    // !!! TODO: in 2.0, change to be abstract method
+    /**
+     * @since 1.9
+     */
+    public JavaType withValueHandler(Object h) {
+        /* 16-Aug-2011, tatu: This is not entirely correct, as we can not
+         *   create new immutable instances. However, sub-classes can,
+         *   so if mapper is version 1.9, things work as expected.
+         *   Otherwise, in 2.0 we can make this method abstract.
+         */
+        setValueHandler(h);
+        return this;
+    }
+
+    // !!! TODO: in 2.0, change to be abstract method
+    /**
+     * @since 1.9
+     */
+    public JavaType withContentValueHandler(Object h) {
+        /* 16-Aug-2011, tatu: This is not entirely correct, as we can not
+         *   create new immutable instances. However, sub-classes can,
+         *   so if mapper is version 1.9, things work as expected.
+         *   Otherwise, in 2.0 we can make this method abstract.
+         */
+        getContentType().setValueHandler(h);
+        return this;
+    }
+
+    /**
+     * Method for assigning handler to associate with this type; or
+     * if null passed, to remove such assignment
+     * 
+     * @since 1.3
+     * 
+     * @deprecated Since 1.9, should not be used; instead, use
+     *   <code>withContentTypeHandler</code> and
+     *   <code>withContentValueHandler</code> methods.
+     */
+    @Deprecated
+    public void setValueHandler(Object h) {
+        // sanity check, should be assigned just once
+        if (h != null && _valueHandler != null) {
+            throw new IllegalStateException("Trying to reset value handler for type ["+toString()
+                        +"]; old handler of type "+_valueHandler.getClass().getName()+", new handler of type "+h.getClass().getName());
+        }
+        _valueHandler = h;
+    }
+    
+    /*
+    /**********************************************************
+    /* Type coercion fluent factory methods
+    /**********************************************************
+     */
     
     /**
      * Method that can be called to do a "narrowing" conversions; that is,
@@ -115,7 +151,7 @@ public abstract class JavaType
      * If class is same as the current raw class, instance itself is
      * returned.
      */
-    public final JavaType narrowBy(Class<?> subclass)
+    public JavaType narrowBy(Class<?> subclass)
     {
         // First: if same raw class, just return this instance
         if (subclass == _class) {
@@ -124,10 +160,12 @@ public abstract class JavaType
         // Otherwise, ensure compatibility
         _assertSubclass(subclass, _class);
         JavaType result = _narrow(subclass);
-        if (_valueHandler != result._valueHandler) {
-            result.setValueHandler(_valueHandler);
+
+        // TODO: these checks should NOT actually be needed; above should suffice:
+        if (_valueHandler != result.getValueHandler()) {
+            result = result.withValueHandler(_valueHandler);
         }
-        if (_typeHandler != result._typeHandler) {
+        if (_typeHandler != result.getTypeHandler()) {
             result = result.withTypeHandler(_typeHandler);
         }
         return result;
@@ -140,16 +178,17 @@ public abstract class JavaType
      *
      * @since 1.5
      */
-    public final JavaType forcedNarrowBy(Class<?> subclass)
+    public JavaType forcedNarrowBy(Class<?> subclass)
     {
         if (subclass == _class) { // can still optimize for simple case
             return this;
         }
         JavaType result = _narrow(subclass);
-        if (_valueHandler != result._valueHandler) {
-            result.setValueHandler(_valueHandler);
+        // TODO: these checks should NOT actually be needed; above should suffice:
+        if (_valueHandler != result.getValueHandler()) {
+            result = result.withValueHandler(_valueHandler);
         }
-        if (_typeHandler != result._typeHandler) {
+        if (_typeHandler != result.getTypeHandler()) {
             result = result.withTypeHandler(_typeHandler);
         }
         return result;
@@ -164,7 +203,7 @@ public abstract class JavaType
      * If class is same as the current raw class, instance itself is
      * returned.
      */
-    public final JavaType widenBy(Class<?> superclass)
+    public JavaType widenBy(Class<?> superclass)
     {
         // First: if same raw class, just return this instance
         if (superclass == _class) {
@@ -192,21 +231,6 @@ public abstract class JavaType
      * @since 1.8
      */
     public abstract JavaType widenContentsBy(Class<?> contentClass);
-    
-    /**
-     * Method for assigning handler to associate with this type; or
-     * if null passed, to remove such assignment
-     * 
-     * @since 1.3
-     */
-    public void setValueHandler(Object h) {
-        // sanity check, should be assigned just once
-        if (h != null && _valueHandler != null) {
-            throw new IllegalStateException("Trying to reset value handler for type ["+toString()
-            		+"]; old handler of type "+_valueHandler.getClass().getName()+", new handler of type "+h.getClass().getName());
-        }
-        _valueHandler = h;
-    }
     
     /*
     /**********************************************************

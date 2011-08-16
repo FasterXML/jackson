@@ -31,19 +31,19 @@ public final class SimpleType
      */
 
     protected SimpleType(Class<?> cls) {
-        this(cls, null, null, null);
+        this(cls, null, null, null, null);
     }
 
     @Deprecated // since 1.9
     protected SimpleType(Class<?> cls, String[] typeNames, JavaType[] typeParams)
     {
-        this(cls, typeNames, typeParams, null);
+        this(cls, typeNames, typeParams, null, null);
     }
 
     protected SimpleType(Class<?> cls, String[] typeNames, JavaType[] typeParams,
-            Object typeHandler)
+            Object valueHandler, Object typeHandler)
     {
-        super(cls, 0, null, typeHandler);
+        super(cls, 0, valueHandler, typeHandler);
         if (typeNames == null || typeNames.length == 0) {
             _typeNames = null;
             _typeParameters = null;
@@ -60,14 +60,14 @@ public final class SimpleType
      * not in same package
      */
     public static SimpleType constructUnsafe(Class<?> raw) {
-        return new SimpleType(raw, null, null, null);
+        return new SimpleType(raw, null, null, null, null);
     }
     
     @Override
     protected JavaType _narrow(Class<?> subclass)
     {
         // Should we check that there is a sub-class relationship?
-        return new SimpleType(subclass, _typeNames, _typeParameters, _typeHandler);
+        return new SimpleType(subclass, _typeNames, _typeParameters, _valueHandler, _typeHandler);
     }
 
     @Override
@@ -106,15 +106,30 @@ public final class SimpleType
     @Override
     public SimpleType withTypeHandler(Object h)
     {
-        return new SimpleType(_class, _typeNames, _typeParameters, h);
+        return new SimpleType(_class, _typeNames, _typeParameters, _valueHandler, h);
     }
 
     // Since 1.7:
     @Override
-    public JavaType withContentTypeHandler(Object h)
-    {
+    public JavaType withContentTypeHandler(Object h) {
         // no content type, so:
         throw new IllegalArgumentException("Simple types have no content types; can not call withContenTypeHandler()");
+    }
+
+    // Since 1.9:
+    @Override
+    public SimpleType withValueHandler(Object h) {
+        if (h == _valueHandler) {
+            return this;
+        }
+        return new SimpleType(_class, _typeNames, _typeParameters, h, _typeHandler);
+    }
+    
+    // Since 1.9:
+    @Override
+    public  SimpleType withContentValueHandler(Object h) {
+        // no content type, so:
+        throw new IllegalArgumentException("Simple types have no content types; can not call withContenValueHandler()");
     }
     
     @Override

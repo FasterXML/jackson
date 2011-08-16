@@ -87,6 +87,19 @@ public class CollectionLikeType extends TypeBase
         return new CollectionLikeType(_class, _elementType.withTypeHandler(h),
                 _valueHandler, _typeHandler);
     }
+
+    // Since 1.9:
+    @Override
+    public CollectionLikeType withValueHandler(Object h) {
+        return new CollectionLikeType(_class, _elementType, h, _typeHandler);
+    }
+
+    // Since 1.9:
+    @Override
+    public CollectionLikeType withContentValueHandler(Object h) {
+        return new CollectionLikeType(_class, _elementType.withValueHandler(h),
+                _valueHandler, _typeHandler);
+    }
     
     /*
     /**********************************************************

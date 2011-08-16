@@ -751,11 +751,11 @@ public abstract class BasicDeserializerFactory
             Class<?> keyClass = intr.findDeserializationKeyType(a, type.getKeyType(), propName);
             if (keyClass != null) {
                 // illegal to use on non-Maps
-                if (!(type instanceof MapType)) {
-                    throw new JsonMappingException("Illegal key-type annotation: type "+type+" is not a Map type");
+                if (!(type instanceof MapLikeType)) {
+                    throw new JsonMappingException("Illegal key-type annotation: type "+type+" is not a Map(-like) type");
                 }
                 try {
-                    type = (T) ((MapType) type).narrowKey(keyClass);
+                    type = (T) ((MapLikeType) type).narrowKey(keyClass);
                 } catch (IllegalArgumentException iae) {
                     throw new JsonMappingException("Failed to narrow key type "+type+" with key-type annotation ("+keyClass.getName()+"): "+iae.getMessage(), null, iae);
                 }
@@ -769,7 +769,9 @@ public abstract class BasicDeserializerFactory
                 Class<? extends KeyDeserializer> kdClass = intr.findKeyDeserializer(a);
                 if (kdClass != null && kdClass != KeyDeserializer.None.class) {
                     KeyDeserializer kd = config.keyDeserializerInstance(a, kdClass);
-                    keyType.setValueHandler(kd);
+//                    keyType.setValueHandler(kd);
+                    type = (T) ((MapLikeType) type).withKeyValueHandler(kd);
+                    keyType = type.getKeyType(); // just in case it's used below
                 }
             }            
             
@@ -788,7 +790,8 @@ public abstract class BasicDeserializerFactory
                 Class<? extends JsonDeserializer<?>> cdClass = intr.findContentDeserializer(a);
                 if (cdClass != null && cdClass != JsonDeserializer.None.class) {
                     JsonDeserializer<Object> cd = config.deserializerInstance(a, cdClass);
-                    type.getContentType().setValueHandler(cd);
+//                    type.getContentType().setValueHandler(cd);
+                    type = (T) type.withContentValueHandler(cd);
                 }
             }
         }
@@ -818,14 +821,17 @@ public abstract class BasicDeserializerFactory
                 Class<? extends KeyDeserializer> kdClass = intr.findKeyDeserializer(member);
                 if (kdClass != null && kdClass != KeyDeserializer.None.class) {
                     KeyDeserializer kd = config.keyDeserializerInstance(member, kdClass);
-                    keyType.setValueHandler(kd);
+//                  keyType.setValueHandler(kd);
+                    type = ((MapLikeType) type).withKeyValueHandler(kd);
+                    keyType = type.getKeyType(); // just in case it's used below
                 }
             }
             // and all container types have content types...
             Class<? extends JsonDeserializer<?>> cdClass = intr.findContentDeserializer(member);
             if (cdClass != null && cdClass != JsonDeserializer.None.class) {
                 JsonDeserializer<Object> cd = config.deserializerInstance(member, cdClass);
-                type.getContentType().setValueHandler(cd);
+//                type.getContentType().setValueHandler(cd);
+                type = type.withContentValueHandler(cd);
             }
             /* 04-Feb-2010, tatu: Need to figure out JAXB annotations that indicate type
              *    information to use for polymorphic members; and specifically types for

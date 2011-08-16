@@ -118,6 +118,19 @@ public class MapLikeType extends TypeBase
         return new MapLikeType(_class, _keyType, _valueType.withTypeHandler(h),
                 _valueHandler, _typeHandler);
     }
+
+    // Since 1.9:
+    @Override
+    public MapLikeType withValueHandler(Object h) {
+        return new MapLikeType(_class, _keyType, _valueType, h, _typeHandler);
+    }
+
+    // Since 1.9:
+    @Override
+    public MapLikeType withContentValueHandler(Object h) {
+        return new MapLikeType(_class, _keyType, _valueType.withValueHandler(h),
+                _valueHandler, _typeHandler);
+    }
     
     @Override
     protected String buildCanonicalName() {
@@ -195,6 +208,23 @@ public class MapLikeType extends TypeBase
     /**********************************************************
      */
 
+    /**
+     * @since 1.9
+     */
+    public MapLikeType withKeyTypeHandler(Object h)
+    {
+        return new MapLikeType(_class, _keyType.withTypeHandler(h), _valueType,
+                _valueHandler, _typeHandler);
+    }
+
+    /**
+     * @since 1.9
+     */
+    public MapLikeType withKeyValueHandler(Object h) {
+        return new MapLikeType(_class, _keyType.withValueHandler(h), _valueType,
+                _valueHandler, _typeHandler);
+    }
+    
     /**
      * Method that can be used for checking whether this type is a
      * "real" Collection type; meaning whether it represents a parameterized

@@ -49,6 +49,7 @@ public class TestJavaType
         }
 
         // Also, let's try assigning bogus handler
+        /*
         baseType.setValueHandler("xyz"); // untyped
         assertEquals("xyz", baseType.getValueHandler());
         // illegal to re-set
@@ -58,6 +59,7 @@ public class TestJavaType
         } catch (IllegalStateException iae) {
             verifyException(iae, "Trying to reset");
         }
+        */
     }
 
     public void testMapType()
