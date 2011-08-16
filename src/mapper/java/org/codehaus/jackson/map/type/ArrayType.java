@@ -32,8 +32,19 @@ public final class ArrayType
         _componentType = componentType;
         _emptyArray = emptyInstance;
     }
-    
+
+    /**
+     * @deprecated Since 1.9, if you must directly instantiate,
+     *  call method that takes handlers
+     */
+    @Deprecated
     public static ArrayType construct(JavaType componentType)
+    {
+        return construct(componentType, null, null);
+    }                                   
+
+    public static ArrayType construct(JavaType componentType,
+            Object valueHandler, Object typeHandler)
     {
         /* This is bit messy: there is apparently no other way to
          * reconstruct actual concrete/raw array class from component
@@ -44,7 +55,7 @@ public final class ArrayType
         Object emptyInstance = Array.newInstance(componentType.getRawClass(), 0);
         return new ArrayType(componentType, emptyInstance, null, null);
     }                                   
-
+    
     // Since 1.7:
     @Override
     public ArrayType withTypeHandler(Object h)
@@ -102,7 +113,7 @@ public final class ArrayType
          *   (famous last words?)
          */
         JavaType newCompType = TypeFactory.defaultInstance().constructType(newCompClass);
-        return construct(newCompType);
+        return construct(newCompType, _valueHandler, _typeHandler);
     }
 
     /**
@@ -116,7 +127,8 @@ public final class ArrayType
         if (contentClass == _componentType.getRawClass()) {
             return this;
         }
-        return construct(_componentType.narrowBy(contentClass)).copyHandlers(this);
+        return construct(_componentType.narrowBy(contentClass),
+                _valueHandler, _typeHandler);
     }
 
     @Override
@@ -126,7 +138,8 @@ public final class ArrayType
         if (contentClass == _componentType.getRawClass()) {
             return this;
         }
-        return construct(_componentType.widenBy(contentClass)).copyHandlers(this);
+        return construct(_componentType.widenBy(contentClass),
+                _valueHandler, _typeHandler);
     }
     
     /*

@@ -18,12 +18,13 @@ public abstract class TypeBase
      */
     volatile String _canonicalName;
 
+    @Deprecated // since 1.9; to remove from 2.0
     protected TypeBase(Class<?> raw, int hash) {
         super(raw, hash);
     }
 
     /**
-     * Copy-constructor
+     * Main constructor to use by extending classes.
      * 
      * @since 1.9
      */
@@ -31,6 +32,11 @@ public abstract class TypeBase
             Object valueHandler, Object typeHandler)
     {
         super(raw, hash);
+        // @TODO: !!! 16-Aug-2011, tatu: change to use this constructor instead
+        //   when we can rely on having it available (since 1.9)
+        //super(raw, hash, valueHandler, typeHandler);
+        
+        // and then comment out these:
         _valueHandler = valueHandler;
         _typeHandler = typeHandler;
     }
@@ -46,13 +52,6 @@ public abstract class TypeBase
     }
     
     protected abstract String buildCanonicalName();
-
-    protected final JavaType copyHandlers(JavaType fromType)
-    {
-        _valueHandler = fromType.getValueHandler();
-        _typeHandler = fromType.getTypeHandler();
-        return this;
-    }
 
     @Override
     public abstract StringBuilder getGenericSignature(StringBuilder sb);

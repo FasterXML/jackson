@@ -522,7 +522,7 @@ public final class TypeFactory
      * for element type (and other contained types)
      */
     public ArrayType constructArrayType(Class<?> elementType) {
-        return ArrayType.construct(_constructType(elementType, null));
+        return ArrayType.construct(_constructType(elementType, null), null, null);
     }
     
     /**
@@ -532,7 +532,7 @@ public final class TypeFactory
      * for contained types.
      */
     public ArrayType constructArrayType(JavaType elementType) {
-        return ArrayType.construct(elementType);
+        return ArrayType.construct(elementType, null, null);
     }
 
     /**
@@ -818,7 +818,7 @@ public final class TypeFactory
     {
         // First: do we have an array type?
         if (clz.isArray()) {
-            return ArrayType.construct(_constructType(clz.getComponentType(), null));
+            return ArrayType.construct(_constructType(clz.getComponentType(), null), null, null);
         }
         /* Also: although enums can also be fully resolved, there's little
          * point in doing so (T extends Enum<T>) etc.
@@ -846,7 +846,7 @@ public final class TypeFactory
     protected JavaType _fromParameterizedClass(Class<?> clz, List<JavaType> paramTypes)
     {
         if (clz.isArray()) { // ignore generics (should never have any)
-            return ArrayType.construct(_constructType(clz.getComponentType(), null));
+            return ArrayType.construct(_constructType(clz.getComponentType(), null), null, null);
         }
         if (clz.isEnum()) { // ditto for enums
             return new SimpleType(clz);
@@ -932,7 +932,7 @@ public final class TypeFactory
     protected JavaType _fromArrayType(GenericArrayType type, TypeBindings context)
     {
         JavaType compType = _constructType(type.getGenericComponentType(), context);
-        return ArrayType.construct(compType);
+        return ArrayType.construct(compType, null, null);
     }
 
     protected JavaType _fromVariable(TypeVariable<?> type, TypeBindings context)

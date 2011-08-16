@@ -34,7 +34,7 @@ public abstract class JavaType
      *
      * @since 1.3
      */
-    protected Object _valueHandler;
+    protected /*final*/ Object _valueHandler;
 
     /**
      * Optional handler that can be attached to indicate how to handle
@@ -47,7 +47,7 @@ public abstract class JavaType
      *
      * @since 1.5
      */
-    protected Object _typeHandler;
+    protected /*final*/ Object _typeHandler;
     
     /*
     /**********************************************************
@@ -60,6 +60,8 @@ public abstract class JavaType
         _class = clz;
         String name = clz.getName();
         _hashCode = name.hashCode() + hash;
+        _valueHandler = null;
+        _typeHandler = null;
     }
 
     /**
@@ -80,6 +82,8 @@ public abstract class JavaType
     {
         _class = raw;
         _hashCode = raw.getName().hashCode() + additionalHash;
+        _valueHandler = valueHandler;
+        _typeHandler = typeHandler;
     }
     
     /**

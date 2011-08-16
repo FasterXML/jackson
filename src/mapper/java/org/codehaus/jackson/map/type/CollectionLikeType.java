@@ -53,8 +53,8 @@ public class CollectionLikeType extends TypeBase
         if (contentClass == _elementType.getRawClass()) {
             return this;
         }
-        return new CollectionLikeType(_class, _elementType.narrowBy(contentClass)).copyHandlers(this);
-    }
+        return new CollectionLikeType(_class, _elementType.narrowBy(contentClass),
+                _valueHandler, _typeHandler);    }
 
     @Override
     public JavaType widenContentsBy(Class<?> contentClass)
@@ -63,29 +63,29 @@ public class CollectionLikeType extends TypeBase
         if (contentClass == _elementType.getRawClass()) {
             return this;
         }
-        return new CollectionLikeType(_class, _elementType.widenBy(contentClass)).copyHandlers(this);
+        return new CollectionLikeType(_class, _elementType.widenBy(contentClass),
+                _valueHandler, _typeHandler);
     }
     
     public static CollectionLikeType construct(Class<?> rawType, JavaType elemT)
     {
         // nominally component types will be just Object.class
-        return new CollectionLikeType(rawType, elemT);
+        return new CollectionLikeType(rawType, elemT, null, null);
     }
 
     // Since 1.7:
     @Override
     public CollectionLikeType withTypeHandler(Object h)
     {
-        CollectionLikeType newInstance = new CollectionLikeType(_class, _elementType);
-        newInstance._typeHandler = h;
-        return newInstance;
+        return new CollectionLikeType(_class, _elementType, _valueHandler, h);
     }
 
     // Since 1.7:
     @Override
     public CollectionLikeType withContentTypeHandler(Object h)
     {
-        return new CollectionLikeType(_class, _elementType.withTypeHandler(h));
+        return new CollectionLikeType(_class, _elementType.withTypeHandler(h),
+                _valueHandler, _typeHandler);
     }
     
     /*

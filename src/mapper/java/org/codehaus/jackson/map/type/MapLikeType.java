@@ -77,7 +77,8 @@ public class MapLikeType extends TypeBase
         if (contentClass == _valueType.getRawClass()) {
             return this;
         }
-        return new MapLikeType(_class, _keyType, _valueType.widenBy(contentClass)).copyHandlers(this);
+        return new MapLikeType(_class, _keyType, _valueType.widenBy(contentClass),
+                _valueHandler, _typeHandler);
     }
     
     public JavaType narrowKey(Class<?> keySubclass)
@@ -86,7 +87,8 @@ public class MapLikeType extends TypeBase
         if (keySubclass == _keyType.getRawClass()) {
             return this;
         }
-        return new MapLikeType(_class, _keyType.narrowBy(keySubclass), _valueType).copyHandlers(this);
+        return new MapLikeType(_class, _keyType.narrowBy(keySubclass), _valueType,
+                _valueHandler, _typeHandler);
     }
 
     /**
@@ -98,23 +100,23 @@ public class MapLikeType extends TypeBase
         if (keySubclass == _keyType.getRawClass()) {
             return this;
         }
-        return new MapLikeType(_class, _keyType.widenBy(keySubclass), _valueType).copyHandlers(this);
+        return new MapLikeType(_class, _keyType.widenBy(keySubclass), _valueType,
+                _valueHandler, _typeHandler);
     }
     
     // Since 1.7:
     @Override
     public MapLikeType withTypeHandler(Object h)
     {
-        MapLikeType newInstance = new MapLikeType(_class, _keyType, _valueType);
-        newInstance._typeHandler = h;
-        return newInstance;
+        return new MapLikeType(_class, _keyType, _valueType, _valueHandler, h);
     }
 
     // Since 1.7:
     @Override
     public MapLikeType withContentTypeHandler(Object h)
     {
-        return new MapLikeType(_class, _keyType, _valueType.withTypeHandler(h));
+        return new MapLikeType(_class, _keyType, _valueType.withTypeHandler(h),
+                _valueHandler, _typeHandler);
     }
     
     @Override
