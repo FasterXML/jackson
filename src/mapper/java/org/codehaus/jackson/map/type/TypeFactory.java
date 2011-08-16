@@ -61,6 +61,28 @@ public final class TypeFactory
     protected final TypeModifier[] _modifiers;
     
     protected final TypeParser _parser;
+
+    /*
+     * Looks like construction of {@link JavaType} instances can be
+     * a bottleneck, esp. for root-level Maps, so we better do bit
+     * of low-level component caching here...
+     */
+
+    /**
+     * Lazily constructed copy of type hierarchy from {@link java.util.HashMap}
+     * to its supertypes.
+     * 
+     * @since 1.9
+     */
+    protected HierarchicType _cachedHashMapType;
+
+    /**
+     * Lazily constructed copy of type hierarchy from {@link java.util.ArrayList}
+     * to its supertypes.
+     * 
+     * @since 1.9
+     */
+    protected HierarchicType _cachedArrayListType;
     
     /*
     /**********************************************************
@@ -1022,7 +1044,7 @@ public final class TypeFactory
 
     /*
     /**********************************************************
-    /* Static helper methods
+    /* Helper methods
     /**********************************************************
      */
 
@@ -1032,7 +1054,7 @@ public final class TypeFactory
      * calling this method). Returned type represents given <b>subtype</b>,
      * with supertype linkage extending to <b>supertype</b>.
      */
-    protected static HierarchicType  _findSuperTypeChain(Class<?> subtype, Class<?> supertype)
+    protected HierarchicType  _findSuperTypeChain(Class<?> subtype, Class<?> supertype)
     {
         // If super-type is a class (not interface), bit simpler
         if (supertype.isInterface()) {
@@ -1041,7 +1063,7 @@ public final class TypeFactory
         return _findSuperClassChain(subtype, supertype);
     }
 
-    protected static HierarchicType _findSuperClassChain(Type currentType, Class<?> target)
+    protected HierarchicType _findSuperClassChain(Type currentType, Class<?> target)
     {
         HierarchicType current = new HierarchicType(currentType);
         Class<?> raw = current.getRawClass();
@@ -1061,14 +1083,33 @@ public final class TypeFactory
         return null;
     }
 
-    protected static HierarchicType _findSuperInterfaceChain(Type currentType, Class<?> target)
+    protected HierarchicType _findSuperInterfaceChain(Type currentType, Class<?> target)
     {
         HierarchicType current = new HierarchicType(currentType);
         Class<?> raw = current.getRawClass();
         if (raw == target) {
-            return current;
+            return new HierarchicType(currentType);
         }
         // Otherwise, keep on going down the rat hole; first implemented interfaces
+        /* 16-Aug-2011, tatu: Minor optimization based on profiled hot spot; let's
+         *   try caching certain commonly needed cases
+         */
+        if (raw == HashMap.class) {
+            if (target == Map.class) {
+                return _hashMapSuperInterfaceChain(current);
+            }
+        }
+        if (raw == ArrayList.class) {
+            if (target == List.class) {
+                return _arrayListSuperInterfaceChain(current);
+            }
+        }
+        return _doFindSuperInterfaceChain(current, target);
+    }
+    
+    protected HierarchicType _doFindSuperInterfaceChain(HierarchicType current, Class<?> target)
+    {
+        Class<?> raw = current.getRawClass();
         Type[] parents = raw.getGenericInterfaces();
         // as long as there are superclasses
         // and unless we have already seen the type (<T extends X<T>>)
@@ -1093,5 +1134,31 @@ public final class TypeFactory
             }
         }
         return null;
+    }
+
+    protected synchronized HierarchicType _hashMapSuperInterfaceChain(HierarchicType current)
+    {
+        if (_cachedHashMapType == null) {
+            HierarchicType base = current.deepCloneWithoutSubtype();
+            _doFindSuperInterfaceChain(base, Map.class);
+            _cachedHashMapType = base.getSuperType();
+        }
+        HierarchicType t = _cachedHashMapType.deepCloneWithoutSubtype();
+        current.setSuperType(t);
+        t.setSubType(current);
+        return current;
+    }
+
+    protected synchronized HierarchicType _arrayListSuperInterfaceChain(HierarchicType current)
+    {
+        if (_cachedArrayListType == null) {
+            HierarchicType base = current.deepCloneWithoutSubtype();
+            _doFindSuperInterfaceChain(base, List.class);
+            _cachedArrayListType = base.getSuperType();
+        }
+        HierarchicType t = _cachedArrayListType.deepCloneWithoutSubtype();
+        current.setSuperType(t);
+        t.setSubType(current);
+        return current;
     }
 }
