@@ -430,11 +430,13 @@ public final class TypeFactory
     }
     
     public JavaType constructType(Type type, Class<?> context) {
-        return _constructType(type, new TypeBindings(this, context));
+        TypeBindings b = (context == null) ? null : new TypeBindings(this, context);
+        return _constructType(type, b);
     }
 
     public JavaType constructType(Type type, JavaType context) {
-        return _constructType(type, new TypeBindings(this, context));
+        TypeBindings b = (context == null) ? null : new TypeBindings(this, context);
+        return _constructType(type, b);
     }
     
     /**

@@ -13,10 +13,12 @@ import org.codehaus.jackson.map.jsontype.TypeIdResolver;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdSubtypeResolver;
 import org.codehaus.jackson.map.type.ClassKey;
+import org.codehaus.jackson.map.type.TypeBindings;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.type.JavaType;
+import org.codehaus.jackson.type.TypeReference;
 
 /**
  * Interface that defines functionality accessible through both
@@ -186,6 +188,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link ClassIntrospector}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -193,8 +198,10 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
 
     /**
      * Method for constructing and returning a new instance with different
-     * {@link AnnotationIntrospector} 
-     * to use (replacing old one).
+     * {@link AnnotationIntrospector} to use (replacing old one).
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -204,6 +211,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link VisibilityChecker}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -212,6 +222,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
     /**
      * Method for constructing and returning a new instance with different
      * minimal visibility level for specified property type
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.9
      */
@@ -221,6 +234,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link TypeResolverBuilder}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -230,6 +246,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link SubtypeResolver}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -239,6 +258,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link PropertyNamingStrategy}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -248,6 +270,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link TypeFactory}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -257,6 +282,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link DateFormat}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -266,6 +294,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * Method for constructing and returning a new instance with different
      * {@link HandlerInstantiator}
      * to use.
+     *<p>
+     * NOTE: make sure to register new instance with <code>ObjectMapper</code>
+     * if directly calling this method.
      * 
      * @since 1.8
      */
@@ -499,7 +530,21 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.8
      */
     public final JavaType constructType(Class<?> cls) {
-        return getTypeFactory().constructType(cls);
+        return getTypeFactory().constructType(cls, (TypeBindings) null);
+    }
+
+    /**
+     * Helper method that will construct {@link JavaType} for given
+     * type reference
+     * This is a simple short-cut for:
+     *<pre>
+     *    getTypeFactory().constructType(valueTypeRef);
+     *</pre>
+     * 
+     * @since 1.9
+     */
+    public final JavaType constructType(TypeReference<?> valueTypeRef) {
+        return getTypeFactory().constructType(valueTypeRef.getType(), (TypeBindings) null);
     }
     
     /*
@@ -640,6 +685,8 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
     /**
      * Method for replacing existing annotation introspector(s) with specified
      * introspector.
+     * Since this method modifies state of configuration object directly, its use
+     * is not recommended.
      * 
      * @deprecated Since 1.8, use either
      *  {@link #withAnnotationIntrospector(AnnotationIntrospector)} or
