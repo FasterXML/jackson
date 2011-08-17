@@ -125,7 +125,30 @@ public class BasicClassIntrospector
 
     /*
     /**********************************************************
-    /* Factory method impls
+    /* Factory method impls, new
+    /**********************************************************
+     */
+    
+    public BasicBeanDescription forSerializationNEW(SerializationConfig cfg,
+            JavaType type, MixInResolver r)
+    {
+        boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
+        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
+        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
+        // false, false -> do not process ignorals, nor collect (later part of processing)
+        ac.resolveMemberMethods(getSerializationMethodFilter(cfg), true, false);
+        ac.resolveCreators(true);
+        // false, false -> do not process ignorals, nor collect (later part of processing)
+        ac.resolveFields(false, false);
+        /* And then the actual processing...
+         */
+        POJOPropertiesCollector coll = new POJOPropertiesCollector(cfg, true, type, ac);
+        return new BasicBeanDescription(cfg, type, ac);
+    }
+
+    /*
+    /**********************************************************
+    /* Factory method impls, old
     /**********************************************************
      */
 
@@ -148,6 +171,7 @@ public class BasicClassIntrospector
         ac.resolveCreators(true);
         // True -> process ignorals, false -> no need to collect ignorable field list
         ac.resolveFields(true, false);
+        
         return new BasicBeanDescription(cfg, type, ac);
     }
 
@@ -164,6 +188,7 @@ public class BasicClassIntrospector
         ac.resolveCreators(true);
         // yes, we need info on ignored fields as well
         ac.resolveFields(true, true);
+        
         // Note: can't pass null AnnotationIntrospector for this...
         return new BasicBeanDescription(cfg, type, ac);
     }

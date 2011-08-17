@@ -909,7 +909,10 @@ public class JaxbAnnotationIntrospector
                 }
             }
             if (includePackage) {
-                return memberClass.getPackage().getAnnotation(annotationClass);
+                Package pkg = memberClass.getPackage();
+                if (pkg != null) {
+                    return memberClass.getPackage().getAnnotation(annotationClass);
+                }
             }
         }
         return null;

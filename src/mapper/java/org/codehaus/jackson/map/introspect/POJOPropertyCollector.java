@@ -31,20 +31,20 @@ public class POJOPropertyCollector
     /**********************************************************
      */
 
-    public void addField(AnnotatedField a) {
-        _fields = new Node<AnnotatedField>(a, _fields);
+    public void addField(AnnotatedField a, String ename, boolean visible, boolean ignored) {
+        _fields = new Node<AnnotatedField>(a, _fields, ename, visible, ignored);
     }
 
-    public void addCtor(AnnotatedParameter a) {
-        _ctorParameters = new Node<AnnotatedParameter>(a, _ctorParameters);
+    public void addCtor(AnnotatedParameter a, String ename, boolean visible, boolean ignored) {
+        _ctorParameters = new Node<AnnotatedParameter>(a, _ctorParameters, ename, visible, ignored);
     }
 
-    public void addGetter(AnnotatedMethod a) {
-        _getters = new Node<AnnotatedMethod>(a, _getters);
+    public void addGetter(AnnotatedMethod a, String ename, boolean visible, boolean ignored) {
+        _getters = new Node<AnnotatedMethod>(a, _getters, ename, visible, ignored);
     }
 
-    public void addSetter(AnnotatedMethod a) {
-        _setters = new Node<AnnotatedMethod>(a, _setters);
+    public void addSetter(AnnotatedMethod a, String ename, boolean visible, boolean ignored) {
+        _setters = new Node<AnnotatedMethod>(a, _setters, ename, visible, ignored);
     }
     
     /*
@@ -61,10 +61,19 @@ public class POJOPropertyCollector
     {
         public final T value;
         public final Node<T> next;
+
+        public final String explicitName;
+        public final boolean isVisible;
+        public final boolean isMarkedIgnored;
         
-        public Node(T v, Node<T> n) {
+        public Node(T v, Node<T> n,
+                String explName, boolean visible, boolean ignored)
+        {
             value = v;
             next = n;
+            explicitName = explName;
+            isVisible = visible;
+            isMarkedIgnored = ignored;
         }
     }
 }
