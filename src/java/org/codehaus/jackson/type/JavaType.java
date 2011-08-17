@@ -90,6 +90,7 @@ public abstract class JavaType
     public abstract JavaType withContentTypeHandler(Object h);
 
     // !!! TODO: in 2.0, change to be abstract method
+    //public abstract JavaType withValueHandler(Object h);
     /**
      * @since 1.9
      */
@@ -104,6 +105,7 @@ public abstract class JavaType
     }
 
     // !!! TODO: in 2.0, change to be abstract method
+    //public abstract JavaType withContentValueHandler(Object h);
     /**
      * @since 1.9
      */
