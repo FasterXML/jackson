@@ -60,6 +60,9 @@ Description:
   * [JACKSON-661] Add shorter 'JsonNode.asXxx' methods to replace 'JsonNode.getValueAsXxx'
   * [JACKSON-662] Add 'ObjectMapper.enable()' and 'ObjectMapper.disable()' to allow
     enabling/disabling multiple features with a single call.
+  * [JACKSON-665] Add 'AnnotatedWithParams.getIndex()' for accessing index of a
+    method or constructor parameter
+   (requested by Chistropher C)
 
   New features:
 

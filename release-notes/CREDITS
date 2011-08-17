@@ -357,10 +357,12 @@ Christopher Currie:
    [1.5.5]
    (requested by Chris C)
   * Suggested [JACKSON-638] TypeFactory methods for constructing "raw" map or collection types
-   [1.9.0
+   [1.9.0]
   * Requested [JACKSON-639] Change BasicClassIntrospector.forClassAnnotations
     to take JavaType (not raw Class)
-   [1.9.0
+   [1.9.0]
+  * Requested [JACKSON-665] Add AnnotatedWithParams.getIndex()
+   [1.9.0]
 
 Steve Crane:
   * Suggested [JACKSON-324], calling releaseBuffers() within finally block

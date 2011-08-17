@@ -27,7 +27,7 @@ public final class AnnotatedParameter
      * 
      * @since 1.7
      */
-    protected final AnnotatedMember _owner;
+    protected final AnnotatedWithParams _owner;
     
     /**
      * JDK type of the parameter, possibly contains generic type information
@@ -36,17 +36,26 @@ public final class AnnotatedParameter
 
     protected final AnnotationMap _annotations;
 
+    /**
+     * Index of the parameter within argument list
+     * 
+     * @since 1.9
+     */
+    protected final int _index;
+    
     /*
     /**********************************************************
     /* Life-cycle
     /**********************************************************
      */
 
-    public AnnotatedParameter(AnnotatedMember owner, Type type,  AnnotationMap ann)
+    public AnnotatedParameter(AnnotatedWithParams owner, Type type,  AnnotationMap ann,
+            int index)
     {
         _owner = owner;
         _type = type;
         _annotations = ann;
+        _index = index;
     }
 
     public void addOrOverride(Annotation a)
@@ -133,5 +142,24 @@ public final class AnnotatedParameter
      */
 
     public Type getParameterType() { return _type; }
+
+    /**
+     * Accessor for 'owner' of this parameter; method or constructor that
+     * has this parameter as member of its argument list.
+     * 
+     * @return Owner (member or creator) object of this parameter
+     * 
+     * @since 1.9
+     */
+    public AnnotatedWithParams getOwner() { return _owner; }
+    
+    /**
+     * Accessor for index of this parameter within argument list
+     * 
+     * @return Index of this parameter within argument list
+     * 
+     * @since 1.9
+     */
+    public int getIndex() { return _index; }
 }
 
