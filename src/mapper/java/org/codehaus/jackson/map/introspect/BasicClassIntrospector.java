@@ -71,7 +71,7 @@ public class BasicClassIntrospector
             return false;
         }
     }
-
+    
     /**
      * Filter used if some getters (namely, once needed for "setterless
      * collection injection") are also needed, not just setters.
@@ -99,6 +99,26 @@ public class BasicClassIntrospector
     }
 
     /**
+     * Going forward, we will only do very minimal filtering;
+     * mostly just gets rid of static methods really.
+     * 
+     * @since 1.9
+     */
+    private static class MinimalMethodFilter
+        implements MethodFilter
+    {
+        @Override
+        public boolean includeMethod(Method m)
+        {
+            if (Modifier.isStatic(m.getModifiers())) {
+                return false;
+            }
+            int pcount = m.getParameterTypes().length;
+            return (pcount <= 2);
+        }
+    }
+    
+    /**
      * @since 1.8
      */
     public final static GetterMethodFilter DEFAULT_GETTER_FILTER = new GetterMethodFilter();
@@ -112,6 +132,8 @@ public class BasicClassIntrospector
      * @since 1.8
      */
     public final static SetterAndGetterMethodFilter DEFAULT_SETTER_AND_GETTER_FILTER = new SetterAndGetterMethodFilter();
+
+    public final static MethodFilter MINIMAL_FILTER = new MinimalMethodFilter();
     
     /*
     /**********************************************************
@@ -129,23 +151,28 @@ public class BasicClassIntrospector
     /**********************************************************
      */
     
-    public BasicBeanDescription forSerializationNEW(SerializationConfig cfg,
+    public BasicBeanDescription forSerializationNEW(SerializationConfig config,
             JavaType type, MixInResolver r)
     {
-        boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
-        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
+        // And then the actual processing...
+        POJOPropertiesCollector coll = collectProperties(config, type, r, true);
+        return new BasicBeanDescription(config, type, coll.getClassDef());
+    }
+
+    public POJOPropertiesCollector collectProperties(MapperConfig<?> config,
+            JavaType type, MixInResolver r, boolean forSerialization)
+    {
+        boolean useAnnotations = config.isAnnotationProcessingEnabled();
+        AnnotationIntrospector ai = config.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
         // false, false -> do not process ignorals, nor collect (later part of processing)
-        ac.resolveMemberMethods(getSerializationMethodFilter(cfg), true, false);
+        ac.resolveMemberMethods(MINIMAL_FILTER, false, false);
         ac.resolveCreators(true);
         // false, false -> do not process ignorals, nor collect (later part of processing)
         ac.resolveFields(false, false);
-        /* And then the actual processing...
-         */
-        POJOPropertiesCollector coll = new POJOPropertiesCollector(cfg, true, type, ac);
-        return new BasicBeanDescription(cfg, type, ac);
+        return POJOPropertiesCollector.collect(config, true, type, ac);
     }
-
+    
     /*
     /**********************************************************
     /* Factory method impls, old
@@ -171,7 +198,6 @@ public class BasicClassIntrospector
         ac.resolveCreators(true);
         // True -> process ignorals, false -> no need to collect ignorable field list
         ac.resolveFields(true, false);
-        
         return new BasicBeanDescription(cfg, type, ac);
     }
 
@@ -188,7 +214,6 @@ public class BasicClassIntrospector
         ac.resolveCreators(true);
         // yes, we need info on ignored fields as well
         ac.resolveFields(true, true);
-        
         // Note: can't pass null AnnotationIntrospector for this...
         return new BasicBeanDescription(cfg, type, ac);
     }

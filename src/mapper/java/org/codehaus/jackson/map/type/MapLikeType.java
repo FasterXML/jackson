@@ -35,7 +35,7 @@ public class MapLikeType extends TypeBase
     @Deprecated // since 1.9
     protected MapLikeType(Class<?> mapType, JavaType keyT, JavaType valueT)
     {
-        super(mapType, keyT.hashCode() ^ valueT.hashCode());
+        super(mapType, keyT.hashCode() ^ valueT.hashCode(), null, null);
         _keyType = keyT;
         _valueType = valueT;
     }

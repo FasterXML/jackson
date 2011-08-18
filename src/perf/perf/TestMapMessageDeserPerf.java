@@ -44,6 +44,7 @@ public class TestMapMessageDeserPerf
     
     private void test() throws IOException
     {
+        @SuppressWarnings("unused")
         int i = 0;
         int sum = 0;
         int round = 0;
@@ -66,7 +67,7 @@ public class TestMapMessageDeserPerf
 
             case 0:
                 msg = "Jackson, ObjectMapper"; // byte
-                result = testMapper(REPS, mapper);
+                result = testMapper(REPS);
                 break;
 
             default:
@@ -79,12 +80,12 @@ public class TestMapMessageDeserPerf
                 System.out.println();
             }
             System.out.println("Test '"+msg+"' -> "+curr+" msecs"
-//                    +"("+(sum & 0xFF)+")"
+                    +"("+(sum & 0xFF)+")"
             );
         }
     }
 
-    private MapMessage testMapper(int reps, ObjectMapper mapper) throws IOException
+    private MapMessage testMapper(int reps) throws IOException
     {
         MapMessage[] msgs;
         do {

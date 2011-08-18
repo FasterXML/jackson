@@ -373,7 +373,37 @@ public abstract class AnnotationIntrospector
     public Boolean shouldUnwrapProperty(AnnotatedMember member) {
         return null;
     }
-    
+
+    /**
+     * Method called to check whether given property is marked to
+     * be ignored; but NOT to determine if it should necessarily
+     * be ignored, since that may depend on other factors.
+     *<p>
+     * Default implementation calls existing 'isIgnored' methods
+     * such as {@link #isIgnorableField(AnnotatedField)} and
+     * {@link #isIgnorableMethod(AnnotatedMethod)}.
+     * 
+     * @since 1.9
+     */
+    public boolean hasIgnoreMarker(AnnotatedMember m)
+    {
+        /* For maximum backwards compatibility, we better call
+         * existing methods.
+         */
+        /* TODO: For 2.0, replace with simple 'return false;'
+         */
+        if (m instanceof AnnotatedMethod) {
+            return isIgnorableMethod((AnnotatedMethod) m);
+        }
+        if (m instanceof AnnotatedField) {
+            return isIgnorableField((AnnotatedField) m);
+        }
+        if (m instanceof AnnotatedConstructor) {
+            return isIgnorableConstructor((AnnotatedConstructor) m);
+        }
+        return false;
+    }
+
     /*
     /**********************************************************
     /* General method annotations
@@ -1054,6 +1084,11 @@ public abstract class AnnotationIntrospector
                 value = _secondary.shouldUnwrapProperty(member);
             }
             return value;
+        }
+
+        @Override
+        public boolean hasIgnoreMarker(AnnotatedMember m) {
+            return _primary.hasIgnoreMarker(m) || _secondary.hasIgnoreMarker(m);
         }
         
         // // // General method annotations

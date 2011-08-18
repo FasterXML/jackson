@@ -65,6 +65,17 @@ public class NopAnnotationIntrospector
     public Boolean findIgnoreUnknownProperties(AnnotatedClass ac) {
         return null;
     }
+
+    /*
+    /**********************************************************
+    /* General member (field, method/constructor) annotations
+    /**********************************************************
+     */
+
+    @Override
+    public boolean hasIgnoreMarker(AnnotatedMember member) {
+        return false;
+    }
     
     /*
     /**********************************************************

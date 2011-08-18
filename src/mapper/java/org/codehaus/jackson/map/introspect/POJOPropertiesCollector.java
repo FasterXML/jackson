@@ -60,9 +60,11 @@ public class POJOPropertiesCollector
      */
     protected final HashMap<String, POJOPropertyCollector> _properties = new HashMap<String, POJOPropertyCollector>();
 
-    protected final LinkedList<AnnotatedMethod> _anyGetters = new LinkedList<AnnotatedMethod>();
+    protected List<AnnotatedMethod> _anyGetters = null;
 
-    protected final LinkedList<AnnotatedMethod> _anySetters = new LinkedList<AnnotatedMethod>();
+    protected List<AnnotatedMethod> _anySetters = null;
+
+    protected List<AnnotatedMethod> _jsonValueGetters = null;
     
     /*
     /**********************************************************
@@ -70,7 +72,7 @@ public class POJOPropertiesCollector
     /**********************************************************
      */
     
-    public POJOPropertiesCollector(MapperConfig<?> config, boolean forSerialization,
+    private POJOPropertiesCollector(MapperConfig<?> config, boolean forSerialization,
             JavaType type, AnnotatedClass classDef)
     {
         _config = config;
@@ -80,18 +82,52 @@ public class POJOPropertiesCollector
         final AnnotationIntrospector ai = _config.getAnnotationIntrospector();
         _visibilityChecker = ai.findAutoDetectVisibility(classDef, _config.getDefaultVisibilityChecker());
     }
-
+    
     /*
     /**********************************************************
     /* Public API
     /**********************************************************
      */
 
-    public void process()
+    public static POJOPropertiesCollector collect(MapperConfig<?> config, boolean forSerialization,
+            JavaType type, AnnotatedClass classDef)
     {
-        _addFields();
-        _addMethods();
-        _addConstructors();
+        POJOPropertiesCollector coll = new POJOPropertiesCollector(config, forSerialization, type, classDef);
+        
+        // First: gather basic data
+        coll._addFields();
+        coll._addMethods();
+
+        // Second: remove ignored properties, individual entries
+        coll._removeIgnoredProperties();
+        // Third: rename remaining properties
+        coll._renameProperties();
+
+        // And finally: validate consistency of definitions
+        if (forSerialization) {
+            coll._validateForSerialization();
+        } else {
+            coll._validateForDeserialization();
+        }
+        
+        return coll;
+    }
+
+    public MapperConfig<?> getConfig() {
+        return _config;
+    }
+
+    public JavaType getType() {
+        return _type;
+    }
+    
+    public AnnotatedClass getClassDef() {
+        return _classDef;
+    }
+    
+    // for unit tests:
+    public Map<String, POJOPropertyCollector> getProperties() {
+        return _properties;
     }
     
     /*
@@ -130,7 +166,7 @@ public class POJOPropertiesCollector
                 visible = _visibilityChecker.isFieldVisible(f);
             }
             // and finally, may also have explicit ignoral
-            boolean ignored = ai.isIgnorableField(f);
+            boolean ignored = ai.hasIgnoreMarker(f);
             _property(implName).addField(f, explName, visible, ignored);
         }
     }
@@ -167,10 +203,23 @@ public class POJOPropertiesCollector
             boolean visible;
             
             if (argCount == 0) { // getters (including 'any getter')
+                // any getter?
                 if (ai.hasAnyGetterAnnotation(m)) {
+                    if (_anyGetters == null) {
+                        _anyGetters = new ArrayList<AnnotatedMethod>(4);
+                    }
                     _anyGetters.add(m);
                     continue;
                 }
+                // @JsonValue?
+                if (ai.hasAsValueAnnotation(m)) {
+                    if (_jsonValueGetters == null) {
+                        _jsonValueGetters = new ArrayList<AnnotatedMethod>(4);
+                    }
+                    _jsonValueGetters.add(m);
+                    continue;
+                }
+                
                 explName = ai.findGettablePropertyName(m);
                 if (explName == null) { // no explicit name; must follow naming convention
                     implName = okNameForGetter(m);
@@ -188,7 +237,7 @@ public class POJOPropertiesCollector
                     implName = explName;
                     visible = true;
                 }
-                _property(implName).addGetter(m, explName, visible, ai.isIgnorableMethod(m));
+                _property(implName).addGetter(m, explName, visible, ai.hasIgnoreMarker(m));
             } else if (argCount == 1) { // setters
                 explName = ai.findSettablePropertyName(m);
                 if (explName == null) { // no explicit name; must follow naming convention
@@ -207,9 +256,12 @@ public class POJOPropertiesCollector
                     implName = explName;
                     visible = true;
                 }
-                _property(implName).addSetter(m, explName, visible, ai.isIgnorableMethod(m));
+                _property(implName).addSetter(m, explName, visible, ai.hasIgnoreMarker(m));
             } else if (argCount == 2) { // any getter?
                 if (ai.hasAnySetterAnnotation(m)) {
+                    if (_anySetters == null) {
+                        _anySetters = new ArrayList<AnnotatedMethod>(4);
+                    }
                     _anySetters.add(m);
                 }
                 continue;
@@ -218,6 +270,118 @@ public class POJOPropertiesCollector
 
     }
 
+    /*
+    /**********************************************************
+    /* Internal methods; removing ignored properties
+    /**********************************************************
+     */
+
+    protected void _removeIgnoredProperties()
+    {
+        Iterator<Map.Entry<String,POJOPropertyCollector>> it = _properties.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, POJOPropertyCollector> entry = it.next();
+            POJOPropertyCollector prop = entry.getValue();
+            if (prop.anyIgnorals()) {
+                // first: if one or more ignorals, and no explicit markers, remove the whole thing
+                if (!prop.anyExplicitNames()) {
+                    it.remove();
+                    continue;
+                }
+                // otherwise just remove ones marked to be ignored
+                prop.removeIgnored();
+            }
+        }
+    }
+    
+    /*
+    /**********************************************************
+    /* Internal methods; renaming properties
+    /**********************************************************
+     */
+
+    protected void _renameProperties()
+    {
+        // With renaming need to do in phases: first, find properties to rename
+        Iterator<Map.Entry<String,POJOPropertyCollector>> it = _properties.entrySet().iterator();
+        LinkedList<POJOPropertyCollector> renamed = null;
+        while (it.hasNext()) {
+            Map.Entry<String, POJOPropertyCollector> entry = it.next();
+            POJOPropertyCollector prop = entry.getValue();
+            String newName = prop.findNewName();
+            if (newName != null) {
+                if (renamed == null) {
+                    renamed = new LinkedList<POJOPropertyCollector>();
+                }
+                renamed.add(prop.withName(newName));
+                it.remove();
+            }
+        }
+
+        // and if any were renamed, merge back in...
+        if (renamed != null) {
+            for (POJOPropertyCollector prop : renamed) {
+                String name = prop.getName();
+                POJOPropertyCollector old = _properties.get(name);
+                if (old == null) {
+                    _properties.put(name, prop);
+                } else {
+                    old.addAll(prop);
+                }
+            }
+        }
+    }
+    
+    /*
+    /**********************************************************
+    /* Internal methods: validation
+    /**********************************************************
+     */
+
+    protected void _validateForSerialization()
+    {
+        // If @JsonValue defined, must have a single one
+        if (_jsonValueGetters != null) {
+            if (_jsonValueGetters.size() > 0) {
+                reportProblem("Multiple value properties defined ("+_jsonValueGetters.get(0)+" vs "
+                        +_jsonValueGetters.get(1)+")");
+            }
+            // otherwise we won't greatly care
+        }
+        // ditto for @JsonAnyGetter
+        if (_anyGetters != null) {
+            if (_anyGetters.size() > 0) {
+                reportProblem("Multiple 'any-getters' defined ("+_anyGetters.get(0)+" vs "
+                        +_anyGetters.get(1)+")");
+            }
+        }
+        // Can't have multiple getters or fields for same property
+        for (POJOPropertyCollector coll : _properties.values()) {
+            String msg = coll.validateForSerialization();
+            if (msg != null) {
+                reportProblem(msg);
+            }
+        }
+    }
+
+    protected void _validateForDeserialization()
+    {
+        // If any setter defined, must have just one
+        if (_anySetters != null) {
+            if (_anySetters.size() > 0) {
+                reportProblem("Multiple 'any-setters' defined ("+_anySetters.get(0)+" vs "
+                        +_anySetters.get(1)+")");
+            }
+        }
+        // Can't have multiple getters or fields for same property
+        for (POJOPropertyCollector coll : _properties.values()) {
+            String msg = coll.validateForDeserialization();
+            if (msg != null) {
+                reportProblem(msg);
+            }
+        }
+    }
+    
     /*
     /**********************************************************
     /* Internal methods: handling "getter" names
@@ -421,6 +585,10 @@ public class POJOPropertiesCollector
     /**********************************************************
      */
 
+    protected void reportProblem(String msg) {
+        throw new IllegalArgumentException("Problem with definition of "+_classDef+": "+msg);
+    }
+    
     protected POJOPropertyCollector _property(String implName)
     {
         POJOPropertyCollector prop = _properties.get(implName);

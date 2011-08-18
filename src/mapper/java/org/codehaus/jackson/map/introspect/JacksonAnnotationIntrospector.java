@@ -147,13 +147,6 @@ public class JacksonAnnotationIntrospector
         return null;
     }
 
-    /**
-     * Method called to check whether given property is marked to be "unwrapped"
-     * when being serialized (and appropriately handled in reverse direction,
-     * i.e. expect unwrapped representation during deserialization)
-     * 
-     * @since 1.9
-     */
     @Override
     public Boolean shouldUnwrapProperty(AnnotatedMember member)
     {
@@ -161,6 +154,11 @@ public class JacksonAnnotationIntrospector
         // if not enabled, just means annotation is not enabled; not necessarily
         // that unwrapping should not be done (relevant when using chained introspectors)
         return (ann != null && ann.enabled()) ? Boolean.TRUE : null;
+    }
+
+    @Override
+    public boolean hasIgnoreMarker(AnnotatedMember m) {
+        return _isIgnorable(m);
     }
     
     /*

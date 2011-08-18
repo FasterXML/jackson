@@ -96,5 +96,6 @@ public class TestExceptionDeserialization
     {
         ObjectMapper mapper = new ObjectMapper();
         MyNoArgException exc = mapper.readValue("{}", MyNoArgException.class);
+        assertNotNull(exc);
     }
 }

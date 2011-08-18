@@ -191,7 +191,18 @@ public class JaxbAnnotationIntrospector
         // Does JAXB have any such indicators? No?
         return null;
     }
-    
+
+    /*
+    /**********************************************************
+    /* General member (field, method/constructor) annotations
+    /**********************************************************
+     */
+
+    @Override
+    public boolean hasIgnoreMarker(AnnotatedMember m) {
+        return m.getAnnotation(XmlTransient.class) != null;
+    }
+
     /*
     /**********************************************************
     /* Property auto-detection
