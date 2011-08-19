@@ -2,7 +2,6 @@ package org.codehaus.jackson.map.ser;
 
 import java.util.*;
 
-import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;

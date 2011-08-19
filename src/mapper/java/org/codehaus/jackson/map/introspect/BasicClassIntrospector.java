@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ClassIntrospector;
 import org.codehaus.jackson.map.DeserializationConfig;
@@ -171,7 +170,7 @@ public class BasicClassIntrospector
         ac.resolveCreators(true);
         // false, false -> do not process ignorals, nor collect (later part of processing)
         ac.resolveFields(false, false);
-        return POJOPropertiesCollector.collect(config, true, type, ac);
+        return POJOPropertiesCollector.collect(config, forSerialization, type, ac);
     }
     
     /*

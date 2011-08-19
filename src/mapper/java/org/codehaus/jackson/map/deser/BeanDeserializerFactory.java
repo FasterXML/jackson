@@ -3,7 +3,6 @@ package org.codehaus.jackson.map.deser;
 import java.util.*;
 
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.impl.CreatorCollector;
 import org.codehaus.jackson.map.deser.std.ThrowableDeserializer;

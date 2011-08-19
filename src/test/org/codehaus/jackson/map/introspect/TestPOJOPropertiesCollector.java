@@ -90,7 +90,7 @@ public class TestPOJOPropertiesCollector
 
     public void testSimpleFieldVisibility()
     {
-        // first, for serialization:
+        // false -> deserialization
         POJOPropertiesCollector coll = collector(SimpleFieldDeser.class, false);
         Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
         assertEquals(1, props.size());
@@ -192,6 +192,6 @@ public class TestPOJOPropertiesCollector
         BasicClassIntrospector bci = new BasicClassIntrospector();
         // no real difference between serialization, deserialization, at least here
         return bci.collectProperties(mapper.getSerializationConfig(),
-                mapper.constructType(cls), null, true);
+                mapper.constructType(cls), null, forSerialization);
     }
 }
