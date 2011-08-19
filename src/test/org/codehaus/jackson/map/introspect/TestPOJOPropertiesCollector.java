@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
 /**
  * @since 1.9
@@ -21,6 +22,11 @@ public class TestPOJOPropertiesCollector
         public int getFoobar() { return value; }
     }
 
+    static class SimpleFieldDeser
+    {
+        @JsonDeserialize String[] values;
+    }
+    
     static class SimpleGetterVisibility {
         public int getA() { return 0; }
         protected int getB() { return 1; }
@@ -79,6 +85,19 @@ public class TestPOJOPropertiesCollector
         assertNotNull(prop);
         assertTrue(prop.hasSetter());
         assertTrue(prop.hasGetter());
+        assertTrue(prop.hasField());
+    }
+
+    public void testSimpleFieldVisibility()
+    {
+        // first, for serialization:
+        POJOPropertiesCollector coll = collector(SimpleFieldDeser.class, false);
+        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        assertEquals(1, props.size());
+        POJOPropertyCollector prop = props.get("values");
+        assertNotNull(prop);
+        assertFalse(prop.hasSetter());
+        assertFalse(prop.hasGetter());
         assertTrue(prop.hasField());
     }
 

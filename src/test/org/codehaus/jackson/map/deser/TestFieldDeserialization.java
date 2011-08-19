@@ -107,7 +107,7 @@ public class TestFieldDeserialization
     {
         ObjectMapper m = new ObjectMapper();
         SimpleFieldBean2 bean = m.readValue("{ \"values\" : [ \"x\", \"y\" ] }",
-                                           SimpleFieldBean2.class);
+                SimpleFieldBean2.class);
         String[] values = bean.values;
         assertNotNull(values);
         assertEquals(2, values.length);
