@@ -553,16 +553,6 @@ public class BeanSerializerFactory
     {
         // Ok: let's aggregate visibility settings: first, baseline:
         VisibilityChecker<?> vchecker = config.getDefaultVisibilityChecker();
-        if (!config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS)) {
-            vchecker = vchecker.withGetterVisibility(Visibility.NONE);
-        }
-        // then global overrides (disabling)
-        if (!config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS)) {
-            vchecker = vchecker.withIsGetterVisibility(Visibility.NONE);
-        }
-        if (!config.isEnabled(SerializationConfig.Feature.AUTO_DETECT_FIELDS)) {
-            vchecker = vchecker.withFieldVisibility(Visibility.NONE);
-        }
         // and finally per-class overrides:
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         vchecker = intr.findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);

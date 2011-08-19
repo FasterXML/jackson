@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.util.*;
 
 import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion; // for javadocs
 import org.codehaus.jackson.map.introspect.Annotated;
@@ -806,6 +807,23 @@ public class SerializationConfig
     @Override
     public boolean canOverrideAccessModifiers() {
         return isEnabled(Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+    }
+
+    @Override
+    public VisibilityChecker<?> getDefaultVisibilityChecker()
+    {
+        VisibilityChecker<?> vchecker = super.getDefaultVisibilityChecker();
+        if (!isEnabled(SerializationConfig.Feature.AUTO_DETECT_GETTERS)) {
+            vchecker = vchecker.withGetterVisibility(Visibility.NONE);
+        }
+        // then global overrides (disabling)
+        if (!isEnabled(SerializationConfig.Feature.AUTO_DETECT_IS_GETTERS)) {
+            vchecker = vchecker.withIsGetterVisibility(Visibility.NONE);
+        }
+        if (!isEnabled(SerializationConfig.Feature.AUTO_DETECT_FIELDS)) {
+            vchecker = vchecker.withFieldVisibility(Visibility.NONE);
+        }
+        return vchecker;
     }
     
     /*

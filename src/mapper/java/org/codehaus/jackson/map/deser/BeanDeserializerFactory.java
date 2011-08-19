@@ -774,9 +774,6 @@ public class BeanDeserializerFactory
 
         // need to construct suitable visibility checker:
         VisibilityChecker<?> vchecker = config.getDefaultVisibilityChecker();
-        if (!config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS)) {
-            vchecker = vchecker.withCreatorVisibility(Visibility.NONE);
-        }
         vchecker = config.getAnnotationIntrospector().findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);
 
         /* Important: first add factory methods; then constructors, so
@@ -995,14 +992,7 @@ public class BeanDeserializerFactory
     {
         // Ok: let's aggregate visibility settings: first, baseline:
         VisibilityChecker<?> vchecker = config.getDefaultVisibilityChecker();
-        // then global overrides (disabling)
-        if (!config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS)) {
-            vchecker = vchecker.withSetterVisibility(Visibility.NONE);
-        }
-        if (!config.isEnabled(DeserializationConfig.Feature.AUTO_DETECT_FIELDS)) {
-            vchecker = vchecker.withFieldVisibility(Visibility.NONE);
-        }
-        // and finally per-class overrides:
+        // and per-class overrides:
         vchecker = config.getAnnotationIntrospector().findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);
 
         Map<String,AnnotatedMethod> setters = beanDesc.findSetters(vchecker);

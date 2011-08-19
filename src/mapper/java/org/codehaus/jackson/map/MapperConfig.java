@@ -384,8 +384,8 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * {@link JsonAutoDetect} annotation)
      * 
      * @since 1.5
-     */    
-    public final VisibilityChecker<?> getDefaultVisibilityChecker() {
+     */
+    public VisibilityChecker<?> getDefaultVisibilityChecker() {
         return _base.getVisibilityChecker();
     }
     

@@ -6,6 +6,7 @@ import java.util.*;
 import org.codehaus.jackson.Base64Variant;
 import org.codehaus.jackson.Base64Variants;
 import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
 import org.codehaus.jackson.map.deser.ValueInstantiator;
 import org.codehaus.jackson.map.introspect.Annotated;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
@@ -753,6 +754,22 @@ public class DeserializationConfig
     @Override
     public boolean canOverrideAccessModifiers() {
         return isEnabled(Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+    }
+
+    @Override
+    public VisibilityChecker<?> getDefaultVisibilityChecker()
+    {
+        VisibilityChecker<?> vchecker = super.getDefaultVisibilityChecker();
+        if (!isEnabled(DeserializationConfig.Feature.AUTO_DETECT_SETTERS)) {
+            vchecker = vchecker.withSetterVisibility(Visibility.NONE);
+        }
+        if (!isEnabled(DeserializationConfig.Feature.AUTO_DETECT_CREATORS)) {
+            vchecker = vchecker.withCreatorVisibility(Visibility.NONE);
+        }
+        if (!isEnabled(DeserializationConfig.Feature.AUTO_DETECT_FIELDS)) {
+            vchecker = vchecker.withFieldVisibility(Visibility.NONE);
+        }
+        return vchecker;
     }
     
     /*

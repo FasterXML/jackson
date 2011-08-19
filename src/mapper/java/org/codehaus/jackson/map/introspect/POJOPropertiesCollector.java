@@ -89,7 +89,8 @@ public class POJOPropertiesCollector
         if (_annotationIntrospector == null) {
             _visibilityChecker = _config.getDefaultVisibilityChecker();
         } else {
-            _visibilityChecker = _annotationIntrospector.findAutoDetectVisibility(classDef, _config.getDefaultVisibilityChecker());
+            _visibilityChecker = _annotationIntrospector.findAutoDetectVisibility(classDef,
+                    _config.getDefaultVisibilityChecker());
         }
     }
     

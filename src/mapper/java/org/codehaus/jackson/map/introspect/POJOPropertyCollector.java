@@ -230,7 +230,7 @@ public class POJOPropertyCollector
                     continue;
                 }
             }
-            throw new IllegalArgumentException("Multiple fields defined for property \""+getName()+"\": "
+            throw new IllegalArgumentException("Multiple fields representing property \""+getName()+"\": "
                     +field.getFullName()+" vs "+nextField.getFullName());
         }
         return field;
