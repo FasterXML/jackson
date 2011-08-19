@@ -183,50 +183,21 @@ public class BasicClassIntrospector
     public BasicBeanDescription forSerialization(SerializationConfig cfg,
             JavaType type, MixInResolver r)
     {
-        boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
-        AnnotationIntrospector ai = cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
-        // True -> process ignorals, false -> no need to collect ignorable member list
-        ac.resolveMemberMethods(getSerializationMethodFilter(cfg), true, false);
-        /* only the default constructor needed here (that's needed
-         * in case we need to check default bean property values,
-         * to omit them)
-         */
-        /* 31-Oct-2009, tatus: Actually, creator info will come in handy
-         *   for resolving [JACKSON-170] as well
-         */
-        ac.resolveCreators(true);
-        // True -> process ignorals, false -> no need to collect ignorable field list
-        ac.resolveFields(true, false);
-        return new BasicBeanDescription(cfg, type, ac);
+        return BasicBeanDescription.forSerialization(collectProperties(cfg, type, r, true));
     }
 
     @Override
     public BasicBeanDescription forDeserialization(DeserializationConfig cfg,
             JavaType type, MixInResolver r)
     {
-        boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
-        AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
-        // everything needed for deserialization, including ignored methods
-        ac.resolveMemberMethods(getDeserializationMethodFilter(cfg), true, true);
-        // include all kinds of creator methods:
-        ac.resolveCreators(true);
-        // yes, we need info on ignored fields as well
-        ac.resolveFields(true, true);
-        // Note: can't pass null AnnotationIntrospector for this...
-        return new BasicBeanDescription(cfg, type, ac);
+        return BasicBeanDescription.forDeserialization(collectProperties(cfg, type, r, true));
     }
 
     @Override
     public BasicBeanDescription forCreation(DeserializationConfig cfg,
             JavaType type, MixInResolver r)
     {
-        boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
-        AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
-        AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
-        ac.resolveCreators(true);
-        return new BasicBeanDescription(cfg, type, ac);
+        return BasicBeanDescription.forDeserialization(collectProperties(cfg, type, r, true));
     }
 
     @Override

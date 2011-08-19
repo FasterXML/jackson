@@ -123,5 +123,4 @@ public class TestOverloaded
     		verifyException(e, "Conflicting setter definitions");
     	}
     }
-    
 }

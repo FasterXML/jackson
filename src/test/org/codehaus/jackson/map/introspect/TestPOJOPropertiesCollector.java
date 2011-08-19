@@ -21,6 +21,13 @@ public class TestPOJOPropertiesCollector
         public int getFoobar() { return value; }
     }
 
+    static class SimpleGetterVisibility {
+        public int getA() { return 0; }
+        protected int getB() { return 1; }
+        @SuppressWarnings("unused")
+        private int getC() { return 2; }
+    }
+    
     // Class for testing 'shared ignore'
     static class Empty {
         public int value;
@@ -41,6 +48,12 @@ public class TestPOJOPropertiesCollector
         public int getValue() { return value; }
     }
 
+    // Should find just one setter for "y", due to partial ignore
+    static class IgnoredRenamedSetter {
+        @JsonIgnore public void setY(int value) { }
+        @JsonProperty("y") void foobar(int value) { }
+    }
+    
     // should produce a single property, "x"
     static class RenamedProperties {
         @JsonProperty("x")
@@ -60,7 +73,7 @@ public class TestPOJOPropertiesCollector
     public void testSimple()
     {
         POJOPropertiesCollector coll = collector(Simple.class, true);
-        Map<String, POJOPropertyCollector> props = coll.getProperties();
+        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
         assertEquals(1, props.size());
         POJOPropertyCollector prop = props.get("value");
         assertNotNull(prop);
@@ -69,6 +82,18 @@ public class TestPOJOPropertiesCollector
         assertTrue(prop.hasField());
     }
 
+    public void testSimpleGetterVisibility()
+    {
+        POJOPropertiesCollector coll = collector(SimpleGetterVisibility.class, true);
+        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        assertEquals(1, props.size());
+        POJOPropertyCollector prop = props.get("a");
+        assertNotNull(prop);
+        assertFalse(prop.hasSetter());
+        assertTrue(prop.hasGetter());
+        assertFalse(prop.hasField());
+    }
+    
     /**
      * Unit test for verifying that a single @JsonIgnore can remove the
      * whole property, unless explicit property marker exists
@@ -76,7 +101,7 @@ public class TestPOJOPropertiesCollector
     public void testEmpty()
     {
         POJOPropertiesCollector coll = collector(Empty.class, true);
-        Map<String, POJOPropertyCollector> props = coll.getProperties();
+        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
         assertEquals(0, props.size());
     }
 
@@ -88,7 +113,7 @@ public class TestPOJOPropertiesCollector
     public void testPartialIgnore()
     {
         POJOPropertiesCollector coll = collector(IgnoredSetter.class, true);
-        Map<String, POJOPropertyCollector> props = coll.getProperties();
+        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
         assertEquals(1, props.size());
         POJOPropertyCollector prop = props.get("value");
         assertNotNull(prop);
@@ -100,13 +125,35 @@ public class TestPOJOPropertiesCollector
     public void testSimpleRenamed()
     {
         POJOPropertiesCollector coll = collector(RenamedProperties.class, true);
-        Map<String, POJOPropertyCollector> props = coll.getProperties();
+        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
         assertEquals(1, props.size());
         POJOPropertyCollector prop = props.get("x");
         assertNotNull(prop);
         assertTrue(prop.hasSetter());
         assertTrue(prop.hasGetter());
         assertTrue(prop.hasField());
+    }
+
+    public void testSimpleIgnoreAndRename()
+    {
+        POJOPropertiesCollector coll = collector(IgnoredRenamedSetter.class, true);
+        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        assertEquals(1, props.size());
+        POJOPropertyCollector prop = props.get("y");
+        assertNotNull(prop);
+        assertTrue(prop.hasSetter());
+        assertFalse(prop.hasGetter());
+        assertFalse(prop.hasField());
+    }
+
+    public void testGlobalVisibilityForGetters()
+    {
+        ObjectMapper m = new ObjectMapper();
+        m.configure(SerializationConfig.Feature.AUTO_DETECT_GETTERS, false);
+        POJOPropertiesCollector coll = collector(m, SimpleGetterVisibility.class, true);
+        // should be 1, expect that we disabled getter auto-detection, so
+        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        assertEquals(0, props.size());
     }
     
     /*
@@ -117,7 +164,12 @@ public class TestPOJOPropertiesCollector
 
     protected POJOPropertiesCollector collector(Class<?> cls, boolean forSerialization)
     {
-        ObjectMapper mapper = new ObjectMapper();
+        return collector(new ObjectMapper(), cls, forSerialization);
+    }
+
+    protected POJOPropertiesCollector collector(ObjectMapper mapper,
+            Class<?> cls, boolean forSerialization)
+    {
         BasicClassIntrospector bci = new BasicClassIntrospector();
         // no real difference between serialization, deserialization, at least here
         return bci.collectProperties(mapper.getSerializationConfig(),

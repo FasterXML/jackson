@@ -112,7 +112,7 @@ public class TestAnyProperties
             Broken b = m.readValue("{ \"a\" : 3 }", Broken.class);
             fail("Should have gotten an exception");
         } catch (JsonMappingException e) {
-            verifyException(e, "Multiple methods with 'any-setter'");
+            verifyException(e, "Multiple 'any-setters'");
         }
     }
 

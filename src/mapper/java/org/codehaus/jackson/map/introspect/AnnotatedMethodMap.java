@@ -11,7 +11,7 @@ import java.util.*;
 public final class AnnotatedMethodMap
     implements Iterable<AnnotatedMethod>
 {
-    LinkedHashMap<MemberKey,AnnotatedMethod> _methods;
+    protected LinkedHashMap<MemberKey,AnnotatedMethod> _methods;
 
     public AnnotatedMethodMap() { }
 

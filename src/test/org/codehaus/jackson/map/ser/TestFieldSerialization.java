@@ -199,7 +199,7 @@ public class TestFieldSerialization
         try {
             writeAndMap(new ObjectMapper(), new DupFieldBean());
         } catch (JsonMappingException e) {
-            verifyException(e, "Multiple fields representing property");
+            verifyException(e, "Multiple fields");
         }
     }
 
@@ -208,7 +208,7 @@ public class TestFieldSerialization
         try {
             writeAndMap(new ObjectMapper(), new DupFieldBean2());
         } catch (JsonMappingException e) {
-            verifyException(e, "Multiple fields representing property");
+            verifyException(e, "Multiple fields");
         }
     }
 }

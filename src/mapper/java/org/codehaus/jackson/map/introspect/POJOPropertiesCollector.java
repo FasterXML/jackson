@@ -48,6 +48,8 @@ public class POJOPropertiesCollector
     protected final AnnotatedClass _classDef;
 
     protected final VisibilityChecker<?> _visibilityChecker;
+
+    protected final AnnotationIntrospector _annotationIntrospector;
     
     /*
     /**********************************************************
@@ -58,13 +60,16 @@ public class POJOPropertiesCollector
     /**
      * Set of logical property information collected so far
      */
-    protected final HashMap<String, POJOPropertyCollector> _properties = new HashMap<String, POJOPropertyCollector>();
+    protected final LinkedHashMap<String, POJOPropertyCollector> _properties = new LinkedHashMap<String, POJOPropertyCollector>();
 
-    protected List<AnnotatedMethod> _anyGetters = null;
+    protected LinkedList<AnnotatedMethod> _anyGetters = null;
 
-    protected List<AnnotatedMethod> _anySetters = null;
+    protected LinkedList<AnnotatedMethod> _anySetters = null;
 
-    protected List<AnnotatedMethod> _jsonValueGetters = null;
+    /**
+     * Method(s) marked with 'JsonValue' annotation
+     */
+    protected LinkedList<AnnotatedMethod> _jsonValueGetters = null;
     
     /*
     /**********************************************************
@@ -79,8 +84,13 @@ public class POJOPropertiesCollector
         _forSerialization = forSerialization;
         _type = type;
         _classDef = classDef;
-        final AnnotationIntrospector ai = _config.getAnnotationIntrospector();
-        _visibilityChecker = ai.findAutoDetectVisibility(classDef, _config.getDefaultVisibilityChecker());
+        _annotationIntrospector = config.isAnnotationProcessingEnabled() ?
+                _config.getAnnotationIntrospector() : null;
+        if (_annotationIntrospector == null) {
+            _visibilityChecker = _config.getDefaultVisibilityChecker();
+        } else {
+            _visibilityChecker = _annotationIntrospector.findAutoDetectVisibility(classDef, _config.getDefaultVisibilityChecker());
+        }
     }
     
     /*
@@ -102,14 +112,6 @@ public class POJOPropertiesCollector
         coll._removeIgnoredProperties();
         // Third: rename remaining properties
         coll._renameProperties();
-
-        // And finally: validate consistency of definitions
-        if (forSerialization) {
-            coll._validateForSerialization();
-        } else {
-            coll._validateForDeserialization();
-        }
-        
         return coll;
     }
 
@@ -124,11 +126,58 @@ public class POJOPropertiesCollector
     public AnnotatedClass getClassDef() {
         return _classDef;
     }
+
+    public AnnotationIntrospector getAnnotationIntrospector() {
+        return _annotationIntrospector;
+    }
+    
+    public List<POJOPropertyCollector> getProperties() {
+        return new ArrayList<POJOPropertyCollector>(_properties.values());
+    }
+
+    public AnnotatedMethod getJsonValueMethod()
+    {
+        // If @JsonValue defined, must have a single one
+        if (_jsonValueGetters != null) {
+            if (_jsonValueGetters.size() > 1) {
+                reportProblem("Multiple value properties defined ("+_jsonValueGetters.get(0)+" vs "
+                        +_jsonValueGetters.get(1)+")");
+            }
+            // otherwise we won't greatly care
+            return _jsonValueGetters.get(0);
+        }
+        return null;
+    }
+
+    public AnnotatedMethod getAnyGetterMethod()
+    {
+        if (_anyGetters != null) {
+            if (_anyGetters.size() > 1) {
+                reportProblem("Multiple 'any-getters' defined ("+_anyGetters.get(0)+" vs "
+                        +_anyGetters.get(1)+")");
+            }
+            return _anyGetters.getFirst();
+        }        
+        return null;
+    }
+
+    public AnnotatedMethod getAnySetterMethod()
+    {
+        if (_anySetters != null) {
+            if (_anySetters.size() > 1) {
+                reportProblem("Multiple 'any-setters' defined ("+_anySetters.get(0)+" vs "
+                        +_anySetters.get(1)+")");
+            }
+            return _anySetters.getFirst();
+        }
+        return null;
+    }
     
     // for unit tests:
-    public Map<String, POJOPropertyCollector> getProperties() {
+    protected Map<String, POJOPropertyCollector> getPropertyMap() {
         return _properties;
     }
+
     
     /*
     /**********************************************************
@@ -141,21 +190,22 @@ public class POJOPropertiesCollector
      */
     protected void _addFields()
     {
-        final AnnotationIntrospector ai = _config.getAnnotationIntrospector();
+        final AnnotationIntrospector ai = _annotationIntrospector;
         
         for (AnnotatedField f : _classDef.fields()) {
             String implName = f.getName();
             String explName;
-            if (_forSerialization) {
+            if (ai == null) {
+                explName = null;
+            } else if (_forSerialization) {
+                /* 18-Aug-2011, tatu: As per existing unit tests, we should only
+                 *   use serialization annotation (@JsonSerializer) when serializing
+                 *   fields, and similarly for deserialize-only annotations... so
+                 *   no fallbacks in this particular case.
+                 */
                 explName = ai.findSerializablePropertyName(f);
-                if (explName == null) {
-                    explName = ai.findDeserializablePropertyName(f);
-                }
             } else {
                 explName = ai.findDeserializablePropertyName(f);
-                if (explName == null) {
-                    explName = ai.findSerializablePropertyName(f);
-                }
             }
             if ("".equals(explName)) { // empty String meaning "use default name", here just means "same as field name"
                 explName = implName;
@@ -165,9 +215,11 @@ public class POJOPropertiesCollector
             if (!visible) {
                 visible = _visibilityChecker.isFieldVisible(f);
             }
-            // and finally, may also have explicit ignoral
-            boolean ignored = ai.hasIgnoreMarker(f);
-            _property(implName).addField(f, explName, visible, ignored);
+            if (visible) {
+                // and finally, may also have explicit ignoral
+                boolean ignored = (ai != null) && ai.hasIgnoreMarker(f);
+                _property(implName).addField(f, explName, ignored);
+            }
         }
     }
 
@@ -188,7 +240,7 @@ public class POJOPropertiesCollector
      */
     protected void _addMethods()
     {
-        final AnnotationIntrospector ai = _config.getAnnotationIntrospector();
+        final AnnotationIntrospector ai = _annotationIntrospector;
         
         for (AnnotatedMethod m : _classDef.memberMethods()) {
             String explName; // from annotation(s)
@@ -204,29 +256,36 @@ public class POJOPropertiesCollector
             
             if (argCount == 0) { // getters (including 'any getter')
                 // any getter?
-                if (ai.hasAnyGetterAnnotation(m)) {
-                    if (_anyGetters == null) {
-                        _anyGetters = new ArrayList<AnnotatedMethod>(4);
-                    }
-                    _anyGetters.add(m);
-                    continue;
-                }
-                // @JsonValue?
-                if (ai.hasAsValueAnnotation(m)) {
-                    if (_jsonValueGetters == null) {
-                        _jsonValueGetters = new ArrayList<AnnotatedMethod>(4);
-                    }
-                    _jsonValueGetters.add(m);
-                    continue;
-                }
-                
-                explName = ai.findGettablePropertyName(m);
-                if (explName == null) { // no explicit name; must follow naming convention
-                    implName = okNameForGetter(m);
-                    if (implName == null) { // if not, must skip
+                if (ai != null) {
+                    if (ai.hasAnyGetterAnnotation(m)) {
+                        if (_anyGetters == null) {
+                            _anyGetters = new LinkedList<AnnotatedMethod>();
+                        }
+                        _anyGetters.add(m);
                         continue;
                     }
-                    visible = _visibilityChecker.isGetterVisible(m);
+                    // @JsonValue?
+                    if (ai.hasAsValueAnnotation(m)) {
+                        if (_jsonValueGetters == null) {
+                            _jsonValueGetters = new LinkedList<AnnotatedMethod>();
+                        }
+                        _jsonValueGetters.add(m);
+                        continue;
+                    }
+                }
+                
+                explName = (ai == null) ? null : ai.findGettablePropertyName(m);
+                if (explName == null) { // no explicit name; must follow naming convention
+                    implName = okNameForRegularGetter(m, m.getName());
+                    if (implName == null) { // if not, must skip
+                        implName = okNameForIsGetter(m, m.getName());
+                        if (implName == null) {
+                            continue;
+                        }
+                        visible = _visibilityChecker.isIsGetterVisible(m);
+                    } else {
+                        visible = _visibilityChecker.isGetterVisible(m);
+                    }
                 } else { // explicit indication of inclusion, but may be empty
                     if (explName.length() == 0) { 
                         explName = okNameForGetter(m);
@@ -237,9 +296,12 @@ public class POJOPropertiesCollector
                     implName = explName;
                     visible = true;
                 }
-                _property(implName).addGetter(m, explName, visible, ai.hasIgnoreMarker(m));
+                if (visible) {
+                    boolean ignore = (ai == null) ? false : ai.hasIgnoreMarker(m);
+                    _property(implName).addGetter(m, explName, ignore);
+                }
             } else if (argCount == 1) { // setters
-                explName = ai.findSettablePropertyName(m);
+                explName = (ai == null) ? null : ai.findSettablePropertyName(m);
                 if (explName == null) { // no explicit name; must follow naming convention
                     implName = okNameForSetter(m);
                     if (implName == null) { // if not, must skip
@@ -256,15 +318,17 @@ public class POJOPropertiesCollector
                     implName = explName;
                     visible = true;
                 }
-                _property(implName).addSetter(m, explName, visible, ai.hasIgnoreMarker(m));
+                if (visible) {
+                    boolean ignore = (ai == null) ? false : ai.hasIgnoreMarker(m);
+                    _property(implName).addSetter(m, explName, ignore);
+                }
             } else if (argCount == 2) { // any getter?
-                if (ai.hasAnySetterAnnotation(m)) {
+                if (ai != null  && ai.hasAnySetterAnnotation(m)) {
                     if (_anySetters == null) {
-                        _anySetters = new ArrayList<AnnotatedMethod>(4);
+                        _anySetters = new LinkedList<AnnotatedMethod>();
                     }
                     _anySetters.add(m);
                 }
-                continue;
             }
         }
 
@@ -328,56 +392,6 @@ public class POJOPropertiesCollector
                 } else {
                     old.addAll(prop);
                 }
-            }
-        }
-    }
-    
-    /*
-    /**********************************************************
-    /* Internal methods: validation
-    /**********************************************************
-     */
-
-    protected void _validateForSerialization()
-    {
-        // If @JsonValue defined, must have a single one
-        if (_jsonValueGetters != null) {
-            if (_jsonValueGetters.size() > 0) {
-                reportProblem("Multiple value properties defined ("+_jsonValueGetters.get(0)+" vs "
-                        +_jsonValueGetters.get(1)+")");
-            }
-            // otherwise we won't greatly care
-        }
-        // ditto for @JsonAnyGetter
-        if (_anyGetters != null) {
-            if (_anyGetters.size() > 0) {
-                reportProblem("Multiple 'any-getters' defined ("+_anyGetters.get(0)+" vs "
-                        +_anyGetters.get(1)+")");
-            }
-        }
-        // Can't have multiple getters or fields for same property
-        for (POJOPropertyCollector coll : _properties.values()) {
-            String msg = coll.validateForSerialization();
-            if (msg != null) {
-                reportProblem(msg);
-            }
-        }
-    }
-
-    protected void _validateForDeserialization()
-    {
-        // If any setter defined, must have just one
-        if (_anySetters != null) {
-            if (_anySetters.size() > 0) {
-                reportProblem("Multiple 'any-setters' defined ("+_anySetters.get(0)+" vs "
-                        +_anySetters.get(1)+")");
-            }
-        }
-        // Can't have multiple getters or fields for same property
-        for (POJOPropertyCollector coll : _properties.values()) {
-            String msg = coll.validateForDeserialization();
-            if (msg != null) {
-                reportProblem(msg);
             }
         }
     }
@@ -551,7 +565,7 @@ public class POJOPropertiesCollector
     /**********************************************************
      */
 
-    protected static String okNameForSetter(AnnotatedMethod am)
+    public static String okNameForSetter(AnnotatedMethod am)
     {
         String name = am.getName();
         if (name.startsWith("set")) {

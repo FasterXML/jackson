@@ -1033,7 +1033,7 @@ public class BeanDeserializerFactory
             // Implicit ones via @JsonIgnore and equivalent?
             AnnotatedClass ac = beanDesc.getClassInfo();
             for (AnnotatedMethod am : ac.ignoredMemberMethods()) {
-                String name = beanDesc.okNameForSetter(am);
+                String name = POJOPropertiesCollector.okNameForSetter(am);
                 if (name != null) {
                     builder.addIgnorable(name);
                 }

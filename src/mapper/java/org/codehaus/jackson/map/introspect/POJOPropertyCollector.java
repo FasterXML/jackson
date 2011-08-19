@@ -46,20 +46,20 @@ public class POJOPropertyCollector
     /**********************************************************
      */
 
-    public void addField(AnnotatedField a, String ename, boolean visible, boolean ignored) {
-        _fields = new Node<AnnotatedField>(a, _fields, ename, visible, ignored);
+    public void addField(AnnotatedField a, String ename, boolean ignored) {
+        _fields = new Node<AnnotatedField>(a, _fields, ename, ignored);
     }
 
-    public void addCtor(AnnotatedParameter a, String ename, boolean visible, boolean ignored) {
-        _ctorParameters = new Node<AnnotatedParameter>(a, _ctorParameters, ename, visible, ignored);
+    public void addCtor(AnnotatedParameter a, String ename,boolean ignored) {
+        _ctorParameters = new Node<AnnotatedParameter>(a, _ctorParameters, ename, ignored);
     }
 
-    public void addGetter(AnnotatedMethod a, String ename, boolean visible, boolean ignored) {
-        _getters = new Node<AnnotatedMethod>(a, _getters, ename, visible, ignored);
+    public void addGetter(AnnotatedMethod a, String ename,boolean ignored) {
+        _getters = new Node<AnnotatedMethod>(a, _getters, ename, ignored);
     }
 
-    public void addSetter(AnnotatedMethod a, String ename, boolean visible, boolean ignored) {
-        _setters = new Node<AnnotatedMethod>(a, _setters, ename, visible, ignored);
+    public void addSetter(AnnotatedMethod a, String ename,  boolean ignored) {
+        _setters = new Node<AnnotatedMethod>(a, _setters, ename, ignored);
     }
 
     /**
@@ -146,6 +146,95 @@ public class POJOPropertyCollector
     public boolean hasGetter() { return _getters != null; }
     public boolean hasSetter() { return _setters != null; }
     public boolean hasField() { return _fields != null; }
+
+    public AnnotatedMethod getGetter()
+    {
+        if (_getters == null) {
+            return null;
+        }
+        // If multiple, verify that they do not conflict...
+        AnnotatedMethod getter = _getters.value;
+        Node<AnnotatedMethod> next = _getters.next;
+        for (; next != null; next = next.next) {
+            /* [JACKSON-255] Allow masking, i.e. report exception only if
+             *   declarations in same class, or there's no inheritance relationship
+             *   (sibling interfaces etc)
+             */
+            AnnotatedMethod nextGetter = next.value;
+            Class<?> getterClass = getter.getDeclaringClass();
+            Class<?> nextClass = nextGetter.getDeclaringClass();
+            if (getterClass != nextClass) {
+                if (getterClass.isAssignableFrom(nextClass)) { // next is more specific
+                    getter = nextGetter;
+                    continue;
+                }
+                if (nextClass.isAssignableFrom(getterClass)) { // getter more specific
+                    continue;
+                }
+            }
+            throw new IllegalArgumentException("Conflicting getter definitions for property \""+getName()+"\": "
+                    +getter.getFullName()+" vs "+nextGetter.getFullName());
+        }
+        return getter;
+    }
+
+    public AnnotatedMethod getSetter()
+    {
+        if (_setters == null) {
+            return null;
+        }
+        // If multiple, verify that they do not conflict...
+        AnnotatedMethod setter = _setters.value;
+        Node<AnnotatedMethod> next = _setters.next;
+        for (; next != null; next = next.next) {
+            /* [JACKSON-255] Allow masking, i.e. report exception only if
+             *   declarations in same class, or there's no inheritance relationship
+             *   (sibling interfaces etc)
+             */
+            AnnotatedMethod nextSetter = next.value;
+            Class<?> setterClass = setter.getDeclaringClass();
+            Class<?> nextClass = nextSetter.getDeclaringClass();
+            if (setterClass != nextClass) {
+                if (setterClass.isAssignableFrom(nextClass)) { // next is more specific
+                    setter = nextSetter;
+                    continue;
+                }
+                if (nextClass.isAssignableFrom(setterClass)) { // getter more specific
+                    continue;
+                }
+            }
+            throw new IllegalArgumentException("Conflicting setter definitions for property \""+getName()+"\": "
+                    +setter.getFullName()+" vs "+nextSetter.getFullName());
+        }
+        return setter;
+    }
+
+    public AnnotatedField getField()
+    {
+        if (_fields == null) {
+            return null;
+        }
+        // If multiple, verify that they do not conflict...
+        AnnotatedField field = _fields.value;
+        Node<AnnotatedField> next = _fields.next;
+        for (; next != null; next = next.next) {
+            AnnotatedField nextField = next.value;
+            Class<?> fieldClass = field.getDeclaringClass();
+            Class<?> nextClass = nextField.getDeclaringClass();
+            if (fieldClass != nextClass) {
+                if (fieldClass.isAssignableFrom(nextClass)) { // next is more specific
+                    field = nextField;
+                    continue;
+                }
+                if (nextClass.isAssignableFrom(fieldClass)) { // getter more specific
+                    continue;
+                }
+            }
+            throw new IllegalArgumentException("Multiple fields defined for property \""+getName()+"\": "
+                    +field.getFullName()+" vs "+nextField.getFullName());
+        }
+        return field;
+    }
     
     /*
     /**********************************************************
@@ -229,45 +318,21 @@ public class POJOPropertyCollector
         return renamed;
     }
 
-    /*
-    /**********************************************************
-    /* Validation
-    /**********************************************************
-     */
-
-    public String validateForDeserialization()
+    // For trouble-shooting
+    @Override
+    public String toString()
     {
-        // if setter(s) defined, must have one and only one
-        if (_setters != null) {
-            if (_setters.next != null) {
-                return "Conflicting setter definitions for property '"+_name+"': "+_setters+" vs "+_setters.next;
-            }
-        } else if (_fields != null) {
-            // similarly for fields
-            if (_fields.next != null) {
-                return "Conflicting field definitions for property '"+_name+"': "+_fields+" vs "+_fields.next;
-            }
-        }
-        // what else? Constructors?
-        return null;
+        StringBuilder sb = new StringBuilder();
+        sb.append("[Property '").append(_name)
+          .append("'; ctors: ").append(_ctorParameters)
+          .append(", field(s): ").append(_fields)
+          .append(", getter(s): ").append(_getters)
+          .append(", setter(s): ").append(_setters)
+          ;
+        sb.append("]");
+        return sb.toString();
     }
     
-    public String validateForSerialization()
-    {
-        // if setter(s) defined, must have one and only one
-        if (_getters != null) {
-            if (_getters.next != null) {
-                return "Conflicting setter definitions for property '"+_name+"': "+_getters+" vs "+_getters.next;
-            }
-        } else if (_fields != null) {
-            // similarly for fields
-            if (_fields.next != null) {
-                return "Conflicting field definitions for property '"+_name+"': "+_fields+" vs "+_fields.next;
-            }
-        }
-        return null;
-    }
-
     /*
     /**********************************************************
     /* Helper classes
@@ -284,11 +349,10 @@ public class POJOPropertyCollector
         public final Node<T> next;
 
         public final String explicitName;
-        public final boolean isVisible;
         public final boolean isMarkedIgnored;
         
         public Node(T v, Node<T> n,
-                String explName, boolean visible, boolean ignored)
+                String explName, boolean ignored)
         {
             value = v;
             next = n;
@@ -298,17 +362,20 @@ public class POJOPropertyCollector
             } else {
                 explicitName = (explName.length() == 0) ? null : explName;
             }
-            isVisible = visible;
             isMarkedIgnored = ignored;
         }
 
         public Node<T> relinked(Node<T> newNext) {
-            return new Node<T>(value, newNext, explicitName, isVisible, isMarkedIgnored);
+            return new Node<T>(value, newNext, explicitName, isMarkedIgnored);
         }
         
         @Override
         public String toString() {
-            return value.toString();
+            String msg = value.toString();
+            if (next != null) {
+                msg = msg + ", "+next.toString();
+            }
+            return msg;
         }
     }
 }
