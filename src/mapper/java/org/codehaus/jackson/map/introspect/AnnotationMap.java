@@ -16,6 +16,9 @@ public final class AnnotationMap implements Annotations
     protected HashMap<Class<? extends Annotation>,Annotation> _annotations;
 
     public AnnotationMap() { }
+    private AnnotationMap(HashMap<Class<? extends Annotation>,Annotation> a) {
+        _annotations = a;
+    }
 
     @SuppressWarnings("unchecked")
     @Override
@@ -27,6 +30,27 @@ public final class AnnotationMap implements Annotations
         return (A) _annotations.get(cls);
     }
 
+    public static AnnotationMap merge(AnnotationMap primary, AnnotationMap secondary)
+    {
+        if (primary == null || primary._annotations.isEmpty()) {
+            return secondary;
+        }
+        if (secondary == null || secondary._annotations.isEmpty()) {
+            return primary;
+        }
+        HashMap<Class<? extends Annotation>,Annotation> annotations
+            = new HashMap<Class<? extends Annotation>,Annotation>();
+        // add secondary ones first
+        for (Annotation ann : secondary._annotations.values()) {
+            annotations.put(ann.annotationType(), ann);
+        }
+        // to be overridden by primary ones
+        for (Annotation ann : primary._annotations.values()) {
+            annotations.put(ann.annotationType(), ann);
+        }
+        return new AnnotationMap(annotations);
+    }
+    
     @Override
     public int size() {
         return (_annotations == null) ? 0 : _annotations.size();

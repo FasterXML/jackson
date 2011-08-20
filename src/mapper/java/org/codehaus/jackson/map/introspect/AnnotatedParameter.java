@@ -34,8 +34,6 @@ public final class AnnotatedParameter
      */
     protected final Type _type;
 
-    protected final AnnotationMap _annotations;
-
     /**
      * Index of the parameter within argument list
      * 
@@ -49,15 +47,20 @@ public final class AnnotatedParameter
     /**********************************************************
      */
 
-    public AnnotatedParameter(AnnotatedWithParams owner, Type type,  AnnotationMap ann,
+    public AnnotatedParameter(AnnotatedWithParams owner, Type type,  AnnotationMap annotations,
             int index)
     {
+        super(annotations);
         _owner = owner;
         _type = type;
-        _annotations = ann;
         _index = index;
     }
 
+    @Override
+    public AnnotatedParameter withAnnotations(AnnotationMap ann) {
+        return new AnnotatedParameter(_owner, _type, _annotations, _index);
+    }
+    
     public void addOrOverride(Annotation a)
     {
         _annotations.add(a);

@@ -16,8 +16,6 @@ public final class AnnotatedField
 {
     protected final Field _field;
 
-    protected final AnnotationMap _annotations;
-
     /*
     /**********************************************************
     /* Life-cycle
@@ -26,10 +24,15 @@ public final class AnnotatedField
 
     public AnnotatedField(Field field, AnnotationMap annMap)
     {
+        super(annMap);
         _field = field;
-        _annotations = annMap;
     }
 
+    @Override
+    public AnnotatedField withAnnotations(AnnotationMap ann) {
+        return new AnnotatedField(_field, _annotations);
+    }
+    
     /**
      * Method called to override an annotation, usually due to a mix-in
      * annotation masking or overriding an annotation 'real' constructor

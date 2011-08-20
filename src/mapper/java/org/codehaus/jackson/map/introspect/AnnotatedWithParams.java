@@ -16,12 +16,6 @@ public abstract class AnnotatedWithParams
     extends AnnotatedMember
 {
     /**
-     * Annotations directly associated with the annotated
-     * entity.
-     */
-    protected final AnnotationMap _annotations;
-
-    /**
      * Annotations associated with parameters of the annotated
      * entity (method or constructor parameters)
      */
@@ -33,9 +27,9 @@ public abstract class AnnotatedWithParams
     /**********************************************************
      */
 
-    protected AnnotatedWithParams(AnnotationMap classAnn, AnnotationMap[] paramAnnotations)
+    protected AnnotatedWithParams(AnnotationMap annotations, AnnotationMap[] paramAnnotations)
     {
-        _annotations = classAnn;
+        super(annotations);
         _paramAnnotations = paramAnnotations;
     }
 

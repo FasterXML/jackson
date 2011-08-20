@@ -37,6 +37,12 @@ public final class AnnotatedMethod
         return new AnnotatedMethod(m, _annotations, _paramAnnotations);
     }
     
+    @Override
+    public AnnotatedMethod withAnnotations(AnnotationMap ann) {
+        return new AnnotatedMethod(_method, _annotations,
+                _paramAnnotations);
+    }
+
     /*
     /*****************************************************
     /* Annotated impl

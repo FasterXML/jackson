@@ -24,6 +24,24 @@ public abstract class Annotated
     }
 
     /**
+     * Fluent factory method that will construct a new instance that uses specified
+     * instance annotations instead of currently configured ones.
+     * 
+     * @since 1.9
+     */
+    public abstract Annotated withAnnotations(AnnotationMap fallback);
+
+    /**
+     * Fluent factory method that will construct a new instance that uses
+     * annotations from specified {@link Annotated} as fallback annotations
+     * 
+     * @since 1.9
+     */
+    public final Annotated withFallBackAnnotationsFrom(Annotated annotated) {
+        return withAnnotations(AnnotationMap.merge(getAllAnnotations(), annotated.getAllAnnotations()));
+    }
+    
+    /**
      * Method that can be used to find actual JDK element that this instance
      * represents. It is non-null, except for method/constructor parameters
      * which do not have a JDK counterpart.
@@ -61,5 +79,7 @@ public abstract class Annotated
      * @since 1.5
      */
     public abstract Class<?> getRawType();
+
+    protected abstract AnnotationMap getAllAnnotations();
 }
 

@@ -15,11 +15,21 @@ import org.codehaus.jackson.map.util.ClassUtil;
  */
 public abstract class AnnotatedMember extends Annotated
 {
-    protected AnnotatedMember() { super(); }
+    protected final AnnotationMap _annotations;
+
+    protected AnnotatedMember(AnnotationMap annotations) {
+        super();
+        _annotations = annotations;
+    }
 
     public abstract Class<?> getDeclaringClass();
 
     public abstract Member getMember();
+
+    @Override
+    protected AnnotationMap getAllAnnotations() {
+        return _annotations;
+    }
     
     /**
      * Method that can be called to modify access rights, by calling

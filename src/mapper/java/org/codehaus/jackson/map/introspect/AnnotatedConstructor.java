@@ -28,6 +28,11 @@ public final class AnnotatedConstructor
         _constructor = constructor;
     }
 
+    @Override
+    public AnnotatedConstructor withAnnotations(AnnotationMap ann) {
+        return new AnnotatedConstructor(_constructor, _annotations, _paramAnnotations);
+    }
+    
     /*
     /**********************************************************
     /* Annotated impl

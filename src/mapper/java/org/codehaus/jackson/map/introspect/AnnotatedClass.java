@@ -30,7 +30,7 @@ public final class AnnotatedClass
      * Ordered set of super classes and interfaces of the
      * class itself: included in order of precedence
      */
-    final protected Collection<Class<?>> _superTypes;
+    final protected List<Class<?>> _superTypes;
 
     /**
      * Filter used to determine which annotations to gather; used
@@ -103,7 +103,8 @@ public final class AnnotatedClass
      * configuring instances differently depending on use cases
      */
     private AnnotatedClass(Class<?> cls, List<Class<?>> superTypes,
-            AnnotationIntrospector aintr, MixInResolver mir)
+            AnnotationIntrospector aintr, MixInResolver mir,
+            AnnotationMap classAnnotations)
     {
         _class = cls;
         _superTypes = superTypes;
@@ -111,8 +112,15 @@ public final class AnnotatedClass
         _mixInResolver = mir;
         _primaryMixIn = (_mixInResolver == null) ? null
             : _mixInResolver.findMixInClassFor(_class);
+        _classAnnotations = classAnnotations;
     }
 
+    @Override
+    public AnnotatedClass withAnnotations(AnnotationMap ann) {
+        return new AnnotatedClass(_class, _superTypes,
+                _annotationIntrospector, _mixInResolver, _classAnnotations);
+    }
+    
     /**
      * Factory method that instantiates an instance. Returned instance
      * will only be initialized with class annotations, but not with
@@ -122,7 +130,7 @@ public final class AnnotatedClass
             AnnotationIntrospector aintr, MixInResolver mir)
     {
         List<Class<?>> st = ClassUtil.findSuperTypes(cls, null);
-        AnnotatedClass ac = new AnnotatedClass(cls, st, aintr, mir);
+        AnnotatedClass ac = new AnnotatedClass(cls, st, aintr, mir, null);
         ac.resolveClassAnnotations();
         return ac;
     }
@@ -136,7 +144,7 @@ public final class AnnotatedClass
             AnnotationIntrospector aintr, MixInResolver mir)
     {
         List<Class<?>> empty = Collections.emptyList();
-        AnnotatedClass ac = new AnnotatedClass(cls, empty, aintr, mir);
+        AnnotatedClass ac = new AnnotatedClass(cls, empty, aintr, mir, null);
         ac.resolveClassAnnotations();
         return ac;
     }
@@ -173,6 +181,11 @@ public final class AnnotatedClass
     @Override
     public Class<?> getRawType() {
         return _class;
+    }
+
+    @Override
+    protected AnnotationMap getAllAnnotations() {
+        return _classAnnotations;
     }
     
     /*
