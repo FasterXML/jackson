@@ -46,20 +46,20 @@ public class POJOPropertyCollector
     /**********************************************************
      */
 
-    public void addField(AnnotatedField a, String ename, boolean ignored) {
-        _fields = new Node<AnnotatedField>(a, _fields, ename, ignored);
+    public void addField(AnnotatedField a, String ename, boolean visible, boolean ignored) {
+        _fields = new Node<AnnotatedField>(a, _fields, ename, visible, ignored);
     }
 
-    public void addCtor(AnnotatedParameter a, String ename,boolean ignored) {
-        _ctorParameters = new Node<AnnotatedParameter>(a, _ctorParameters, ename, ignored);
+    public void addCtor(AnnotatedParameter a, String ename, boolean visible, boolean ignored) {
+        _ctorParameters = new Node<AnnotatedParameter>(a, _ctorParameters, ename, visible, ignored);
     }
 
-    public void addGetter(AnnotatedMethod a, String ename,boolean ignored) {
-        _getters = new Node<AnnotatedMethod>(a, _getters, ename, ignored);
+    public void addGetter(AnnotatedMethod a, String ename, boolean visible, boolean ignored) {
+        _getters = new Node<AnnotatedMethod>(a, _getters, ename, visible, ignored);
     }
 
-    public void addSetter(AnnotatedMethod a, String ename,  boolean ignored) {
-        _setters = new Node<AnnotatedMethod>(a, _setters, ename, ignored);
+    public void addSetter(AnnotatedMethod a, String ename, boolean visible, boolean ignored) {
+        _setters = new Node<AnnotatedMethod>(a, _setters, ename, visible, ignored);
     }
 
     /**
@@ -101,38 +101,31 @@ public class POJOPropertyCollector
         _fields = _removeIgnored(_fields);
         _getters = _removeIgnored(_getters);
         _setters = _removeIgnored(_setters);
+        _ctorParameters = _removeIgnored(_ctorParameters);
     }
 
+    public void removeNonVisible()
+    {
+        _fields = _removeNonVisible(_fields);
+        _getters = _removeNonVisible(_getters);
+        _setters = _removeNonVisible(_setters);
+        _ctorParameters = _removeNonVisible(_ctorParameters);
+    }
+    
     private <T> Node<T> _removeIgnored(Node<T> node)
     {
-        // first, see if there is anything to remove
-        if (!_anyIgnorals(node)) {
+        if (node == null) {
             return node;
         }
-        // find first non-ignorable
-        while (node != null && node.isMarkedIgnored) {
-            node = node.next;
-        }
-        // none?
+        return node.withoutIgnored();
+    }
+
+    private <T> Node<T> _removeNonVisible(Node<T> node)
+    {
         if (node == null) {
-            return null;
+            return node;
         }
-        /* ok; recreate... note that this reverses order; should
-         * not matter greatly as order is not meaningful
-         */
-        final Node<T> head = node.relinked(null);
-        Node<T> tail = head;
-        while (true) {
-            node = node.next;
-            if (node == null) {
-                break;
-            }
-            if (node.isMarkedIgnored) {
-                continue;
-            }
-            tail = node.relinked(tail);
-        }
-        return head;
+        return node.withoutNonVisible();
     }
     
     /*
@@ -299,11 +292,30 @@ public class POJOPropertyCollector
         }
         return false;
     }
+
+    public boolean anyVisible() {
+        return _anyVisible(_fields)
+            || _anyVisible(_getters)
+            || _anyVisible(_setters)
+            || _anyVisible(_ctorParameters)
+        ;
+    }
+
+    private <T> boolean _anyVisible(Node<T> n)
+    {
+        for (; n != null; n = n.next) {
+            if (n.isVisible) {
+                return true;
+            }
+        }
+        return false;
+    }
     
     public boolean anyIgnorals() {
         return _anyIgnorals(_fields)
             || _anyIgnorals(_getters)
             || _anyIgnorals(_setters)
+            || _anyIgnorals(_ctorParameters)
         ;
     }
 
@@ -389,10 +401,11 @@ public class POJOPropertyCollector
         public final Node<T> next;
 
         public final String explicitName;
+        public final boolean isVisible;
         public final boolean isMarkedIgnored;
         
         public Node(T v, Node<T> n,
-                String explName, boolean ignored)
+                String explName, boolean visible, boolean ignored)
         {
             value = v;
             next = n;
@@ -402,11 +415,40 @@ public class POJOPropertyCollector
             } else {
                 explicitName = (explName.length() == 0) ? null : explName;
             }
+            isVisible = visible;
             isMarkedIgnored = ignored;
         }
 
+        public Node<T> withoutIgnored()
+        {
+            if (isMarkedIgnored) {
+                return (next == null) ? null : next.withoutIgnored();
+            }
+            if (next != null) {
+                Node<T> newNext = next.withoutIgnored();
+                if (newNext != next) {
+                    return relinked(newNext);
+                }
+            }
+            return this;
+        }
+        
+        public Node<T> withoutNonVisible()
+        {
+            if (!isVisible) {
+                return (next == null) ? null : next.withoutNonVisible();
+            }
+            if (next != null) {
+                Node<T> newNext = next.withoutNonVisible();
+                if (newNext != next) {
+                    return relinked(newNext);
+                }
+            }
+            return this;
+        }
+        
         public Node<T> relinked(Node<T> newNext) {
-            return new Node<T>(value, newNext, explicitName, isMarkedIgnored);
+            return new Node<T>(value, newNext, explicitName, isVisible, isMarkedIgnored);
         }
         
         @Override

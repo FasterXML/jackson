@@ -117,9 +117,10 @@ public class POJOPropertiesCollector
         coll._addFields();
         coll._addMethods();
 
-        // Second: remove ignored properties, individual entries
-        coll._removeIgnoredProperties();
-        // Third: rename remaining properties
+        // Remove ignored properties, individual entries
+        coll._removeUnwantedProperties();
+
+        // Rename remaining properties
         coll._renameProperties();
         // Fourth: use custom naming strategy, if applicable...
         PropertyNamingStrategy naming = config.getPropertyNamingStrategy();
@@ -234,12 +235,9 @@ public class POJOPropertiesCollector
             if (!visible) {
                 visible = _visibilityChecker.isFieldVisible(f);
             }
-            if (visible) {
-                // and finally, may also have explicit ignoral
-                
-                boolean ignored = (ai != null) && ai.hasIgnoreMarker(f);
-                _property(implName).addField(f, explName, ignored);
-            }
+            // and finally, may also have explicit ignoral
+            boolean ignored = (ai != null) && ai.hasIgnoreMarker(f);
+            _property(implName).addField(f, explName, visible, ignored);
         }
     }
 
@@ -316,10 +314,8 @@ public class POJOPropertiesCollector
                     implName = explName;
                     visible = true;
                 }
-                if (visible) {
-                    boolean ignore = (ai == null) ? false : ai.hasIgnoreMarker(m);
-                    _property(implName).addGetter(m, explName, ignore);
-                }
+                boolean ignore = (ai == null) ? false : ai.hasIgnoreMarker(m);
+                _property(implName).addGetter(m, explName, visible, ignore);
             } else if (argCount == 1) { // setters
                 explName = (ai == null) ? null : ai.findSettablePropertyName(m);
                 if (explName == null) { // no explicit name; must follow naming convention
@@ -338,10 +334,8 @@ public class POJOPropertiesCollector
                     implName = explName;
                     visible = true;
                 }
-                if (visible) {
-                    boolean ignore = (ai == null) ? false : ai.hasIgnoreMarker(m);
-                    _property(implName).addSetter(m, explName, ignore);
-                }
+                boolean ignore = (ai == null) ? false : ai.hasIgnoreMarker(m);
+                _property(implName).addSetter(m, explName, visible, ignore);
             } else if (argCount == 2) { // any getter?
                 if (ai != null  && ai.hasAnySetterAnnotation(m)) {
                     if (_anySetters == null) {
@@ -360,34 +354,55 @@ public class POJOPropertiesCollector
     /**********************************************************
      */
 
-    protected void _removeIgnoredProperties()
+    /**
+     * Method called to get rid of candidate properties that are marked
+     * as ignored, or that are not visible.
+     */
+    protected void _removeUnwantedProperties()
     {
         Iterator<Map.Entry<String,POJOPropertyCollector>> it = _properties.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, POJOPropertyCollector> entry = it.next();
             POJOPropertyCollector prop = entry.getValue();
-            if (!prop.anyIgnorals()) {
+
+            // First: if nothing visible, just remove altogether
+            if (!prop.anyVisible()) {
+                it.remove();
                 continue;
             }
-            // first: if one or more ignorals, and no explicit markers, remove the whole thing
-            if (!prop.anyExplicitNames()) {
-                it.remove();
-            } else {
-                // otherwise just remove ones marked to be ignored
-                prop.removeIgnored();
-                if (_forSerialization || prop.couldDeserialize()) {
+            /* !!! TODO: check if this is correct handling:
+             * 
+             * hmmh. Should we remove non-visible ones or not?
+             */
+            prop.removeNonVisible();
+            
+            // Otherwise, check ignorals
+            if (prop.anyIgnorals()) {
+                // first: if one or more ignorals, and no explicit markers, remove the whole thing
+                if (!prop.anyExplicitNames()) {
+                    it.remove();
+                    _addIgnored(prop.getName());
                     continue;
                 }
+                // otherwise just remove ones marked to be ignored
+                prop.removeIgnored();
+                if (!_forSerialization && !prop.couldDeserialize()) {
+                    _addIgnored(prop.getName());
+                }
             }
-            // either way, can add to 'ignored' list for deserialization,
-            // just in case -- as long as there's no setter/field/ctor
-            if (_ignoredPropertyNames == null) {
-                _ignoredPropertyNames = new HashSet<String>();
-            }
-            _ignoredPropertyNames.add(prop.getName());
         }
     }
     
+    private void _addIgnored(String name)
+    {
+        if (!_forSerialization) {
+            if (_ignoredPropertyNames == null) {
+                _ignoredPropertyNames = new HashSet<String>();
+            }
+            _ignoredPropertyNames.add(name);
+        }
+    }
+
     /*
     /**********************************************************
     /* Internal methods; renaming properties
