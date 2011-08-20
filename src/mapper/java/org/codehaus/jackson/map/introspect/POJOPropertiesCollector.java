@@ -360,22 +360,25 @@ public class POJOPropertiesCollector
         while (it.hasNext()) {
             Map.Entry<String, POJOPropertyCollector> entry = it.next();
             POJOPropertyCollector prop = entry.getValue();
-            if (prop.anyIgnorals()) {
-                // first: if one or more ignorals, and no explicit markers, remove the whole thing
-                if (!prop.anyExplicitNames()) {
-                    it.remove();
-                } else {
-                    // otherwise just remove ones marked to be ignored
-                    prop.removeIgnored();
-                }
-                // either way, can add to 'ignored' list for deserialization, just in case
-                if (!_forSerialization) {
-                    if (_ignoredPropertyNames == null) {
-                        _ignoredPropertyNames = new HashSet<String>();
-                    }
-                    _ignoredPropertyNames.add(prop.getName());
+            if (!prop.anyIgnorals()) {
+                continue;
+            }
+            // first: if one or more ignorals, and no explicit markers, remove the whole thing
+            if (!prop.anyExplicitNames()) {
+                it.remove();
+            } else {
+                // otherwise just remove ones marked to be ignored
+                prop.removeIgnored();
+                if (_forSerialization || prop.couldDeserialize()) {
+                    continue;
                 }
             }
+            // either way, can add to 'ignored' list for deserialization,
+            // just in case -- as long as there's no setter/field/ctor
+            if (_ignoredPropertyNames == null) {
+                _ignoredPropertyNames = new HashSet<String>();
+            }
+            _ignoredPropertyNames.add(prop.getName());
         }
     }
     

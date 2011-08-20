@@ -147,6 +147,14 @@ public class POJOPropertyCollector
     public boolean hasSetter() { return _setters != null; }
     public boolean hasField() { return _fields != null; }
 
+    public boolean couldDeserialize() {
+        return (_setters != null) || (_fields != null) || (_ctorParameters != null);
+    }
+
+    public boolean couldSerialize() {
+        return (_getters != null) || (_fields != null);
+    }
+    
     public AnnotatedMethod getGetter()
     {
         if (_getters == null) {
