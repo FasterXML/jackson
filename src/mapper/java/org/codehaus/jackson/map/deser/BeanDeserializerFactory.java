@@ -1004,15 +1004,18 @@ public class BeanDeserializerFactory
             }
         }
         // Or explicit/implicit definitions?
-        Collection<String> ignored = ArrayBuilders.arrayToSet(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));        
+        Set<String> ignored = ArrayBuilders.arrayToSet(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));        
         for (String propName : ignored) {
             builder.addIgnorable(propName);
         }
         // Implicit ones via @JsonIgnore and equivalent?
-        ignored = beanDesc.getIgnoredPropertyNames();
-        if (ignored != null) {
-            for (String propName : ignored) {
-                builder.addIgnorable(propName);
+        {
+            Collection<String> ignored2 = beanDesc.getIgnoredPropertyNames();
+            if (ignored2 != null) {
+                for (String propName : ignored2) {
+                    builder.addIgnorable(propName);
+                    ignored.add(propName);
+                }
             }
         }
         HashMap<Class<?>,Boolean> ignoredTypes = new HashMap<Class<?>,Boolean>();
