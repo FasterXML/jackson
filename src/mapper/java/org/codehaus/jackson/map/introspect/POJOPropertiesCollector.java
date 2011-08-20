@@ -122,11 +122,17 @@ public class POJOPropertiesCollector
 
         // Rename remaining properties
         coll._renameProperties();
-        // Fourth: use custom naming strategy, if applicable...
+        // And use custom naming strategy, if applicable...
         PropertyNamingStrategy naming = config.getPropertyNamingStrategy();
         if (naming != null) {
             coll._renameUsing(naming);
         }
+
+        /* Sort by visibility (explicit over implicit); drop all but first
+         * of member type (getter, setter etc) if there is visibility
+         * difference
+         */
+        coll._trimByVisibility();
         return coll;
     }
 
@@ -466,6 +472,18 @@ public class POJOPropertiesCollector
                 prop = prop.withName(name);
             }
             _properties.put(name, prop);
+        }
+    }
+
+    /**
+     * Method called to reduce number of components, to only retain ones
+     * with highest visibility level (explicit over implicit, implicit visible
+     * over non-visible, if necessary)
+     */
+    protected void _trimByVisibility()
+    {
+        for (POJOPropertyCollector property : _properties.values()) {
+            property.trimByVisibility();
         }
     }
     

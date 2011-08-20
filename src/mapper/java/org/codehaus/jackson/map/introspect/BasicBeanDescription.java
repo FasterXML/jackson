@@ -6,7 +6,6 @@ import java.util.*;
 
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.type.TypeBindings;
 import org.codehaus.jackson.map.util.Annotations;
 import org.codehaus.jackson.type.JavaType;
@@ -427,6 +426,7 @@ public class BasicBeanDescription extends BeanDescription
     /**********************************************************
      */
 
+    @Override
     public LinkedHashMap<String,AnnotatedField> findSerializableFields(Collection<String> ignoredProperties)
     {
         return _findPropertyFields(ignoredProperties, true);

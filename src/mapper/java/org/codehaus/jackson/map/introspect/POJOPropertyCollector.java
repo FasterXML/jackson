@@ -111,6 +111,19 @@ public class POJOPropertyCollector
         _setters = _removeNonVisible(_setters);
         _ctorParameters = _removeNonVisible(_ctorParameters);
     }
+
+    /**
+     * Method called to trim unnecessary entries, such as implicit
+     * getter if there is an explict one available. This is important
+     * for later stages, to avoid unnecessary conflicts.
+     */
+    public void trimByVisibility()
+    {
+        _fields = _trimByVisibility(_fields);
+        _getters = _trimByVisibility(_getters);
+        _setters = _trimByVisibility(_setters);
+        _ctorParameters = _trimByVisibility(_ctorParameters);
+    }
     
     private <T> Node<T> _removeIgnored(Node<T> node)
     {
@@ -126,6 +139,14 @@ public class POJOPropertyCollector
             return node;
         }
         return node.withoutNonVisible();
+    }
+
+    private <T> Node<T> _trimByVisibility(Node<T> node)
+    {
+        if (node == null) {
+            return node;
+        }
+        return node.trimByVisibility();
     }
     
     /*
@@ -435,19 +456,37 @@ public class POJOPropertyCollector
         
         public Node<T> withoutNonVisible()
         {
-            if (!isVisible) {
-                return (next == null) ? null : next.withoutNonVisible();
+            Node<T> newNext = (next == null) ? null : next.withoutNonVisible();
+            return isVisible ? relinked(newNext) : newNext;
+        }
+
+        public Node<T> trimByVisibility()
+        {
+            if (next == null) {
+                return this;
             }
-            if (next != null) {
-                Node<T> newNext = next.withoutNonVisible();
-                if (newNext != next) {
-                    return relinked(newNext);
+            Node<T> newNext = next.trimByVisibility();
+            if (explicitName != null) { // this already has highest; how about next one?
+                if (newNext.explicitName == null) { // next one not, drop it
+                    return relinked(null);
                 }
+                //  both have it, keep
+                return relinked(newNext);
             }
-            return this;
+            if (newNext.explicitName != null) { // next one has higher, return it...
+                return newNext;
+            }
+            // neither has explicit name; how about visibility?
+            if (isVisible == newNext.isVisible) { // same; keep both in current order
+                return relinked(newNext);
+            }
+            return isVisible ? relinked(null) : newNext;
         }
         
         public Node<T> relinked(Node<T> newNext) {
+            if (newNext == next) {
+                return this;
+            }
             return new Node<T>(value, newNext, explicitName, isVisible, isMarkedIgnored);
         }
         
