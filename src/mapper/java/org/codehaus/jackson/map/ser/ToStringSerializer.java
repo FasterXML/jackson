@@ -10,6 +10,5 @@ import org.codehaus.jackson.map.annotate.JacksonStdImpl;
 public final class ToStringSerializer
     extends org.codehaus.jackson.map.ser.std.ToStringSerializer
 {
-    @SuppressWarnings("hiding")
     public final static ToStringSerializer instance = new ToStringSerializer();
 }

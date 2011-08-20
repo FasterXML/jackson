@@ -70,6 +70,13 @@ public class POJOPropertiesCollector
      * Method(s) marked with 'JsonValue' annotation
      */
     protected LinkedList<AnnotatedMethod> _jsonValueGetters = null;
+
+    /**
+     * Lazily collected list of properties that can be implicitly
+     * ignored during serialization; only updated when collecting
+     * information for deserialization purposes
+     */
+    protected HashSet<String> _ignoredPropertyNames;
     
     /*
     /**********************************************************
@@ -173,6 +180,10 @@ public class POJOPropertiesCollector
         }
         return null;
     }
+
+    public Set<String> getIgnoredPropertyNames() {
+        return _ignoredPropertyNames;
+    }
     
     // for unit tests:
     protected Map<String, POJOPropertyCollector> getPropertyMap() {
@@ -195,6 +206,7 @@ public class POJOPropertiesCollector
         
         for (AnnotatedField f : _classDef.fields()) {
             String implName = f.getName();
+
             String explName;
             if (ai == null) {
                 explName = null;
@@ -218,6 +230,7 @@ public class POJOPropertiesCollector
             }
             if (visible) {
                 // and finally, may also have explicit ignoral
+                
                 boolean ignored = (ai != null) && ai.hasIgnoreMarker(f);
                 _property(implName).addField(f, explName, ignored);
             }
@@ -351,10 +364,17 @@ public class POJOPropertiesCollector
                 // first: if one or more ignorals, and no explicit markers, remove the whole thing
                 if (!prop.anyExplicitNames()) {
                     it.remove();
-                    continue;
+                } else {
+                    // otherwise just remove ones marked to be ignored
+                    prop.removeIgnored();
                 }
-                // otherwise just remove ones marked to be ignored
-                prop.removeIgnored();
+                // either way, can add to 'ignored' list for deserialization, just in case
+                if (!_forSerialization) {
+                    if (_ignoredPropertyNames == null) {
+                        _ignoredPropertyNames = new HashSet<String>();
+                    }
+                    _ignoredPropertyNames.add(prop.getName());
+                }
             }
         }
     }

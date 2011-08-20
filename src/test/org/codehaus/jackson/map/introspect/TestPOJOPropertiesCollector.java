@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.introspect;
 
+import java.util.Collection;
 import java.util.Map;
 
 import org.codehaus.jackson.annotate.*;
@@ -54,6 +55,12 @@ public class TestPOJOPropertiesCollector
         public int getValue() { return value; }
     }
 
+    static class ImplicitIgnores {
+        @JsonIgnore public int a;
+        @JsonIgnore public void setB(int b) { }
+        public int c;
+    }
+    
     // Should find just one setter for "y", due to partial ignore
     static class IgnoredRenamedSetter {
         @JsonIgnore public void setY(int value) { }
@@ -113,10 +120,8 @@ public class TestPOJOPropertiesCollector
         assertFalse(prop.hasField());
     }
     
-    /**
-     * Unit test for verifying that a single @JsonIgnore can remove the
-     * whole property, unless explicit property marker exists
-     */
+    // Unit test for verifying that a single @JsonIgnore can remove the
+    // whole property, unless explicit property marker exists
     public void testEmpty()
     {
         POJOPropertiesCollector coll = collector(Empty.class, true);
@@ -124,11 +129,9 @@ public class TestPOJOPropertiesCollector
         assertEquals(0, props.size());
     }
 
-    /**
-     * Unit test for verifying handling of 'partial' @JsonIgnore; that is,
-     * if there is at least one explicit annotation to indicate property,
-     * only parts that are ignored are, well, ignored
-     */
+    // Unit test for verifying handling of 'partial' @JsonIgnore; that is,
+    // if there is at least one explicit annotation to indicate property,
+    // only parts that are ignored are, well, ignored
     public void testPartialIgnore()
     {
         POJOPropertiesCollector coll = collector(IgnoredSetter.class, true);
@@ -174,7 +177,21 @@ public class TestPOJOPropertiesCollector
         Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
         assertEquals(0, props.size());
     }
-    
+
+    public void testCollectionOfIgnored()
+    {
+        ObjectMapper m = new ObjectMapper();
+        POJOPropertiesCollector coll = collector(m, ImplicitIgnores.class, false);
+        // should be 1, due to ignorals
+        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        assertEquals(1, props.size());
+        // but also have 2 ignored properties
+        Collection<String> ign = coll.getIgnoredPropertyNames();
+        assertEquals(2, ign.size());
+        assertTrue(ign.contains("a"));
+        assertTrue(ign.contains("b"));
+    }
+
     /*
     /**********************************************************
     /* Helper methods

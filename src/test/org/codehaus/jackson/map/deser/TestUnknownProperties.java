@@ -17,9 +17,9 @@ public class TestUnknownProperties
     final static String JSON_UNKNOWN_FIELD = "{ \"a\" : 1, \"foo\" : [ 1, 2, 3], \"b\" : -1 }";
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Helper classes
-    ///////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Helper classes
+    /**********************************************************
      */
 
     final static class TestBean
@@ -88,9 +88,9 @@ public class TestUnknownProperties
     }
 
     /*
-    ///////////////////////////////////////////////////////////
-    // Test methods
-    ///////////////////////////////////////////////////////////
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
      */
 
     /**
@@ -152,7 +152,8 @@ public class TestUnknownProperties
     public void testWithClassIgnore()
         throws Exception
     {
-        IgnoreSome result = new ObjectMapper().readValue("{ \"a\":1,\"b\":2,\"c\":\"x\",\"d\":\"y\"}", IgnoreSome.class);
+        IgnoreSome result = new ObjectMapper().readValue("{ \"a\":1,\"b\":2,\"c\":\"x\",\"d\":\"y\"}",
+                IgnoreSome.class);
         // first: should deserialize 2 of properties normally
         assertEquals(1, result.a);
         assertEquals("y", result.d());

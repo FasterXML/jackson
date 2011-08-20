@@ -262,9 +262,9 @@ public class POJOPropertyCollector
     
     public boolean anyIgnorals() {
         return _anyIgnorals(_fields)
-                || _anyIgnorals(_getters)
-                || _anyIgnorals(_setters)
-                ;
+            || _anyIgnorals(_getters)
+            || _anyIgnorals(_setters)
+        ;
     }
 
     private <T> boolean _anyIgnorals(Node<T> n)

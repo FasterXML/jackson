@@ -989,12 +989,7 @@ public class BeanDeserializerFactory
             BasicBeanDescription beanDesc, BeanDeserializerBuilder builder)
         throws JsonMappingException
     {
-        // Ok: let's aggregate visibility settings: first, baseline:
-        VisibilityChecker<?> vchecker = config.getDefaultVisibilityChecker();
-        // and per-class overrides:
-        vchecker = config.getAnnotationIntrospector().findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);
-
-        Map<String,AnnotatedMethod> setters = beanDesc.findSetters(vchecker);
+        Map<String,AnnotatedMethod> setters = beanDesc.findSetters();
         // Also, do we have a fallback "any" setter?
         AnnotatedMethod anySetter = beanDesc.findAnySetter();
 
@@ -1009,29 +1004,17 @@ public class BeanDeserializerFactory
             }
         }
         // Or explicit/implicit definitions?
-        HashSet<String> ignored = ArrayBuilders.arrayToSet(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));        
-        // But let's only add these if we'd otherwise fail with exception (save some memory here)
-        /* 03-Oct-2010, tatu: As per [JACKSON-383], we can't optimize here,
-         *   since doing so may interfere with handling of @JsonAnySetter.
-         */
-        //if (!ignoreAny && config.isEnabled(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES))
-        {
+        Collection<String> ignored = ArrayBuilders.arrayToSet(intr.findPropertiesToIgnore(beanDesc.getClassInfo()));        
+        for (String propName : ignored) {
+            builder.addIgnorable(propName);
+        }
+        // Implicit ones via @JsonIgnore and equivalent?
+        ignored = beanDesc.getIgnoredPropertyNames();
+        if (ignored != null) {
             for (String propName : ignored) {
                 builder.addIgnorable(propName);
             }
-            // Implicit ones via @JsonIgnore and equivalent?
-            AnnotatedClass ac = beanDesc.getClassInfo();
-            for (AnnotatedMethod am : ac.ignoredMemberMethods()) {
-                String name = POJOPropertiesCollector.okNameForSetter(am);
-                if (name != null) {
-                    builder.addIgnorable(name);
-                }
-            }
-            for (AnnotatedField af : ac.ignoredFields()) {
-                builder.addIgnorable(af.getName());
-            }
         }
-
         HashMap<Class<?>,Boolean> ignoredTypes = new HashMap<Class<?>,Boolean>();
         
         // These are all valid setters, but we do need to introspect bit more
@@ -1061,7 +1044,7 @@ public class BeanDeserializerFactory
          *   (second arg passed to ignore anything for which there is a getter
          *   method)
          */
-        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findDeserializableFields(vchecker, addedProps);
+        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findDeserializableFields(addedProps);
         for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {
             String name = en.getKey();
             if (!ignored.contains(name) && !builder.hasProperty(name)) {
@@ -1093,8 +1076,7 @@ public class BeanDeserializerFactory
              * need to add AUTO_DETECT_GETTERS to deser config too, not
              * just ser config)
              */
-            Map<String,AnnotatedMethod> getters = beanDesc.findGetters(vchecker, addedProps);
-
+            Map<String,AnnotatedMethod> getters = beanDesc.findGetters(addedProps);
             for (Map.Entry<String,AnnotatedMethod> en : getters.entrySet()) {
                 AnnotatedMethod getter = en.getValue();
                 // should only consider Collections and Maps, for now?

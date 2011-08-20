@@ -81,9 +81,9 @@ public class TestAnnotatedClass
     {
         // null -> no mix-in annotations
         AnnotatedClass ac = AnnotatedClass.construct(SubClass.class, new JacksonAnnotationIntrospector(), null);
-        ac.resolveMemberMethods(BasicClassIntrospector.DEFAULT_GETTER_FILTER, true, true);
+        ac.resolveMemberMethods(BasicClassIntrospector.DEFAULT_GETTER_FILTER);
         ac.resolveCreators(true);
-        ac.resolveFields(true, true);
+        ac.resolveFields();
 
         assertNotNull(ac.getDefaultConstructor());
         assertEquals(1, ac.getConstructors().size());
@@ -112,7 +112,7 @@ public class TestAnnotatedClass
     {
         // null -> no mix-in annotations
         AnnotatedClass ac = AnnotatedClass.construct(NumberBean.class, new JacksonAnnotationIntrospector(), null);
-        ac.resolveMemberMethods(BasicClassIntrospector.DEFAULT_SETTER_FILTER, true, true);
+        ac.resolveMemberMethods(BasicClassIntrospector.DEFAULT_SETTER_FILTER);
         assertEquals(1, ac.getMemberMethodCount());
 
         Iterator<AnnotatedMethod> it = ac.memberMethods().iterator();
@@ -128,7 +128,7 @@ public class TestAnnotatedClass
     {
         // null -> no mix-in annotations
         AnnotatedClass ac = AnnotatedClass.construct(FieldBean.class, new JacksonAnnotationIntrospector(), null);
-        ac.resolveFields(true, true);
+        ac.resolveFields();
         /* 14-Jul-2009, tatu: AnnotatedClass does remove forcibly ignored
          *   entries, but will still contain non-public fields too (earlier
          *   versions didn't, but filtering was moved to a later point)

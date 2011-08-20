@@ -1,6 +1,5 @@
 package org.codehaus.jackson.map.introspect;
 
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -51,6 +50,12 @@ public class BasicBeanDescription extends BeanDescription
     // // for deserialization
     
     protected AnnotatedMethod _anySetterMethod;
+    
+    /**
+     * Set of properties that can be ignored during deserialization, due
+     * to being marked as ignored.
+     */
+    protected Set<String> _ignoredPropertyNames;
 
     // // for serialization
     
@@ -64,13 +69,20 @@ public class BasicBeanDescription extends BeanDescription
     /**********************************************************
      */
     
+    /**
+     * @deprecated Since 1.9, should use factory methods instead
+     */
+    @Deprecated
     public BasicBeanDescription(MapperConfig<?> config, JavaType type,
             AnnotatedClass ac)
     {
         this(config, type, ac, Collections.<POJOPropertyCollector>emptyList());
     }
 
-    public BasicBeanDescription(MapperConfig<?> config, JavaType type,
+    /**
+     * @since 1.9
+     */
+    protected BasicBeanDescription(MapperConfig<?> config, JavaType type,
             AnnotatedClass ac, List<POJOPropertyCollector> properties)
     {
     	super(type);
@@ -80,14 +92,27 @@ public class BasicBeanDescription extends BeanDescription
     	_properties = properties;
     }
 
+    /**
+     * Factory method to use for constructing an instance to use for building
+     * deserializers.
+     * 
+     * @since 1.9
+     */
     public static BasicBeanDescription forDeserialization(POJOPropertiesCollector coll)
     {
         BasicBeanDescription desc = new BasicBeanDescription(coll.getConfig(),
                 coll.getType(), coll.getClassDef(), coll.getProperties());
         desc._anySetterMethod = coll.getAnySetterMethod();
+        desc._ignoredPropertyNames = coll.getIgnoredPropertyNames();
         return desc;
     }
 
+    /**
+     * Factory method to use for constructing an instance to use for building
+     * serializers.
+     * 
+     * @since 1.9
+     */
     public static BasicBeanDescription forSerialization(POJOPropertiesCollector coll)
     {
         BasicBeanDescription desc = new BasicBeanDescription(coll.getConfig(),
@@ -95,6 +120,20 @@ public class BasicBeanDescription extends BeanDescription
         desc._jsonValueMethod = coll.getJsonValueMethod();
         desc._anyGetterMethod = coll.getAnyGetterMethod();
         return desc;
+    }
+
+    /**
+     * Factory method to use for constructing an instance to use for purposes
+     * other than building serializers or deserializers; will only have information
+     * on class, not on properties.
+     * 
+     * @since 1.9
+     */
+    public static BasicBeanDescription forOtherUse(MapperConfig<?> config,
+            JavaType type, AnnotatedClass ac)
+    {
+        return new BasicBeanDescription(config, type,
+                ac, Collections.<POJOPropertyCollector>emptyList());
     }
     
     /*
@@ -191,8 +230,7 @@ public class BasicBeanDescription extends BeanDescription
      */
     
     @Override
-    public LinkedHashMap<String,AnnotatedMethod> findGetters(VisibilityChecker<?> vchecker,
-            Collection<String> ignoredProperties)
+    public LinkedHashMap<String,AnnotatedMethod> findGetters(Collection<String> ignoredProperties)
     {
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
         for (POJOPropertyCollector property : _properties) {
@@ -389,10 +427,9 @@ public class BasicBeanDescription extends BeanDescription
     /**********************************************************
      */
 
-    public LinkedHashMap<String,AnnotatedField> findSerializableFields(VisibilityChecker<?> vchecker,
-                                                                       Collection<String> ignoredProperties)
+    public LinkedHashMap<String,AnnotatedField> findSerializableFields(Collection<String> ignoredProperties)
     {
-        return _findPropertyFields(vchecker, ignoredProperties, true);
+        return _findPropertyFields(ignoredProperties, true);
     }
     
     /*
@@ -422,7 +459,7 @@ public class BasicBeanDescription extends BeanDescription
      */
 
     @Override
-    public LinkedHashMap<String,AnnotatedMethod> findSetters(VisibilityChecker<?> vchecker)
+    public LinkedHashMap<String,AnnotatedMethod> findSetters()
     {
         LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
         for (POJOPropertyCollector property : _properties) {
@@ -443,8 +480,8 @@ public class BasicBeanDescription extends BeanDescription
      * is acceptable: needs to take 2 arguments, first one String or
      * Object; second any can be any type.
      */
-    public AnnotatedMethod findAnySetter()
-        throws IllegalArgumentException
+    @Override
+    public AnnotatedMethod findAnySetter() throws IllegalArgumentException
     {
         if (_anySetterMethod != null) {
             /* Also, let's be somewhat strict on how field name is to be
@@ -471,6 +508,7 @@ public class BasicBeanDescription extends BeanDescription
      * 
      * @since 1.6
      */
+    @Override
     public AnnotatedMethod findAnyGetter() throws IllegalArgumentException
     {
         if (_anyGetterMethod != null) {
@@ -528,10 +566,18 @@ public class BasicBeanDescription extends BeanDescription
     /**********************************************************
      */
 
-    public LinkedHashMap<String,AnnotatedField> findDeserializableFields(VisibilityChecker<?> vchecker,
-                                                                       Collection<String> ignoredProperties)
+    @Override
+    public LinkedHashMap<String,AnnotatedField> findDeserializableFields(Collection<String> ignoredProperties)
     {
-        return _findPropertyFields(vchecker, ignoredProperties, false);
+        return _findPropertyFields(ignoredProperties, false);
+    }
+    
+    @Override
+    public Set<String> getIgnoredPropertyNames() {
+        if (_ignoredPropertyNames == null) {
+            return Collections.emptySet();
+        }
+        return _ignoredPropertyNames;
     }
 
     /*
@@ -541,9 +587,6 @@ public class BasicBeanDescription extends BeanDescription
      */
 
     /**
-     * @param vchecker (optional) Object that determines whether specific fields
-     *   have enough visibility to be considered for inclusion; if null,
-     *   auto-detection is disabled
      * @param ignoredProperties (optional) names of properties to ignore;
      *   any fields that would be recognized as one of these properties
      *   is ignored.
@@ -553,7 +596,7 @@ public class BasicBeanDescription extends BeanDescription
      * @return Ordered Map with logical property name as key, and
      *    matching field as value.
      */
-    public LinkedHashMap<String,AnnotatedField> _findPropertyFields(VisibilityChecker<?> vchecker,
+    public LinkedHashMap<String,AnnotatedField> _findPropertyFields(
             Collection<String> ignoredProperties, boolean forSerialization)
     {
         LinkedHashMap<String,AnnotatedField> results = new LinkedHashMap<String,AnnotatedField>();
@@ -581,64 +624,5 @@ public class BasicBeanDescription extends BeanDescription
                     }
                 }
                 */
-    }
-
-    /*
-    /**********************************************************
-    /* Property name mangling (getFoo -> foo)
-    /**********************************************************
-     */
-
-    /**
-     * Method called to figure out name of the property, given 
-     * corresponding suggested name based on a method or field name.
-     *
-     * @param basename Name of accessor/mutator method, not including prefix
-     *  ("get"/"is"/"set")
-     */
-    public static String manglePropertyName(String basename)
-    {
-        int len = basename.length();
-
-        // First things first: empty basename is no good
-        if (len == 0) {
-            return null;
-        }
-        // otherwise, lower case initial chars
-        StringBuilder sb = null;
-        for (int i = 0; i < len; ++i) {
-            char upper = basename.charAt(i);
-            char lower = Character.toLowerCase(upper);
-            if (upper == lower) {
-                break;
-            }
-            if (sb == null) {
-                sb = new StringBuilder(basename);
-            }
-            sb.setCharAt(i, lower);
-        }
-        return (sb == null) ? basename : sb.toString();
-    }
-
-    /**
-     * Helper method used to describe an annotated element of type
-     * {@link Class} or {@link Method}.
-     */
-    public static String descFor(AnnotatedElement elem)
-    {
-        if (elem instanceof Class<?>) {
-            return "class "+((Class<?>) elem).getName();
-        }
-        if (elem instanceof Method) {
-            Method m = (Method) elem;
-            return "method "+m.getName()+" (from class "+m.getDeclaringClass().getName()+")";
-        }
-        if (elem instanceof Constructor<?>) {
-            Constructor<?> ctor = (Constructor<?>) elem;
-            // should indicate number of args?
-            return "constructor() (from class "+ctor.getDeclaringClass().getName()+")";
-        }
-        // what else?
-        return "unknown type ["+elem.getClass()+"]";
     }
 }

@@ -11,7 +11,6 @@ import org.codehaus.jackson.map.annotate.*;
  * deserialized (since version 1.1) as well as
  * setter-accessible properties.
  */
-@SuppressWarnings("hiding")
 public class TestFieldDeserialization
     extends BaseMapTest
 {

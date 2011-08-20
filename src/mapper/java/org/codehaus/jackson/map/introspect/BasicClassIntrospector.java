@@ -151,14 +151,6 @@ public class BasicClassIntrospector
     /**********************************************************
      */
     
-    public BasicBeanDescription forSerializationNEW(SerializationConfig config,
-            JavaType type, MixInResolver r)
-    {
-        // And then the actual processing...
-        POJOPropertiesCollector coll = collectProperties(config, type, r, true);
-        return new BasicBeanDescription(config, type, coll.getClassDef());
-    }
-    
     public POJOPropertiesCollector collectProperties(MapperConfig<?> config,
             JavaType type, MixInResolver r, boolean forSerialization)
     {
@@ -166,10 +158,10 @@ public class BasicClassIntrospector
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
         // false, false -> do not process ignorals, nor collect (later part of processing)
-        ac.resolveMemberMethods(MINIMAL_FILTER, false, false);
+        ac.resolveMemberMethods(MINIMAL_FILTER);
         ac.resolveCreators(true);
         // false, false -> do not process ignorals, nor collect (later part of processing)
-        ac.resolveFields(false, false);
+        ac.resolveFields();
         return POJOPropertiesCollector.collect(config, forSerialization, type, ac);
     }
     
@@ -190,14 +182,14 @@ public class BasicClassIntrospector
     public BasicBeanDescription forDeserialization(DeserializationConfig cfg,
             JavaType type, MixInResolver r)
     {
-        return BasicBeanDescription.forDeserialization(collectProperties(cfg, type, r, true));
+        return BasicBeanDescription.forDeserialization(collectProperties(cfg, type, r, false));
     }
 
     @Override
     public BasicBeanDescription forCreation(DeserializationConfig cfg,
             JavaType type, MixInResolver r)
     {
-        return BasicBeanDescription.forDeserialization(collectProperties(cfg, type, r, true));
+        return BasicBeanDescription.forDeserialization(collectProperties(cfg, type, r, false));
     }
 
     @Override
@@ -207,7 +199,7 @@ public class BasicClassIntrospector
         boolean useAnnotations = cfg.isAnnotationProcessingEnabled();
         AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
-        return new BasicBeanDescription(cfg, type, ac);
+        return BasicBeanDescription.forOtherUse(cfg, type, ac);
     }
 
     @Override
@@ -218,7 +210,7 @@ public class BasicClassIntrospector
         AnnotationIntrospector ai =  cfg.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(type.getRawClass(),
                 (useAnnotations ? ai : null), r);
-        return new BasicBeanDescription(cfg, type, ac);
+        return BasicBeanDescription.forOtherUse(cfg, type, ac);
     }
     
     /*

@@ -7,7 +7,6 @@ import java.util.*;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ClassIntrospector.MixInResolver;
 import org.codehaus.jackson.map.util.Annotations;
-import org.codehaus.jackson.map.util.ArrayBuilders;
 import org.codehaus.jackson.map.util.ClassUtil;
 
 public final class AnnotatedClass
@@ -92,20 +91,6 @@ public final class AnnotatedClass
      * or have at least one annotation.
      */
     protected List<AnnotatedField> _fields;
-
-    // // // Lists of explicitly ignored entries (optionally populated)
-
-    /**
-     * Optionally populated list that contains member methods that were
-     * excluded from applicable methods due to explicit ignore annotation
-     */
-    protected List<AnnotatedMethod> _ignoredMethods;
-    
-    /**
-     * Optionally populated list that contains fields that were
-     * excluded from applicable fields due to explicit ignore annotation
-     */
-    protected List<AnnotatedField> _ignoredFields;
     
     /*
     /**********************************************************
@@ -225,16 +210,7 @@ public final class AnnotatedClass
     {
         return _memberMethods;
     }
- 
-    public Iterable<AnnotatedMethod> ignoredMemberMethods()
-    {
-        if (_ignoredMethods == null) {
-            List<AnnotatedMethod> l = Collections.emptyList();
-            return l;
-        }
-        return _ignoredMethods;
-    }
- 
+
     public int getMemberMethodCount()
     {
         return _memberMethods.size();
@@ -256,15 +232,6 @@ public final class AnnotatedClass
             return l;
         }
         return _fields;
-    }
-
-    public Iterable<AnnotatedField> ignoredFields()
-    {
-        if (_ignoredFields == null) {
-            List<AnnotatedField> l = Collections.emptyList();
-            return l;
-        }
-        return _ignoredFields;
     }
 
     /*
@@ -414,28 +381,16 @@ public final class AnnotatedClass
             }
         }
     }
-
-    /**
-     * @deprecated Since 1.9, use method that takes 3 arguments
-     */
-    @Deprecated
-    public void resolveMemberMethods(MethodFilter methodFilter, boolean collectIgnored)
-    {
-        resolveMemberMethods(methodFilter, true, collectIgnored);
-    }
     
     /**
      * Method for resolving member method information: aggregating all non-static methods
      * and combining annotations (to implement method-annotation inheritance)
      * 
      * @param methodFilter Filter used to determine which methods to include
-     * @param removeIgnored Whether to remove methods marked as ignorable by annotations
-     * @param collectIgnored Whether to collect list of ignored methods for later retrieval
      * 
      * @since 1.9
      */
-    public void resolveMemberMethods(MethodFilter methodFilter, boolean removeIgnored,
-            boolean collectIgnored)
+    public void resolveMemberMethods(MethodFilter methodFilter)
     {
         _memberMethods = new AnnotatedMethodMap();
         AnnotatedMethodMap mixins = new AnnotatedMethodMap();
@@ -476,65 +431,20 @@ public final class AnnotatedClass
                     } catch (Exception e) { }
                 }
             }
-    
-            /* And last but not least: let's remove all methods that are
-             * deemed to be ignorable after all annotations have been
-             * properly collapsed.
-             */
-            if (removeIgnored) {
-                Iterator<AnnotatedMethod> it = _memberMethods.iterator();
-                while (it.hasNext()) {
-                    AnnotatedMethod am = it.next();
-                    if (_annotationIntrospector.isIgnorableMethod(am)) {
-                        it.remove();
-                        if (collectIgnored) {
-                            _ignoredMethods = ArrayBuilders.addToList(_ignoredMethods, am);
-                        }
-                    }
-                }
-            }
         }
-    }
-
-    /**
-     * @deprecated Since 1.9, use method that takes 3 arguments
-     */
-    @Deprecated
-    public void resolveFields(boolean collectIgnored)
-    {
-        resolveFields(true, collectIgnored);
     }
     
     /**
      * Method that will collect all member (non-static) fields
      * that are either public, or have at least a single annotation
      * associated with them.
-     *
-     * @param removeIgnored Whether to remove methods marked as ignorable by annotations
-     * @param collectIgnored Whether to collect list of ignored fields for later retrieval
      * 
      * @since 1.9
      */
-    public void resolveFields(boolean removeIgnored, boolean collectIgnored)
+    public void resolveFields()
     {
         LinkedHashMap<String,AnnotatedField> foundFields = new LinkedHashMap<String,AnnotatedField>();
         _addFields(foundFields, _class);
-
-        /* And last but not least: let's remove all fields that are deemed
-         * ignorable after all annotations have been properly collapsed.
-         */
-        if (removeIgnored && (_annotationIntrospector != null)) {
-            Iterator<Map.Entry<String,AnnotatedField>> it = foundFields.entrySet().iterator();
-            while (it.hasNext()) {
-                AnnotatedField f = it.next().getValue();
-                if (_annotationIntrospector.isIgnorableField(f)) {
-                    it.remove();
-                    if (collectIgnored) {
-                        _ignoredFields = ArrayBuilders.addToList(_ignoredFields, f);
-                    }
-                }
-            }
-        }
         if (foundFields.isEmpty()) {
             _fields = Collections.emptyList();
         } else {
@@ -543,6 +453,30 @@ public final class AnnotatedClass
         }
     }
 
+    /*
+    /**********************************************************
+    /* Deprecated methods
+    /**********************************************************
+     */
+    
+    /**
+     * @since 1.9 Use version without arguments
+     */
+    @Deprecated
+    public void resolveMemberMethods(MethodFilter methodFilter, boolean collectIgnored)
+    {
+        resolveMemberMethods(methodFilter);
+    }
+    
+    /**
+     * @since 1.9 Use version without arguments
+     */
+    @Deprecated
+    public void resolveFields(boolean collectIgnored)
+    {
+        resolveFields();
+    }
+    
     /*
     /**********************************************************
     /* Helper methods for resolving class annotations

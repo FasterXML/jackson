@@ -550,14 +550,9 @@ public class BeanSerializerFactory
     protected List<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc)
         throws JsonMappingException
     {
-        // Ok: let's aggregate visibility settings: first, baseline:
-        VisibilityChecker<?> vchecker = config.getDefaultVisibilityChecker();
-        // and finally per-class overrides:
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        vchecker = intr.findAutoDetectVisibility(beanDesc.getClassInfo(), vchecker);
-
-        LinkedHashMap<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(vchecker, null);
-        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findSerializableFields(vchecker, methodsByProp.keySet());
+        Map<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(null);
+        Map<String,AnnotatedField> fieldsByProp = beanDesc.findSerializableFields(methodsByProp.keySet());
 
         // [JACKSON-429]: ignore specified types
         removeIgnorableTypes(config, beanDesc, methodsByProp);
