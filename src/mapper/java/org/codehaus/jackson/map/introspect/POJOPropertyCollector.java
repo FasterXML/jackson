@@ -146,6 +146,7 @@ public class POJOPropertyCollector
     public boolean hasGetter() { return _getters != null; }
     public boolean hasSetter() { return _setters != null; }
     public boolean hasField() { return _fields != null; }
+    public boolean hasConstructorParameter() { return _ctorParameters != null; }
 
     public boolean couldDeserialize() {
         return (_setters != null) || (_fields != null) || (_ctorParameters != null);
@@ -242,6 +243,37 @@ public class POJOPropertyCollector
                     +field.getFullName()+" vs "+nextField.getFullName());
         }
         return field;
+    }
+
+    public AnnotatedParameter getConstructorParameter()
+    {
+        if (_ctorParameters == null) {
+            return null;
+        }
+        // If multiple, verify that they do not conflict...
+        AnnotatedParameter ctorParam = _ctorParameters.value;
+        Node<AnnotatedParameter> next = _ctorParameters.next;
+        for (; next != null; next = next.next) {
+            /* [JACKSON-255] Allow masking, i.e. report exception only if
+             *   declarations in same class, or there's no inheritance relationship
+             *   (sibling interfaces etc)
+             */
+            AnnotatedParameter nextCtorParam = next.value;
+            Class<?> ctorParamClass = ctorParam.getDeclaringClass();
+            Class<?> nextClass = nextCtorParam.getDeclaringClass();
+            if (ctorParamClass != nextClass) {
+                if (ctorParamClass.isAssignableFrom(nextClass)) { // next is more specific
+                    ctorParam = nextCtorParam;
+                    continue;
+                }
+                if (nextClass.isAssignableFrom(ctorParamClass)) { // getter more specific
+                    continue;
+                }
+            }
+            throw new IllegalArgumentException("Conflicting constructor-parameter definitions for property \""+getName()+"\": "
+                    +ctorParam+" vs "+nextCtorParam);
+        }
+        return ctorParam;
     }
     
     /*

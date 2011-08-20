@@ -38,7 +38,7 @@ public class POJOPropertiesCollector
     protected final boolean _forSerialization;
     
     /**
-     * Type of POJO being introspected
+     * Type of POJO for which properties are being collected.
      */
     protected final JavaType _type;
 
@@ -60,7 +60,8 @@ public class POJOPropertiesCollector
     /**
      * Set of logical property information collected so far
      */
-    protected final LinkedHashMap<String, POJOPropertyCollector> _properties = new LinkedHashMap<String, POJOPropertyCollector>();
+    protected final LinkedHashMap<String, POJOPropertyCollector> _properties
+        = new LinkedHashMap<String, POJOPropertyCollector>();
 
     protected LinkedList<AnnotatedMethod> _anyGetters = null;
 
@@ -120,6 +121,11 @@ public class POJOPropertiesCollector
         coll._removeIgnoredProperties();
         // Third: rename remaining properties
         coll._renameProperties();
+        // Fourth: use custom naming strategy, if applicable...
+        PropertyNamingStrategy naming = config.getPropertyNamingStrategy();
+        if (naming != null) {
+            coll._renameUsing(naming);
+        }
         return coll;
     }
 
@@ -417,6 +423,34 @@ public class POJOPropertiesCollector
                     old.addAll(prop);
                 }
             }
+        }
+    }
+
+    protected void _renameUsing(PropertyNamingStrategy naming)
+    {
+        POJOPropertyCollector[] props = _properties.values().toArray(new POJOPropertyCollector[_properties.size()]);
+        _properties.clear();
+        for (POJOPropertyCollector prop : props) {
+            String name = prop.getName();
+            if (_forSerialization) {
+                if (prop.hasGetter()) {
+                    name = naming.nameForGetterMethod(_config, prop.getGetter(), name);
+                } else if (prop.hasField()) {
+                    name = naming.nameForField(_config, prop.getField(), name);
+                }
+            } else {
+                if (prop.hasSetter()) {
+                    name = naming.nameForSetterMethod(_config, prop.getSetter(), name);
+                } else if (prop.hasConstructorParameter()) {
+                    name = naming.nameForConstructorParameter(_config, prop.getConstructorParameter(), name);
+                } else if (prop.hasField()) {
+                    name = naming.nameForField(_config, prop.getField(), name);
+                }
+            }
+            if (!name.equals(prop.getName())) {
+                prop = prop.withName(name);
+            }
+            _properties.put(name, prop);
         }
     }
     

@@ -2,6 +2,7 @@ package org.codehaus.jackson.map;
 
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
+import org.codehaus.jackson.map.introspect.AnnotatedParameter;
 
 /**
  * Class that defines how names of JSON properties ("external names")
@@ -94,6 +95,65 @@ public abstract class PropertyNamingStrategy
         return defaultName;
     }
 
+    /**
+     * Method called to find external name (name used in JSON) for given logical
+     * POJO property,
+     * as defined by given constructor parameter; typically called when building a deserializer
+     * (but not necessarily only then).
+     * 
+     * @param config Configuration in used: either <code>SerializationConfig</code>
+     *   or <code>DeserializationConfig</code>, depending on whether method is called
+     *   during serialization or deserialization
+     * @param ctorParam Constructor parameter used to pass property.
+     * @param defaultName Default name that would be used for property in absence of custom strategy
+     * @since 1.9
+     */
+    public String nameForConstructorParameter(MapperConfig<?> config, AnnotatedParameter ctorParam,
+            String defaultName)
+    {
+        return defaultName;
+    }
+
+    /*
+    /**********************************************************
+    /* Standard implementations 
+    /**********************************************************
+     */
+    
+    /**
+     * @since 1.9
+     */
+    public static abstract class PropertyNamingStrategyBase extends PropertyNamingStrategy
+    {
+        @Override
+        public String nameForField(MapperConfig<?> config, AnnotatedField field, String defaultName)
+        {
+            return translate(defaultName);
+        }
+
+        @Override
+        public String nameForGetterMethod(MapperConfig<?> config, AnnotatedMethod method, String defaultName)
+        {
+            return translate(defaultName);
+        }
+
+        @Override
+        public String nameForSetterMethod(MapperConfig<?> config, AnnotatedMethod method, String defaultName)
+        {
+            return translate(defaultName);
+        }
+
+        @Override
+        public String nameForConstructorParameter(MapperConfig<?> config, AnnotatedParameter ctorParam,
+                String defaultName)
+        {
+            return translate(defaultName);
+        }
+        
+        public abstract String translate(String propertyName);
+    }
+        
+    
     /*
     /**********************************************************
     /* Standard implementations 
@@ -159,27 +219,10 @@ public abstract class PropertyNamingStrategy
      * 
      * @since 1.9
      */
-    public static class LowerCaseWithUnderscoresStrategy extends PropertyNamingStrategy
+    public static class LowerCaseWithUnderscoresStrategy extends PropertyNamingStrategyBase
     {
         @Override
-        public String nameForField(MapperConfig<?> config, AnnotatedField field, String defaultName)
-        {
-            return translate(defaultName);
-        }
-
-        @Override
-        public String nameForGetterMethod(MapperConfig<?> config, AnnotatedMethod method, String defaultName)
-        {
-            return translate(defaultName);
-        }
-
-        @Override
-        public String nameForSetterMethod(MapperConfig<?> config, AnnotatedMethod method, String defaultName)
-        {
-            return translate(defaultName);
-        }
-        
-        private String translate(String input)
+        public String translate(String input)
         {
             if (input == null) return input; // garbage in, garbage out
             int length = input.length();
@@ -211,5 +254,5 @@ public abstract class PropertyNamingStrategy
             }
             return resultLength > 0 ? result.toString() : input;
         }
-    };
+    }
 }
