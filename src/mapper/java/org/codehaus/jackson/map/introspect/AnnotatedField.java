@@ -30,7 +30,7 @@ public final class AnnotatedField
 
     @Override
     public AnnotatedField withAnnotations(AnnotationMap ann) {
-        return new AnnotatedField(_field, _annotations);
+        return new AnnotatedField(_field, ann);
     }
     
     /**

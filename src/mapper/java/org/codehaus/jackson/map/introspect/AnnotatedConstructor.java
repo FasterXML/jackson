@@ -30,7 +30,7 @@ public final class AnnotatedConstructor
 
     @Override
     public AnnotatedConstructor withAnnotations(AnnotationMap ann) {
-        return new AnnotatedConstructor(_constructor, _annotations, _paramAnnotations);
+        return new AnnotatedConstructor(_constructor, ann, _paramAnnotations);
     }
     
     /*

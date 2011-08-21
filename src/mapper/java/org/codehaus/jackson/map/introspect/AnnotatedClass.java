@@ -118,7 +118,7 @@ public final class AnnotatedClass
     @Override
     public AnnotatedClass withAnnotations(AnnotationMap ann) {
         return new AnnotatedClass(_class, _superTypes,
-                _annotationIntrospector, _mixInResolver, _classAnnotations);
+                _annotationIntrospector, _mixInResolver, ann);
     }
     
     /**

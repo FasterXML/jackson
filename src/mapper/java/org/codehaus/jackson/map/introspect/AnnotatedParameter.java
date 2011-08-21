@@ -58,7 +58,7 @@ public final class AnnotatedParameter
 
     @Override
     public AnnotatedParameter withAnnotations(AnnotationMap ann) {
-        return new AnnotatedParameter(_owner, _type, _annotations, _index);
+        return new AnnotatedParameter(_owner, _type, ann, _index);
     }
     
     public void addOrOverride(Annotation a)

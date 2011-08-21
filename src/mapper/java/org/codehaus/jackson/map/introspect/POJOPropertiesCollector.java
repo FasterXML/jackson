@@ -112,27 +112,7 @@ public class POJOPropertiesCollector
             JavaType type, AnnotatedClass classDef)
     {
         POJOPropertiesCollector coll = new POJOPropertiesCollector(config, forSerialization, type, classDef);
-        
-        // First: gather basic data
-        coll._addFields();
-        coll._addMethods();
-
-        // Remove ignored properties, individual entries
-        coll._removeUnwantedProperties();
-
-        // Rename remaining properties
-        coll._renameProperties();
-        // And use custom naming strategy, if applicable...
-        PropertyNamingStrategy naming = config.getPropertyNamingStrategy();
-        if (naming != null) {
-            coll._renameUsing(naming);
-        }
-
-        /* Sort by visibility (explicit over implicit); drop all but first
-         * of member type (getter, setter etc) if there is visibility
-         * difference
-         */
-        coll._trimByVisibility();
+        coll._collect();
         return coll;
     }
 
@@ -210,6 +190,40 @@ public class POJOPropertiesCollector
     /**********************************************************
      */
 
+    /**
+     * Method that orchestrates collection activities
+     */
+    public void _collect()
+    {
+        // First: gather basic data
+        _addFields();
+        _addMethods();
+
+        // Remove ignored properties, individual entries
+        _removeUnwantedProperties();
+
+        // Rename remaining properties
+        _renameProperties();
+        // And use custom naming strategy, if applicable...
+        PropertyNamingStrategy naming = _config.getPropertyNamingStrategy();
+        if (naming != null) {
+            _renameUsing(naming);
+        }
+
+        /* Sort by visibility (explicit over implicit); drop all but first
+         * of member type (getter, setter etc) if there is visibility
+         * difference
+         */
+        for (POJOPropertyCollector property : _properties.values()) {
+            property.trimByVisibility();
+        }
+
+        // and then the final step, "merge" annotations
+        for (POJOPropertyCollector property : _properties.values()) {
+            property.mergeAnnotations(_forSerialization);
+        }
+    }
+    
     /**
      * Method for collecting basic information on all fields found
      */
@@ -475,18 +489,6 @@ public class POJOPropertiesCollector
         }
     }
 
-    /**
-     * Method called to reduce number of components, to only retain ones
-     * with highest visibility level (explicit over implicit, implicit visible
-     * over non-visible, if necessary)
-     */
-    protected void _trimByVisibility()
-    {
-        for (POJOPropertyCollector property : _properties.values()) {
-            property.trimByVisibility();
-        }
-    }
-    
     /*
     /**********************************************************
     /* Internal methods: handling "getter" names

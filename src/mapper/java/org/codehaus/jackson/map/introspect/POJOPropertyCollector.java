@@ -80,7 +80,7 @@ public class POJOPropertyCollector
         }
         while (newEntries != null) {
             Node<T> next = newEntries.next;
-            chainToAugment = newEntries.relinked(chainToAugment);
+            chainToAugment = newEntries.withNext(chainToAugment);
             newEntries = next;
         }
         return chainToAugment;
@@ -123,6 +123,43 @@ public class POJOPropertyCollector
         _getters = _trimByVisibility(_getters);
         _setters = _trimByVisibility(_setters);
         _ctorParameters = _trimByVisibility(_ctorParameters);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void mergeAnnotations(boolean forSerialization)
+    {
+        if (forSerialization) {
+            if (_getters != null) {
+                AnnotationMap ann = _mergeAnnotations(0, _getters, _fields, _ctorParameters, _setters);
+                _getters = _getters.withValue(_getters.value.withAnnotations(ann));
+            } else if (_fields != null) {
+                AnnotationMap ann = _mergeAnnotations(0, _fields, _ctorParameters, _setters);
+                _fields = _fields.withValue(_fields.value.withAnnotations(ann));
+            }
+        } else {
+            if (_ctorParameters != null) {
+                AnnotationMap ann = _mergeAnnotations(0, _ctorParameters, _setters, _fields, _getters);
+                _ctorParameters = _ctorParameters.withValue(_ctorParameters.value.withAnnotations(ann));
+            } else if (_setters != null) {
+                AnnotationMap ann = _mergeAnnotations(0, _setters, _fields, _getters);
+                _setters = _setters.withValue(_setters.value.withAnnotations(ann));
+            } else if (_fields != null) {
+                AnnotationMap ann = _mergeAnnotations(0, _fields, _getters);
+                _fields = _fields.withValue(_fields.value.withAnnotations(ann));
+            }
+        }
+    }
+
+    private AnnotationMap _mergeAnnotations(int index, Node<? extends AnnotatedMember>... nodes)
+    {
+        AnnotationMap ann = nodes[index].value.getAllAnnotations();
+        ++index;
+        for (; index < nodes.length; ++index) {
+            if (nodes[index] != null) {
+              return AnnotationMap.merge(ann, _mergeAnnotations(index, nodes));
+            }
+        }
+        return ann;
     }
     
     private <T> Node<T> _removeIgnored(Node<T> node)
@@ -440,6 +477,21 @@ public class POJOPropertyCollector
             isMarkedIgnored = ignored;
         }
 
+        public Node<T> withValue(T newValue)
+        {
+            if (newValue == value) {
+                return this;
+            }
+            return new Node<T>(newValue, next, explicitName, isVisible, isMarkedIgnored);
+        }
+        
+        public Node<T> withNext(Node<T> newNext) {
+            if (newNext == next) {
+                return this;
+            }
+            return new Node<T>(value, newNext, explicitName, isVisible, isMarkedIgnored);
+        }
+        
         public Node<T> withoutIgnored()
         {
             if (isMarkedIgnored) {
@@ -448,7 +500,7 @@ public class POJOPropertyCollector
             if (next != null) {
                 Node<T> newNext = next.withoutIgnored();
                 if (newNext != next) {
-                    return relinked(newNext);
+                    return withNext(newNext);
                 }
             }
             return this;
@@ -457,7 +509,7 @@ public class POJOPropertyCollector
         public Node<T> withoutNonVisible()
         {
             Node<T> newNext = (next == null) ? null : next.withoutNonVisible();
-            return isVisible ? relinked(newNext) : newNext;
+            return isVisible ? withNext(newNext) : newNext;
         }
 
         public Node<T> trimByVisibility()
@@ -468,26 +520,19 @@ public class POJOPropertyCollector
             Node<T> newNext = next.trimByVisibility();
             if (explicitName != null) { // this already has highest; how about next one?
                 if (newNext.explicitName == null) { // next one not, drop it
-                    return relinked(null);
+                    return withNext(null);
                 }
                 //  both have it, keep
-                return relinked(newNext);
+                return withNext(newNext);
             }
             if (newNext.explicitName != null) { // next one has higher, return it...
                 return newNext;
             }
             // neither has explicit name; how about visibility?
             if (isVisible == newNext.isVisible) { // same; keep both in current order
-                return relinked(newNext);
+                return withNext(newNext);
             }
-            return isVisible ? relinked(null) : newNext;
-        }
-        
-        public Node<T> relinked(Node<T> newNext) {
-            if (newNext == next) {
-                return this;
-            }
-            return new Node<T>(value, newNext, explicitName, isVisible, isMarkedIgnored);
+            return isVisible ? withNext(null) : newNext;
         }
         
         @Override

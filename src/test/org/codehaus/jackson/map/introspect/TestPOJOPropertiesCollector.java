@@ -76,7 +76,15 @@ public class TestPOJOPropertiesCollector
 
         public int getX() { return value; }
     }
-    
+
+    // Testing that we can "merge" properties with renaming
+    static class MergedProperties {
+        public int x;
+        
+        @JsonProperty("x")
+        public void setFoobar(int v) { x = v; }
+    }
+
     /*
     /**********************************************************
     /* Unit tests
@@ -156,6 +164,18 @@ public class TestPOJOPropertiesCollector
         assertTrue(prop.hasField());
     }
 
+    public void testMergeWithRename()
+    {
+        POJOPropertiesCollector coll = collector(MergedProperties.class, true);
+        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        assertEquals(1, props.size());
+        POJOPropertyCollector prop = props.get("x");
+        assertNotNull(prop);
+        assertTrue(prop.hasSetter());
+        assertFalse(prop.hasGetter());
+        assertTrue(prop.hasField());
+    }
+    
     public void testSimpleIgnoreAndRename()
     {
         POJOPropertiesCollector coll = collector(IgnoredRenamedSetter.class, true);

@@ -32,10 +32,10 @@ public final class AnnotationMap implements Annotations
 
     public static AnnotationMap merge(AnnotationMap primary, AnnotationMap secondary)
     {
-        if (primary == null || primary._annotations.isEmpty()) {
+        if (primary == null || primary._annotations == null || primary._annotations.isEmpty()) {
             return secondary;
         }
-        if (secondary == null || secondary._annotations.isEmpty()) {
+        if (secondary == null || secondary._annotations == null || secondary._annotations.isEmpty()) {
             return primary;
         }
         HashMap<Class<? extends Annotation>,Annotation> annotations
