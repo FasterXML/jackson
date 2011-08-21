@@ -26,6 +26,7 @@ import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.jsontype.NamedType;
 import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.jsontype.impl.StdTypeResolverBuilder;
+import org.codehaus.jackson.map.util.BeanUtil;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.util.VersionUtil;
@@ -84,6 +85,9 @@ public class JaxbAnnotationIntrospector
 
         JsonSerializer<?> dataHandlerSerializer = null;
         JsonDeserializer<?> dataHandlerDeserializer = null;
+        /* Data handlers included dynamically, to try to prevent issues on platforms
+         * with less than complete support for JAXB API
+         */
         try {
             dataHandlerSerializer = (JsonSerializer<?>) Class.forName("org.codehaus.jackson.xc.DataHandlerJsonSerializer").newInstance();
             dataHandlerDeserializer = (JsonDeserializer<?>) Class.forName("org.codehaus.jackson.xc.DataHandlerJsonDeserializer").newInstance();
@@ -255,24 +259,6 @@ public class JaxbAnnotationIntrospector
     }
 
     /**
-     * Whether properties are accessible to this class.
-     *
-     * @param ac The annotated class.
-     * @return Whether properties are accessible to this class.
-     */
-    /*
-    protected boolean isPropertiesAccessible(Annotated ac)
-    {
-        XmlAccessType accessType = findAccessType(ac);
-        if (accessType == null) {
-            // JAXB default is "PUBLIC_MEMBER"
-            accessType = XmlAccessType.PUBLIC_MEMBER;
-        }
-        return (accessType == XmlAccessType.PUBLIC_MEMBER) || (accessType == XmlAccessType.PROPERTY);
-    }
-    */
-
-    /**
      * Method for locating JAXB {@link XmlAccessType} annotation value
      * for given annotated entity, if it has one, or inherits one from
      * its ancestors (in JAXB sense, package etc). Returns null if
@@ -283,17 +269,6 @@ public class JaxbAnnotationIntrospector
         XmlAccessorType at = findAnnotation(XmlAccessorType.class, ac, true, true, true);
         return (at == null) ? null : at.value();
     }
-    /*
-    protected boolean isFieldsAccessible(Annotated ac)
-    {
-        XmlAccessType at = findAccessType(ac);
-        if (accessType == null) {
-            // JAXB default is "PUBLIC_MEMBER"
-            accessType = XmlAccessType.PUBLIC_MEMBER;
-        }
-        return accessType == XmlAccessType.PUBLIC_MEMBER || accessType == XmlAccessType.FIELD;
-    }
-    */
     
     /*
     /**********************************************************
@@ -553,6 +528,11 @@ public class JaxbAnnotationIntrospector
         if (order == null || order.length == 0) {
             return null;
         }
+        
+        // !!! TODO: More work, as per [JACKSON-268]; may need to convert from physical to logical names:
+        return order;
+        
+        /*
         // More work, as per [JACKSON-268]; may need to convert from physical to logical names:
         PropertyDescriptors props = getDescriptors(ac.getRawType());
         for (int i = 0, len = order.length; i < len; ++i) {
@@ -578,7 +558,7 @@ public class JaxbAnnotationIntrospector
                 order[i] = desc.getName();
             }
         }
-        return order;
+        */
     }
 
     @Override
@@ -597,11 +577,8 @@ public class JaxbAnnotationIntrospector
     @Override
     public String findGettablePropertyName(AnnotatedMethod am)
     {
-        PropertyDescriptor desc = findPropertyDescriptor(am);
-        if (desc != null) {
-            return findJaxbSpecifiedPropertyName(desc);
-        }
-        return null;
+        return findJaxbPropertyName(am, am.getRawType(),
+                BeanUtil.okNameForGetter(am));
     }
 
     @Override
@@ -615,7 +592,7 @@ public class JaxbAnnotationIntrospector
      *<p>
      * !!! 12-Oct-2009, tatu: This is hideously slow implementation,
      *   called potentially for every single enum value being
-     *   serialized. Need to improve somehow
+     *   serialized. Should improve...
      */
     @Override
     public String findEnumValue(Enum<?> e)
@@ -639,16 +616,15 @@ public class JaxbAnnotationIntrospector
     @Override
     public String findSerializablePropertyName(AnnotatedField af)
     {
-        if (isInvisible(af)) {
+        if (!isVisible(af)) {
             return null;
         }
-        Field field = af.getAnnotated();
-        String name = findJaxbPropertyName(field, field.getType(), "");
+        String name = findJaxbPropertyName(af, af.getRawType(), null);
         /* This may seem wrong, but since JAXB field auto-detection
          * needs to find even non-public fields (if enabled by
          * JAXB access type), we need to return name like so:
          */
-        return (name == null) ? field.getName() : name;
+        return (name == null) ? af.getName() : name;
     }
 
     /*
@@ -724,8 +700,7 @@ public class JaxbAnnotationIntrospector
          *   I think it's rather short-sighted. Whatever, it is what it is, and here
          *   we are being given content type explicitly.
          */
-        Class<?> type = _doFindDeserializationType(a, baseContentType, propName);
-        return type;
+        return _doFindDeserializationType(a, baseContentType, propName);
     }
 
     protected Class<?> _doFindDeserializationType(Annotated a, JavaType baseType, String propName)
@@ -764,11 +739,8 @@ public class JaxbAnnotationIntrospector
     @Override
     public String findSettablePropertyName(AnnotatedMethod am)
     {
-        PropertyDescriptor desc = findPropertyDescriptor(am);
-        if (desc != null) {
-            return findJaxbSpecifiedPropertyName(desc);
-        }
-        return null;
+        Class<?> rawType = am.getParameterClass(0);
+        return findJaxbPropertyName(am, rawType, BeanUtil.okNameForSetter(am));
     }
 
     @Override
@@ -790,16 +762,15 @@ public class JaxbAnnotationIntrospector
     @Override
     public String findDeserializablePropertyName(AnnotatedField af)
     {
-        if (isInvisible(af)) {
+        if (!isVisible(af)) {
             return null;
         }
-        Field field = af.getAnnotated();
-        String name = findJaxbPropertyName(field, field.getType(), "");
+        String name = findJaxbPropertyName(af, af.getRawType(), null);
         /* This may seem wrong, but since JAXB field auto-detection
          * needs to find even non-public fields (if enabled by
          * JAXB access type), we need to return name like so:
          */
-        return (name == null) ? field.getName() : name;
+        return (name == null) ? af.getName() : name;
     }
 
     /*
@@ -827,28 +798,26 @@ public class JaxbAnnotationIntrospector
      * @param f The field.
      * @return Whether the field is invisible.
      */
-    protected boolean isInvisible(AnnotatedField f)
+    private boolean isVisible(AnnotatedField f)
     {
-        boolean invisible = true;
-        
         for (Annotation annotation : f.getAnnotated().getDeclaredAnnotations()) {
             if (isHandled(annotation)) {
-                //if any JAXB annotations are present, it is NOT ignorable.
-                invisible = false;
+                return true;
             }
         }
 
-        if (invisible) {
-            XmlAccessType accessType = XmlAccessType.PUBLIC_MEMBER;
-            XmlAccessorType at = findAnnotation(XmlAccessorType.class, f, true, true, true);
-            if (at != null) {
-                accessType = at.value();
-            }
-
-            invisible = accessType != XmlAccessType.FIELD &&
-                !(accessType == XmlAccessType.PUBLIC_MEMBER && Modifier.isPublic(f.getAnnotated().getModifiers()));
+        XmlAccessType accessType = XmlAccessType.PUBLIC_MEMBER;
+        XmlAccessorType at = findAnnotation(XmlAccessorType.class, f, true, true, true);
+        if (at != null) {
+            accessType = at.value();
         }
-        return invisible;
+        if (accessType == XmlAccessType.FIELD) {
+            return true;
+        }
+        if (accessType == XmlAccessType.PUBLIC_MEMBER) {
+            return Modifier.isPublic(f.getAnnotated().getModifiers());
+        }
+        return false;
     }
     
     /**
@@ -863,37 +832,22 @@ public class JaxbAnnotationIntrospector
      * @param includeSuperclasses Whether the annotation can be found on any superclasses of the class of the annotated element.
      * @return The annotation, or null if not found.
      */
-    protected <A extends Annotation> A findAnnotation(Class<A> annotationClass, Annotated annotated,
-                                                      boolean includePackage, boolean includeClass, boolean includeSuperclasses)
+    private <A extends Annotation> A findAnnotation(Class<A> annotationClass, Annotated annotated,
+            boolean includePackage, boolean includeClass, boolean includeSuperclasses)
     {
-        if (annotated instanceof AnnotatedMethod) {
-            PropertyDescriptor pd = findPropertyDescriptor((AnnotatedMethod) annotated);
-            if (pd != null) {
-                A annotation = new AnnotatedProperty(pd).getAnnotation(annotationClass);
-                if (annotation != null) {
-                    return annotation;
-                }
-            }
+        A annotation = annotated.getAnnotation(annotationClass);
+        if (annotation != null) {
+            return annotation;
         }
-
-        AnnotatedElement annType = annotated.getAnnotated();
         Class<?> memberClass = null;
         /* 13-Feb-2011, tatu: [JACKSON-495] - need to handle AnnotatedParameter
          *   bit differently, since there is no JDK counterpart. We can still
          *   access annotations directly, just using different calls.
          */
         if (annotated instanceof AnnotatedParameter) {
-            AnnotatedParameter param = (AnnotatedParameter) annotated;
-            A annotation = param.getAnnotation(annotationClass);
-            if (annotation != null) {
-                return annotation;
-            }
-            memberClass = param.getMember().getDeclaringClass();
+            memberClass = ((AnnotatedParameter) annotated).getDeclaringClass();
         } else {
-            A annotation = annType.getAnnotation(annotationClass);
-            if (annotation != null) {
-                return annotation;
-            }
+            AnnotatedElement annType = annotated.getAnnotated();
             if (annType instanceof Member) {
                 memberClass = ((Member) annType).getDeclaringClass();
                 if (includeClass) {
@@ -912,7 +866,7 @@ public class JaxbAnnotationIntrospector
             if (includeSuperclasses) {
                 Class<?> superclass = memberClass.getSuperclass();
                 while (superclass != null && superclass != Object.class) {
-                    A annotation = (A) superclass.getAnnotation(annotationClass);
+                    annotation = (A) superclass.getAnnotation(annotationClass);
                     if (annotation != null) {
                         return annotation;
                     }
@@ -935,8 +889,8 @@ public class JaxbAnnotationIntrospector
      * 
      * @since 1.5
      */
-    protected <A extends Annotation> A findFieldAnnotation(Class<A> annotationType, Class<?> cls,
-                                                          String fieldName)
+    private <A extends Annotation> A findFieldAnnotation(Class<A> annotationType,
+            Class<?> cls, String fieldName)
     {
         do {
             for (Field f : cls.getDeclaredFields()) {
@@ -958,62 +912,7 @@ public class JaxbAnnotationIntrospector
     /**********************************************************
      */
 
-    /* 27-Feb-2010, tatu: Since bean property descriptors are accessed so
-     *   often, let's try some trivially simple reuse. Since introspectors
-     *   are currently stateless (bad initial decision), need to add
-     *   local caching between calls. For now, no need to cache for more
-     *   than a single class, since intent is to avoid repetitive same
-     *   lookups (during handling of a single class)
-     */
-
-    private final static ThreadLocal<SoftReference<PropertyDescriptors>> _propertyDescriptors
-        = new ThreadLocal<SoftReference<PropertyDescriptors>>();
- 
-    protected PropertyDescriptors getDescriptors(Class<?> forClass)
-    {
-        SoftReference<PropertyDescriptors> ref = _propertyDescriptors.get();
-        PropertyDescriptors descriptors = (ref == null) ? null : ref.get();
-
-        if (descriptors == null || descriptors.getBeanClass() != forClass) {
-            try {
-                descriptors = PropertyDescriptors.find(forClass);
-            } catch (IntrospectionException e) {
-                throw new IllegalArgumentException("Problem introspecting bean properties: "+e.getMessage(), e);
-            }
-            _propertyDescriptors.set(new SoftReference<PropertyDescriptors>(descriptors));
-        }
-        return descriptors;
-    }
-    
-    /**
-     * Finds the property descriptor (adapted to AnnotatedElement) for the specified
-     * method. Can use logical property name
-     *
-     * @param m The method.
-     * @return The property descriptor, or null if not found.
-     */
-    protected PropertyDescriptor findPropertyDescriptor(AnnotatedMethod m)
-    {
-        // not good to rely on declaring class; methods could be split across classes, overridden...
-        PropertyDescriptors descs = getDescriptors(m.getDeclaringClass());
-        // is it enough to just find by method name?
-        PropertyDescriptor desc =  descs.findByMethodName(m.getName());
-        /*
-        if (desc == null) {
-            desc = descs.findByPropertyName(m.getName());
-        }
-        */
-        return desc;
-    }
-
-    protected String findJaxbSpecifiedPropertyName(PropertyDescriptor prop)
-    {
-        // Should we rely on property name detected earlier? If not, change last argument
-        // to "" and it'll get determined later on.
-        return findJaxbPropertyName(new AnnotatedProperty(prop), prop.getPropertyType(), prop.getName());
-    }
-
-    protected static String findJaxbPropertyName(AnnotatedElement ae, Class<?> aeType, String defaultName)
+    private static String findJaxbPropertyName(Annotated ae, Class<?> aeType, String defaultName)
     {
         XmlElementWrapper elementWrapper = ae.getAnnotation(XmlElementWrapper.class);
         if (elementWrapper != null) {
@@ -1080,7 +979,7 @@ public class JaxbAnnotationIntrospector
      * 
      * @return The adapter, or null if none.
      */
-    protected XmlAdapter<Object,Object> findAdapter(Annotated am, boolean forSerialization)
+    private XmlAdapter<Object,Object> findAdapter(Annotated am, boolean forSerialization)
     {
         // First of all, are we looking for annotations for class?
         if (am instanceof AnnotatedClass) {
@@ -1143,7 +1042,7 @@ public class JaxbAnnotationIntrospector
     }
     
     @SuppressWarnings("unchecked")
-    protected XmlAdapter<Object,Object> findAdapterForClass(AnnotatedClass ac, boolean forSerialization)
+    private XmlAdapter<Object,Object> findAdapterForClass(AnnotatedClass ac, boolean forSerialization)
     {
         /* As per [JACKSON-411], XmlJavaTypeAdapter should not be inherited from super-class.
          * It would still be nice to be able to use mix-ins; but unfortunately we seem to lose
@@ -1163,11 +1062,61 @@ public class JaxbAnnotationIntrospector
      * Helper method used to distinguish structured type, which with JAXB use different
      * rules for defining content types.
      */
-    protected boolean isIndexedType(Class<?> raw)
+    private boolean isIndexedType(Class<?> raw)
     {
         return raw.isArray() || Collection.class.isAssignableFrom(raw)
             || Map.class.isAssignableFrom(raw);
     }
+
+    /*
+    /**********************************************************
+    /* Deprecated bean property handling
+    /**********************************************************
+     */
+    
+    /* 27-Feb-2010, tatu: Since bean property descriptors are accessed so
+     *   often, let's try some trivially simple reuse. Since introspectors
+     *   are currently stateless (bad initial decision), need to add
+     *   local caching between calls. For now, no need to cache for more
+     *   than a single class, since intent is to avoid repetitive same
+     *   lookups (during handling of a single class)
+     */
+
+    /*
+    private final static ThreadLocal<SoftReference<PropertyDescriptors>> _propertyDescriptors
+        = new ThreadLocal<SoftReference<PropertyDescriptors>>();
+ 
+    private PropertyDescriptors getDescriptors(Class<?> forClass)
+    {
+        SoftReference<PropertyDescriptors> ref = _propertyDescriptors.get();
+        PropertyDescriptors descriptors = (ref == null) ? null : ref.get();
+
+        if (descriptors == null || descriptors.getBeanClass() != forClass) {
+            try {
+                descriptors = PropertyDescriptors.find(forClass);
+            } catch (IntrospectionException e) {
+                throw new IllegalArgumentException("Problem introspecting bean properties: "+e.getMessage(), e);
+            }
+            _propertyDescriptors.set(new SoftReference<PropertyDescriptors>(descriptors));
+        }
+        return descriptors;
+    }
+    
+    // Finds the property descriptor (adapted to AnnotatedElement) for the specified
+    // method. Can use logical property name
+    //
+    // @param m The method.
+    // @return The property descriptor, or null if not found.
+    private PropertyDescriptor findPropertyDescriptor(AnnotatedMethod m)
+    {
+        // not good to rely on declaring class; methods could be split across classes, overridden...
+        PropertyDescriptors descs = getDescriptors(m.getDeclaringClass());
+        // is it enough to just find by method name?
+        PropertyDescriptor desc =  descs.findByMethodName(m.getName());
+        return desc;
+    }
+
+    */
     
     /*
     /**********************************************************
@@ -1175,6 +1124,7 @@ public class JaxbAnnotationIntrospector
     /**********************************************************
      */
     
+    /*
     private static class AnnotatedProperty implements AnnotatedElement {
         private final PropertyDescriptor pd;
 
@@ -1224,10 +1174,12 @@ public class JaxbAnnotationIntrospector
             throw new UnsupportedOperationException();
         }
     }
+    */
 
     /**
      * Helper class used to contain information about properties of a single class.
      */
+    /*
     protected final static class PropertyDescriptors
     {
         private final Class<?> _forClass;
@@ -1273,9 +1225,7 @@ public class JaxbAnnotationIntrospector
             return _byMethodName.get(name);
         }
 
-        /**
-         * Factory method for finding all (public) bean properties
-         */
+        // Factory method for finding all (public) bean properties
         public static PropertyDescriptors find(Class<?> forClass)
             throws IntrospectionException
         {
@@ -1379,4 +1329,5 @@ public class JaxbAnnotationIntrospector
             return partials;
         }
     }
+    */
 }

@@ -27,7 +27,7 @@ public class TestCyclicTypes
     @XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
     static class Bean
     {
-        Bean _next;
+        private Bean _next;
         final String _name;
 
         public Bean(Bean next, String name) {
@@ -54,7 +54,9 @@ public class TestCyclicTypes
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-        Map<String,Object> results = writeAndMap(mapper, new Bean(null, "abx"));
+        Bean bean =  new Bean(null, "abx");
+
+        Map<String,Object> results = writeAndMap(mapper, bean);
         assertEquals(2, results.size());
         assertEquals("abx", results.get("name"));
         assertTrue(results.containsKey("next"));
