@@ -66,24 +66,23 @@ public class POJOPropertyCollector
      * Method for adding all property members from specified collector into
      * this collector.
      */
-    public void addAll(POJOPropertyCollector src) {
-        _fields = _addAll(_fields, src._fields);
-        _ctorParameters = _addAll(_ctorParameters, src._ctorParameters);
-        _getters= _addAll(_getters, src._getters);
-        _setters = _addAll(_setters, src._setters);
+    public void addAll(POJOPropertyCollector src)
+    {
+        _fields = merge(_fields, src._fields);
+        _ctorParameters = merge(_ctorParameters, src._ctorParameters);
+        _getters= merge(_getters, src._getters);
+        _setters = merge(_setters, src._setters);
     }
 
-    private <T> Node<T> _addAll(Node<T> chainToAugment, Node<T> newEntries)
+    private static <T> Node<T> merge(Node<T> chain1, Node<T> chain2)
     {
-        if (chainToAugment == null) {
-            return newEntries;
+        if (chain1 == null) {
+            return chain2;
         }
-        while (newEntries != null) {
-            Node<T> next = newEntries.next;
-            chainToAugment = newEntries.withNext(chainToAugment);
-            newEntries = next;
+        if (chain2 == null) {
+            return chain1;
         }
-        return chainToAugment;
+        return chain1.append(chain2);
     }
     
     /*
@@ -512,6 +511,18 @@ public class POJOPropertyCollector
             return isVisible ? withNext(newNext) : newNext;
         }
 
+        /**
+         * Method called to append given node(s) at the end of this
+         * node chain.
+         */
+        private Node<T> append(Node<T> appendable) 
+        {
+            if (next == null) {
+                return withNext(appendable);
+            }
+            return withNext(next.append(appendable));
+        }
+        
         public Node<T> trimByVisibility()
         {
             if (next == null) {

@@ -326,13 +326,15 @@ public class POJOPropertiesCollector
                         visible = _visibilityChecker.isGetterVisible(m);
                     }
                 } else { // explicit indication of inclusion, but may be empty
-                    if (explName.length() == 0) { 
-                        explName = BeanUtil.okNameForGetter(m);
-                        if (explName == null) {
-                            explName = m.getName();
-                        }
+                    // we still need implicit name to link with other pieces
+                    implName = BeanUtil.okNameForGetter(m);
+                    // if not regular getter name, use method name as is
+                    if (implName == null) {
+                        implName = m.getName();
                     }
-                    implName = explName;
+                    if (explName.length() == 0) {
+                        explName = implName;
+                    }
                     visible = true;
                 }
                 boolean ignore = (ai == null) ? false : ai.hasIgnoreMarker(m);
@@ -346,13 +348,15 @@ public class POJOPropertiesCollector
                     }
                     visible = _visibilityChecker.isSetterVisible(m);
                 } else { // explicit indication of inclusion, but may be empty
-                    if (explName.length() == 0) { 
-                        explName = BeanUtil.okNameForSetter(m);
-                        if (explName == null) {
-                            explName = m.getName();
-                        }
+                    // we still need implicit name to link with other pieces
+                    implName = BeanUtil.okNameForSetter(m);
+                    // if not regular getter name, use method name as is
+                    if (implName == null) {
+                        implName = m.getName();
                     }
-                    implName = explName;
+                    if (explName.length() == 0) { 
+                        explName = implName;
+                    }
                     visible = true;
                 }
                 boolean ignore = (ai == null) ? false : ai.hasIgnoreMarker(m);
@@ -447,7 +451,7 @@ public class POJOPropertiesCollector
                 it.remove();
             }
         }
-
+        
         // and if any were renamed, merge back in...
         if (renamed != null) {
             for (POJOPropertyCollector prop : renamed) {

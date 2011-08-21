@@ -34,6 +34,13 @@ public class TestAnnotationMerging extends BaseMapTest
         
         public int getValue() { return value; }
     }
+
+    static class SharedName2
+    {
+        @JsonProperty("x")
+        public int getValue() { return 1; }
+        public void setValue(int x) { }
+    }
     
     /*
     /**********************************************************
@@ -45,6 +52,15 @@ public class TestAnnotationMerging extends BaseMapTest
     {
         ObjectMapper mapper = new ObjectMapper();
         assertEquals("{\"x\":6}", mapper.writeValueAsString(new SharedName(6)));
+    }
+
+    public void testSharedNamesFromGetterToSetter() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(new SharedName2());
+        assertEquals("{\"x\":1}", json);
+        SharedName2 result = mapper.readValue(json, SharedName2.class);
+        assertNotNull(result);
     }
     
     public void testSharedTypeInfo() throws Exception

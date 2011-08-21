@@ -332,7 +332,7 @@ public class TestJaxbAnnotationIntrospector
         assertEquals("wrappedElementValue", node.get("mywrapped").get(0).asText());
         assertEquals("Value One", node.get("enumProperty").asText());
         assertNull(node.get("propertyToIgnore"));
-
+        
         //now make sure it gets deserialized correctly.
         JaxbExample readEx = mapper.readValue(json, JaxbExample.class);
         assertEquals(ex.qname, readEx.qname);
