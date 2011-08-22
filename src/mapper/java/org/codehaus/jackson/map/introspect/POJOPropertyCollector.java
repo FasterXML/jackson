@@ -111,11 +111,13 @@ public class POJOPropertyCollector
          *   For now, we will only do this to pull in setter or field used
          *   as setter, if an explicit getter is found.
          */
-        
-        _fields = _removeNonVisible(_fields);
         _getters = _removeNonVisible(_getters);
-        _setters = _removeNonVisible(_setters);
         _ctorParameters = _removeNonVisible(_ctorParameters);
+
+        if (_getters == null) {
+            _fields = _removeNonVisible(_fields);
+            _setters = _removeNonVisible(_setters);
+        }
     }
 
     /**

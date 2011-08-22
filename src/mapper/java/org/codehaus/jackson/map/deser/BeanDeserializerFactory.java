@@ -692,7 +692,11 @@ public class BeanDeserializerFactory
         if (am != null) { // should never be null
             SettableBeanProperty prop = constructSettableProperty(config, beanDesc, "cause", am);
             if (prop != null) {
-                builder.addProperty(prop);
+                /* 21-Aug-2011, tatus: We may actually have found 'cause' property
+                 *   to set (with new 1.9 code)... but let's replace it just in case,
+                 *   otherwise can end up with odd errors.
+                 */
+                builder.addOrReplaceProperty(prop, true);
             }
         }
 

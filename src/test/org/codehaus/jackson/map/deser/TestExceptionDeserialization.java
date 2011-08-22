@@ -59,11 +59,8 @@ public class TestExceptionDeserialization
     {
         ObjectMapper mapper = new ObjectMapper();
         IOException ioe = new IOException("TEST");
-
-        String json = serializeAsString(mapper, ioe);
-
+        String json = mapper.writeValueAsString(ioe);
         IOException result = mapper.readValue(json, IOException.class);
-
         assertEquals(ioe.getMessage(), result.getMessage());
     }
 
