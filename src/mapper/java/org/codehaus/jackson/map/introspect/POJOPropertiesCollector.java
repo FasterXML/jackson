@@ -361,6 +361,7 @@ public class POJOPropertiesCollector
                 }
                 boolean ignore = (ai == null) ? false : ai.hasIgnoreMarker(m);
                 _property(implName).addSetter(m, explName, visible, ignore);
+
             } else if (argCount == 2) { // any getter?
                 if (ai != null  && ai.hasAnySetterAnnotation(m)) {
                     if (_anySetters == null) {
@@ -370,7 +371,6 @@ public class POJOPropertiesCollector
                 }
             }
         }
-
     }
 
     /*
@@ -395,12 +395,6 @@ public class POJOPropertiesCollector
                 it.remove();
                 continue;
             }
-            /* !!! TODO: check if this is correct handling:
-             * 
-             * hmmh. Should we remove non-visible ones or not?
-             */
-            prop.removeNonVisible();
-            
             // Otherwise, check ignorals
             if (prop.anyIgnorals()) {
                 // first: if one or more ignorals, and no explicit markers, remove the whole thing
@@ -415,6 +409,8 @@ public class POJOPropertiesCollector
                     _addIgnored(prop.getName());
                 }
             }
+            // and finally, handle removal of individual non-visible elements
+            prop.removeNonVisible();
         }
     }
     

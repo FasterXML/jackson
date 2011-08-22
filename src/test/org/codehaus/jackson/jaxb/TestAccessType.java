@@ -23,7 +23,7 @@ public class TestAccessType
 
     @XmlRootElement(name = "model")
     @XmlAccessorType(XmlAccessType.NONE)
-    public static class Model
+    public static class SimpleNamed
     {
        protected String name;
 
@@ -70,16 +70,16 @@ public class TestAccessType
      {
          ObjectMapper mapper = getJaxbMapper();
 
-         Model originalModel = new Model();
+         SimpleNamed originalModel = new SimpleNamed();
          originalModel.setName("Foobar");
          String json = mapper.writeValueAsString(originalModel);
-         Model newModel = null;
+         SimpleNamed result = null;
          try {
-             newModel = mapper.readValue(json, Model.class);
+             result = mapper.readValue(json, SimpleNamed.class);
          } catch (Exception ie) {
-             fail("Failed to deserialize: "+ie.getMessage());
+             fail("Failed to deserialize '"+json+"': "+ie.getMessage());
          }
-         if (!"Foobar".equals(newModel.name)) {
+         if (!"Foobar".equals(result.name)) {
              fail("Failed, JSON == '"+json+"')");
          }
      }

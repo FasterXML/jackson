@@ -105,6 +105,13 @@ public class POJOPropertyCollector
 
     public void removeNonVisible()
     {
+        /* 21-Aug-2011, tatu: This is tricky part -- if and when allow
+         *   non-visible property elements to be "pulled in" by visible
+         *   counterparts?
+         *   For now, we will only do this to pull in setter or field used
+         *   as setter, if an explicit getter is found.
+         */
+        
         _fields = _removeNonVisible(_fields);
         _getters = _removeNonVisible(_getters);
         _setters = _removeNonVisible(_setters);
@@ -548,7 +555,7 @@ public class POJOPropertyCollector
         
         @Override
         public String toString() {
-            String msg = value.toString();
+            String msg = value.toString()+"[visible="+isVisible+"]";
             if (next != null) {
                 msg = msg + ", "+next.toString();
             }
