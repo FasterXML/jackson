@@ -1,7 +1,9 @@
 package org.codehaus.jackson.jaxb;
 
+import java.io.*;
 import java.math.BigDecimal;
 import java.util.Map;
+
 import javax.xml.bind.annotation.*;
 
 import org.codehaus.jackson.map.*;
@@ -48,6 +50,7 @@ public class TestJaxbAutoDetect
         public void setId(Object id) { this.id = id; }
     }
 
+    @XmlRootElement(name="bah")
     public static class JaxbAnnotatedObject {
 
         private BigDecimal number;
@@ -58,6 +61,7 @@ public class TestJaxbAutoDetect
             this.number = new BigDecimal(number);
         }
 
+        @XmlElement
         public void setNumber(BigDecimal number) {
             this.number = number;
         }
@@ -92,7 +96,7 @@ public class TestJaxbAutoDetect
     /**********************************************************
      */
 
-    public void testAutoDetectDisable() throws Exception
+    public void testAutoDetectDisable() throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
@@ -116,7 +120,7 @@ public class TestJaxbAutoDetect
     }
 
     // @since 1.5
-    public void testIssue246() throws Exception
+    public void testIssue246() throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
@@ -135,4 +139,17 @@ public class TestJaxbAutoDetect
         JaxbAnnotatedObject result = mapper.readValue(json, JaxbAnnotatedObject.class);
         assertEquals(new BigDecimal("123"), result.number);
     }
+
+    /*
+    public void testJaxbAnnotatedObjectXML() throws Exception
+    {
+        JAXBContext ctxt = JAXBContext.newInstance(JaxbAnnotatedObject.class);
+        JaxbAnnotatedObject original = new JaxbAnnotatedObject("123");
+        StringWriter sw = new StringWriter();
+        ctxt.createMarshaller().marshal(original, sw);
+        String xml = sw.toString();
+        JaxbAnnotatedObject result = (JaxbAnnotatedObject) ctxt.createUnmarshaller().unmarshal(new StringReader(xml));
+        assertEquals(new BigDecimal("123"), result.number);
+    }
+    */
 }
