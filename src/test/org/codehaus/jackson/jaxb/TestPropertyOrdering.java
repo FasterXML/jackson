@@ -34,7 +34,6 @@ public class TestPropertyOrdering
      * names for property ordering, let's see that alternative
      * annotation also works
      * (see [JACKSON-268] for more details)
-     * 
      */
     @XmlType(propOrder = {"cpartyDto", "contacts"})
     @XmlAccessorOrder(XmlAccessOrder.ALPHABETICAL)

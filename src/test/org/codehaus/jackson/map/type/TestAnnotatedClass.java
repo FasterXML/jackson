@@ -77,6 +77,7 @@ public class TestAnnotatedClass
     /**********************************************************
      */
 
+    @SuppressWarnings("deprecation")
     public void testSimple()
     {
         // null -> no mix-in annotations
@@ -108,6 +109,7 @@ public class TestAnnotatedClass
      * Another simple test to verify that the (concrete) type information
      * from a sub-class is used instead of abstract one from superclass.
      */
+    @SuppressWarnings("deprecation")
     public void testGenericsWithSetter()
     {
         // null -> no mix-in annotations
