@@ -86,7 +86,7 @@ public class BasicBeanDescription extends BeanDescription
     {
     	super(type);
     	_config = config;
-    	_annotationIntrospector = config.getAnnotationIntrospector();
+    	_annotationIntrospector = (config == null) ? null : config.getAnnotationIntrospector();
     	_classInfo = ac;
     	_properties = properties;
     }
