@@ -43,8 +43,11 @@ public class BasicBeanDescription extends BeanDescription
     /* Member information
     /**********************************************************
      */
-    
-    protected final List<POJOPropertyCollector> _properties;
+
+    /**
+     * Properties collected for the POJO.
+     */
+    protected final List<BeanPropertyDefinition> _properties;
 
     // // for deserialization
     
@@ -75,14 +78,14 @@ public class BasicBeanDescription extends BeanDescription
     public BasicBeanDescription(MapperConfig<?> config, JavaType type,
             AnnotatedClass ac)
     {
-        this(config, type, ac, Collections.<POJOPropertyCollector>emptyList());
+        this(config, type, ac, Collections.<BeanPropertyDefinition>emptyList());
     }
 
     /**
      * @since 1.9
      */
     protected BasicBeanDescription(MapperConfig<?> config, JavaType type,
-            AnnotatedClass ac, List<POJOPropertyCollector> properties)
+            AnnotatedClass ac, List<BeanPropertyDefinition> properties)
     {
     	super(type);
     	_config = config;
@@ -132,7 +135,7 @@ public class BasicBeanDescription extends BeanDescription
             JavaType type, AnnotatedClass ac)
     {
         return new BasicBeanDescription(config, type,
-                ac, Collections.<POJOPropertyCollector>emptyList());
+                ac, Collections.<BeanPropertyDefinition>emptyList());
     }
     
     /*
@@ -141,6 +144,37 @@ public class BasicBeanDescription extends BeanDescription
     /**********************************************************
      */
 
+    /**        
+     * @since 1.9
+     */
+    @Override
+    public AnnotatedClass getClassInfo() { return _classInfo; }
+    
+    @Override
+    public List<BeanPropertyDefinition> findProperties() {
+        return _properties;
+    }
+
+    /**
+     * Method for locating the getter method that is annotated with
+     * {@link org.codehaus.jackson.annotate.JsonValue} annotation,
+     * if any. If multiple ones are found,
+     * an error is reported by throwing {@link IllegalArgumentException}
+     */
+    @Override
+    public AnnotatedMethod findJsonValueMethod()
+    {
+        return _jsonValueMethod;
+    }
+
+    @Override
+    public Set<String> getIgnoredPropertyNames() {
+        if (_ignoredPropertyNames == null) {
+            return Collections.emptySet();
+        }
+        return _ignoredPropertyNames;
+    }
+    
     /**
      * Method for checking whether class being described has any
      * annotations recognized by registered annotation introspector.
@@ -168,14 +202,116 @@ public class BasicBeanDescription extends BeanDescription
     public JavaType resolveType(java.lang.reflect.Type jdkType) {
         return bindingsForBeanType().resolveType(jdkType);
     }
+
+    /**
+     * Method that will locate the no-arg constructor for this class,
+     * if it has one, and that constructor has not been marked as
+     * ignorable.
+     * 
+     * @since 1.9
+     */
+    @Override
+    public AnnotatedConstructor findDefaultConstructor()
+    {
+        return _classInfo.getDefaultConstructor();
+    }
+
+    /**
+     * Method used to locate the method of introspected class that
+     * implements {@link org.codehaus.jackson.annotate.JsonAnySetter}. If no such method exists
+     * null is returned. If more than one are found, an exception
+     * is thrown.
+     * Additional checks are also made to see that method signature
+     * is acceptable: needs to take 2 arguments, first one String or
+     * Object; second any can be any type.
+     */
+    @Override
+    public AnnotatedMethod findAnySetter() throws IllegalArgumentException
+    {
+        if (_anySetterMethod != null) {
+            /* Also, let's be somewhat strict on how field name is to be
+             * passed; String, Object make sense, others not
+             * so much.
+             */
+            /* !!! 18-May-2009, tatu: how about enums? Can add support if
+             *  requested; easy enough for devs to add support within
+             *  method.
+             */
+            Class<?> type = _anySetterMethod.getParameterClass(0);
+            if (type != String.class && type != Object.class) {
+                throw new IllegalArgumentException("Invalid 'any-setter' annotation on method "+_anySetterMethod.getName()+"(): first argument not of type String or Object, but "+type.getName());
+            }
+        }
+        return _anySetterMethod;
+    }
+    
+    public List<AnnotatedConstructor> getConstructors()
+    {
+        return _classInfo.getConstructors();
+    }
+
+    /*
+    /**********************************************************
+    /* Deprecated methods from BeanDescription
+    /**********************************************************
+     */
+    
+    @SuppressWarnings("deprecation")
+    @Override
+    public LinkedHashMap<String,AnnotatedMethod> findGetters(VisibilityChecker<?> visibilityChecker,
+            Collection<String> ignoredProperties)
+    {
+        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
+        for (BeanPropertyDefinition property : _properties) {
+            AnnotatedMethod m = property.getGetter();
+            if (m != null) {
+                String name = property.getName();
+                if (ignoredProperties != null) {
+                    if (ignoredProperties.contains(name)) {
+                        continue;
+                    }
+                }
+                results.put(name, m);
+            }
+        }
+        return results;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public LinkedHashMap<String,AnnotatedMethod> findSetters(VisibilityChecker<?> visibilityChecker)
+    {
+        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
+        for (BeanPropertyDefinition property : _properties) {
+            AnnotatedMethod m = property.getSetter();
+            if (m != null) {
+                results.put(property.getName(), m);
+            }
+        }
+        return results;
+    }
+    
+    @SuppressWarnings("deprecation")
+    @Override
+    public LinkedHashMap<String,AnnotatedField> findSerializableFields(VisibilityChecker<?> visibilityChecker,
+            Collection<String> ignoredProperties)
+    {
+        return _findPropertyFields(ignoredProperties, true);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public LinkedHashMap<String,AnnotatedField> findDeserializableFields(VisibilityChecker<?> visibilityChecker,
+            Collection<String> ignoredProperties)
+    {
+        return _findPropertyFields(ignoredProperties, false);
+    }
     
     /*
     /**********************************************************
     /* Simple accessors, extended
     /**********************************************************
      */
-    
-    public AnnotatedClass getClassInfo() { return _classInfo; }
 
     public AnnotatedMethod findMethod(String name, Class<?>[] paramTypes)
     {
@@ -215,82 +351,12 @@ public class BasicBeanDescription extends BeanDescription
             throw new IllegalArgumentException("Failed to instantiate bean of type "+_classInfo.getAnnotated().getName()+": ("+t.getClass().getName()+") "+t.getMessage(), t);
         }
     }
-    
-    /*
-    /**********************************************************
-    /* Basic API
-    /**********************************************************
-     */
-
-    /*
-    /**********************************************************
-    /* Introspection for serialization (write JSON), getters
-    /**********************************************************
-     */
-    
-    @Override
-    public LinkedHashMap<String,AnnotatedMethod> findGetters(Collection<String> ignoredProperties)
-    {
-        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
-        for (POJOPropertyCollector property : _properties) {
-            AnnotatedMethod m = property.getGetter();
-            if (m != null) {
-                String name = property.getName();
-                if (ignoredProperties != null) {
-                    if (ignoredProperties.contains(name)) {
-                        continue;
-                    }
-                }
-                results.put(name, m);
-            }
-        }
-        return results;
-    }
-
-    /**
-     * Method for locating the getter method that is annotated with
-     * {@link org.codehaus.jackson.annotate.JsonValue} annotation,
-     * if any. If multiple ones are found,
-     * an error is reported by throwing {@link IllegalArgumentException}
-     */
-    public AnnotatedMethod findJsonValueMethod()
-    {
-        return _jsonValueMethod;
-    }
 
     /*
     /**********************************************************
     /* Introspection for serialization, factories
     /**********************************************************
      */
-
-    /**
-     * Method that will locate the no-arg constructor for this class,
-     * if it has one, and that constructor has not been marked as
-     * ignorable.
-     * Method will also ensure that the constructor is accessible.
-     */
-    public Constructor<?> findDefaultConstructor()
-    {
-        AnnotatedConstructor ac = _classInfo.getDefaultConstructor();
-        if (ac == null) {
-            return null;
-        }
-        return ac.getAnnotated();
-    }
-
-    /**
-     * @since 1.9
-     */
-    public AnnotatedConstructor findAnnotatedDefaultConstructor()
-    {
-        return _classInfo.getDefaultConstructor();
-    }
-    
-    public List<AnnotatedConstructor> getConstructors()
-    {
-        return _classInfo.getConstructors();
-    }
 
     public List<AnnotatedMethod> getFactoryMethods()
     {
@@ -419,18 +485,6 @@ public class BasicBeanDescription extends BeanDescription
         }
         return names;
     }
-
-    /*
-    /**********************************************************
-    /* Introspection for serialization, fields
-    /**********************************************************
-     */
-
-    @Override
-    public LinkedHashMap<String,AnnotatedField> findSerializableFields(Collection<String> ignoredProperties)
-    {
-        return _findPropertyFields(ignoredProperties, true);
-    }
     
     /*
     /**********************************************************
@@ -450,54 +504,6 @@ public class BasicBeanDescription extends BeanDescription
             return defValue;
         }
         return _annotationIntrospector.findSerializationInclusion(_classInfo, defValue);
-    }
-
-    /*
-    /**********************************************************
-    /* Introspection for deserialization, setters:
-    /**********************************************************
-     */
-
-    @Override
-    public LinkedHashMap<String,AnnotatedMethod> findSetters()
-    {
-        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
-        for (POJOPropertyCollector property : _properties) {
-            AnnotatedMethod m = property.getSetter();
-            if (m != null) {
-                results.put(property.getName(), m);
-            }
-        }
-        return results;
-    }
-
-    /**
-     * Method used to locate the method of introspected class that
-     * implements {@link org.codehaus.jackson.annotate.JsonAnySetter}. If no such method exists
-     * null is returned. If more than one are found, an exception
-     * is thrown.
-     * Additional checks are also made to see that method signature
-     * is acceptable: needs to take 2 arguments, first one String or
-     * Object; second any can be any type.
-     */
-    @Override
-    public AnnotatedMethod findAnySetter() throws IllegalArgumentException
-    {
-        if (_anySetterMethod != null) {
-            /* Also, let's be somewhat strict on how field name is to be
-             * passed; String, Object make sense, others not
-             * so much.
-             */
-            /* !!! 18-May-2009, tatu: how about enums? Can add support if
-             *  requested; easy enough for devs to add support within
-             *  method.
-             */
-            Class<?> type = _anySetterMethod.getParameterClass(0);
-            if (type != String.class && type != Object.class) {
-                throw new IllegalArgumentException("Invalid 'any-setter' annotation on method "+_anySetterMethod.getName()+"(): first argument not of type String or Object, but "+type.getName());
-            }
-        }
-        return _anySetterMethod;
     }
 
     /**
@@ -559,26 +565,6 @@ public class BasicBeanDescription extends BeanDescription
         }
         return result;
     }
-    
-    /*
-    /**********************************************************
-    /* Introspection for deserialization, fields:
-    /**********************************************************
-     */
-
-    @Override
-    public LinkedHashMap<String,AnnotatedField> findDeserializableFields(Collection<String> ignoredProperties)
-    {
-        return _findPropertyFields(ignoredProperties, false);
-    }
-    
-    @Override
-    public Set<String> getIgnoredPropertyNames() {
-        if (_ignoredPropertyNames == null) {
-            return Collections.emptySet();
-        }
-        return _ignoredPropertyNames;
-    }
 
     /*
     /**********************************************************
@@ -600,7 +586,7 @@ public class BasicBeanDescription extends BeanDescription
             Collection<String> ignoredProperties, boolean forSerialization)
     {
         LinkedHashMap<String,AnnotatedField> results = new LinkedHashMap<String,AnnotatedField>();
-        for (POJOPropertyCollector property : _properties) {
+        for (BeanPropertyDefinition property : _properties) {
             AnnotatedField f = property.getField();
             if (f != null) {
                 String name = property.getName();
@@ -613,16 +599,5 @@ public class BasicBeanDescription extends BeanDescription
             }
         }
         return results;
-        /*
-        final PropertyNamingStrategy naming = _config.getPropertyNamingStrategy();
-            if (propName != null) { // is annotated
-                if (propName.length() == 0) { 
-                    propName = af.getName();
-                    // [JACKSON-178] Also, allow renaming via strategy
-                    if (naming != null) {
-                        propName = naming.nameForField(_config, af, propName);
-                    }
-                }
-                */
     }
 }

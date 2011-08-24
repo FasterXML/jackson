@@ -550,16 +550,14 @@ public class BeanSerializerFactory
     protected List<BeanPropertyWriter> findBeanProperties(SerializationConfig config, BasicBeanDescription beanDesc)
         throws JsonMappingException
     {
+        List<BeanPropertyDefinition> properties = beanDesc.findProperties();
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        Map<String,AnnotatedMethod> methodsByProp = beanDesc.findGetters(null);
-        Map<String,AnnotatedField> fieldsByProp = beanDesc.findSerializableFields(methodsByProp.keySet());
 
         // [JACKSON-429]: ignore specified types
-        removeIgnorableTypes(config, beanDesc, methodsByProp);
-        removeIgnorableTypes(config, beanDesc, fieldsByProp);
+        removeIgnorableTypes(config, beanDesc, properties);
         
         // nothing? can't proceed (caller may or may not throw an exception)
-        if (methodsByProp.isEmpty() && fieldsByProp.isEmpty()) {
+        if (properties.isEmpty()) {
             return null;
         }
         
@@ -567,27 +565,24 @@ public class BeanSerializerFactory
         boolean staticTyping = usesStaticTyping(config, beanDesc, null, null);
         PropertyBuilder pb = constructPropertyBuilder(config, beanDesc);
 
-        ArrayList<BeanPropertyWriter> props = new ArrayList<BeanPropertyWriter>(methodsByProp.size());
+        ArrayList<BeanPropertyWriter> result = new ArrayList<BeanPropertyWriter>(properties.size());
         TypeBindings typeBind = beanDesc.bindingsForBeanType();
         // [JACKSON-98]: start with field properties, if any
-        for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {      
+        for (BeanPropertyDefinition property : properties) {
+            AnnotatedMember accessor = property.getAccessor();
             // [JACKSON-235]: suppress writing of back references
-            AnnotationIntrospector.ReferenceProperty prop = intr.findReferenceType(en.getValue());
+            AnnotationIntrospector.ReferenceProperty prop = intr.findReferenceType(accessor);
             if (prop != null && prop.isBackReference()) {
                 continue;
             }
-            props.add(_constructWriter(config, typeBind, pb, staticTyping, en.getKey(), en.getValue()));
-        }
-        // and then add member properties
-        for (Map.Entry<String,AnnotatedMethod> en : methodsByProp.entrySet()) {
-            // [JACKSON-235]: suppress writing of back references
-            AnnotationIntrospector.ReferenceProperty prop = intr.findReferenceType(en.getValue());
-            if (prop != null && prop.isBackReference()) {
-                continue;
+            String name = property.getName();
+            if (accessor instanceof AnnotatedMethod) {
+                result.add(_constructWriter(config, typeBind, pb, staticTyping, name, (AnnotatedMethod) accessor));
+            } else {
+                result.add(_constructWriter(config, typeBind, pb, staticTyping, name, (AnnotatedField) accessor));
             }
-            props.add(_constructWriter(config, typeBind, pb, staticTyping, en.getKey(), en.getValue()));
         }
-        return props;
+        return result;
     }
 
     /*
@@ -681,18 +676,20 @@ public class BeanSerializerFactory
      * by default this is based on {@link org.codehaus.jackson.annotate.JsonIgnoreType} annotation but
      * can be supplied by module-provided introspectors too.
      */
-    protected <T extends AnnotatedMember> void removeIgnorableTypes(SerializationConfig config, BasicBeanDescription beanDesc,
-            Map<String, T> props)
+    protected void removeIgnorableTypes(SerializationConfig config, BasicBeanDescription beanDesc,
+            List<BeanPropertyDefinition> properties)
     {
-        if (props.isEmpty()) {
-            return;
-        }
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
-        Iterator<Map.Entry<String,T>> it = props.entrySet().iterator();
         HashMap<Class<?>,Boolean> ignores = new HashMap<Class<?>,Boolean>();
+        Iterator<BeanPropertyDefinition> it = properties.iterator();
         while (it.hasNext()) {
-            Map.Entry<String, T> entry = it.next();
-            Class<?> type = entry.getValue().getRawType();
+            BeanPropertyDefinition property = it.next();
+            AnnotatedMember accessor = property.getAccessor();
+            if (accessor == null) {
+                it.remove();
+                continue;
+            }
+            Class<?> type = accessor.getRawType();
             Boolean result = ignores.get(type);
             if (result == null) {
                 BasicBeanDescription desc = config.introspectClassAnnotations(type);

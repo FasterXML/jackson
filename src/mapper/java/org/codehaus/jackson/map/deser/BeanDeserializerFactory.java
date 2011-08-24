@@ -766,7 +766,7 @@ public class BeanDeserializerFactory
         // First, let's figure out constructor/factory-based instantiation
         // 23-Jan-2010, tatus: but only for concrete types
         if (beanDesc.getType().isConcrete()) {
-            AnnotatedConstructor defaultCtor = beanDesc.findAnnotatedDefaultConstructor();
+            AnnotatedConstructor defaultCtor = beanDesc.findDefaultConstructor();
             if (defaultCtor != null) {
                 if (fixAccess) {
                     ClassUtil.checkAndFixAccess(defaultCtor.getAnnotated());
@@ -993,10 +993,7 @@ public class BeanDeserializerFactory
             BasicBeanDescription beanDesc, BeanDeserializerBuilder builder)
         throws JsonMappingException
     {
-        Map<String,AnnotatedMethod> setters = beanDesc.findSetters();
-        // Also, do we have a fallback "any" setter?
-        AnnotatedMethod anySetter = beanDesc.findAnySetter();
-
+        List<BeanPropertyDefinition> props = beanDesc.findProperties();
         // Things specified as "ok to ignore"? [JACKSON-77]
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
         boolean ignoreAny = false;
@@ -1025,10 +1022,14 @@ public class BeanDeserializerFactory
         HashMap<Class<?>,Boolean> ignoredTypes = new HashMap<Class<?>,Boolean>();
         
         // These are all valid setters, but we do need to introspect bit more
-        for (Map.Entry<String,AnnotatedMethod> en : setters.entrySet()) {
-            String name = en.getKey();            
-            if (!ignored.contains(name)) { // explicit ignoral using @JsonIgnoreProperties needs to block entries
-                AnnotatedMethod setter = en.getValue();
+        for (BeanPropertyDefinition property : props) {
+            String name = property.getName();
+            if (ignored.contains(name)) { // explicit ignoral using @JsonIgnoreProperties needs to block entries
+                continue;
+            }
+            // primary: have a getter?
+            if (property.hasSetter()) {
+                AnnotatedMethod setter = property.getSetter();
                 // [JACKSON-429] Some types are declared as ignorable as well
                 Class<?> type = setter.getParameterClass(0);
                 if (isIgnorableType(config, beanDesc, type, ignoredTypes)) {
@@ -1040,22 +1041,10 @@ public class BeanDeserializerFactory
                 if (prop != null) {
                     builder.addProperty(prop);
                 }
+                continue;
             }
-        }
-        if (anySetter != null) {
-            builder.setAnySetter(constructAnySetter(config, beanDesc, anySetter));
-        }
-
-        HashSet<String> addedProps = new HashSet<String>(setters.keySet());
-        /* [JACKSON-98]: also include field-backed properties:
-         *   (second arg passed to ignore anything for which there is a getter
-         *   method)
-         */
-        LinkedHashMap<String,AnnotatedField> fieldsByProp = beanDesc.findDeserializableFields(addedProps);
-        for (Map.Entry<String,AnnotatedField> en : fieldsByProp.entrySet()) {
-            String name = en.getKey();
-            if (!ignored.contains(name) && !builder.hasProperty(name)) {
-                AnnotatedField field = en.getValue();
+            if (property.hasField()) {
+                AnnotatedField field = property.getField();
                 // [JACKSON-429] Some types are declared as ignorable as well
                 Class<?> type = field.getRawType();
                 if (isIgnorableType(config, beanDesc, type, ignoredTypes)) {
@@ -1066,9 +1055,13 @@ public class BeanDeserializerFactory
                 SettableBeanProperty prop = constructSettableProperty(config, beanDesc, name, field);
                 if (prop != null) {
                     builder.addProperty(prop);
-                    addedProps.add(name);
                 }
             }
+        }
+        // Also, do we have a fallback "any" setter?
+        AnnotatedMethod anySetter = beanDesc.findAnySetter();
+        if (anySetter != null) {
+            builder.setAnySetter(constructAnySetter(config, beanDesc, anySetter));
         }
 
         /* As per [JACKSON-88], may also need to consider getters
@@ -1083,22 +1076,23 @@ public class BeanDeserializerFactory
              * need to add AUTO_DETECT_GETTERS to deser config too, not
              * just ser config)
              */
-            Map<String,AnnotatedMethod> getters = beanDesc.findGetters(addedProps);
-            for (Map.Entry<String,AnnotatedMethod> en : getters.entrySet()) {
-                AnnotatedMethod getter = en.getValue();
-                // should only consider Collections and Maps, for now?
-                Class<?> rt = getter.getRawType();
-                if (!Collection.class.isAssignableFrom(rt) && !Map.class.isAssignableFrom(rt)) {
-                    continue;
-                }
-                String name = en.getKey();
-                if (!ignored.contains(name) && !builder.hasProperty(name)) {
-                    builder.addProperty(constructSetterlessProperty(config, beanDesc, name, getter));
-                    addedProps.add(name);
+            for (BeanPropertyDefinition property : props) {
+                if (property.hasGetter()) {
+                    String name = property.getName();
+                    if (builder.hasProperty(name) || ignored.contains(name)) {
+                        continue;
+                    }
+                    AnnotatedMethod getter = property.getGetter();
+                    // should only consider Collections and Maps, for now?
+                    Class<?> rt = getter.getRawType();
+                    if (Collection.class.isAssignableFrom(rt) || Map.class.isAssignableFrom(rt)) {
+                        if (!ignored.contains(name) && !builder.hasProperty(name)) {
+                            builder.addProperty(constructSetterlessProperty(config, beanDesc, name, getter));
+                        }
+                    }
                 }
             }
         }
-        
     }
 
     /**

@@ -61,8 +61,8 @@ public class POJOPropertiesCollector
     /**
      * Set of logical property information collected so far
      */
-    protected final LinkedHashMap<String, POJOPropertyCollector> _properties
-        = new LinkedHashMap<String, POJOPropertyCollector>();
+    protected final LinkedHashMap<String, POJOPropertyBuilder> _properties
+        = new LinkedHashMap<String, POJOPropertyBuilder>();
 
     protected LinkedList<AnnotatedMethod> _anyGetters = null;
 
@@ -133,8 +133,9 @@ public class POJOPropertiesCollector
         return _annotationIntrospector;
     }
     
-    public List<POJOPropertyCollector> getProperties() {
-        return new ArrayList<POJOPropertyCollector>(_properties.values());
+    public List<BeanPropertyDefinition> getProperties() {
+        // make sure we return a copy, so caller can remove entries if need be:
+        return new ArrayList<BeanPropertyDefinition>(_properties.values());
     }
 
     public AnnotatedMethod getJsonValueMethod()
@@ -180,7 +181,7 @@ public class POJOPropertiesCollector
     }
     
     // for unit tests:
-    protected Map<String, POJOPropertyCollector> getPropertyMap() {
+    protected Map<String, POJOPropertyBuilder> getPropertyMap() {
         return _properties;
     }
 
@@ -215,12 +216,12 @@ public class POJOPropertiesCollector
          * of member type (getter, setter etc) if there is visibility
          * difference
          */
-        for (POJOPropertyCollector property : _properties.values()) {
+        for (POJOPropertyBuilder property : _properties.values()) {
             property.trimByVisibility();
         }
 
         // and then the final step, "merge" annotations
-        for (POJOPropertyCollector property : _properties.values()) {
+        for (POJOPropertyBuilder property : _properties.values()) {
             property.mergeAnnotations(_forSerialization);
         }
     }
@@ -385,10 +386,10 @@ public class POJOPropertiesCollector
      */
     protected void _removeUnwantedProperties()
     {
-        Iterator<Map.Entry<String,POJOPropertyCollector>> it = _properties.entrySet().iterator();
+        Iterator<Map.Entry<String,POJOPropertyBuilder>> it = _properties.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry<String, POJOPropertyCollector> entry = it.next();
-            POJOPropertyCollector prop = entry.getValue();
+            Map.Entry<String, POJOPropertyBuilder> entry = it.next();
+            POJOPropertyBuilder prop = entry.getValue();
 
             // First: if nothing visible, just remove altogether
             if (!prop.anyVisible()) {
@@ -433,15 +434,15 @@ public class POJOPropertiesCollector
     protected void _renameProperties()
     {
         // With renaming need to do in phases: first, find properties to rename
-        Iterator<Map.Entry<String,POJOPropertyCollector>> it = _properties.entrySet().iterator();
-        LinkedList<POJOPropertyCollector> renamed = null;
+        Iterator<Map.Entry<String,POJOPropertyBuilder>> it = _properties.entrySet().iterator();
+        LinkedList<POJOPropertyBuilder> renamed = null;
         while (it.hasNext()) {
-            Map.Entry<String, POJOPropertyCollector> entry = it.next();
-            POJOPropertyCollector prop = entry.getValue();
+            Map.Entry<String, POJOPropertyBuilder> entry = it.next();
+            POJOPropertyBuilder prop = entry.getValue();
             String newName = prop.findNewName();
             if (newName != null) {
                 if (renamed == null) {
-                    renamed = new LinkedList<POJOPropertyCollector>();
+                    renamed = new LinkedList<POJOPropertyBuilder>();
                 }
                 renamed.add(prop.withName(newName));
                 it.remove();
@@ -450,9 +451,9 @@ public class POJOPropertiesCollector
         
         // and if any were renamed, merge back in...
         if (renamed != null) {
-            for (POJOPropertyCollector prop : renamed) {
+            for (POJOPropertyBuilder prop : renamed) {
                 String name = prop.getName();
-                POJOPropertyCollector old = _properties.get(name);
+                POJOPropertyBuilder old = _properties.get(name);
                 if (old == null) {
                     _properties.put(name, prop);
                 } else {
@@ -464,9 +465,9 @@ public class POJOPropertiesCollector
 
     protected void _renameUsing(PropertyNamingStrategy naming)
     {
-        POJOPropertyCollector[] props = _properties.values().toArray(new POJOPropertyCollector[_properties.size()]);
+        POJOPropertyBuilder[] props = _properties.values().toArray(new POJOPropertyBuilder[_properties.size()]);
         _properties.clear();
-        for (POJOPropertyCollector prop : props) {
+        for (POJOPropertyBuilder prop : props) {
             String name = prop.getName();
             if (_forSerialization) {
                 if (prop.hasGetter()) {
@@ -500,11 +501,11 @@ public class POJOPropertiesCollector
         throw new IllegalArgumentException("Problem with definition of "+_classDef+": "+msg);
     }
     
-    protected POJOPropertyCollector _property(String implName)
+    protected POJOPropertyBuilder _property(String implName)
     {
-        POJOPropertyCollector prop = _properties.get(implName);
+        POJOPropertyBuilder prop = _properties.get(implName);
         if (prop == null) {
-            prop = new POJOPropertyCollector(implName);
+            prop = new POJOPropertyBuilder(implName);
             _properties.put(implName, prop);
         }
         return prop;

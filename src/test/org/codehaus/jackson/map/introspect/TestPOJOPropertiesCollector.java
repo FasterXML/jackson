@@ -101,9 +101,9 @@ public class TestPOJOPropertiesCollector
     public void testSimple()
     {
         POJOPropertiesCollector coll = collector(Simple.class, true);
-        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        Map<String, POJOPropertyBuilder> props = coll.getPropertyMap();
         assertEquals(1, props.size());
-        POJOPropertyCollector prop = props.get("value");
+        POJOPropertyBuilder prop = props.get("value");
         assertNotNull(prop);
         assertTrue(prop.hasSetter());
         assertTrue(prop.hasGetter());
@@ -114,9 +114,9 @@ public class TestPOJOPropertiesCollector
     {
         // false -> deserialization
         POJOPropertiesCollector coll = collector(SimpleFieldDeser.class, false);
-        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        Map<String, POJOPropertyBuilder> props = coll.getPropertyMap();
         assertEquals(1, props.size());
-        POJOPropertyCollector prop = props.get("values");
+        POJOPropertyBuilder prop = props.get("values");
         assertNotNull(prop);
         assertFalse(prop.hasSetter());
         assertFalse(prop.hasGetter());
@@ -126,9 +126,9 @@ public class TestPOJOPropertiesCollector
     public void testSimpleGetterVisibility()
     {
         POJOPropertiesCollector coll = collector(SimpleGetterVisibility.class, true);
-        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        Map<String, POJOPropertyBuilder> props = coll.getPropertyMap();
         assertEquals(1, props.size());
-        POJOPropertyCollector prop = props.get("a");
+        POJOPropertyBuilder prop = props.get("a");
         assertNotNull(prop);
         assertFalse(prop.hasSetter());
         assertTrue(prop.hasGetter());
@@ -140,7 +140,7 @@ public class TestPOJOPropertiesCollector
     public void testEmpty()
     {
         POJOPropertiesCollector coll = collector(Empty.class, true);
-        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        Map<String, POJOPropertyBuilder> props = coll.getPropertyMap();
         assertEquals(0, props.size());
     }
 
@@ -150,9 +150,9 @@ public class TestPOJOPropertiesCollector
     public void testPartialIgnore()
     {
         POJOPropertiesCollector coll = collector(IgnoredSetter.class, true);
-        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        Map<String, POJOPropertyBuilder> props = coll.getPropertyMap();
         assertEquals(1, props.size());
-        POJOPropertyCollector prop = props.get("value");
+        POJOPropertyBuilder prop = props.get("value");
         assertNotNull(prop);
         assertFalse(prop.hasSetter());
         assertTrue(prop.hasGetter());
@@ -162,9 +162,9 @@ public class TestPOJOPropertiesCollector
     public void testSimpleRenamed()
     {
         POJOPropertiesCollector coll = collector(RenamedProperties.class, true);
-        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        Map<String, POJOPropertyBuilder> props = coll.getPropertyMap();
         assertEquals(1, props.size());
-        POJOPropertyCollector prop = props.get("x");
+        POJOPropertyBuilder prop = props.get("x");
         assertNotNull(prop);
         assertTrue(prop.hasSetter());
         assertTrue(prop.hasGetter());
@@ -174,9 +174,9 @@ public class TestPOJOPropertiesCollector
     public void testSimpleRenamed2()
     {
         POJOPropertiesCollector coll = collector(RenamedProperties2.class, true);
-        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        Map<String, POJOPropertyBuilder> props = coll.getPropertyMap();
         assertEquals(1, props.size());
-        POJOPropertyCollector prop = props.get("renamed");
+        POJOPropertyBuilder prop = props.get("renamed");
         assertNotNull(prop);
         assertTrue(prop.hasSetter());
         assertTrue(prop.hasGetter());
@@ -186,9 +186,9 @@ public class TestPOJOPropertiesCollector
     public void testMergeWithRename()
     {
         POJOPropertiesCollector coll = collector(MergedProperties.class, true);
-        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        Map<String, POJOPropertyBuilder> props = coll.getPropertyMap();
         assertEquals(1, props.size());
-        POJOPropertyCollector prop = props.get("x");
+        POJOPropertyBuilder prop = props.get("x");
         assertNotNull(prop);
         assertTrue(prop.hasSetter());
         assertFalse(prop.hasGetter());
@@ -198,9 +198,9 @@ public class TestPOJOPropertiesCollector
     public void testSimpleIgnoreAndRename()
     {
         POJOPropertiesCollector coll = collector(IgnoredRenamedSetter.class, true);
-        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        Map<String, POJOPropertyBuilder> props = coll.getPropertyMap();
         assertEquals(1, props.size());
-        POJOPropertyCollector prop = props.get("y");
+        POJOPropertyBuilder prop = props.get("y");
         assertNotNull(prop);
         assertTrue(prop.hasSetter());
         assertFalse(prop.hasGetter());
@@ -213,7 +213,7 @@ public class TestPOJOPropertiesCollector
         m.configure(SerializationConfig.Feature.AUTO_DETECT_GETTERS, false);
         POJOPropertiesCollector coll = collector(m, SimpleGetterVisibility.class, true);
         // should be 1, expect that we disabled getter auto-detection, so
-        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        Map<String, POJOPropertyBuilder> props = coll.getPropertyMap();
         assertEquals(0, props.size());
     }
 
@@ -222,7 +222,7 @@ public class TestPOJOPropertiesCollector
         ObjectMapper m = new ObjectMapper();
         POJOPropertiesCollector coll = collector(m, ImplicitIgnores.class, false);
         // should be 1, due to ignorals
-        Map<String, POJOPropertyCollector> props = coll.getPropertyMap();
+        Map<String, POJOPropertyBuilder> props = coll.getPropertyMap();
         assertEquals(1, props.size());
         // but also have 2 ignored properties
         Collection<String> ign = coll.getIgnoredPropertyNames();

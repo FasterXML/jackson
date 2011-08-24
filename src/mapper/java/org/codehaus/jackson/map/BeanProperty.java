@@ -13,6 +13,15 @@ import org.codehaus.jackson.type.JavaType;
  * contain; and that are accessed using some combination
  * of methods (getter, setter), field and constructor
  * parameter.
+ * Instances allow access to annotations directly associated
+ * to property (via field or method), as well as contextual
+ * annotations (annotations for class that contains properties).
+ *<p>
+ * Instances are passed during construction of serializers and
+ * deserializers, and references can be stored by serializers
+ * and deserializers for futher use; mostly to retain access
+ * to annotations when dynamically locating handlers for
+ * sub-properties or dynamic types.
  *
  * @since 1.7
  */

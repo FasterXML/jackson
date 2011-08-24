@@ -2,6 +2,8 @@ package org.codehaus.jackson.map;
 
 import java.util.*;
 
+import org.codehaus.jackson.map.introspect.AnnotatedClass;
+import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
@@ -57,8 +59,9 @@ public abstract class BeanDescription
 
     public Class<?> getBeanClass() { return _type.getRawClass(); }
 
+    public abstract AnnotatedClass getClassInfo();
+    
     public abstract boolean hasKnownClassAnnotations();
-
 
     /**
      * Accessor for type bindings that may be needed to fully resolve
@@ -85,46 +88,37 @@ public abstract class BeanDescription
     
     /*
     /**********************************************************
-    /* Basic API
+    /* Basic API for finding properties, related
     /**********************************************************
      */
     
     /**
-     * @param ignoredProperties (optional, may be null) Names of properties
-     *   to ignore; getters for these properties are not to be returned.
-     *   
      * @return Ordered Map with logical property name as key, and
      *    matching getter method as value.
      *    
      * @since 1.9
      */
-    public abstract Map<String,AnnotatedMethod> findGetters(Collection<String> ignoredProperties);
-    
-    /**
-     * @return Ordered Map with logical property name as key, and
-     *    matching setter method as value.
-     */
-    public abstract Map<String,AnnotatedMethod> findSetters();
-
-    /**
-     * @since 1.9
-     */
-    public abstract Map<String,AnnotatedField> findDeserializableFields(Collection<String> ignoredProperties);
-
-    /**
-     * @since 1.9
-     */
-    public abstract Map<String,AnnotatedField> findSerializableFields(Collection<String> ignoredProperties);
+    public abstract List<BeanPropertyDefinition> findProperties();
     
     /**
      * @since 1.9
      */
-    public abstract AnnotatedMethod findAnyGetter() throws IllegalArgumentException;
+    public abstract AnnotatedMethod findAnyGetter();
 
     /**
      * @since 1.9
      */
-    public abstract AnnotatedMethod findAnySetter() throws IllegalArgumentException;
+    public abstract AnnotatedMethod findAnySetter();
+
+    /**
+     * @since 1.9
+     */
+    public abstract AnnotatedMethod findJsonValueMethod();
+
+    /**
+     * @since 1.9
+     */
+    public abstract AnnotatedConstructor findDefaultConstructor();
     
     /**
      * @since 1.9
@@ -138,39 +132,30 @@ public abstract class BeanDescription
      */
 
     /**
-     * @deprecated Since 1.9 use the non-deprecated version
+     * @deprecated Since 1.9 use {@link #findProperties}
      */
     @Deprecated
-    public LinkedHashMap<String,AnnotatedMethod> findGetters(VisibilityChecker<?> visibilityChecker,
-            Collection<String> ignoredProperties) {
-        return (LinkedHashMap<String,AnnotatedMethod>)findGetters(ignoredProperties);
-    }
+    public abstract LinkedHashMap<String,AnnotatedMethod> findGetters(VisibilityChecker<?> visibilityChecker,
+            Collection<String> ignoredProperties);
+
+    /**
+     * @deprecated Since 1.9 use {@link #findProperties}
+     */
+    @Deprecated
+    public abstract LinkedHashMap<String,AnnotatedMethod> findSetters(VisibilityChecker<?> visibilityChecker);
+
+    /**
+     * @deprecated Since 1.9 use {@link #findProperties}
+     */
+    @Deprecated
+    public abstract LinkedHashMap<String,AnnotatedField> findDeserializableFields(VisibilityChecker<?> visibilityChecker,
+            Collection<String> ignoredProperties);
 
     /**
      * @deprecated Since 1.9 use the non-deprecated version
      */
     @Deprecated
-    public LinkedHashMap<String,AnnotatedMethod> findSetters(VisibilityChecker<?> visibilityChecker) {
-        return (LinkedHashMap<String,AnnotatedMethod>)findSetters();
-    }
-
-    /**
-     * @deprecated Since 1.9 use the non-deprecated version
-     */
-    @Deprecated
-    public LinkedHashMap<String,AnnotatedField> findDeserializableFields(VisibilityChecker<?> visibilityChecker,
-            Collection<String> ignoredProperties)
-    {
-        return (LinkedHashMap<String,AnnotatedField>) findDeserializableFields(ignoredProperties);
-    }
-
-    /**
-     * @deprecated Since 1.9 use the non-deprecated version
-     */
-    @Deprecated
-    public Map<String,AnnotatedField> findSerializableFields(VisibilityChecker<?> visibilityChecker,
-            Collection<String> ignoredProperties) {
-        return (LinkedHashMap<String,AnnotatedField>) findSerializableFields(ignoredProperties);
-    }
+    public abstract Map<String,AnnotatedField> findSerializableFields(VisibilityChecker<?> visibilityChecker,
+            Collection<String> ignoredProperties);
 
 }

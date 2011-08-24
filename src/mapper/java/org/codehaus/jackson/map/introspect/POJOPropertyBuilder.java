@@ -1,17 +1,28 @@
 package org.codehaus.jackson.map.introspect;
 
+import org.codehaus.jackson.map.BeanPropertyDefinition;
+
 /**
  * Helper class used for aggregating information about a single
  * potential POJO property.
  * 
  * @since 1.9
  */
-public class POJOPropertyCollector
+public class POJOPropertyBuilder
+    extends BeanPropertyDefinition
 {
     /**
-     * Name of logical property
+     * External name of logical property; may change with
+     * renaming (by new instance being constructed using
+     * a new name)
      */
     protected final String _name;
+
+    /**
+     * Original internal name, derived from accessor, of this
+     * property. Will not be changed by renaming.
+     */
+    protected final String _internalName;
 
     protected Node<AnnotatedField> _fields;
     
@@ -21,11 +32,13 @@ public class POJOPropertyCollector
 
     protected Node<AnnotatedMethod> _setters;
 
-    public POJOPropertyCollector(String name) {
-        _name = name;
+    public POJOPropertyBuilder(String internalName) {
+        _internalName = internalName;
+        _name = internalName;
     }
 
-    public POJOPropertyCollector(POJOPropertyCollector src, String newName) {
+    public POJOPropertyBuilder(POJOPropertyBuilder src, String newName) {
+        _internalName = src._internalName;
         _name = newName;
         _fields = src._fields;
         _ctorParameters = src._ctorParameters;
@@ -36,8 +49,188 @@ public class POJOPropertyCollector
     /**
      * Method for constructing a renamed instance
      */
-    public POJOPropertyCollector withName(String newName) {
-        return new POJOPropertyCollector(this, newName);
+    public POJOPropertyBuilder withName(String newName) {
+        return new POJOPropertyBuilder(this, newName);
+    }
+    
+    /*
+    /**********************************************************
+    /* BeanPropertyDefinition implementation
+    /**********************************************************
+     */
+
+    @Override
+    public String getName() { return _name; }
+
+    @Override
+    public String getInternalName() { return _name; }
+    
+    @Override
+    public boolean hasGetter() { return _getters != null; }
+
+    @Override
+    public boolean hasSetter() { return _setters != null; }
+
+    @Override
+    public boolean hasField() { return _fields != null; }
+
+    @Override
+    public boolean hasConstructorParameter() { return _ctorParameters != null; }
+
+    @Override
+    public AnnotatedMember getAccessor()
+    {
+        if (_getters != null) {
+            return _getters.value;
+        }
+        if (_fields != null) {
+            return _fields.value;
+        }
+        return null;
+    }
+
+    @Override
+    public AnnotatedMember getMutator()
+    {
+        if (_ctorParameters != null) {
+            return _ctorParameters.value;
+        }
+        if (_setters != null) {
+            return _setters.value;
+        }
+        if (_fields != null) {
+            return _fields.value;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean couldSerialize() {
+        return (_getters != null) || (_fields != null);
+    }
+
+    @Override
+    public AnnotatedMethod getGetter()
+    {
+        if (_getters == null) {
+            return null;
+        }
+        // If multiple, verify that they do not conflict...
+        AnnotatedMethod getter = _getters.value;
+        Node<AnnotatedMethod> next = _getters.next;
+        for (; next != null; next = next.next) {
+            /* [JACKSON-255] Allow masking, i.e. report exception only if
+             *   declarations in same class, or there's no inheritance relationship
+             *   (sibling interfaces etc)
+             */
+            AnnotatedMethod nextGetter = next.value;
+            Class<?> getterClass = getter.getDeclaringClass();
+            Class<?> nextClass = nextGetter.getDeclaringClass();
+            if (getterClass != nextClass) {
+                if (getterClass.isAssignableFrom(nextClass)) { // next is more specific
+                    getter = nextGetter;
+                    continue;
+                }
+                if (nextClass.isAssignableFrom(getterClass)) { // getter more specific
+                    continue;
+                }
+            }
+            throw new IllegalArgumentException("Conflicting getter definitions for property \""+getName()+"\": "
+                    +getter.getFullName()+" vs "+nextGetter.getFullName());
+        }
+        return getter;
+    }
+
+    @Override
+    public AnnotatedMethod getSetter()
+    {
+        if (_setters == null) {
+            return null;
+        }
+        // If multiple, verify that they do not conflict...
+        AnnotatedMethod setter = _setters.value;
+        Node<AnnotatedMethod> next = _setters.next;
+        for (; next != null; next = next.next) {
+            /* [JACKSON-255] Allow masking, i.e. report exception only if
+             *   declarations in same class, or there's no inheritance relationship
+             *   (sibling interfaces etc)
+             */
+            AnnotatedMethod nextSetter = next.value;
+            Class<?> setterClass = setter.getDeclaringClass();
+            Class<?> nextClass = nextSetter.getDeclaringClass();
+            if (setterClass != nextClass) {
+                if (setterClass.isAssignableFrom(nextClass)) { // next is more specific
+                    setter = nextSetter;
+                    continue;
+                }
+                if (nextClass.isAssignableFrom(setterClass)) { // getter more specific
+                    continue;
+                }
+            }
+            throw new IllegalArgumentException("Conflicting setter definitions for property \""+getName()+"\": "
+                    +setter.getFullName()+" vs "+nextSetter.getFullName());
+        }
+        return setter;
+    }
+
+    @Override
+    public AnnotatedField getField()
+    {
+        if (_fields == null) {
+            return null;
+        }
+        // If multiple, verify that they do not conflict...
+        AnnotatedField field = _fields.value;
+        Node<AnnotatedField> next = _fields.next;
+        for (; next != null; next = next.next) {
+            AnnotatedField nextField = next.value;
+            Class<?> fieldClass = field.getDeclaringClass();
+            Class<?> nextClass = nextField.getDeclaringClass();
+            if (fieldClass != nextClass) {
+                if (fieldClass.isAssignableFrom(nextClass)) { // next is more specific
+                    field = nextField;
+                    continue;
+                }
+                if (nextClass.isAssignableFrom(fieldClass)) { // getter more specific
+                    continue;
+                }
+            }
+            throw new IllegalArgumentException("Multiple fields representing property \""+getName()+"\": "
+                    +field.getFullName()+" vs "+nextField.getFullName());
+        }
+        return field;
+    }
+
+    @Override
+    public AnnotatedParameter getConstructorParameter()
+    {
+        if (_ctorParameters == null) {
+            return null;
+        }
+        // If multiple, verify that they do not conflict...
+        AnnotatedParameter ctorParam = _ctorParameters.value;
+        Node<AnnotatedParameter> next = _ctorParameters.next;
+        for (; next != null; next = next.next) {
+            /* [JACKSON-255] Allow masking, i.e. report exception only if
+             *   declarations in same class, or there's no inheritance relationship
+             *   (sibling interfaces etc)
+             */
+            AnnotatedParameter nextCtorParam = next.value;
+            Class<?> ctorParamClass = ctorParam.getDeclaringClass();
+            Class<?> nextClass = nextCtorParam.getDeclaringClass();
+            if (ctorParamClass != nextClass) {
+                if (ctorParamClass.isAssignableFrom(nextClass)) { // next is more specific
+                    ctorParam = nextCtorParam;
+                    continue;
+                }
+                if (nextClass.isAssignableFrom(ctorParamClass)) { // getter more specific
+                    continue;
+                }
+            }
+            throw new IllegalArgumentException("Conflicting constructor-parameter definitions for property \""+getName()+"\": "
+                    +ctorParam+" vs "+nextCtorParam);
+        }
+        return ctorParam;
     }
     
     /*
@@ -45,7 +238,7 @@ public class POJOPropertyCollector
     /* Data aggregation
     /**********************************************************
      */
-
+    
     public void addField(AnnotatedField a, String ename, boolean visible, boolean ignored) {
         _fields = new Node<AnnotatedField>(a, _fields, ename, visible, ignored);
     }
@@ -66,7 +259,7 @@ public class POJOPropertyCollector
      * Method for adding all property members from specified collector into
      * this collector.
      */
-    public void addAll(POJOPropertyCollector src)
+    public void addAll(POJOPropertyBuilder src)
     {
         _fields = merge(_fields, src._fields);
         _ctorParameters = merge(_ctorParameters, src._ctorParameters);
@@ -193,148 +386,7 @@ public class POJOPropertyCollector
         }
         return node.trimByVisibility();
     }
-    
-    /*
-    /**********************************************************
-    /* Simple accessors
-    /**********************************************************
-     */
-
-    public String getName() { return _name; }
-
-    public boolean hasGetter() { return _getters != null; }
-    public boolean hasSetter() { return _setters != null; }
-    public boolean hasField() { return _fields != null; }
-    public boolean hasConstructorParameter() { return _ctorParameters != null; }
-
-    public boolean couldDeserialize() {
-        return (_setters != null) || (_fields != null) || (_ctorParameters != null);
-    }
-
-    public boolean couldSerialize() {
-        return (_getters != null) || (_fields != null);
-    }
-    
-    public AnnotatedMethod getGetter()
-    {
-        if (_getters == null) {
-            return null;
-        }
-        // If multiple, verify that they do not conflict...
-        AnnotatedMethod getter = _getters.value;
-        Node<AnnotatedMethod> next = _getters.next;
-        for (; next != null; next = next.next) {
-            /* [JACKSON-255] Allow masking, i.e. report exception only if
-             *   declarations in same class, or there's no inheritance relationship
-             *   (sibling interfaces etc)
-             */
-            AnnotatedMethod nextGetter = next.value;
-            Class<?> getterClass = getter.getDeclaringClass();
-            Class<?> nextClass = nextGetter.getDeclaringClass();
-            if (getterClass != nextClass) {
-                if (getterClass.isAssignableFrom(nextClass)) { // next is more specific
-                    getter = nextGetter;
-                    continue;
-                }
-                if (nextClass.isAssignableFrom(getterClass)) { // getter more specific
-                    continue;
-                }
-            }
-            throw new IllegalArgumentException("Conflicting getter definitions for property \""+getName()+"\": "
-                    +getter.getFullName()+" vs "+nextGetter.getFullName());
-        }
-        return getter;
-    }
-
-    public AnnotatedMethod getSetter()
-    {
-        if (_setters == null) {
-            return null;
-        }
-        // If multiple, verify that they do not conflict...
-        AnnotatedMethod setter = _setters.value;
-        Node<AnnotatedMethod> next = _setters.next;
-        for (; next != null; next = next.next) {
-            /* [JACKSON-255] Allow masking, i.e. report exception only if
-             *   declarations in same class, or there's no inheritance relationship
-             *   (sibling interfaces etc)
-             */
-            AnnotatedMethod nextSetter = next.value;
-            Class<?> setterClass = setter.getDeclaringClass();
-            Class<?> nextClass = nextSetter.getDeclaringClass();
-            if (setterClass != nextClass) {
-                if (setterClass.isAssignableFrom(nextClass)) { // next is more specific
-                    setter = nextSetter;
-                    continue;
-                }
-                if (nextClass.isAssignableFrom(setterClass)) { // getter more specific
-                    continue;
-                }
-            }
-            throw new IllegalArgumentException("Conflicting setter definitions for property \""+getName()+"\": "
-                    +setter.getFullName()+" vs "+nextSetter.getFullName());
-        }
-        return setter;
-    }
-
-    public AnnotatedField getField()
-    {
-        if (_fields == null) {
-            return null;
-        }
-        // If multiple, verify that they do not conflict...
-        AnnotatedField field = _fields.value;
-        Node<AnnotatedField> next = _fields.next;
-        for (; next != null; next = next.next) {
-            AnnotatedField nextField = next.value;
-            Class<?> fieldClass = field.getDeclaringClass();
-            Class<?> nextClass = nextField.getDeclaringClass();
-            if (fieldClass != nextClass) {
-                if (fieldClass.isAssignableFrom(nextClass)) { // next is more specific
-                    field = nextField;
-                    continue;
-                }
-                if (nextClass.isAssignableFrom(fieldClass)) { // getter more specific
-                    continue;
-                }
-            }
-            throw new IllegalArgumentException("Multiple fields representing property \""+getName()+"\": "
-                    +field.getFullName()+" vs "+nextField.getFullName());
-        }
-        return field;
-    }
-
-    public AnnotatedParameter getConstructorParameter()
-    {
-        if (_ctorParameters == null) {
-            return null;
-        }
-        // If multiple, verify that they do not conflict...
-        AnnotatedParameter ctorParam = _ctorParameters.value;
-        Node<AnnotatedParameter> next = _ctorParameters.next;
-        for (; next != null; next = next.next) {
-            /* [JACKSON-255] Allow masking, i.e. report exception only if
-             *   declarations in same class, or there's no inheritance relationship
-             *   (sibling interfaces etc)
-             */
-            AnnotatedParameter nextCtorParam = next.value;
-            Class<?> ctorParamClass = ctorParam.getDeclaringClass();
-            Class<?> nextClass = nextCtorParam.getDeclaringClass();
-            if (ctorParamClass != nextClass) {
-                if (ctorParamClass.isAssignableFrom(nextClass)) { // next is more specific
-                    ctorParam = nextCtorParam;
-                    continue;
-                }
-                if (nextClass.isAssignableFrom(ctorParamClass)) { // getter more specific
-                    continue;
-                }
-            }
-            throw new IllegalArgumentException("Conflicting constructor-parameter definitions for property \""+getName()+"\": "
-                    +ctorParam+" vs "+nextCtorParam);
-        }
-        return ctorParam;
-    }
-    
+        
     /*
     /**********************************************************
     /* Accessors for aggregate information
