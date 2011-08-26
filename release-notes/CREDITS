@@ -715,3 +715,8 @@ Paul Marynchev:
   * Reported [JACKSON-637] NumberSerializer was missing proper handling of
     Integer, Long
    [1.8.5]
+
+Ransom Briggs:
+  * Reported [JACKSON-668] Problems with 'JsonParser.getDecimalValue'
+    not clearing earlier state
+   [1.8.6]

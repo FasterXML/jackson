@@ -8,6 +8,10 @@ Description:
 
   Fixes:
 
+  * [JACKSON-668] Problems with 'JsonParser.getDecimalValue' not
+    clearing earlier state
+   (reported by Ransom B)
+
 ------------------------------------------------------------------------
 === History: ===
 ------------------------------------------------------------------------
