@@ -60,7 +60,8 @@ public class SimpleSerializers extends Serializers.Base
         Class<?> cls = ser.handledType();
         if (cls == null || cls == Object.class) {
             throw new IllegalArgumentException("JsonSerializer of type "+ser.getClass().getName()
-                    +" does not define valid handledType() (use alternative registration method?)");
+                    +" does not define valid handledType() -- must either register with method that takes type argument "
+                    +" or make serializer extend 'org.codehaus.jackson.map.ser.std.SerializerBase'"); 
         }
         _addSerializer(cls, ser);
     }

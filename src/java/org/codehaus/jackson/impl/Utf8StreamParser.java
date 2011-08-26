@@ -424,6 +424,7 @@ public final class Utf8StreamParser
     public JsonToken nextToken()
         throws IOException, JsonParseException
     {
+        _numTypesValid = NR_UNKNOWN;
         /* First: field names are special -- we will always tokenize
          * (part of) value along with field name to simplify
          * state handling. If so, can and need to use secondary token:
