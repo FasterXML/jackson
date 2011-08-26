@@ -86,7 +86,7 @@ public class POJOPropertiesCollector
     /**********************************************************
      */
     
-    private POJOPropertiesCollector(MapperConfig<?> config, boolean forSerialization,
+    protected POJOPropertiesCollector(MapperConfig<?> config, boolean forSerialization,
             JavaType type, AnnotatedClass classDef)
     {
         _config = config;
@@ -108,14 +108,6 @@ public class POJOPropertiesCollector
     /* Public API
     /**********************************************************
      */
-
-    public static POJOPropertiesCollector collect(MapperConfig<?> config, boolean forSerialization,
-            JavaType type, AnnotatedClass classDef)
-    {
-        POJOPropertiesCollector coll = new POJOPropertiesCollector(config, forSerialization, type, classDef);
-        coll._collect();
-        return coll;
-    }
 
     public MapperConfig<?> getConfig() {
         return _config;
@@ -185,18 +177,20 @@ public class POJOPropertiesCollector
         return _properties;
     }
 
-    
     /*
     /**********************************************************
-    /* Internal methods; main-level collection
+    /* Public API: main-level collection
     /**********************************************************
      */
 
     /**
-     * Method that orchestrates collection activities
+     * Method that orchestrates collection activities, and needs to be called
+     * after creating the instance.
      */
-    public void _collect()
+    public POJOPropertiesCollector collect()
     {
+        _properties.clear();
+        
         // First: gather basic data
         _addFields();
         _addMethods();
@@ -224,7 +218,92 @@ public class POJOPropertiesCollector
         for (POJOPropertyBuilder property : _properties.values()) {
             property.mergeAnnotations(_forSerialization);
         }
+
+        // well, almost final; we will also want to sort the properties
+        /*
+        return BeanUtil.sortProperties(config, beanDesc, props,
+                    config.isEnabled(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY));
+                    */
+        
+        return this;
     }
+
+    /*
+    /**********************************************************
+    /* Overridable internal methods, sorting
+    /**********************************************************
+     */
+    
+    /* First, order by [JACKSON-90] (explicit ordering and/or alphabetic)
+     * and then for [JACKSON-170] (implicitly order creator properties before others)
+     */
+    protected void _sortProperties()
+    {
+        // !!! TODO
+        
+//        List<String> creatorProps = beanDesc.findCreatorPropertyNames();
+        List<String> creatorProps = Collections.emptyList();
+        
+        // Then how about explicit ordering?
+        AnnotationIntrospector intr = _config.getAnnotationIntrospector();
+        boolean defaultSortByAlpha;
+        {
+            // default to alphabetic sorting
+            Boolean b = intr.findSerializationSortAlphabetically(_classDef);
+            defaultSortByAlpha = (b == null) || b.booleanValue();
+        }
+        String[] propertyOrder = intr.findSerializationPropertyOrder(_classDef);
+        Boolean alpha = intr.findSerializationSortAlphabetically(_classDef);
+        boolean sort;
+        
+        if (alpha == null) {
+            sort = defaultSortByAlpha;
+        } else {
+            sort = alpha.booleanValue();
+        }
+        // no sorting? no need to shuffle, then
+        if (!sort && creatorProps.isEmpty() && propertyOrder == null) {
+            return;
+        }
+        int size = _properties.size();
+        Map<String, POJOPropertyBuilder> all;
+        // Need to (re)sort alphabetically?
+        if (sort) {
+            all = new TreeMap<String,POJOPropertyBuilder>();
+        } else {
+            all = new LinkedHashMap<String,POJOPropertyBuilder>(size+size);
+        }
+    
+        for (POJOPropertyBuilder w : _properties.values()) {
+            all.put(w.getName(), w);
+        }
+        Map<String,POJOPropertyBuilder> ordered = new LinkedHashMap<String,POJOPropertyBuilder>(size+size);
+        // Ok: primarily by explicit order
+        if (propertyOrder != null) {
+            for (String name : propertyOrder) {
+                POJOPropertyBuilder w = all.get(name);
+                if (w != null) {
+                    ordered.put(name, w);
+                }
+            }
+        }
+        // And secondly by sorting Creator properties before other unordered properties
+        for (String name : creatorProps) {
+            POJOPropertyBuilder w = all.get(name);
+            if (w != null) {
+                ordered.put(name, w);
+            }
+        }
+        // And finally whatever is left (trying to put again will not change ordering)
+        _properties.clear();
+        _properties.putAll(all);
+    }        
+
+    /*
+    /**********************************************************
+    /* Overridable internal methods, adding members
+    /**********************************************************
+     */
     
     /**
      * Method for collecting basic information on all fields found

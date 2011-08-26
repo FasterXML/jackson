@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.BeanPropertyDefinition;
  */
 public class POJOPropertyBuilder
     extends BeanPropertyDefinition
+    implements Comparable<POJOPropertyBuilder>
 {
     /**
      * External name of logical property; may change with
@@ -51,6 +52,31 @@ public class POJOPropertyBuilder
      */
     public POJOPropertyBuilder withName(String newName) {
         return new POJOPropertyBuilder(this, newName);
+    }
+    
+    /*
+    /**********************************************************
+    /* Comparable implementation: sort alphabetically, except
+    /* that properties with constructor parameters sorted
+    /* before other properties
+    /**********************************************************
+     */
+
+    @Override
+    public int compareTo(POJOPropertyBuilder other)
+    {
+        // first, if one has ctor params, that should come first:
+        if (_ctorParameters != null) {
+            if (other._ctorParameters == null) {
+                return -1;
+            }
+        } else if (other._ctorParameters != null) {
+            return 1;
+        }
+        /* otherwise sort by external name (including sorting of
+         * ctor parameters)
+         */
+        return getName().compareTo(other.getName());
     }
     
     /*

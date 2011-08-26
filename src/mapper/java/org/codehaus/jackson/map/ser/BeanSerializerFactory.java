@@ -624,11 +624,15 @@ public class BeanSerializerFactory
      * properties. Explicit custom ordering will override this implicit
      * default ordering.
      */
+    /**
+     * @deprecated Since 1.9 this method does nothing, so there is no
+     *    benefit from overriding it; it will be removed from 2.0.
+     */
+    @Deprecated
     protected List<BeanPropertyWriter> sortBeanProperties(SerializationConfig config,
             BasicBeanDescription beanDesc, List<BeanPropertyWriter> props)
     {
-        return BeanUtil.sortProperties(config, beanDesc, props,
-                config.isEnabled(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY));
+        return props;
     }
 
     /**

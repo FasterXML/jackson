@@ -159,9 +159,16 @@ public class BasicClassIntrospector
         ac.resolveMemberMethods(MINIMAL_FILTER);
         // false, false -> do not process ignorals, nor collect (later part of processing)
         ac.resolveFields();
-        return POJOPropertiesCollector.collect(config, forSerialization, type, ac);
+        return new POJOPropertiesCollector(config, forSerialization, type, ac).collect();
     }
 
+    protected POJOPropertiesCollector constructPropertyCollector(MapperConfig<?> config,
+            AnnotatedClass ac, JavaType type,
+            boolean forSerialization)
+    {
+        return new POJOPropertiesCollector(config, forSerialization, type, ac);
+    }
+    
     /**
      * @since 1.9
      */
