@@ -2,7 +2,9 @@ package org.codehaus.jackson.map.jsontype;
 
 import java.util.*;
 
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.ObjectMapper.DefaultTyping;
 
 public class TestDefaultForLists
     extends BaseMapTest
@@ -44,6 +46,18 @@ public class TestDefaultForLists
 
     static class ObjectListBean {
         public List<Object> values;
+    }
+
+    interface Foo { }
+
+    static class SetBean {
+        public Set<String> names;
+        
+        public SetBean() { }
+        public SetBean(String str) {
+            names = new HashSet<String>();
+            names.add(str);
+        }
     }
     
     /*
@@ -106,5 +120,26 @@ public class TestDefaultForLists
         assertEquals(2, outputList.size());
         assertTrue(outputList.get(0) instanceof TimeZone);
         assertTrue(outputList.get(1) instanceof Locale);
+    }
+    
+    public void testJackson628() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enableDefaultTyping(DefaultTyping.NON_FINAL);
+        ArrayList<Foo> data = new ArrayList<Foo>();
+        String json = mapper.writeValueAsString(data);
+        List<?> output = mapper.readValue(json, List.class);
+        assertTrue(output.isEmpty());
+    }
+
+    public void testJackson667() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL,
+                JsonTypeInfo.As.PROPERTY);
+        String json = mapper.writeValueAsString(new SetBean("abc"));
+        SetBean bean = mapper.readValue(json, SetBean.class);
+        assertNotNull(bean);
+        assertTrue(bean.names instanceof HashSet);
     }
 }
