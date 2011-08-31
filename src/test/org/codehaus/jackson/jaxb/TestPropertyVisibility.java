@@ -1,4 +1,4 @@
-package org.codehaus.jackson.failing;
+package org.codehaus.jackson.jaxb;
 
 import java.io.IOException;
 
@@ -13,7 +13,7 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
  * done once we rewrite the method introspector (can't do it with
  * current version 1.8)
  */
-public class TestJAXBMethodVisibility
+public class TestPropertyVisibility
     extends org.codehaus.jackson.map.BaseMapTest
 {
     /*
