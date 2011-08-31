@@ -33,12 +33,14 @@ public class POJOPropertyBuilder
 
     protected Node<AnnotatedMethod> _setters;
 
-    public POJOPropertyBuilder(String internalName) {
+    public POJOPropertyBuilder(String internalName)
+    {
         _internalName = internalName;
         _name = internalName;
     }
 
-    public POJOPropertyBuilder(POJOPropertyBuilder src, String newName) {
+    public POJOPropertyBuilder(POJOPropertyBuilder src, String newName)
+    {
         _internalName = src._internalName;
         _name = newName;
         _fields = src._fields;
@@ -89,7 +91,7 @@ public class POJOPropertyBuilder
     public String getName() { return _name; }
 
     @Override
-    public String getInternalName() { return _name; }
+    public String getInternalName() { return _internalName; }
     
     @Override
     public boolean hasGetter() { return _getters != null; }

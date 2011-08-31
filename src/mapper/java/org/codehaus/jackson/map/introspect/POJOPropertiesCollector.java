@@ -281,14 +281,24 @@ public class POJOPropertiesCollector
             all = new LinkedHashMap<String,POJOPropertyBuilder>(size+size);
         }
     
-        for (POJOPropertyBuilder w : _properties.values()) {
-            all.put(w.getName(), w);
+        for (POJOPropertyBuilder prop : _properties.values()) {
+            all.put(prop.getName(), prop);
         }
         Map<String,POJOPropertyBuilder> ordered = new LinkedHashMap<String,POJOPropertyBuilder>(size+size);
         // Ok: primarily by explicit order
         if (propertyOrder != null) {
             for (String name : propertyOrder) {
                 POJOPropertyBuilder w = all.get(name);
+                if (w == null) { // also, as per [JACKSON-268], we will allow use of "implicit" names
+                    for (POJOPropertyBuilder prop : _properties.values()) {
+                        if (name.equals(prop.getInternalName())) {
+                            w = prop;
+                            // plus re-map to external name, to avoid dups:
+                            name = prop.getName();
+                            break;
+                        }
+                    }
+                }
                 if (w != null) {
                     ordered.put(name, w);
                 }
@@ -303,7 +313,6 @@ public class POJOPropertiesCollector
         }
         // And finally whatever is left (trying to put again will not change ordering)
         ordered.putAll(all);
-        
         _properties.clear();
         _properties.putAll(ordered);
     }        
@@ -532,7 +541,8 @@ public class POJOPropertiesCollector
                 if (renamed == null) {
                     renamed = new LinkedList<POJOPropertyBuilder>();
                 }
-                renamed.add(prop.withName(newName));
+                prop = prop.withName(newName);
+                renamed.add(prop);
                 it.remove();
             }
         }

@@ -37,7 +37,7 @@ public class TestPropertyOrdering
      */
     @XmlType(propOrder = {"cpartyDto", "contacts"})
     @XmlAccessorOrder(XmlAccessOrder.ALPHABETICAL)
-    public class SecondBeanFor268
+    public class BeanWithImplicitNames
     {
         private String cpartyDto = "dto";
         private int[] contacts = new int[] { 1, 2, 3 };
@@ -82,7 +82,7 @@ public class TestPropertyOrdering
     public void testOrderingWithOriginalPropName() throws Exception
     {
         ObjectMapper mapper = getJaxbMapper();
-        assertEquals("{\"cparty\":\"dto\",\"contacts\":[1,2,3]}", mapper.writeValueAsString(new SecondBeanFor268()));
+        assertEquals("{\"cparty\":\"dto\",\"contacts\":[1,2,3]}",
+                mapper.writeValueAsString(new BeanWithImplicitNames()));
     }
-
 }

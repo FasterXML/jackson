@@ -524,37 +524,7 @@ public class JaxbAnnotationIntrospector
         if (order == null || order.length == 0) {
             return null;
         }
-        
-        // !!! TODO: More work, as per [JACKSON-268]; may need to convert from physical to logical names:
         return order;
-        
-        /*
-        // More work, as per [JACKSON-268]; may need to convert from physical to logical names:
-        PropertyDescriptors props = getDescriptors(ac.getRawType());
-        for (int i = 0, len = order.length; i < len; ++i) {
-            String propName = order[i];
-            if (props.findByPropertyName(propName) != null) { // fine, logical name
-                continue;
-            }
-            // also, stupid defaults for JAXB; default would be { "" }...
-            if (propName.length() == 0) {
-                continue;
-            }
-
-            // otherwise let's try to find matching "raw" name
-            StringBuilder sb = new StringBuilder();
-            sb.append("get");
-            sb.append(Character.toUpperCase(propName.charAt(0)));
-            if (propName.length() > 1) {
-                sb.append(propName.substring(1));
-            }
-            PropertyDescriptor desc = props.findByMethodName(sb.toString());
-            // Quite possible that we miss some, esp. if/when used for field-backed properties:
-            if (desc != null) {
-                order[i] = desc.getName();
-            }
-        }
-        */
     }
 
     @Override
