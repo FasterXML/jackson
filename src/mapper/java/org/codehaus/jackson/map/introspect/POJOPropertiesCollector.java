@@ -302,8 +302,10 @@ public class POJOPropertiesCollector
             }
         }
         // And finally whatever is left (trying to put again will not change ordering)
+        ordered.putAll(all);
+        
         _properties.clear();
-        _properties.putAll(all);
+        _properties.putAll(ordered);
     }        
 
     /*
