@@ -14,7 +14,7 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
  * current version 1.8)
  */
 public class TestPropertyVisibility
-    extends org.codehaus.jackson.map.BaseMapTest
+    extends BaseJaxbTest
 {
     /*
     /**********************************************************
@@ -31,7 +31,32 @@ public class TestPropertyVisibility
         protected String getName() { return name; }
 
         public void setName(String s) { name = s; }
-    } 
+    }
+
+    // Note: full example would be "Content"; but let's use simpler demonstration here, easier to debug
+    @XmlAccessorType(XmlAccessType.PROPERTY)
+    static class Jackson539Bean
+    {
+        protected int type;
+        
+        @XmlTransient
+        public String getType() {
+            throw new UnsupportedOperationException();
+        }
+
+        public void setType(String type) {
+            throw new UnsupportedOperationException();
+        }
+
+        @XmlAttribute(name = "type")
+        public int getRawType() {
+           return type;
+        }
+
+        public void setRawType(int type) {
+           this.type = type;
+        }
+    }
 
     /*
     /**********************************************************
@@ -47,5 +72,26 @@ public class TestPropertyVisibility
         ObjectMapper mapper = new ObjectMapper();
         mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         assertEquals("{\"name\":\"foo\"}", mapper.writeValueAsString(new Bean354()));
+    }
+
+    // For [JACKSON-539]
+    public void testJacksonSerialization()
+            throws Exception
+    {
+        /* Earlier
+        Content content = new Content();
+        content.setRawType("application/json");
+        String json = mapper.writeValueAsString(content);
+        Content content2 = mapper.readValue(json, Content.class); // deserialize
+        assertNotNull(content2);
+         */
+        
+        Jackson539Bean input = new Jackson539Bean();
+        input.type = 123;
+        ObjectMapper mapper = getJaxbMapper();
+        String json = mapper.writeValueAsString(input);
+        Jackson539Bean result = mapper.readValue(json, Jackson539Bean.class);
+        assertNotNull(result);
+        assertEquals(123, result.type);
     }
 }

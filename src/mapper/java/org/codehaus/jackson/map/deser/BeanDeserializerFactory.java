@@ -1014,8 +1014,9 @@ public class BeanDeserializerFactory
             Collection<String> ignored2 = beanDesc.getIgnoredPropertyNames();
             if (ignored2 != null) {
                 for (String propName : ignored2) {
+                    // allow ignoral of similarly named JSON property, but do not force;
+                    // latter means NOT adding this to 'ignored':
                     builder.addIgnorable(propName);
-                    ignored.add(propName);
                 }
             }
         }

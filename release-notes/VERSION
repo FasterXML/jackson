@@ -1,13 +1,18 @@
 Version: 1.9.0
 
 Release date:
-  xx-Aug-2011
+  xx-Sep-2011
 
 Description:
-  Another minor release.
+  Another minor release. Major internal rewrite for property introspection; other
+  big changes to prepare for upcoming 2.0 version, including significant
+  number of newly deprecated methods.
 
   Fixes:
   
+  * [JACKSON-539] Incorrect handling of combination of JAXB annotations
+    (@XmlTransient with property renaming)
+   (reported Ryan H)
   * [JACKSON-605] Handle deserialization of typed Class properties correctly
    (reported by Bruce P)
 

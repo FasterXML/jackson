@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.*;
 import org.codehaus.jackson.map.ObjectMapper;
 
 public class TestPropertyOrdering
-	extends BaseJaxbTest
+    extends BaseJaxbTest
 {
     /*
     /**********************************************************
