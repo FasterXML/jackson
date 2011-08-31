@@ -18,6 +18,8 @@ Description:
 
   Improvements:
 
+  * [JACKSON-242] Rewrite property introspection part of framework to combine
+    getter/setter/field annotations
   * [JACKSON-505] Handle missing type information gracefully by checking for
     abstract type mapping to find default implementation, if no valid type
     information found for @JsonTypeInfo
