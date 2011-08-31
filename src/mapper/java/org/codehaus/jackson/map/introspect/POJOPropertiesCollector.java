@@ -219,12 +219,8 @@ public class POJOPropertiesCollector
             property.mergeAnnotations(_forSerialization);
         }
 
-        // well, almost final; we will also want to sort the properties
-        /*
-        return BeanUtil.sortProperties(config, beanDesc, props,
-                    config.isEnabled(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY));
-                    */
-        
+        // well, almost last: there's still ordering...
+        _sortProperties();
         return this;
     }
 
@@ -239,6 +235,11 @@ public class POJOPropertiesCollector
      */
     protected void _sortProperties()
     {
+        /*
+        return BeanUtil.sortProperties(config, beanDesc, props,
+                    config.isEnabled(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY));
+                    */
+        
         // !!! TODO
         
 //        List<String> creatorProps = beanDesc.findCreatorPropertyNames();
@@ -246,11 +247,17 @@ public class POJOPropertiesCollector
         
         // Then how about explicit ordering?
         AnnotationIntrospector intr = _config.getAnnotationIntrospector();
-        boolean defaultSortByAlpha;
+        boolean defaultSortByAlpha = true;
+        // !!! TODO: remove this dependency...
+        if (_config instanceof SerializationConfig) {
+            defaultSortByAlpha = ((SerializationConfig)_config).isEnabled(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY);
+        }
         {
             // default to alphabetic sorting
             Boolean b = intr.findSerializationSortAlphabetically(_classDef);
-            defaultSortByAlpha = (b == null) || b.booleanValue();
+            if (b != null) {
+                defaultSortByAlpha = b.booleanValue();
+            }
         }
         String[] propertyOrder = intr.findSerializationPropertyOrder(_classDef);
         Boolean alpha = intr.findSerializationSortAlphabetically(_classDef);

@@ -631,7 +631,7 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.8
      */
     public abstract boolean canOverrideAccessModifiers();
-
+    
     /*
     /**********************************************************
     /* Methods for instantiating handlers

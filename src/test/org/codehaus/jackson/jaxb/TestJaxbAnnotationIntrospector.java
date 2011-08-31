@@ -188,14 +188,6 @@ public class TestJaxbAnnotationIntrospector
         public int a = 1;
         public int b = 2;
     }
-
-    @XmlType(propOrder={"b", "a", "c"})
-    public static class AlphaBean2
-    {
-        public int c = 3;
-        public int a = 1;
-        public int b = 2;
-    }
     
     public static class KeyValuePair {
     	private String key;
@@ -360,14 +352,6 @@ public class TestJaxbAnnotationIntrospector
     {
         ObjectMapper mapper = getJaxbMapper();
         assertEquals("{\"a\":1,\"b\":2,\"c\":3}", serializeAsString(mapper, new AlphaBean()));
-    }
-
-    // And another one for explicit ordering
-    // @since 1.4
-    public void testSerializationExplicitOrdering() throws Exception
-    {
-        ObjectMapper mapper = getJaxbMapper();
-        assertEquals("{\"b\":2,\"a\":1,\"c\":3}", serializeAsString(mapper, new AlphaBean2()));
     }
 
     // Test for [JACKSON-256], thanks John.

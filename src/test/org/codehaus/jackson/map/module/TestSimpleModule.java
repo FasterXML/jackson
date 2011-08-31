@@ -2,6 +2,7 @@ package org.codehaus.jackson.map.module;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Map;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
@@ -280,6 +281,10 @@ public class TestSimpleModule extends BaseMapTest
         module.setMixInAnnotation(MixableBean.class, MixInForOrder.class);
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(module);
-        assertEquals("{\"c\":3,\"a\":1,\"b\":2}", mapper.writeValueAsString(new MixableBean()));
+        Map<String,Object> props = this.writeAndMap(mapper, new MixableBean());
+        assertEquals(3, props.size());
+        assertEquals(Integer.valueOf(3), props.get("c"));
+        assertEquals(Integer.valueOf(1), props.get("a"));
+        assertEquals(Integer.valueOf(2), props.get("b"));
     }
 }

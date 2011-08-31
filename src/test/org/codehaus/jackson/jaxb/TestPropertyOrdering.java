@@ -51,6 +51,14 @@ public class TestPropertyOrdering
         public int[] getContacts() { return contacts; }
         public void setContacts(int[] contacts) { this.contacts = contacts; }
     }
+
+    @XmlType(propOrder={"b", "a", "c"})
+    public static class AlphaBean2
+    {
+        public int c = 3;
+        public int a = 1;
+        public int b = 2;
+    }
     
     /*
     /**********************************************************
@@ -58,6 +66,12 @@ public class TestPropertyOrdering
     /**********************************************************
      */
 
+    public void testSerializationExplicitOrdering() throws Exception
+    {
+        ObjectMapper mapper = getJaxbMapper();
+        assertEquals("{\"b\":2,\"a\":1,\"c\":3}", serializeAsString(mapper, new AlphaBean2()));
+    }
+    
     // Trying to reproduce [JACKSON-268]
     public void testOrderingWithRename() throws Exception
     {

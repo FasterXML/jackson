@@ -155,13 +155,17 @@ public class BasicClassIntrospector
             JavaType type, MixInResolver r, boolean forSerialization)
     {
         AnnotatedClass ac = classWithCreators(config, type, r);
-        // false, false -> do not process ignorals, nor collect (later part of processing)
         ac.resolveMemberMethods(MINIMAL_FILTER);
-        // false, false -> do not process ignorals, nor collect (later part of processing)
         ac.resolveFields();
-        return new POJOPropertiesCollector(config, forSerialization, type, ac).collect();
+        return constructPropertyCollector(config, ac, type, forSerialization).collect();
     }
 
+    /**
+     * Overridable method called for creating {@link POJOPropertiesCollector} instance
+     * to use; override is needed if a custom sub-class is to be used.
+     * 
+     * @since 1.9
+     */
     protected POJOPropertiesCollector constructPropertyCollector(MapperConfig<?> config,
             AnnotatedClass ac, JavaType type,
             boolean forSerialization)
@@ -178,7 +182,6 @@ public class BasicClassIntrospector
         boolean useAnnotations = config.isAnnotationProcessingEnabled();
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
         AnnotatedClass ac = AnnotatedClass.construct(type.getRawClass(), (useAnnotations ? ai : null), r);
-        // false, false -> do not process ignorals, nor collect (later part of processing)
         ac.resolveMemberMethods(MINIMAL_FILTER);
         // true -> include all creators, not just default constructor
         ac.resolveCreators(true);
