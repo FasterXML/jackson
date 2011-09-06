@@ -468,7 +468,18 @@ public class JaxbAnnotationIntrospector
         if (isIndexedType(rawPropType)) {
             return null;
         }
-        return annotation.type();
+        /* [JACKSON-288]: Further, JAXB has peculiar notion of declaring intermediate
+         *  (and, for the most part, useless) type... So basically we better
+         *  just ignore type if there is adapter annotation
+         *  (we could check to see if intermediate type is compatible, but let's not yet
+         *  bother)
+         * 
+         */
+        Class<?> allegedType = annotation.type();
+        if (a.getAnnotation(XmlJavaTypeAdapter.class) != null) {
+            return null;
+        }
+        return allegedType;
     }
 
     /**
