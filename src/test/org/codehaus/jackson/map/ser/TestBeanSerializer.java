@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 
 import org.codehaus.jackson.*;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
@@ -139,6 +140,23 @@ public class TestBeanSerializer extends BaseMapTest
             jgen.writeNumber(_value);
         }
     }
+
+    // for [JACKSON-670]
+    
+    static class EmptyBean {
+        @JsonIgnore
+        public String name;
+    }
+    
+    static class EmptyBeanModifier extends BeanSerializerModifier
+    {
+        @Override
+        public List<BeanPropertyWriter> changeProperties(SerializationConfig config,
+                BasicBeanDescription beanDesc, List<BeanPropertyWriter> beanProperties) {
+            return beanProperties;
+        }
+    }
+    
     
     /*
     /********************************************************
@@ -175,5 +193,21 @@ public class TestBeanSerializer extends BaseMapTest
         mapper.registerModule(new ModuleImpl(new ReplacingModifier(new BogusBeanSerializer(123))));
         Bean bean = new Bean();
         assertEquals("123", mapper.writeValueAsString(bean));
+    }
+
+    // for [JACKSON-670]
+    public void testEmptyBean() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new SimpleModule("test", Version.unknownVersion()) {
+            @Override
+            public void setupModule(SetupContext context)
+            {
+                super.setupModule(context);
+                context.addBeanSerializerModifier(new EmptyBeanModifier());
+            }
+        });
+        String json = mapper.writeValueAsString(new EmptyBean());
+        assertNotNull(json);
     }
 }

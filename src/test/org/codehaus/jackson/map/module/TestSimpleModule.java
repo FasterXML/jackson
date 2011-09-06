@@ -2,13 +2,9 @@ package org.codehaus.jackson.map.module;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.Map;
+import java.util.*;
 
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.Version;
+import org.codehaus.jackson.*;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.ser.std.ScalarSerializerBase;
@@ -288,3 +284,4 @@ public class TestSimpleModule extends BaseMapTest
         assertEquals(Integer.valueOf(2), props.get("b"));
     }
 }
+
