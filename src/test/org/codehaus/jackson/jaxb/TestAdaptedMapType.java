@@ -24,7 +24,6 @@ public class TestAdaptedMapType extends TestCase {
     mapper.getSerializationConfig().withAnnotationIntrospector(new JaxbAnnotationIntrospector());
     ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
     mapper.writeValue(bytesOut, obj);
-    System.out.println(new String(bytesOut.toByteArray()));
     obj = mapper.readValue(new ByteArrayInputStream(bytesOut.toByteArray()), ObjectContainingAMap.class);
     assertNotNull(obj.getMyMap());
   }

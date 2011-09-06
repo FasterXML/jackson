@@ -1,13 +1,14 @@
 Version: 1.8.6
 
 Release date:
-  xx-Aug-2011
+  xx-Sep-2011
 
 Description:
   A patch release for 1.8.
 
   Fixes:
 
+  * [JACKSON-288] Problems (de)serializing values with JAXB adapters
   * [JACKSON-668] Problems with 'JsonParser.getDecimalValue' not
     clearing earlier state
    (reported by Ransom B)
