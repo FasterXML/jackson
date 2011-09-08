@@ -9,6 +9,7 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 import org.codehaus.jackson.map.module.SimpleModule;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Unit tests for verifying that it is possible to configure
@@ -108,7 +109,7 @@ public class TestBeanSerializer extends BaseMapTest
         @Override
         public BeanSerializerBuilder updateBuilder(SerializationConfig config,
                 BasicBeanDescription beanDesc, BeanSerializerBuilder builder) {
-            return new BogusSerializerBuilder(beanDesc, _serializer);
+            return new BogusSerializerBuilder(builder, _serializer);
         }
     }
 
@@ -116,9 +117,9 @@ public class TestBeanSerializer extends BaseMapTest
     {
         private final JsonSerializer<?> _serializer;
         
-        public BogusSerializerBuilder(BasicBeanDescription beanDesc,
+        public BogusSerializerBuilder(BeanSerializerBuilder src,
                 JsonSerializer<?> ser) {
-            super(beanDesc);
+            super(src);
             _serializer = ser;
         }
 
@@ -145,14 +146,27 @@ public class TestBeanSerializer extends BaseMapTest
     
     static class EmptyBean {
         @JsonIgnore
-        public String name;
+        public String name = "foo";
     }
     
     static class EmptyBeanModifier extends BeanSerializerModifier
     {
         @Override
         public List<BeanPropertyWriter> changeProperties(SerializationConfig config,
-                BasicBeanDescription beanDesc, List<BeanPropertyWriter> beanProperties) {
+                BasicBeanDescription beanDesc, List<BeanPropertyWriter> beanProperties)
+        {
+            JavaType strType = config.constructType(String.class);
+            try {
+                beanProperties.add(new BeanPropertyWriter(
+                        null, null,
+                        "bogus", strType,
+                        null, null, strType,
+                        null, EmptyBean.class.getDeclaredField("name"),
+                        false, null
+                        ));
+            } catch (NoSuchFieldException e) {
+                throw new IllegalStateException(e.getMessage());
+            }
             return beanProperties;
         }
     }
@@ -208,6 +222,6 @@ public class TestBeanSerializer extends BaseMapTest
             }
         });
         String json = mapper.writeValueAsString(new EmptyBean());
-        assertNotNull(json);
+        assertEquals("{\"bogus\":\"foo\"}", json);
     }
 }

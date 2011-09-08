@@ -9,7 +9,6 @@ import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.ser.std.MapSerializer;
 import org.codehaus.jackson.map.type.*;
 import org.codehaus.jackson.map.util.ArrayBuilders;
-import org.codehaus.jackson.map.util.BeanUtil;
 import org.codehaus.jackson.map.util.ClassUtil;
 import org.codehaus.jackson.type.JavaType;
  
@@ -431,42 +430,29 @@ public class BeanSerializerFactory
         List<BeanPropertyWriter> props = findBeanProperties(config, beanDesc);
         AnnotatedMethod anyGetter = beanDesc.findAnyGetter();
 
+        if (props == null) {
+            props = new ArrayList<BeanPropertyWriter>();
+        }
         // [JACKSON-440] Need to allow modification bean properties to serialize:
         if (_factoryConfig.hasSerializerModifiers()) {
-            if (props == null) {
-                props = new ArrayList<BeanPropertyWriter>();
-            }
             for (BeanSerializerModifier mod : _factoryConfig.serializerModifiers()) {
                 props = mod.changeProperties(config, beanDesc, props);
             }
         }
         
-        // No properties, no serializer
-        // 16-Oct-2010, tatu: Except that @JsonAnyGetter needs to count as getter
-        if (props == null || props.size() == 0) {
-            if (anyGetter == null) {
-                /* 27-Nov-2009, tatu: Except that as per [JACKSON-201], we are
-                 *   ok with that as long as it has a recognized class annotation
-                 *  (which may come from a mix-in too)
-                 */
-                if (beanDesc.hasKnownClassAnnotations()) {
-                    return builder.createDummy();
-                }
-                return null;
-            }
-            props = Collections.emptyList();
-        } else {
-            // Any properties to suppress?
-            props = filterBeanProperties(config, beanDesc, props);
-            // Do they need to be sorted in some special way?
-            props = sortBeanProperties(config, beanDesc, props);
-        }
+        // Any properties to suppress?
+        props = filterBeanProperties(config, beanDesc, props);
+        // Do they need to be sorted in some special way?
+        props = sortBeanProperties(config, beanDesc, props);
+
+        
         // [JACKSON-440] Need to allow reordering of properties to serialize
         if (_factoryConfig.hasSerializerModifiers()) {
             for (BeanSerializerModifier mod : _factoryConfig.serializerModifiers()) {
                 props = mod.orderProperties(config, beanDesc, props);
             }
         }
+        
         builder.setProperties(props);
         builder.setFilterId(findFilterId(config, beanDesc));
         
@@ -489,6 +475,24 @@ public class BeanSerializerFactory
                 builder = mod.updateBuilder(config, beanDesc, builder);
             }
         }
+
+        /* However, after all modifications: no properties, no serializer
+         * (note; as per [JACKSON-670], check was moved later on from an earlier location)
+         */
+        if (!builder.hasProperties()) {
+            // 16-Oct-2010, tatu: Except that @JsonAnyGetter needs to count as getter
+            if (anyGetter == null) {
+                /* 27-Nov-2009, tatu: Except that as per [JACKSON-201], we are
+                 *   ok with that as long as it has a recognized class annotation
+                 *  (which may come from a mix-in too)
+                 */
+                if (beanDesc.hasKnownClassAnnotations()) {
+                    return builder.createDummy();
+                }
+                return null;
+            }
+        }
+        
         // And finally construct serializer
         return (JsonSerializer<Object>) builder.build();
     }

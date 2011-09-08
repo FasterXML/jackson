@@ -77,6 +77,13 @@ public class BeanSerializerBuilder
     public BasicBeanDescription getBeanDescription() { return _beanDesc; }
     public List<BeanPropertyWriter> getProperties() { return _properties; }
     public BeanPropertyWriter[] getFilteredProperties() { return _filteredProperties; }
+    
+    /**
+     * @since 1.9
+     */
+    public boolean hasProperties() {
+        return (_properties != null) && (_properties.size() > 0);
+    }
 
     public void setProperties(List<BeanPropertyWriter> properties) {
         _properties = properties;
