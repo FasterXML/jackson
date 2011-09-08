@@ -360,9 +360,7 @@ public final class AnnotatedClass
         _creatorMethods = null;
         
         if (includeAll) {
-            /* Then static methods which are potential factory
-             * methods
-             */
+            // Then static methods which are potential factory methods
             for (Method m : _class.getDeclaredMethods()) {
                 if (!Modifier.isStatic(m.getModifiers())) {
                     continue;

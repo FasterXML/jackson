@@ -27,7 +27,7 @@ public class SmileParser
         /**
          * Feature that determines whether 4-byte Smile header is mandatory in input,
          * or optional. If enabled, it means that only input that starts with the header
-         * is accepted as valid; if disabled, header is optional. In latter case,
+         * is accepted as valid; if disabled, header is optional. In latter case,r 
          * settings for content are assumed to be defaults.
          */
         REQUIRE_HEADER(true)
@@ -464,8 +464,21 @@ public class SmileParser
         _symbols.release();
     }
 
-    /*
-    
+    @Override
+    public boolean hasTextCharacters()
+    {
+        if (_currToken == JsonToken.VALUE_STRING) {
+            // yes; is or can be made available efficiently as char[]
+            return _textBuffer.hasTextAsCharacters();
+        }
+        if (_currToken == JsonToken.FIELD_NAME) {
+            // not necessarily; possible but:
+            return _nameCopied;
+        }
+        // other types, no benefit from accessing as char[]
+        return false;
+    }
+
     /**
      * Method called to release internal buffers owned by the base
      * reader. This may be called along with {@link #_closeInput} (for
@@ -509,18 +522,6 @@ public class SmileParser
                 _smileBufferRecycler.releaseSeenStringValuesBuffer(valueBuf);
             }
         }
-    }
-
-    @Override
-    public boolean hasTextCharacters()
-    {
-        if (_currToken == JsonToken.VALUE_STRING) {
-            return _textBuffer.hasTextAsCharacters();
-        }        
-        if (_currToken == JsonToken.FIELD_NAME) {
-            return _nameCopied;
-        }
-        return false;
     }
     
     /*

@@ -577,8 +577,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * 
      * @since 1.7
      */
+    @SuppressWarnings("unchecked")
     public <DESC extends BeanDescription> DESC introspectClassAnnotations(Class<?> cls) {
-        return introspectClassAnnotations(constructType(cls));
+        return (DESC) introspectClassAnnotations(constructType(cls));
     }
     
     /**
@@ -596,8 +597,9 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * 
      * @since 1.7
      */
+    @SuppressWarnings("unchecked")
     public <DESC extends BeanDescription> DESC introspectDirectClassAnnotations(Class<?> cls) {
-        return introspectDirectClassAnnotations(constructType(cls));
+        return (DESC) introspectDirectClassAnnotations(constructType(cls));
     }
     
     /**
