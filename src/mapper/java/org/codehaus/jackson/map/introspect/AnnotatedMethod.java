@@ -120,11 +120,6 @@ public final class AnnotatedMethod
      */
 
     @Override
-    public AnnotatedParameter getParameter(int index) {
-        return new AnnotatedParameter(this, getParameterType(index), _paramAnnotations[index], index);
-    }
-
-    @Override
     public int getParameterCount() {
         return getParameterTypes().length;
     }

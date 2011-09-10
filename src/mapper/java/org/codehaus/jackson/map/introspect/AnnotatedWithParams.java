@@ -68,6 +68,19 @@ public abstract class AnnotatedWithParams
         _annotations.addIfNotPresent(a);
     }
 
+    
+    /**
+     * Method called by parameter object when an augmented instance is created;
+     * needs to replace parameter with new instance
+     * 
+     * @since 1.9
+     */
+    protected AnnotatedParameter replaceParameterAnnotations(int index, AnnotationMap ann)
+    {
+        _paramAnnotations[index] = ann;
+        return getParameter(index);
+    }    
+
     /*
     /**********************************************************
     /* Helper methods for subclasses
@@ -121,7 +134,10 @@ public abstract class AnnotatedWithParams
         return null;
     }
 
-    public abstract AnnotatedParameter getParameter(int index);
+    public final AnnotatedParameter getParameter(int index) {
+        return new AnnotatedParameter(this, getParameterType(index),
+                _paramAnnotations[index], index);
+    }
 
     public abstract int getParameterCount();
 
