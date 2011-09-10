@@ -19,8 +19,7 @@ public class TestAbstractTypeNames  extends BaseMapTest
 {
     @JsonTypeName("Employee")
     public interface Employee extends User {
-
-            public abstract String getEmployer();
+        public abstract String getEmployer();
     }
 
     @JsonTypeInfo(use=Id.NAME, include=As.PROPERTY, property="userType")

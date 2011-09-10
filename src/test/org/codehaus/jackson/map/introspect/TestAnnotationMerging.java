@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.introspect;
 
+import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.BaseMapTest;
@@ -41,6 +42,20 @@ public class TestAnnotationMerging extends BaseMapTest
         public int getValue() { return 1; }
         public void setValue(int x) { }
     }
+
+    // Testing to ensure that ctor param and getter can "share" @JsonTypeInfo stuff
+    static class TypeWrapper
+    {
+        protected Object value;
+
+        @JsonCreator
+        public TypeWrapper(
+                @JsonProperty("value")
+                @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS) Object o) {
+            value = o;
+        }
+        public Object getValue() { return value; }
+    }
     
     /*
     /**********************************************************
@@ -68,6 +83,14 @@ public class TestAnnotationMerging extends BaseMapTest
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(new Wrapper(13L));
         Wrapper result = mapper.readValue(json, Wrapper.class);
+        assertEquals(Long.class, result.value.getClass());
+    }
+
+    public void testSharedTypeInfoWithCtor() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(new TypeWrapper(13L));
+        TypeWrapper result = mapper.readValue(json, TypeWrapper.class);
         assertEquals(Long.class, result.value.getClass());
     }
 }
