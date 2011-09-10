@@ -973,7 +973,13 @@ public class BeanDeserializerFactory
         JsonDeserializer<Object> deser = findDeserializerFromAnnotation(config, param, property);
         // If yes, we are mostly done:
         type = modifyTypeByAnnotation(config, param, type, name);
-        TypeDeserializer typeDeser = findTypeDeserializer(config, type, property);
+
+        // Type deserializer: either comes from property (and already resolved)
+        TypeDeserializer typeDeser = (TypeDeserializer) type.getTypeHandler();
+        // or if not, based on type being referenced:
+        if (typeDeser == null) {
+            typeDeser = findTypeDeserializer(config, type, property);
+        }
         CreatorProperty prop = new CreatorProperty(name, type, typeDeser,
                 beanDesc.getClassAnnotations(), param, index);
         if (deser != null) {

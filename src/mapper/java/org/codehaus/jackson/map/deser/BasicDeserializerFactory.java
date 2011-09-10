@@ -619,7 +619,6 @@ public abstract class BasicDeserializerFactory
     {
         AnnotationIntrospector ai = config.getAnnotationIntrospector();
         TypeResolverBuilder<?> b = ai.findPropertyTypeResolver(config, annotated, baseType);        
-
         // Defaulting: if no annotations on member, check value class
         if (b == null) {
             return findTypeDeserializer(config, baseType, property);
@@ -860,7 +859,7 @@ public abstract class BasicDeserializerFactory
             }
         }
     	TypeDeserializer valueTypeDeser;
-    	
+
         if (member instanceof AnnotatedMember) { // JAXB allows per-property annotations
             valueTypeDeser = findPropertyTypeDeserializer(config, type, (AnnotatedMember) member, property);
         } else { // classes just have Jackson annotations
@@ -870,7 +869,7 @@ public abstract class BasicDeserializerFactory
     	if (valueTypeDeser != null) {
             type = type.withTypeHandler(valueTypeDeser);
     	}
-        return type;
+    	return type;
     }
     
     protected EnumResolver<?> constructEnumResolver(Class<?> enumClass, DeserializationConfig config)
