@@ -1,15 +1,6 @@
 package org.codehaus.jackson.map.util;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import org.codehaus.jackson.map.*;
-import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 
 /**
  * Helper class that contains functionality needed by both serialization
@@ -19,7 +10,7 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription;
  */
 public class BeanUtil
 {
-    /**
+    /*
      * Helper method to use for sorting bean properties, based on
      * ordering rules indicated by annotations, config features.
      * 
@@ -29,13 +20,13 @@ public class BeanUtil
      * @param defaultSortByAlpha Whether properties should be (re)sorted alphabetically
      *   by default (unless overridden by type)
      */
+    /*
     public static <T extends Named> List<T> sortProperties(MapperConfig<?> config,
             BasicBeanDescription beanDesc, List<T> props,
             boolean defaultSortByAlpha)
     {
-        /* First, order by [JACKSON-90] (explicit ordering and/or alphabetic)
-         * and then for [JACKSON-170] (implicitly order creator properties before others)
-         */
+        // First, order by [JACKSON-90] (explicit ordering and/or alphabetic)
+        // and then for [JACKSON-170] (implicitly order creator properties before others)
         List<String> creatorProps = beanDesc.findCreatorPropertyNames();
         // Then how about explicit ordering?
         AnnotationIntrospector intr = config.getAnnotationIntrospector();
@@ -86,10 +77,11 @@ public class BeanUtil
         ordered.putAll(all);
         return new ArrayList<T>(ordered.values());
     }
+    */
 
     /*
     /**********************************************************
-    /* Internal methods: handling "getter" names
+    /* Handling "getter" names
     /**********************************************************
      */
 

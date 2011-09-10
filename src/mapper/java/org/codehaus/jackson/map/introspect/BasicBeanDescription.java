@@ -249,63 +249,6 @@ public class BasicBeanDescription extends BeanDescription
     {
         return _classInfo.getConstructors();
     }
-
-    /*
-    /**********************************************************
-    /* Deprecated methods from BeanDescription
-    /**********************************************************
-     */
-    
-    @SuppressWarnings("deprecation")
-    @Override
-    public LinkedHashMap<String,AnnotatedMethod> findGetters(VisibilityChecker<?> visibilityChecker,
-            Collection<String> ignoredProperties)
-    {
-        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
-        for (BeanPropertyDefinition property : _properties) {
-            AnnotatedMethod m = property.getGetter();
-            if (m != null) {
-                String name = property.getName();
-                if (ignoredProperties != null) {
-                    if (ignoredProperties.contains(name)) {
-                        continue;
-                    }
-                }
-                results.put(name, m);
-            }
-        }
-        return results;
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public LinkedHashMap<String,AnnotatedMethod> findSetters(VisibilityChecker<?> visibilityChecker)
-    {
-        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
-        for (BeanPropertyDefinition property : _properties) {
-            AnnotatedMethod m = property.getSetter();
-            if (m != null) {
-                results.put(property.getName(), m);
-            }
-        }
-        return results;
-    }
-    
-    @SuppressWarnings("deprecation")
-    @Override
-    public LinkedHashMap<String,AnnotatedField> findSerializableFields(VisibilityChecker<?> visibilityChecker,
-            Collection<String> ignoredProperties)
-    {
-        return _findPropertyFields(ignoredProperties, true);
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public LinkedHashMap<String,AnnotatedField> findDeserializableFields(VisibilityChecker<?> visibilityChecker,
-            Collection<String> ignoredProperties)
-    {
-        return _findPropertyFields(ignoredProperties, false);
-    }
     
     /*
     /**********************************************************
@@ -599,5 +542,62 @@ public class BasicBeanDescription extends BeanDescription
             }
         }
         return results;
+    }
+
+    /*
+    /**********************************************************
+    /* Deprecated methods from BeanDescription
+    /**********************************************************
+     */
+    
+    @SuppressWarnings("deprecation")
+    @Override
+    public LinkedHashMap<String,AnnotatedMethod> findGetters(VisibilityChecker<?> visibilityChecker,
+            Collection<String> ignoredProperties)
+    {
+        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
+        for (BeanPropertyDefinition property : _properties) {
+            AnnotatedMethod m = property.getGetter();
+            if (m != null) {
+                String name = property.getName();
+                if (ignoredProperties != null) {
+                    if (ignoredProperties.contains(name)) {
+                        continue;
+                    }
+                }
+                results.put(name, m);
+            }
+        }
+        return results;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public LinkedHashMap<String,AnnotatedMethod> findSetters(VisibilityChecker<?> visibilityChecker)
+    {
+        LinkedHashMap<String,AnnotatedMethod> results = new LinkedHashMap<String,AnnotatedMethod>();
+        for (BeanPropertyDefinition property : _properties) {
+            AnnotatedMethod m = property.getSetter();
+            if (m != null) {
+                results.put(property.getName(), m);
+            }
+        }
+        return results;
+    }
+    
+    @SuppressWarnings("deprecation")
+    @Override
+    public LinkedHashMap<String,AnnotatedField> findSerializableFields(VisibilityChecker<?> visibilityChecker,
+            Collection<String> ignoredProperties)
+    {
+        return _findPropertyFields(ignoredProperties, true);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public LinkedHashMap<String,AnnotatedField> findDeserializableFields(VisibilityChecker<?> visibilityChecker,
+            Collection<String> ignoredProperties)
+    {
+        return _findPropertyFields(ignoredProperties, false);
     }
 }

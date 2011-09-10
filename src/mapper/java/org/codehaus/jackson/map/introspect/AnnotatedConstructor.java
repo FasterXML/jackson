@@ -11,7 +11,7 @@ public final class AnnotatedConstructor
     extends AnnotatedWithParams
 {
     protected final Constructor<?> _constructor;
-
+    
     /*
     /**********************************************************
     /* Life-cycle

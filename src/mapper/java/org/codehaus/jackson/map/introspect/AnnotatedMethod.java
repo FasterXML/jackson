@@ -166,7 +166,7 @@ public final class AnnotatedMethod
 
     /*
     /********************************************************
-    /* Extended API, specific annotations
+    /* Other
     /********************************************************
      */
 

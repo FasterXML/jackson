@@ -110,11 +110,7 @@ public class TestSerializationOrder
         		serializeAsString(new BeanFor268()));
     }
 
-    /**
-     * Test for [JACKSON-459]
-     * 
-     * @since 1.8
-     */
+    // Test for [JACKSON-459]
     public void testOrderWithFeature() throws Exception
     {
         ObjectMapper m = new ObjectMapper();

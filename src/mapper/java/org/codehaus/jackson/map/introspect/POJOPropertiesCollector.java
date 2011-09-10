@@ -64,6 +64,8 @@ public class POJOPropertiesCollector
     protected final LinkedHashMap<String, POJOPropertyBuilder> _properties
         = new LinkedHashMap<String, POJOPropertyBuilder>();
 
+    protected LinkedList<POJOPropertyBuilder> _creatorProperties = null;
+    
     protected LinkedList<AnnotatedMethod> _anyGetters = null;
 
     protected LinkedList<AnnotatedMethod> _anySetters = null;
@@ -194,6 +196,7 @@ public class POJOPropertiesCollector
         // First: gather basic data
         _addFields();
         _addMethods();
+        _addCreators();
 
         // Remove ignored properties, individual entries
         _removeUnwantedProperties();
@@ -235,16 +238,6 @@ public class POJOPropertiesCollector
      */
     protected void _sortProperties()
     {
-        /*
-        return BeanUtil.sortProperties(config, beanDesc, props,
-                    config.isEnabled(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY));
-                    */
-        
-        // !!! TODO
-        
-//        List<String> creatorProps = beanDesc.findCreatorPropertyNames();
-        List<String> creatorProps = Collections.emptyList();
-        
         // Then how about explicit ordering?
         AnnotationIntrospector intr = _config.getAnnotationIntrospector();
         boolean defaultSortByAlpha = true;
@@ -269,7 +262,7 @@ public class POJOPropertiesCollector
             sort = alpha.booleanValue();
         }
         // no sorting? no need to shuffle, then
-        if (!sort && creatorProps.isEmpty() && propertyOrder == null) {
+        if (!sort && (_creatorProperties == null) && (propertyOrder == null)) {
             return;
         }
         int size = _properties.size();
@@ -280,7 +273,7 @@ public class POJOPropertiesCollector
         } else {
             all = new LinkedHashMap<String,POJOPropertyBuilder>(size+size);
         }
-    
+
         for (POJOPropertyBuilder prop : _properties.values()) {
             all.put(prop.getName(), prop);
         }
@@ -305,14 +298,14 @@ public class POJOPropertiesCollector
             }
         }
         // And secondly by sorting Creator properties before other unordered properties
-        for (String name : creatorProps) {
-            POJOPropertyBuilder w = all.get(name);
-            if (w != null) {
-                ordered.put(name, w);
+        if (_creatorProperties != null) {
+            for (POJOPropertyBuilder prop : _creatorProperties) {
+                ordered.put(prop.getName(), prop);
             }
         }
         // And finally whatever is left (trying to put again will not change ordering)
         ordered.putAll(all);
+        
         _properties.clear();
         _properties.putAll(ordered);
     }        
@@ -363,12 +356,40 @@ public class POJOPropertiesCollector
     /**
      * Method for collecting basic information on constructor(s) found
      */
-    @SuppressWarnings("unused")
-    protected void _addConstructors()
+    protected void _addCreators()
     {
+        final AnnotationIntrospector ai = _annotationIntrospector;
         for (AnnotatedConstructor ctor : _classDef.getConstructors()) {
+            if (_creatorProperties == null) {
+                _creatorProperties = new LinkedList<POJOPropertyBuilder>();
+            }
+            for (int i = 0, len = ctor.getParameterCount(); i < len; ++i) {
+                AnnotatedParameter param = ctor.getParameter(i);
+                String name = ai.findPropertyNameForParam(param);
+                // is it legal not to have name?
+                if (name != null) {
+                    // shouldn't need to worry about @JsonIgnore (no real point, so)
+                    POJOPropertyBuilder prop = _property(name);
+                    prop.addCtor(param, name, true, false);
+                    _creatorProperties.add(prop);
+                }
+            }
         }
         for (AnnotatedMethod factory : _classDef.getStaticMethods()) {
+            if (_creatorProperties == null) {
+                _creatorProperties = new LinkedList<POJOPropertyBuilder>();
+            }
+            for (int i = 0, len = factory.getParameterCount(); i < len; ++i) {
+                AnnotatedParameter param = factory.getParameter(i);
+                String name = ai.findPropertyNameForParam(param);
+                // is it legal not to have name?
+                if (name != null) {
+                    // shouldn't need to worry about @JsonIgnore (no real point, so)
+                    POJOPropertyBuilder prop = _property(name);
+                    prop.addCtor(param, name, true, false);
+                    _creatorProperties.add(prop);
+                }
+            }
         }
     }
 

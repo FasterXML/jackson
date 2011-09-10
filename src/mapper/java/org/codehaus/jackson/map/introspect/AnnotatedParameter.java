@@ -33,7 +33,7 @@ public final class AnnotatedParameter
      * JDK type of the parameter, possibly contains generic type information
      */
     protected final Type _type;
-
+    
     /**
      * Index of the parameter within argument list
      * 
@@ -164,5 +164,17 @@ public final class AnnotatedParameter
      * @since 1.9
      */
     public int getIndex() { return _index; }
+
+    /*
+    /********************************************************
+    /* Other
+    /********************************************************
+     */
+    
+    @Override
+    public String toString()
+    {
+        return "[parameter #"+getIndex()+", annotations: "+_annotations+"]";
+    }
 }
 
