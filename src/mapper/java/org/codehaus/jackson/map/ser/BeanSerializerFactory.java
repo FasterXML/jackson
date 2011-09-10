@@ -475,26 +475,21 @@ public class BeanSerializerFactory
                 builder = mod.updateBuilder(config, beanDesc, builder);
             }
         }
+        JsonSerializer<Object> ser = (JsonSerializer<Object>) builder.build();
 
         /* However, after all modifications: no properties, no serializer
          * (note; as per [JACKSON-670], check was moved later on from an earlier location)
          */
-        if (!builder.hasProperties()) {
-            // 16-Oct-2010, tatu: Except that @JsonAnyGetter needs to count as getter
-            if (anyGetter == null) {
-                /* 27-Nov-2009, tatu: Except that as per [JACKSON-201], we are
-                 *   ok with that as long as it has a recognized class annotation
-                 *  (which may come from a mix-in too)
-                 */
-                if (beanDesc.hasKnownClassAnnotations()) {
-                    return builder.createDummy();
-                }
-                return null;
+        if (ser == null) {
+            /* 27-Nov-2009, tatu: Except that as per [JACKSON-201], we are
+             *   ok with that as long as it has a recognized class annotation
+             *  (which may come from a mix-in too)
+             */
+            if (beanDesc.hasKnownClassAnnotations()) {
+                return builder.createDummy();
             }
         }
-        
-        // And finally construct serializer
-        return (JsonSerializer<Object>) builder.build();
+        return ser;
     }
 
     /**

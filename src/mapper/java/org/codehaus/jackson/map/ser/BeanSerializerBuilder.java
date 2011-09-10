@@ -109,14 +109,23 @@ public class BeanSerializerBuilder
     
     /**
      * Method called to create {@link BeanSerializer} instance with
-     * all accumulated information.
+     * all accumulated information. Will construct a serializer if we
+     * have enough information, or return null if not.
      */
     public JsonSerializer<?> build()
     {
-        BeanPropertyWriter[] properties = (_properties == null || _properties.isEmpty()) ?
-                NO_PROPERTIES : _properties.toArray(new BeanPropertyWriter[_properties.size()]);
-        return new BeanSerializer(_beanDesc.getType(), properties, _filteredProperties,
-                _anyGetter, _filterId);
+        BeanPropertyWriter[] properties;
+        // No properties or any getter? No real serializer; caller gets to handle
+        if (_properties == null || _properties.isEmpty()) {
+            if (_anyGetter == null) {
+                return null;
+            }
+            properties = NO_PROPERTIES;
+        } else {
+            properties = _properties.toArray(new BeanPropertyWriter[_properties.size()]);
+            
+        }
+        return new BeanSerializer(_beanDesc.getType(), properties, _filteredProperties, _anyGetter, _filterId);
     }
     
     /**
