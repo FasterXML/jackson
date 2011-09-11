@@ -39,13 +39,14 @@ import org.codehaus.jackson.type.JavaType;
  * with different configuration ("fluent factories")
  */
 public class DeserializationConfig
-    extends MapperConfig<DeserializationConfig>
+    extends MapperConfig.Impl<DeserializationConfig.Feature, DeserializationConfig>
 {
     /**
      * Enumeration that defines togglable features that guide
      * the serialization feature.
      */
-    public enum Feature {
+    public enum Feature implements MapperConfig.ConfigFeature
+    {
         /*
         /******************************************************
          *  Introspection features
@@ -342,47 +343,23 @@ public class DeserializationConfig
         ;
 
         final boolean _defaultState;
-
-        /**
-         * Method that calculates bit set (flags) of all features that
-         * are enabled by default.
-         */
-        public static int collectDefaults()
-        {
-            int flags = 0;
-            for (Feature f : values()) {
-                if (f.enabledByDefault()) {
-                    flags |= f.getMask();
-                }
-            }
-            return flags;
-        }
 	        
         private Feature(boolean defaultState) {
             _defaultState = defaultState;
         }
-	        
+
+        @Override
         public boolean enabledByDefault() { return _defaultState; }
     
+        @Override
         public int getMask() { return (1 << ordinal()); }
     }
-
-    /**
-     * Bitfield (set of flags) of all Features that are enabled
-     * by default.
-     */
-    protected final static int DEFAULT_FEATURE_FLAGS = Feature.collectDefaults();
 
     /*
     /**********************************************************
     /* Configuration settings for deserialization
     /**********************************************************
      */
-
-    /**
-     * Bit set that contains all enabled features
-     */
-    protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
 
     /**
      * Linked list that contains all registered problem handlers.
@@ -412,10 +389,11 @@ public class DeserializationConfig
             SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy,
             TypeFactory typeFactory, HandlerInstantiator handlerInstantiator)
     {
-        super(intr, annIntr, vc, subtypeResolver, propertyNamingStrategy, typeFactory, handlerInstantiator);
+        super(intr, annIntr, vc, subtypeResolver, propertyNamingStrategy, typeFactory, handlerInstantiator,
+                collectFeatureDefaults(DeserializationConfig.Feature.class));
         _nodeFactory = JsonNodeFactory.instance;
     }
-
+    
     /**
      * @since 1.8
      */
@@ -443,7 +421,6 @@ public class DeserializationConfig
     protected DeserializationConfig(DeserializationConfig src, MapperConfig.Base base)
     {
         super(src, base, src._subtypeResolver);
-        _featureFlags = src._featureFlags;
         _problemHandlers = src._problemHandlers;
         _nodeFactory = src._nodeFactory;
     }
@@ -454,7 +431,6 @@ public class DeserializationConfig
     protected DeserializationConfig(DeserializationConfig src, JsonNodeFactory f)
     {
         super(src);
-        _featureFlags = src._featureFlags;
         _problemHandlers = src._problemHandlers;
         _nodeFactory = f;
     }
@@ -464,8 +440,7 @@ public class DeserializationConfig
      */
     protected DeserializationConfig(DeserializationConfig src, int featureFlags)
     {
-        super(src);
-        _featureFlags = featureFlags;
+        super(src, featureFlags);
         _problemHandlers = src._problemHandlers;
         _nodeFactory = src._nodeFactory;
     }
@@ -561,7 +536,8 @@ public class DeserializationConfig
      * 
      * @since 1.9
      */
-    public DeserializationConfig with(Feature... features)
+    @Override
+    public DeserializationConfig with(DeserializationConfig.Feature... features)
     {
         int flags = _featureFlags;
         for (Feature f : features) {
@@ -576,68 +552,14 @@ public class DeserializationConfig
      * 
      * @since 1.9
      */
-    public DeserializationConfig without(Feature... features)
+    @Override
+    public DeserializationConfig without(DeserializationConfig.Feature... features)
     {
         int flags = _featureFlags;
         for (Feature f : features) {
             flags &= ~f.getMask();
         }
         return new DeserializationConfig(this, flags);
-    }
-    
-    /*
-    /**********************************************************
-    /* Configuration: on/off features
-    /**********************************************************
-     */
-
-    /**
-     * Method for enabling specified feature.
-     * 
-     * @deprecated Since 1.9, it is preferable to use {@link #with} instead;
-     *    this method is deprecated as it modifies current instance instead of
-     *    creating a new one (as the goal is to make this class immutable)
-     */
-    @Deprecated
-    public void enable(Feature f) {
-        _featureFlags |= f.getMask();
-    }
-
-    /**
-     * Method for disabling specified feature.
-     * 
-     * @deprecated Since 1.9, it is preferable to use {@link #without} instead;
-     *    this method is deprecated as it modifies current instance instead of
-     *    creating a new one (as the goal is to make this class immutable)
-     */
-    @Deprecated
-    public void disable(Feature f) {
-        _featureFlags &= ~f.getMask();
-    }
-
-    /**
-     * Method for enabling or disabling specified feature.
-     * 
-     * @deprecated Since 1.9, it is preferable to use {@link #with} and
-     * {@link #without} methods instead;
-     *    this method is deprecated as it modifies current instance instead of
-     *    creating a new one (as the goal is to make this class immutable)
-     */
-    @Deprecated
-    public void set(Feature f, boolean state)
-    {
-        if (state) {
-            enable(f);
-        } else {
-            disable(f);
-        }
-    }
-
-    /**
-     * Method for checking whether given feature is enabled or not
-     */
-    public final boolean isEnabled(Feature f) {
-        return (_featureFlags & f.getMask()) != 0;
     }
     
     /*

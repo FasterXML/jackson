@@ -36,13 +36,14 @@ import org.codehaus.jackson.type.JavaType;
  * with different configuration ("fluent factories")
  */
 public class SerializationConfig
-    extends MapperConfig<SerializationConfig>
+    extends MapperConfig.Impl<SerializationConfig.Feature, SerializationConfig>
 {
     /**
      * Enumeration that defines togglable features that guide
      * the serialization feature.
      */
-    public enum Feature {
+    public enum Feature implements MapperConfig.ConfigFeature
+    {
         /*
         /******************************************************
         /*  Introspection features
@@ -309,7 +310,7 @@ public class SerializationConfig
          
         /*
         /******************************************************
-        /* Datatype-specific serialization configuration
+        /* Data type - specific serialization configuration
         /******************************************************
          */
 
@@ -394,44 +395,23 @@ public class SerializationConfig
             ;
 
         final boolean _defaultState;
-
-        /**
-         * Method that calculates bit set (flags) of all features that
-         * are enabled by default.
-         */
-        public static int collectDefaults()
-        {
-            int flags = 0;
-            for (Feature f : values()) {
-                if (f.enabledByDefault()) {
-                    flags |= f.getMask();
-                }
-            }
-            return flags;
-        }
         
         private Feature(boolean defaultState) {
             _defaultState = defaultState;
         }
-        
+
+        @Override
         public boolean enabledByDefault() { return _defaultState; }
     
+        @Override
         public int getMask() { return (1 << ordinal()); }
     }
-
-    /**
-     * Bitfield (set of flags) of all Features that are enabled
-     * by default.
-     */
-    protected final static int DEFAULT_FEATURE_FLAGS = Feature.collectDefaults();
 
     /*
     /**********************************************************
     /* Configuration settings
     /**********************************************************
      */
-
-    protected int _featureFlags = DEFAULT_FEATURE_FLAGS;
 
     /**
      * Which Bean/Map properties are to be included in serialization?
@@ -476,10 +456,11 @@ public class SerializationConfig
             SubtypeResolver subtypeResolver, PropertyNamingStrategy propertyNamingStrategy,
             TypeFactory typeFactory, HandlerInstantiator handlerInstantiator)
     {
-        super(intr, annIntr, vc, subtypeResolver, propertyNamingStrategy, typeFactory, handlerInstantiator);
+        super(intr, annIntr, vc, subtypeResolver, propertyNamingStrategy, typeFactory, handlerInstantiator,
+                collectFeatureDefaults(SerializationConfig.Feature.class));
         _filterProvider = null;
     }
-
+    
     /**
      * @since 1.8
      */
@@ -506,7 +487,6 @@ public class SerializationConfig
     protected SerializationConfig(SerializationConfig src, MapperConfig.Base base)
     {
         super(src, base, src._subtypeResolver);
-        _featureFlags = src._featureFlags;
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
         _filterProvider = src._filterProvider;
@@ -518,7 +498,6 @@ public class SerializationConfig
     protected SerializationConfig(SerializationConfig src, FilterProvider filters)
     {
         super(src);
-        _featureFlags = src._featureFlags;
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
         _filterProvider = filters;
@@ -530,7 +509,6 @@ public class SerializationConfig
     protected SerializationConfig(SerializationConfig src, Class<?> view)
     {
         super(src);
-        _featureFlags = src._featureFlags;
         _serializationInclusion = src._serializationInclusion;
         _serializationView = view;
         _filterProvider = src._filterProvider;
@@ -542,13 +520,12 @@ public class SerializationConfig
     protected SerializationConfig(SerializationConfig src, JsonSerialize.Inclusion incl)
     {
         super(src);
-        _featureFlags = src._featureFlags;
         _serializationInclusion = incl;
         // And for some level of backwards compatibility, also...
         if (incl == JsonSerialize.Inclusion.NON_NULL) {
-            disable(Feature.WRITE_NULL_PROPERTIES);
+            _featureFlags &= ~Feature.WRITE_NULL_PROPERTIES.getMask();
         } else {
-            enable(Feature.WRITE_NULL_PROPERTIES);
+            _featureFlags |= Feature.WRITE_NULL_PROPERTIES.getMask();
         }
         _serializationView = src._serializationView;
         _filterProvider = src._filterProvider;
@@ -559,8 +536,7 @@ public class SerializationConfig
      */
     protected SerializationConfig(SerializationConfig src, int features)
     {
-        super(src);
-        _featureFlags = features;
+        super(src, features);
         _serializationInclusion = src._serializationInclusion;
         _serializationView = src._serializationView;
         _filterProvider = src._filterProvider;
@@ -632,8 +608,12 @@ public class SerializationConfig
     @Override
     public SerializationConfig withDateFormat(DateFormat df) {
         SerializationConfig cfg =  new SerializationConfig(this, _base.withDateFormat(df));
-        // And also 
-        cfg.set(Feature.WRITE_DATES_AS_TIMESTAMPS, (df == null));
+        // Also need to toggle this feature based on existence of date format:
+        if (df == null) {
+            cfg = cfg.with(Feature.WRITE_DATES_AS_TIMESTAMPS);
+        } else {
+            cfg = cfg.without(Feature.WRITE_DATES_AS_TIMESTAMPS);
+        }
         return cfg;
     }
     
@@ -675,6 +655,7 @@ public class SerializationConfig
      * 
      * @since 1.9
      */
+    @Override
     public SerializationConfig with(Feature... features)
     {
         int flags = _featureFlags;
@@ -690,6 +671,7 @@ public class SerializationConfig
      * 
      * @since 1.9
      */
+    @Override
     public SerializationConfig without(Feature... features)
     {
         int flags = _featureFlags;
@@ -727,6 +709,7 @@ public class SerializationConfig
      *   instances; this method also modifies existing instance which is
      *   against immutable design goals of this class.
      */
+    @SuppressWarnings("deprecation")
     @Deprecated
     @Override
     public void fromAnnotations(Class<?> cls)
@@ -833,63 +816,6 @@ public class SerializationConfig
     
     /*
     /**********************************************************
-    /* Configuration: on/off features
-    /**********************************************************
-     */
-
-    /**
-     * Method for enabling specified feature.
-     * 
-     * @deprecated Since 1.9, it is preferable to use {@link #with} instead;
-     *    this method is deprecated as it modifies current instance instead of
-     *    creating a new one (as the goal is to make this class immutable)
-     */
-    @Deprecated
-    public void enable(Feature f) {
-        _featureFlags |= f.getMask();
-    }
-
-    /**
-     * Method for disabling specified feature.
-     * 
-     * @deprecated Since 1.9, it is preferable to use {@link #without} instead;
-     *    this method is deprecated as it modifies current instance instead of
-     *    creating a new one (as the goal is to make this class immutable)
-     */
-    @Deprecated
-    public void disable(Feature f) {
-        _featureFlags &= ~f.getMask();
-    }
-
-    /**
-     * Method for enabling or disabling specified feature.
-     * 
-     * @deprecated Since 1.9, it is preferable to use {@link #with} and
-     * {@link #without} methods instead;
-     *    this method is deprecated as it modifies current instance instead of
-     *    creating a new one (as the goal is to make this class immutable)
-     */
-    @Deprecated
-    public void set(Feature f, boolean state)
-    {
-        if (state) {
-            enable(f);
-        } else {
-            disable(f);
-        }
-    }
-
-    //protected int getFeatures() { return _generatorFeatures; }
-    
-    /**
-     * Method for checking whether given feature is enabled or not
-     */
-    public final boolean isEnabled(Feature f) {
-        return (_featureFlags & f.getMask()) != 0;
-    }
-    
-    /*
-    /**********************************************************
     /* Configuration: other
     /**********************************************************
      */
@@ -922,6 +848,7 @@ public class SerializationConfig
      * @deprecated since 1.9 should either use {@link #withSerializationInclusion}
      *    to construct new instance, or configure through {@link ObjectMapper}
      */
+    @SuppressWarnings("deprecation")
     @Deprecated
     public void setSerializationInclusion(JsonSerialize.Inclusion props)
     {

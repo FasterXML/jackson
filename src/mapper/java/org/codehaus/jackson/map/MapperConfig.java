@@ -137,14 +137,14 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * 
      * @since 1.8
      */
-    protected MapperConfig(MapperConfig<?> src) {
+    protected MapperConfig(MapperConfig<T> src) {
         this(src, src._base, src._subtypeResolver);
     }
 
     /**
      * @since 1.8
      */
-    protected MapperConfig(MapperConfig<?> src, MapperConfig.Base base, SubtypeResolver str)
+    protected MapperConfig(MapperConfig<T> src, MapperConfig.Base base, SubtypeResolver str)
     {
         _base = base;
         _subtypeResolver = str;
@@ -317,6 +317,50 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.9
      */
     public abstract T withAppendedAnnotationIntrospector(AnnotationIntrospector introspector);
+    
+    /*
+    /**********************************************************
+    /* Configuration: simple features
+    /**********************************************************
+     */
+
+    /**
+     * Method for checking whether given feature is enabled or not
+     */
+    public abstract boolean isEnabled(ConfigFeature f);
+    
+    /**
+     * Method for determining whether annotation processing is enabled or not
+     * (default settings are typically that it is enabled; must explicitly disable).
+     * 
+     * @return True if annotation processing is enabled; false if not
+     * 
+     * @since 1.8
+     */
+    public abstract boolean isAnnotationProcessingEnabled();
+
+    /**
+     * Accessor for determining whether it is ok to try to force override of access
+     * modifiers to be able to get or set values of non-public Methods, Fields;
+     * to invoke non-public Constructors, Methods; or to instantiate non-public
+     * Classes. By default this is enabled, but on some platforms it needs to be
+     * prevented since if this would violate security constraints and cause failures.
+     * 
+     * @return True if access modifier overriding is allowed (and may be done for
+     *   any Field, Method, Constructor or Class); false to prevent any attempts
+     *   to override.
+     * 
+     * @since 1.8
+     */
+    public abstract boolean canOverrideAccessModifiers();
+
+    /**
+     * Accessor for checking whether default settings for property handling
+     * indicate that properties should be alphabetically ordered or not.
+     * 
+     * @since 1.9
+     */
+    public abstract boolean shouldSortPropertiesAlphabetically();
     
     /*
     /**********************************************************
@@ -552,7 +596,7 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
     /* Configuration: other
     /**********************************************************
      */
-
+    
     /**
      * Method for accessing currently configured (textual) date format
      * that will be used for reading or writing date values (in case
@@ -601,47 +645,13 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
     public <DESC extends BeanDescription> DESC introspectDirectClassAnnotations(Class<?> cls) {
         return (DESC) introspectDirectClassAnnotations(constructType(cls));
     }
-    
     /**
      * Accessor for getting bean description that only contains immediate class
      * annotations: ones from the class, and its direct mix-in, if any, but
      * not from super types.
      */
     public abstract <DESC extends BeanDescription> DESC introspectDirectClassAnnotations(JavaType type);
-    
-    /**
-     * Method for determining whether annotation processing is enabled or not
-     * (default settings are typically that it is enabled; must explicitly disable).
-     * 
-     * @return True if annotation processing is enabled; false if not
-     * 
-     * @since 1.8
-     */
-    public abstract boolean isAnnotationProcessingEnabled();
-
-    /**
-     * Accessor for determining whether it is ok to try to force override of access
-     * modifiers to be able to get or set values of non-public Methods, Fields;
-     * to invoke non-public Constructors, Methods; or to instantiate non-public
-     * Classes. By default this is enabled, but on some platforms it needs to be
-     * prevented since if this would violate security constraints and cause failures.
-     * 
-     * @return True if access modifier overriding is allowed (and may be done for
-     *   any Field, Method, Constructor or Class); false to prevent any attempts
-     *   to override.
-     * 
-     * @since 1.8
-     */
-    public abstract boolean canOverrideAccessModifiers();
-
-    /**
-     * Accessor for checking whether default settings for property handling
-     * indicate that properties should be alphabetically ordered or not.
-     * 
-     * @since 1.9
-     */
-    public abstract boolean shouldSortPropertiesAlphabetically();
-    
+        
     /*
     /**********************************************************
     /* Methods for instantiating handlers
@@ -725,6 +735,33 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
         }
         _base = _base.withDateFormat(df);
     }
+
+    /*
+    /**********************************************************
+    /* Helper interface used with simple on/off features
+    /**********************************************************
+     */
+    
+    /**
+     * Interface that actual Feature enumerations used by
+     * {@link MapperConfig} implementations must implement.
+     * Necessary since enums can not be extended using normal
+     * inheritance, but can implement interfaces
+     * 
+     * @since 1.9
+     */
+    public interface ConfigFeature
+    {
+        /**
+         * Accessor for checking whether this feature is enabled by default.
+         */
+        public boolean enabledByDefault();
+
+        /**
+         * Returns bit mask for this feature instance
+         */
+        public int getMask();
+    }
     
     /*
     /**********************************************************
@@ -732,7 +769,7 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
     /* MapperConfig.
     /**********************************************************
      */
-
+    
     /**
      * Immutable container class used to store simple configuration
      * settings. Since instances are fully immutable, instances can
@@ -940,6 +977,158 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
 
         public HandlerInstantiator getHandlerInstantiator() {
             return _handlerInstantiator;
+        }
+    }
+
+    /*
+    /**********************************************************
+    /* Basic extension; added to avoid having to change generic
+    /* signature of MapperConfig
+    /* 
+    /* NOTE: May be merge in MapperConfig for 2.0, depending
+    /* on how much we value backwards compatibility
+    /**********************************************************
+     */
+
+    static abstract class Impl<CFG extends MapperConfig.ConfigFeature,
+        T extends Impl<CFG,T>>
+        extends MapperConfig<T>
+    {
+        /**
+         *<p>
+         * Note: moved to base class in 1.9; was stored by sub-class earlier
+         */
+        protected int _featureFlags;
+        
+        /*
+        /**********************************************************
+        /* Construction
+        /**********************************************************
+         */
+        
+        protected Impl(ClassIntrospector<? extends BeanDescription> ci, AnnotationIntrospector ai,
+                VisibilityChecker<?> vc, SubtypeResolver str, PropertyNamingStrategy pns, TypeFactory tf,
+                HandlerInstantiator hi,
+                int defaultFeatures)
+        {
+            super(ci, ai, vc, str, pns, tf, hi);
+            _featureFlags = defaultFeatures;
+        }
+
+        protected Impl(Impl<CFG,T> src) {
+            super(src);
+            _featureFlags = src._featureFlags;
+        }
+
+        protected Impl(Impl<CFG,T> src, int features) {
+            super(src);
+            _featureFlags = features;
+        }
+        
+        /**
+         * @since 1.8
+         */
+        protected Impl(Impl<CFG,T> src, MapperConfig.Base base, SubtypeResolver str)
+        {
+            super(src, base, str);
+            _featureFlags = src._featureFlags;
+        }
+        
+        /**
+         * Method that calculates bit set (flags) of all features that
+         * are enabled by default.
+         */
+        static <F extends Enum<F> & MapperConfig.ConfigFeature> int collectFeatureDefaults(Class<F> enumClass)
+        {
+            int flags = 0;
+            for (F value : enumClass.getEnumConstants()) {
+                if (value.enabledByDefault()) {
+                    flags |= value.getMask();
+                }
+            }
+            return flags;
+        }
+        
+        /*
+        /**********************************************************
+        /* Additional fluent-factory methods
+        /**********************************************************
+         */
+        
+        /**
+         * Fluent factory method that will construct and return a new configuration
+         * object instance with specified features enabled.
+         * 
+         * @since 1.9
+         */
+        public abstract T with(CFG... features);
+
+        /**
+         * Fluent factory method that will construct and return a new configuration
+         * object instance with specified features disabled.
+         * 
+         * @since 1.9
+         */
+        public abstract T without(CFG... features);
+        
+        /*
+        /**********************************************************
+        /* Configuration: simple features
+        /**********************************************************
+         */
+        
+        @Override
+        public boolean isEnabled(MapperConfig.ConfigFeature f) {
+            return (_featureFlags & f.getMask()) != 0;
+        }
+
+        /*
+        /**********************************************************
+        /* Configuration: deprecated methods
+        /**********************************************************
+         */
+        
+        /**
+         * Method for enabling specified feature.
+         * 
+         * @deprecated Since 1.9, it is preferable to use {@link #with} instead;
+         *    this method is deprecated as it modifies current instance instead of
+         *    creating a new one (as the goal is to make this class immutable)
+         */
+        @Deprecated
+        public final void enable(CFG f) {
+            _featureFlags |= f.getMask();
+        }
+
+        /**
+         * Method for disabling specified feature.
+         * 
+         * @deprecated Since 1.9, it is preferable to use {@link #without} instead;
+         *    this method is deprecated as it modifies current instance instead of
+         *    creating a new one (as the goal is to make this class immutable)
+         */
+        @Deprecated
+        public final void disable(CFG f) {
+            _featureFlags &= ~f.getMask();
+        }
+
+        /**
+         * Method for enabling or disabling specified feature.
+         * 
+         * @deprecated Since 1.9, it is preferable to use {@link #with} and
+         * {@link #without} methods instead;
+         *    this method is deprecated as it modifies current instance instead of
+         *    creating a new one (as the goal is to make this class immutable)
+         */
+        @SuppressWarnings("deprecation")
+        @Deprecated
+        public final void set(CFG f, boolean state)
+        {
+            if (state) {
+                enable(f);
+            } else {
+                disable(f);
+            }
         }
     }
 }
