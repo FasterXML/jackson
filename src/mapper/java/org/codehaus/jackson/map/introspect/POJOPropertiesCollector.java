@@ -348,6 +348,10 @@ public class POJOPropertiesCollector
     protected void _addCreators()
     {
         final AnnotationIntrospector ai = _annotationIntrospector;
+        // can be null if annotation processing is disabled...
+        if (ai == null) {
+            return;
+        }
         for (AnnotatedConstructor ctor : _classDef.getConstructors()) {
             if (_creatorProperties == null) {
                 _creatorProperties = new LinkedList<POJOPropertyBuilder>();
