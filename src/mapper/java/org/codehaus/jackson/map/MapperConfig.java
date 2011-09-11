@@ -633,6 +633,14 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
      * @since 1.8
      */
     public abstract boolean canOverrideAccessModifiers();
+
+    /**
+     * Accessor for checking whether default settings for property handling
+     * indicate that properties should be alphabetically ordered or not.
+     * 
+     * @since 1.9
+     */
+    public abstract boolean shouldSortPropertiesAlphabetically();
     
     /*
     /**********************************************************

@@ -810,6 +810,11 @@ public class SerializationConfig
     }
 
     @Override
+    public boolean shouldSortPropertiesAlphabetically() {
+        return isEnabled(Feature.SORT_PROPERTIES_ALPHABETICALLY);
+    }
+    
+    @Override
     public VisibilityChecker<?> getDefaultVisibilityChecker()
     {
         VisibilityChecker<?> vchecker = super.getDefaultVisibilityChecker();

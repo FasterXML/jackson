@@ -757,6 +757,14 @@ public class DeserializationConfig
     }
 
     @Override
+    public boolean shouldSortPropertiesAlphabetically() {
+        /* !!! 10-Sep-2011 tatu: Need to pass information based on serialization
+         *   config, to try to give same answer...
+         */
+        return false;
+    }
+
+    @Override
     public VisibilityChecker<?> getDefaultVisibilityChecker()
     {
         VisibilityChecker<?> vchecker = super.getDefaultVisibilityChecker();

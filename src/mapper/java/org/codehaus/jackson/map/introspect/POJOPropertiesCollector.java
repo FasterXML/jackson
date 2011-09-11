@@ -240,27 +240,16 @@ public class POJOPropertiesCollector
     {
         // Then how about explicit ordering?
         AnnotationIntrospector intr = _config.getAnnotationIntrospector();
-        boolean defaultSortByAlpha = true;
-        // !!! TODO: remove this dependency...
-        if (_config instanceof SerializationConfig) {
-            defaultSortByAlpha = ((SerializationConfig)_config).isEnabled(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY);
-        }
-        {
-            // default to alphabetic sorting
-            Boolean b = intr.findSerializationSortAlphabetically(_classDef);
-            if (b != null) {
-                defaultSortByAlpha = b.booleanValue();
-            }
-        }
-        String[] propertyOrder = intr.findSerializationPropertyOrder(_classDef);
-        Boolean alpha = intr.findSerializationSortAlphabetically(_classDef);
         boolean sort;
+        Boolean alpha = intr.findSerializationSortAlphabetically(_classDef);
         
         if (alpha == null) {
-            sort = defaultSortByAlpha;
+            sort = _config.shouldSortPropertiesAlphabetically();
         } else {
             sort = alpha.booleanValue();
         }
+        String[] propertyOrder = intr.findSerializationPropertyOrder(_classDef);
+        
         // no sorting? no need to shuffle, then
         if (!sort && (_creatorProperties == null) && (propertyOrder == null)) {
             return;

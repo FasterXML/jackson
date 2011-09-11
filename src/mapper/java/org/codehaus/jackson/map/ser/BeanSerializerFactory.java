@@ -444,7 +444,6 @@ public class BeanSerializerFactory
         props = filterBeanProperties(config, beanDesc, props);
         // Do they need to be sorted in some special way?
         props = sortBeanProperties(config, beanDesc, props);
-
         
         // [JACKSON-440] Need to allow reordering of properties to serialize
         if (_factoryConfig.hasSerializerModifiers()) {
@@ -624,6 +623,10 @@ public class BeanSerializerFactory
      * default ordering.
      */
     /**
+     * Method that used to be called (pre-1.9) to impose configured
+     * ordering on list of discovered properties.
+     * With 1.9 it is not needed any more as ordering is done earlier.
+     * 
      * @deprecated Since 1.9 this method does nothing, so there is no
      *    benefit from overriding it; it will be removed from 2.0.
      */
