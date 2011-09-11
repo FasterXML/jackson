@@ -5,6 +5,7 @@ import java.io.*;
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.CharacterEscapes;
 import org.codehaus.jackson.io.SerializedString;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class TestCustomEscaping  extends main.BaseTest
 {
@@ -87,6 +88,14 @@ public class TestCustomEscaping  extends main.BaseTest
     public void testEscapeCustomWithUTF8Stream() throws Exception
     {
         _testEscapeCustom(true); // stream (utf-8)
+    }
+
+    // for [JACKSON-672]
+    public void testEscapingViaMapper() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
+        assertEquals(quote("\\u0101"), mapper.writeValueAsString(String.valueOf((char) 257)));
     }
     
     /*
