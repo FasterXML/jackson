@@ -70,6 +70,8 @@ Description:
   * [JACKSON-665] Add 'AnnotatedWithParams.getIndex()' for accessing index of a
     method or constructor parameter
    (requested by Chistropher C)
+  * [JACKSON-671] Add convenience constructor for 'MinimalPrettyPrinter'
+   (requested by David P)
 
   New features:
 

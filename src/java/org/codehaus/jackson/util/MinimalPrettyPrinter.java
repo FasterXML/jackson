@@ -37,8 +37,17 @@ public class MinimalPrettyPrinter
     /**********************************************************
      */
     
-    public MinimalPrettyPrinter() { }
+    public MinimalPrettyPrinter() {
+        this(DEFAULT_ROOT_VALUE_SEPARATOR);
+    }
 
+    /**
+     * @since 1.9
+     */
+    public MinimalPrettyPrinter(String rootValueSeparator) {
+        _rootValueSeparator = rootValueSeparator;
+    }
+    
     public void setRootValueSeparator(String sep) {
         _rootValueSeparator = sep;
     }

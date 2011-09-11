@@ -765,4 +765,9 @@ Simone Bordet:
   * Requested [JACKSON-652] Add 'DeserializationConfig.Feature.USE_JAVA_ARRAY_FOR_JSON_ARRAY' to
     allow mapping JSON Array to Object[]
    [1.9.0]
+
+David Phillips:
+  * Requested [JACKSON-671] Add convenience constructor for 'MinimalPrettyPrinter'
+   [1.9.0]
+   
    
