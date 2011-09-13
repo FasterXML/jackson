@@ -39,4 +39,27 @@ public class TestObjectMapper extends BaseMapTest
         n = m.readTree(new ByteArrayInputStream(JSON.getBytes("UTF-8")));
         assertTrue(n instanceof ObjectNode);
     }
+
+    // Test to ensure that we can check property ordering defaults...
+    public void testConfigForPropertySorting() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        
+        // sort-alphabetically is disabled by default:
+        assertFalse(m.isEnabled(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY));
+        SerializationConfig sc = m.copySerializationConfig();
+        assertFalse(sc.isEnabled(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY));
+        assertFalse(sc.shouldSortPropertiesAlphabetically());
+        DeserializationConfig dc = m.copyDeserializationConfig();
+        assertFalse(dc.shouldSortPropertiesAlphabetically());
+
+        // but when enabled, should be visible:
+        m.enable(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY);
+        sc = m.copySerializationConfig();
+        assertTrue(sc.isEnabled(SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY));
+        assertTrue(sc.shouldSortPropertiesAlphabetically());
+        dc = m.copyDeserializationConfig();
+        // and not just via SerializationConfig, but also via DeserializationConfig
+        assertTrue(dc.shouldSortPropertiesAlphabetically());
+    }
 }

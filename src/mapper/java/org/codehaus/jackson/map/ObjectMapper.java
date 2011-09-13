@@ -637,7 +637,8 @@ public class ObjectMapper
      * see {@link DeserializationConfig#addHandler})
      */
     public DeserializationConfig copyDeserializationConfig() {
-        return _deserializationConfig.createUnshared(_subtypeResolver);
+        return _deserializationConfig.createUnshared(_subtypeResolver)
+                .passSerializationFeatures(_serializationConfig._featureFlags);
     }
 
     /**

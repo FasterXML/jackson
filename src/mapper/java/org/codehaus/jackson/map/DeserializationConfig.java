@@ -370,10 +370,24 @@ public class DeserializationConfig
     
     /**
      * Factory used for constructing {@link org.codehaus.jackson.JsonNode} instances.
-     * 
+     *
      * @since 1.6
      */
     protected final JsonNodeFactory _nodeFactory;
+
+    /**
+     * Feature flag from {@link SerializationConfig} which is needed to
+     * know if serializer will by default sort properties in
+     * alphabetic order.
+     *<p>
+     * Note that although this property is not marked as final,
+     * it is handled like it was, except for the fact that it is
+     * assigned with a call to {@link #passSerializationFeatures}
+     * instead of constructor.
+     * 
+     * @since 1.9
+     */
+    protected boolean _sortPropertiesAlphabetically;
     
     /*
     /**********************************************************
@@ -443,6 +457,20 @@ public class DeserializationConfig
         super(src, featureFlags);
         _problemHandlers = src._problemHandlers;
         _nodeFactory = src._nodeFactory;
+    }
+    
+    /**
+     * Helper method to be called right after creating a non-shared
+     * instance, needed to pass state of feature(s) shared with
+     * SerializationConfig.
+     * 
+     * Since 1.9
+     */
+    protected DeserializationConfig passSerializationFeatures(int serializationFeatureFlags)
+    {
+        _sortPropertiesAlphabetically = (serializationFeatureFlags
+                & SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY.getMask()) != 0;
+        return this;
     }
     
     /*
@@ -680,10 +708,7 @@ public class DeserializationConfig
 
     @Override
     public boolean shouldSortPropertiesAlphabetically() {
-        /* !!! 10-Sep-2011 tatu: Need to pass information based on serialization
-         *   config, to try to give same answer...
-         */
-        return false;
+        return _sortPropertiesAlphabetically;
     }
 
     @Override
