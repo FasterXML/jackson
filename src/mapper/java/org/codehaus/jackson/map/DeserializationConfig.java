@@ -437,6 +437,7 @@ public class DeserializationConfig
         super(src, base, src._subtypeResolver);
         _problemHandlers = src._problemHandlers;
         _nodeFactory = src._nodeFactory;
+        _sortPropertiesAlphabetically = src._sortPropertiesAlphabetically;
     }
     
     /**
@@ -447,6 +448,7 @@ public class DeserializationConfig
         super(src);
         _problemHandlers = src._problemHandlers;
         _nodeFactory = f;
+        _sortPropertiesAlphabetically = src._sortPropertiesAlphabetically;
     }
 
     /**
@@ -457,6 +459,7 @@ public class DeserializationConfig
         super(src, featureFlags);
         _problemHandlers = src._problemHandlers;
         _nodeFactory = src._nodeFactory;
+        _sortPropertiesAlphabetically = src._sortPropertiesAlphabetically;
     }
     
     /**

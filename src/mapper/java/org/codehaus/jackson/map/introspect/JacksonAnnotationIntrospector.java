@@ -160,6 +160,13 @@ public class JacksonAnnotationIntrospector
     public boolean hasIgnoreMarker(AnnotatedMember m) {
         return _isIgnorable(m);
     }
+
+    @Override
+    public Object findInjectableValueId(AnnotatedMember m)
+    {
+        JacksonInject ann = m.getAnnotation(JacksonInject.class);
+        return (ann == null) ? null : ann.value();
+    }
     
     /*
     /**********************************************************

@@ -100,6 +100,13 @@ public class ObjectReader
      * @since 1.8
      */
     protected final FormatSchema _schema;
+
+    /**
+     * Values that can be injected during deserialization, if any.
+     * 
+     * @since 1.9
+     */
+    protected final InjectableValues _injectableValues;
     
     /*
     /**********************************************************
@@ -114,11 +121,12 @@ public class ObjectReader
      */
     protected ObjectReader(ObjectMapper mapper, DeserializationConfig config)
     {
-        this(mapper, config, null, null, null);
+        this(mapper, config, null, null, null, null);
     }
 
     protected ObjectReader(ObjectMapper mapper, DeserializationConfig config,
-            JavaType valueType, Object valueToUpdate, FormatSchema schema)
+            JavaType valueType, Object valueToUpdate, FormatSchema schema,
+            InjectableValues injectableValues)
     {
         _config = config;
         _rootDeserializers = mapper._rootDeserializers;
@@ -130,6 +138,7 @@ public class ObjectReader
             throw new IllegalArgumentException("Can not update an array value");
         }
         _schema = schema;
+        _injectableValues = injectableValues;
         _unwrapRoot = config.isEnabled(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE);
     }
     
@@ -137,7 +146,8 @@ public class ObjectReader
      * Copy constructor used for building variations.
      */
     protected ObjectReader(ObjectReader base, DeserializationConfig config,
-            JavaType valueType, Object valueToUpdate, FormatSchema schema)
+            JavaType valueType, Object valueToUpdate, FormatSchema schema,
+            InjectableValues injectableValues)
     {
         _config = config;
 
@@ -151,6 +161,7 @@ public class ObjectReader
             throw new IllegalArgumentException("Can not update an array value");
         }
         _schema = schema;
+        _injectableValues = injectableValues;
         _unwrapRoot = config.isEnabled(DeserializationConfig.Feature.UNWRAP_ROOT_VALUE);
     }
 
@@ -169,7 +180,8 @@ public class ObjectReader
     {
         if (valueType == _valueType) return this;
         // type is stored here, no need to make a copy of config
-        return new ObjectReader(this, _config, valueType, _valueToUpdate, _schema);
+        return new ObjectReader(this, _config, valueType, _valueToUpdate,
+                _schema, _injectableValues);
     }    
 
     public ObjectReader withType(Class<?> valueType)
@@ -194,7 +206,8 @@ public class ObjectReader
     {
         // node factory is stored within config, so need to copy that first
         if (f == _config.getNodeFactory()) return this;
-        return new ObjectReader(this, _config.withNodeFactory(f), _valueType, _valueToUpdate, _schema);
+        return new ObjectReader(this, _config.withNodeFactory(f), _valueType, _valueToUpdate,
+                _schema, _injectableValues);
     }
     
     public ObjectReader withValueToUpdate(Object value)
@@ -204,7 +217,8 @@ public class ObjectReader
             throw new IllegalArgumentException("cat not update null value");
         }
         JavaType t = _config.constructType(value.getClass());
-        return new ObjectReader(this, _config, t, value, _schema);
+        return new ObjectReader(this, _config, t, value,
+                _schema, _injectableValues);
     }    
 
     /**
@@ -215,7 +229,20 @@ public class ObjectReader
         if (_schema == schema) {
             return this;
         }
-        return new ObjectReader(this, _config, _valueType, _valueToUpdate, schema);
+        return new ObjectReader(this, _config, _valueType, _valueToUpdate,
+                schema, _injectableValues);
+    }
+
+    /**
+     * @since 1.9
+     */
+    public ObjectReader withInjectableValues(InjectableValues injectableValues)
+    {
+        if (_injectableValues == injectableValues) {
+            return this;
+        }
+        return new ObjectReader(this, _config, _valueType, _valueToUpdate,
+                _schema, injectableValues);
     }
     
     /*
@@ -639,7 +666,7 @@ public class ObjectReader
     
     protected DeserializationContext _createDeserializationContext(JsonParser jp, DeserializationConfig cfg) {
         // 04-Jan-2010, tatu: we do actually need the provider too... (for polymorphic deser)
-        return new StdDeserializationContext(cfg, jp, _provider);
+        return new StdDeserializationContext(cfg, jp, _provider, _injectableValues);
     }
 
     protected Object _unwrapAndDeserialize(JsonParser jp, DeserializationContext ctxt,

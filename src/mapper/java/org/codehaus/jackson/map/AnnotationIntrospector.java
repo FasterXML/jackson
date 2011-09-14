@@ -404,6 +404,23 @@ public abstract class AnnotationIntrospector
         return false;
     }
 
+    /**
+     * Method called to find out whether given member expectes a value
+     * to be injected, and if so, what is the identifier of the value
+     * to use during injection.
+     * Type if identifier needs to be compatible with provider of
+     * values (of type {@link InjectableValues}); often a simple String
+     * id is used.
+     * 
+     * @param m Member to check
+     * 
+     * @return Identifier of value to inject, if any; null if no injection
+     *   indicator is found
+     */
+    public Object findInjectableValueId(AnnotatedMember m) {
+        return null;
+    }
+    
     /*
     /**********************************************************
     /* General method annotations
@@ -1086,6 +1103,16 @@ public abstract class AnnotationIntrospector
             return value;
         }
 
+        @Override
+        public Object findInjectableValueId(AnnotatedMember m)
+        {
+            Object value = _primary.findInjectableValueId(m);
+            if (value == null) {
+                value = _secondary.findInjectableValueId(m);
+            }
+            return value;
+        }
+        
         @Override
         public boolean hasIgnoreMarker(AnnotatedMember m) {
             return _primary.hasIgnoreMarker(m) || _secondary.hasIgnoreMarker(m);

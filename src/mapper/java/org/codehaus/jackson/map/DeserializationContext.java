@@ -104,6 +104,12 @@ public abstract class DeserializationContext
     public TypeFactory getTypeFactory() {
         return _config.getTypeFactory();
     }
+
+    /**
+     * @since 1.9
+     */
+    public abstract Object findInjectableValue(Object valueId,
+            BeanProperty forProperty, Object beanInstance);
     
     /*
     /**********************************************************

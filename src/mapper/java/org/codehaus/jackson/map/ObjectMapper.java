@@ -222,6 +222,13 @@ public class ObjectMapper
      */
     protected TypeFactory _typeFactory;
 
+    /**
+     * Provider for values to inject in deserialized POJOs.
+     * 
+     * @since 1.9
+     */
+    protected InjectableValues _injectableValues;
+    
     /*
     /**********************************************************
     /* Configuration settings, serialization
@@ -1060,6 +1067,14 @@ public class ObjectMapper
     {
         _deserializationConfig = _deserializationConfig.withHandlerInstantiator(hi);
         _serializationConfig = _serializationConfig.withHandlerInstantiator(hi);
+    }
+    
+    /**
+     * @since 1.9
+     */
+    public ObjectMapper setInjectableValues(InjectableValues injectableValues) {
+        _injectableValues = injectableValues;
+        return this;
     }
     
     /*
@@ -2296,13 +2311,14 @@ public class ObjectMapper
 
     /**
      * Factory method for constructing {@link ObjectReader} with
-     * default settings. Note that instance is NOT usable as is, without
-     * defining expected value type.
+     * default settings. Note that the resulting instance is NOT usable as is,
+     * without defining expected value type.
      * 
      * @since 1.6
      */
     public ObjectReader reader() {
-        return new ObjectReader(this, copyDeserializationConfig());
+        return new ObjectReader(this, copyDeserializationConfig())
+            .withInjectableValues(_injectableValues);
     }
     
     /**
@@ -2320,9 +2336,10 @@ public class ObjectMapper
     public ObjectReader readerForUpdating(Object valueToUpdate)
     {
         JavaType t = _typeFactory.constructType(valueToUpdate.getClass());
-        return new ObjectReader(this, copyDeserializationConfig(), t, valueToUpdate, null);
+        return new ObjectReader(this, copyDeserializationConfig(), t, valueToUpdate,
+                null, _injectableValues);
     }
-    
+
     /**
      * Factory method for constructing {@link ObjectReader} that will
      * read or update instances of specified type
@@ -2331,7 +2348,8 @@ public class ObjectMapper
      */
     public ObjectReader reader(JavaType type)
     {
-        return new ObjectReader(this, copyDeserializationConfig(), type, null, null);
+        return new ObjectReader(this, copyDeserializationConfig(), type, null,
+                null, _injectableValues);
     }
 
     /**
@@ -2363,7 +2381,7 @@ public class ObjectMapper
      * @since 1.6
      */
     public ObjectReader reader(JsonNodeFactory f)
-    {        
+    {
         return new ObjectReader(this, copyDeserializationConfig()).withNodeFactory(f);
     }
 
@@ -2377,9 +2395,23 @@ public class ObjectMapper
      * @since 1.8
      */
     public ObjectReader reader(FormatSchema schema) {
-        return new ObjectReader(this, copyDeserializationConfig(), null, null, schema);
+        return new ObjectReader(this, copyDeserializationConfig(), null, null,
+                schema, _injectableValues);
     }
 
+    /**
+     * Factory method for constructing {@link ObjectReader} that will
+     * use specified injectable values.
+     * 
+     * @param injectableValues Injectable values to use
+     * 
+     * @since 1.8
+     */
+    public ObjectReader reader(InjectableValues injectableValues) {
+        return new ObjectReader(this, copyDeserializationConfig(), null, null,
+                null, injectableValues);
+    }
+    
     /*
     /**********************************************************
     /* Deprecated ObjectReader creator methods
@@ -2795,7 +2827,8 @@ public class ObjectMapper
     
     protected DeserializationContext _createDeserializationContext(JsonParser jp, DeserializationConfig cfg)
     {
-        return new StdDeserializationContext(cfg, jp, _deserializerProvider);
+        return new StdDeserializationContext(cfg, jp, _deserializerProvider,
+                _injectableValues);
     }
     
     //Allows use of the correct classloader (primarily for OSGi), separating framework from application

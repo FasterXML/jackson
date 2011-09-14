@@ -43,6 +43,11 @@ public class StdDeserializationContext
      */
     protected final DeserializerProvider _deserProvider;
 
+    /**
+     * @since 1.9
+     */
+    protected final InjectableValues _injectableValues;
+    
     // // // Helper object recycling
 
     protected ArrayBuilders _arrayBuilders;
@@ -58,11 +63,12 @@ public class StdDeserializationContext
      */
 
     public StdDeserializationContext(DeserializationConfig config, JsonParser jp,
-            DeserializerProvider prov)
+            DeserializerProvider prov, InjectableValues injectableValues)
     {
     	super(config);
         _parser = jp;
         _deserProvider = prov;
+        _injectableValues = injectableValues;
     }
 
     /*
@@ -87,6 +93,16 @@ public class StdDeserializationContext
     @Override
     public JsonParser getParser() { return _parser; }
 
+    @Override
+    public Object findInjectableValue(Object valueId,
+            BeanProperty forProperty, Object beanInstance)
+    {
+        if (_injectableValues == null) {
+            throw new IllegalStateException("No 'injectableValues' configured, can not inject value with id ["+valueId+"]");
+        }
+        return _injectableValues.findInjectableValue(valueId, this, forProperty, beanInstance);
+    }
+    
     /*
     /**********************************************************
     /* Public API, helper object recycling
