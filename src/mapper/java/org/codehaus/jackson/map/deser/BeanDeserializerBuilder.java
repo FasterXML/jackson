@@ -1,11 +1,10 @@
 package org.codehaus.jackson.map.deser;
 
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.impl.BeanPropertyMap;
+import org.codehaus.jackson.map.deser.impl.ValueInjector;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
 
 /**
@@ -36,6 +35,13 @@ public class BeanDeserializerBuilder
      */
     final protected HashMap<String, SettableBeanProperty> _properties = new HashMap<String, SettableBeanProperty>();
 
+    /**
+     * Value injectors for deserialization
+     * 
+     * @since 1.9
+     */
+    protected List<ValueInjector> _injectables;
+    
     /**
      * Back-reference properties this bean contains (if any)
      */
@@ -184,6 +190,14 @@ public class BeanDeserializerBuilder
     public ValueInstantiator getValueInstantiator() {
         return _valueInstantiator;
     }
+
+    public void addInjectable(Object valueId, SettableBeanProperty property)
+    {
+        if (_injectables == null) {
+            _injectables = new ArrayList<ValueInjector>();
+        }
+        _injectables.add(new ValueInjector(valueId, property));
+    }
     
     /*
     /**********************************************************
@@ -197,6 +211,6 @@ public class BeanDeserializerBuilder
         propertyMap.assignIndexes();
         return new BeanDeserializer(_beanDesc.getClassInfo(), _beanDesc.getType(), forProperty,
                 _valueInstantiator, propertyMap, _backRefProperties, _ignorableProps, _ignoreAllUnknown,
-                _anySetter);
+                _anySetter, _injectables);
     }
 }

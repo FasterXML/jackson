@@ -107,6 +107,16 @@ public class BeanDeserializer
      * @since 1.7
      */
     final protected BeanPropertyMap _beanProperties;
+
+    /**
+     * List of {@link ValueInjector}s, if any injectable values are
+     * expected by the bean; otherwise null.
+     * This includes injectors used for injecting values via setters
+     * and fields, but not ones passed through constructor parameters.
+     * 
+     * @since 1.9
+     */
+    final protected ValueInjector[] _injectables;
     
     /**
      * Fallback setter used for handling any properties that are not
@@ -180,7 +190,7 @@ public class BeanDeserializer
                 creators.constructValueInstantiator(null),
                 properties, backRefs,
                 ignorableProps, ignoreAllUnknown,
-                anySetter);
+                anySetter, null);
     }
 
     /**
@@ -190,7 +200,7 @@ public class BeanDeserializer
             ValueInstantiator valueInstantiator,
             BeanPropertyMap properties, Map<String, SettableBeanProperty> backRefs,
             HashSet<String> ignorableProps, boolean ignoreAllUnknown,
-            SettableAnyProperty anySetter)
+            SettableAnyProperty anySetter, List<ValueInjector> injectables)
     {
         super(type);
         _forClass = forClass;
@@ -209,6 +219,8 @@ public class BeanDeserializer
         _ignorableProps = ignorableProps;
         _ignoreAllUnknown = ignoreAllUnknown;
         _anySetter = anySetter;
+        _injectables = (injectables == null || injectables.isEmpty()) ? null
+                : injectables.toArray(new ValueInjector[injectables.size()]);
 
         _nonStandardCreation = valueInstantiator.canCreateUsingDelegate()
             || (_propertyBasedCreator != null)
@@ -247,6 +259,7 @@ public class BeanDeserializer
         _ignorableProps = src._ignorableProps;
         _ignoreAllUnknown = ignoreAllUnknown;
         _anySetter = src._anySetter;
+        _injectables = src._injectables;
 
         _nonStandardCreation = src._nonStandardCreation;
         _unwrappedPropertyHandler = src._unwrappedPropertyHandler;
@@ -582,6 +595,9 @@ public class BeanDeserializer
     public Object deserialize(JsonParser jp, DeserializationContext ctxt, Object bean)
         throws IOException, JsonProcessingException
     {
+        if (_injectables != null) {
+            injectValues(ctxt, bean);
+        }
         if (_unwrappedPropertyHandler != null) {
             return deserializeWithUnwrapped(jp, ctxt, bean);
         }
@@ -652,6 +668,9 @@ public class BeanDeserializer
         }
 
         final Object bean = _valueInstantiator.createUsingDefault();
+        if (_injectables != null) {
+            injectValues(ctxt, bean);
+        }
         for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
             // Skip field name:
@@ -714,7 +733,11 @@ public class BeanDeserializer
          */
         if (_delegateDeserializer != null) {
             if (!_valueInstantiator.canCreateFromString()) {
-                return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                Object bean = _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                if (_injectables != null) {
+                    injectValues(ctxt, bean);
+                }
+                return bean;
             }
         }
         return _valueInstantiator.createFromString(jp.getText());
@@ -727,21 +750,33 @@ public class BeanDeserializer
         case INT:
             if (_delegateDeserializer != null) {
                 if (!_valueInstantiator.canCreateFromInt()) {
-                    return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                    Object bean = _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                    if (_injectables != null) {
+                        injectValues(ctxt, bean);
+                    }
+                    return bean;
                 }
             }
             return _valueInstantiator.createFromInt(jp.getIntValue());
         case LONG:
             if (_delegateDeserializer != null) {
                 if (!_valueInstantiator.canCreateFromInt()) {
-                    return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                    Object bean = _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                    if (_injectables != null) {
+                        injectValues(ctxt, bean);
+                    }
+                    return bean;
                 }
             }
             return _valueInstantiator.createFromLong(jp.getLongValue());
     	}
         // actually, could also be BigInteger, so:
         if (_delegateDeserializer != null) {
-            return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+            Object bean = _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+            if (_injectables != null) {
+                injectValues(ctxt, bean);
+            }
+            return bean;
         }
         throw ctxt.instantiationException(getBeanClass(), "no suitable creator method found to deserialize from JSON integer number");
     }
@@ -760,7 +795,11 @@ public class BeanDeserializer
         case DOUBLE:
             if (_delegateDeserializer != null) {
                 if (!_valueInstantiator.canCreateFromDouble()) {
-                    return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                    Object bean = _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                    if (_injectables != null) {
+                        injectValues(ctxt, bean);
+                    }
+                    return bean;
                 }
             }
             return _valueInstantiator.createFromDouble(jp.getDoubleValue());
@@ -783,7 +822,11 @@ public class BeanDeserializer
     {
         if (_delegateDeserializer != null) {
             if (!_valueInstantiator.canCreateFromBoolean()) {
-                return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                Object bean = _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+                if (_injectables != null) {
+                    injectValues(ctxt, bean);
+                }
+                return bean;
             }
         }
         boolean value = (jp.getCurrentToken() == JsonToken.VALUE_TRUE);
@@ -798,7 +841,11 @@ public class BeanDeserializer
     {
     	if (_delegateDeserializer != null) {
     	    try {
-                return _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+    	        Object bean = _valueInstantiator.createUsingDelegate(_delegateDeserializer.deserialize(jp, ctxt));
+    	        if (_injectables != null) {
+    	            injectValues(ctxt, bean);
+    	        }
+    	        return bean;
             } catch (Exception e) {
                 wrapInstantiationProblem(e, ctxt);
             }
@@ -911,8 +958,8 @@ public class BeanDeserializer
      *   (in addition to buffered properties); if null, all properties are passed
      *   in buffer
      */
-    protected Object handlePolymorphic(JsonParser jp, DeserializationContext ctxt,
-                                       Object bean, TokenBuffer unknownTokens)
+    protected Object handlePolymorphic(JsonParser jp, DeserializationContext ctxt,                                          
+            Object bean, TokenBuffer unknownTokens)
         throws IOException, JsonProcessingException
     {  
         // First things first: maybe there is a more specific deserializer available?
@@ -965,6 +1012,11 @@ public class BeanDeserializer
         TokenBuffer tokens = new TokenBuffer(jp.getCodec());
         tokens.writeStartObject();
         final Object bean = _valueInstantiator.createUsingDefault();
+
+        if (_injectables != null) {
+            injectValues(ctxt, bean);
+        }
+        
         for (; jp.getCurrentToken() != JsonToken.END_OBJECT; jp.nextToken()) {
             String propName = jp.getCurrentName();
             jp.nextToken();
@@ -1255,6 +1307,14 @@ public class BeanDeserializer
     /**********************************************************
      */
 
+    protected void injectValues(DeserializationContext ctxt, Object bean)
+            throws IOException, JsonProcessingException
+    {
+        for (ValueInjector injector : _injectables) {
+            injector.inject(ctxt, bean);
+        }
+    }
+    
     /**
      * Method called when a JSON property is encountered that has not matching
      * setter, any-setter or field, and thus can not be assigned.

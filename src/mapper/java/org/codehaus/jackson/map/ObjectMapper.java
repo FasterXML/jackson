@@ -2405,7 +2405,7 @@ public class ObjectMapper
      * 
      * @param injectableValues Injectable values to use
      * 
-     * @since 1.8
+     * @since 1.9
      */
     public ObjectReader reader(InjectableValues injectableValues) {
         return new ObjectReader(this, copyDeserializationConfig(), null, null,
