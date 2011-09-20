@@ -282,6 +282,12 @@ public class TypeBindings
             raw = (Class<?>)pt.getRawType();
         } else if (t instanceof Class<?>) {
             raw = (Class<?>) t;
+            /* [JACKSON-677]: If this is an inner class then the generics are defined on the 
+             * enclosing class so we have to check there as well.  We don't
+             * need to call getEnclosingClass since anonymous classes declare 
+             * generics
+             */
+            _resolveBindings(raw.getDeclaringClass());
             /* 24-Mar-2010, tatu: Can not have true generics definitions, but can
              *   have lower bounds ("<T extends BeanBase>") in declaration itself
              */
