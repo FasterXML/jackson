@@ -241,8 +241,7 @@ public final class AnnotatedClass
     public Iterable<AnnotatedField> fields()
     {
         if (_fields == null) {
-            List<AnnotatedField> l = Collections.emptyList();
-            return l;
+            return Collections.emptyList();
         }
         return _fields;
     }

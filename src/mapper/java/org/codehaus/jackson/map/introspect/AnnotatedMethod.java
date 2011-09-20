@@ -112,6 +112,21 @@ public final class AnnotatedMethod
 
     @Override
     public Member getMember() { return _method; }
+
+    @Override
+    public void setValue(Object pojo, Object value)
+        throws IllegalArgumentException
+    {
+        try {
+            _method.invoke(pojo, value);
+        } catch (IllegalAccessException e) {
+            throw new IllegalArgumentException("Failed to setValue() with method "
+                    +getFullName()+": "+e.getMessage(), e);
+        } catch (InvocationTargetException e) {
+            throw new IllegalArgumentException("Failed to setValue() with method "
+                    +getFullName()+": "+e.getMessage(), e);
+        }
+    }
     
     /*
     /*****************************************************

@@ -5,6 +5,7 @@ import java.util.*;
 import org.codehaus.jackson.map.introspect.AnnotatedClass;
 import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 import org.codehaus.jackson.map.introspect.VisibilityChecker;
 import org.codehaus.jackson.map.type.TypeBindings;
@@ -99,6 +100,11 @@ public abstract class BeanDescription
      * @since 1.9
      */
     public abstract List<BeanPropertyDefinition> findProperties();
+
+    /**
+     * @since 1.9
+     */
+    public abstract Map<Object, AnnotatedMember> findInjectables();
     
     /**
      * @since 1.9

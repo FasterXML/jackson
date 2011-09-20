@@ -140,6 +140,14 @@ public final class AnnotatedParameter
          */
         return _owner.getMember();
     }
+
+    @Override
+    public void setValue(Object pojo, Object value)
+        throws UnsupportedOperationException
+    {
+        throw new UnsupportedOperationException("Cannot call setValue() on constructor parameter of "
+                +getDeclaringClass().getName());
+    }
     
     /*
     /**********************************************************

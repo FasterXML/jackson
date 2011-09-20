@@ -87,7 +87,7 @@ public abstract class AnnotatedWithParams
     /**********************************************************
      */
 
-    protected  JavaType getType(TypeBindings bindings, TypeVariable<?>[] typeParams)
+    protected JavaType getType(TypeBindings bindings, TypeVariable<?>[] typeParams)
     {
         // [JACKSON-468] Need to consider local type binding declarations too...
         if (typeParams != null && typeParams.length > 0) {

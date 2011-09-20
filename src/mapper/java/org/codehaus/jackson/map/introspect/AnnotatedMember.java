@@ -39,4 +39,18 @@ public abstract class AnnotatedMember extends Annotated
     public final void fixAccess() {
         ClassUtil.checkAndFixAccess(getMember());
     }
+
+    /**
+     * Optional method that can be used to assign value of
+     * this member on given object, if this is a supported
+     * operation for member type.
+     *<p>
+     * This is implemented for fiedlds and single-argument
+     * methods; but not for constructor parameters or
+     * other types of methods.
+     * 
+     * @since 1.9
+     */
+    public abstract void setValue(Object pojo, Object value)
+        throws UnsupportedOperationException, IllegalArgumentException;
 }

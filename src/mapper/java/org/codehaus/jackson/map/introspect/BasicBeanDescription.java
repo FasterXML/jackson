@@ -52,6 +52,8 @@ public class BasicBeanDescription extends BeanDescription
     // // for deserialization
     
     protected AnnotatedMethod _anySetterMethod;
+
+    protected Map<Object, AnnotatedMember> _injectables;
     
     /**
      * Set of properties that can be ignored during deserialization, due
@@ -106,6 +108,7 @@ public class BasicBeanDescription extends BeanDescription
                 coll.getType(), coll.getClassDef(), coll.getProperties());
         desc._anySetterMethod = coll.getAnySetterMethod();
         desc._ignoredPropertyNames = coll.getIgnoredPropertyNames();
+        desc._injectables = coll.getInjectables();
         return desc;
     }
 
@@ -200,6 +203,9 @@ public class BasicBeanDescription extends BeanDescription
 
     @Override
     public JavaType resolveType(java.lang.reflect.Type jdkType) {
+        if (jdkType == null) {
+            return null;
+        }
         return bindingsForBeanType().resolveType(jdkType);
     }
 
@@ -243,6 +249,12 @@ public class BasicBeanDescription extends BeanDescription
             }
         }
         return _anySetterMethod;
+    }
+
+    @Override
+    public Map<Object, AnnotatedMember> findInjectables()
+    {
+        return _injectables;
     }
     
     public List<AnnotatedConstructor> getConstructors()

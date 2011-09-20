@@ -85,6 +85,18 @@ public final class AnnotatedField
 
     @Override
     public Member getMember() { return _field; }
+
+    @Override
+    public void setValue(Object pojo, Object value)
+        throws IllegalArgumentException
+    {
+        try {
+            _field.set(pojo, value);
+        } catch (IllegalAccessException e) {
+            throw new IllegalArgumentException("Failed to setValue() for field "
+                    +getFullName()+": "+e.getMessage(), e);
+        }
+    }
     
     /*
     /**********************************************************

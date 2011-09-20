@@ -653,6 +653,7 @@ public class BeanDeserializerFactory
         addBeanProps(config, beanDesc, builder);
         // managed/back reference fields/setters need special handling... first part
         addReferenceProperties(config, beanDesc, builder);
+        addInjectables(config, beanDesc, builder);
 
         // [JACKSON-440]: update builder now that all information is in?
         if (_factoryConfig.hasDeserializerModifiers()) {
@@ -1128,7 +1129,31 @@ public class BeanDeserializerFactory
             }
         }
     }
-        
+    
+    /**
+     * Method called locate all members used for value injection (if any),
+     * constructor {@link ValueInjector} instances, and add them to builder.
+     * 
+     * @since 1.9
+     */
+    protected void addInjectables(DeserializationConfig config,
+            BasicBeanDescription beanDesc, BeanDeserializerBuilder builder)
+        throws JsonMappingException
+    {
+        Map<Object, AnnotatedMember> raw = beanDesc.findInjectables();
+        if (raw != null) {
+            boolean fixAccess = config.isEnabled(DeserializationConfig.Feature.CAN_OVERRIDE_ACCESS_MODIFIERS);
+            for (Map.Entry<Object, AnnotatedMember> entry : raw.entrySet()) {
+                AnnotatedMember m = entry.getValue();
+                if (fixAccess) {
+                    m.fixAccess(); // to ensure we can call it
+                }
+                builder.addInjectable(m.getName(), beanDesc.resolveType(m.getGenericType()),
+                        beanDesc.getClassAnnotations(), m, entry.getKey());
+            }
+        }
+    }
+
     /**
      * Method called to construct fallback {@link SettableAnyProperty}
      * for handling unknown bean properties, given a method that

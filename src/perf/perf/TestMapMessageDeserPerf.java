@@ -44,7 +44,6 @@ public class TestMapMessageDeserPerf
     
     private void test() throws IOException
     {
-        @SuppressWarnings("unused")
         int i = 0;
         int sum = 0;
         int round = 0;

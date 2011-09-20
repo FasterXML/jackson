@@ -61,6 +61,7 @@ public interface BeanProperty extends Named
     /*
     /**********************************************************
     /* Simple stand-alone implementation, useful as a placeholder
+    /* or base class.
     /**********************************************************
      */
 

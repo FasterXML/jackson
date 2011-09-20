@@ -2,8 +2,11 @@ package org.codehaus.jackson.map.deser.impl;
 
 import java.io.IOException;
 
+import org.codehaus.jackson.map.BeanProperty;
 import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.map.deser.SettableBeanProperty;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
+import org.codehaus.jackson.map.util.Annotations;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Class that encapsulates details of value injection that occurs before
@@ -14,25 +17,29 @@ import org.codehaus.jackson.map.deser.SettableBeanProperty;
  * @since 1.9
  */
 public class ValueInjector
+    extends BeanProperty.Std
 {
+    /**
+     * Identifier used for looking up value to inject
+     */
     protected final Object _valueId;
 
-    protected final SettableBeanProperty _property;
-    
-    public ValueInjector(Object valueId, SettableBeanProperty prop)
+    public ValueInjector(String propertyName, JavaType type,
+            Annotations contextAnnotations, AnnotatedMember mutator,
+            Object valueId)
     {
+        super(propertyName, type, contextAnnotations, mutator);
         _valueId = valueId;
-        _property = prop;
     }
 
     public Object findValue(DeserializationContext context, Object beanInstance)
     {
-        return context.findInjectableValue(_valueId, _property, beanInstance);
+        return context.findInjectableValue(_valueId, this, beanInstance);
     }
     
     public void inject(DeserializationContext context, Object beanInstance)
         throws IOException
     {
-        _property.set(beanInstance, findValue(context, beanInstance));
+        _member.setValue(beanInstance, findValue(context, beanInstance));
     }
 }

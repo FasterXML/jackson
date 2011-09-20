@@ -120,6 +120,14 @@ public final class AnnotatedConstructor
 
     @Override
     public Member getMember() { return _constructor; }
+
+    @Override
+    public void setValue(Object pojo, Object value)
+        throws UnsupportedOperationException
+    {
+        throw new UnsupportedOperationException("Cannot call setValue() on constructor of "
+                +getDeclaringClass().getName());
+    }
     
     /*
     /**********************************************************

@@ -5,7 +5,10 @@ import java.util.*;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.impl.BeanPropertyMap;
 import org.codehaus.jackson.map.deser.impl.ValueInjector;
+import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.BasicBeanDescription;
+import org.codehaus.jackson.map.util.Annotations;
+import org.codehaus.jackson.type.JavaType;
 
 /**
  * Builder class used for aggregating deserialization information about
@@ -191,12 +194,18 @@ public class BeanDeserializerBuilder
         return _valueInstantiator;
     }
 
-    public void addInjectable(Object valueId, SettableBeanProperty property)
+    /**
+     * @since 1.9
+     */
+    public void addInjectable(String propertyName, JavaType propertyType,
+            Annotations contextAnnotations, AnnotatedMember member,
+            Object valueId)
     {
         if (_injectables == null) {
             _injectables = new ArrayList<ValueInjector>();
         }
-        _injectables.add(new ValueInjector(valueId, property));
+        _injectables.add(new ValueInjector(propertyName, propertyType,
+                contextAnnotations, member, valueId));
     }
     
     /*

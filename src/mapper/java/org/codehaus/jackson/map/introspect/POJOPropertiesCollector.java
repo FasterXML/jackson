@@ -81,6 +81,13 @@ public class POJOPropertiesCollector
      * information for deserialization purposes
      */
     protected HashSet<String> _ignoredPropertyNames;
+
+    /**
+     * Lazily collected list of members that were annotated to
+     * indicate that they represent mutators for deserializer
+     * value injection.
+     */
+    protected LinkedHashMap<Object, AnnotatedMember> _injectables;
     
     /*
     /**********************************************************
@@ -132,6 +139,10 @@ public class POJOPropertiesCollector
         return new ArrayList<BeanPropertyDefinition>(_properties.values());
     }
 
+    public Map<Object, AnnotatedMember> getInjectables() {
+        return _injectables;
+    }
+    
     public AnnotatedMethod getJsonValueMethod()
     {
         // If @JsonValue defined, must have a single one
@@ -197,6 +208,7 @@ public class POJOPropertiesCollector
         _addFields();
         _addMethods();
         _addCreators();
+        _addInjectables();
 
         // Remove ignored properties, individual entries
         _removeUnwantedProperties();
@@ -485,6 +497,45 @@ public class POJOPropertiesCollector
         }
     }
 
+    protected void _addInjectables()
+    {
+        final AnnotationIntrospector ai = _annotationIntrospector;
+        if (ai == null) {
+            return;
+        }
+        
+        // first fields, then methods
+        for (AnnotatedField f : _classDef.fields()) {
+            _doAddInjectable(ai.findInjectableValueId(f), f);
+        }
+        
+        for (AnnotatedMethod m : _classDef.memberMethods()) {
+            /* for now, only allow injection of a single arg
+             * (to be changed in future)
+             */
+            if (m.getParameterCount() != 1) {
+                continue;
+            }
+            _doAddInjectable(ai.findInjectableValueId(m), m);
+        }
+    }
+
+    protected void _doAddInjectable(Object id, AnnotatedMember m)
+    {
+        if (id == null) {
+            return;
+        }
+        if (_injectables == null) {
+            _injectables = new LinkedHashMap<Object, AnnotatedMember>();
+        }
+        AnnotatedMember prev = _injectables.put(id, m);
+        if (prev != null) {
+            String type = (id == null) ? "[null]" : id.getClass().getName();
+            throw new IllegalArgumentException("Duplicate injectable value with id '"
+                    +String.valueOf(id)+"' (of type "+type+")");
+        }
+    }
+    
     /*
     /**********************************************************
     /* Internal methods; removing ignored properties

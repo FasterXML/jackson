@@ -165,7 +165,25 @@ public class JacksonAnnotationIntrospector
     public Object findInjectableValueId(AnnotatedMember m)
     {
         JacksonInject ann = m.getAnnotation(JacksonInject.class);
-        return (ann == null) ? null : ann.value();
+        if (ann == null) {
+            return null;
+        }
+        /* Empty String means that we should use name of declared
+         * value class.
+         */
+        String id = ann.value();
+        if (id.length() == 0) {
+            // slight complication; for setters, type 
+            if (!(m instanceof AnnotatedMethod)) {
+                return m.getRawType().getName();
+            }
+            AnnotatedMethod am = (AnnotatedMethod) m;
+            if (am.getParameterCount() == 0) {
+                return m.getRawType().getName();
+            }
+            return am.getParameterClass(0).getName();
+        }
+        return id;
     }
     
     /*

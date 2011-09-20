@@ -56,6 +56,12 @@ public abstract class InjectableValues
             _values.put(key, value);
             return this;
         }
+
+        public Std addValue(Class<?> classKey, Object value)
+        {
+            _values.put(classKey.getName(), value);
+            return this;
+        }
         
         @Override
         public Object findInjectableValue(Object valueId,
