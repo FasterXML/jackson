@@ -17,6 +17,12 @@ public class TestJavaType
 
     static class SubType extends BaseType { }
 
+    /*
+    /**********************************************************
+    /* Test methods
+    /**********************************************************
+     */
+    
     public void testSimpleClass()
     {
         TypeFactory tf = TypeFactory.defaultInstance();
