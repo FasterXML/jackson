@@ -12,6 +12,8 @@ Description:
   * [JACKSON-668] Problems with 'JsonParser.getDecimalValue' not
     clearing earlier state
    (reported by Ransom B)
+  * [JACKSON-677] Inner generic type references not working properly
+   (reported by William B)
 
 ------------------------------------------------------------------------
 === History: ===

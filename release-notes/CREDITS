@@ -720,3 +720,8 @@ Ransom Briggs:
   * Reported [JACKSON-668] Problems with 'JsonParser.getDecimalValue'
     not clearing earlier state
    [1.8.6]
+
+William Burns:
+  * Reported [JACKSON-677], suggested fix for: Inner generic type references
+    not working properly
+   [1.8.6]
