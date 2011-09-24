@@ -100,6 +100,29 @@ public class TestAnnotations
         public int getZ() { return 3; }
     }
 
+    // For [JACKSON-666] ("Feature of the Beast!")
+    @JsonPropertyOrder(alphabetic=true)
+    static class GettersWithoutSetters
+    {
+        public int d = 0;
+        
+        @JsonCreator
+        public GettersWithoutSetters(@JsonProperty("a") int a) { }
+        
+        // included, since there is a constructor property
+        public int getA() { return 3; }
+
+        // not included, as there's nothing matching
+        public int getB() { return 4; }
+
+        // include as there is setter
+        public int getC() { return 5; }
+        public void setC(int v) { }
+
+        // and included, as there is a field
+        public int getD() { return 6; }
+    }
+    
     /*
     /**********************************************************
     /* Other helper classes
@@ -210,5 +233,19 @@ public class TestAnnotations
          * full object, just override a single property
          */
         assertEquals("{\"x\":8}", sw.toString());
+    }
+
+    public void testGettersWithoutSetters() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        GettersWithoutSetters bean = new GettersWithoutSetters(123);        
+        assertFalse(m.isEnabled(SerializationConfig.Feature.REQUIRE_SETTERS_FOR_GETTERS));
+    
+        // by default, all 4 found:
+        assertEquals("{\"a\":3,\"b\":4,\"c\":5,\"d\":6}", m.writeValueAsString(bean));
+
+        // but 3 if we require mutator:
+        m.enable(SerializationConfig.Feature.REQUIRE_SETTERS_FOR_GETTERS);
+        assertEquals("{\"a\":3,\"c\":5,\"d\":6}", m.writeValueAsString(bean));
     }
 }
