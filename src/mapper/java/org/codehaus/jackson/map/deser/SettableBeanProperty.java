@@ -36,6 +36,14 @@ public abstract class SettableBeanProperty
     protected final JavaType _type;
 
     /**
+     * Id of value to inject, if value injection should be used for this parameter
+     * (in addition to, or instead of, regular deserialization).
+     * 
+     * @since 1.9
+     */
+    protected final Object _injectableValueId;
+    
+    /**
      * Class that contains this property (either class that declares
      * the property or one of its subclasses), class that is
      * deserialized using deserializer that contains this property.
@@ -101,6 +109,7 @@ public abstract class SettableBeanProperty
         _type = type;
         _contextAnnotations = contextAnnotations;
         _valueTypeDeserializer = typeDeser;
+        _injectableValueId = null;
     }
 
     /**
@@ -118,6 +127,7 @@ public abstract class SettableBeanProperty
         _nullProvider = src._nullProvider;
         _managedReferenceName = src._managedReferenceName;
         _propertyIndex = src._propertyIndex;
+        _injectableValueId = src._injectableValueId;
     }
 
     /**
@@ -133,6 +143,7 @@ public abstract class SettableBeanProperty
         _valueTypeDeserializer = src._valueTypeDeserializer;
         _managedReferenceName = src._managedReferenceName;
         _propertyIndex = src._propertyIndex;
+        _injectableValueId = src._injectableValueId;
 
         _valueDeserializer = deser;
         if (deser == null) {
@@ -143,6 +154,24 @@ public abstract class SettableBeanProperty
         }
     }
 
+    /**
+     * Copy-with-deserializer-change constructor for sub-classes to use.
+     * 
+     * @since 1.9
+     */
+    protected SettableBeanProperty(SettableBeanProperty src, Object injectableValueId)
+    {
+        _propName = src._propName;
+        _type = src._type;
+        _contextAnnotations = src._contextAnnotations;
+        _valueTypeDeserializer = src._valueTypeDeserializer;
+        _managedReferenceName = src._managedReferenceName;
+        _propertyIndex = src._propertyIndex;
+        _valueDeserializer = src._valueDeserializer;
+        _nullProvider = src._nullProvider;
+        _injectableValueId = injectableValueId;
+    }
+    
     @Deprecated
     public void setValueDeserializer(JsonDeserializer<Object> deser)
     {
@@ -162,6 +191,11 @@ public abstract class SettableBeanProperty
     public void setManagedReferenceName(String n) {
         _managedReferenceName = n;
     }
+
+    /**
+     * @since 1.9
+     */
+    public abstract SettableBeanProperty withInjectableId(Object valueId);
     
     /**
      * Method used to assign index for property.
@@ -249,6 +283,14 @@ public abstract class SettableBeanProperty
      */
     @Deprecated
     public int getProperytIndex() { return getPropertyIndex(); }
+
+    /**
+     * Accessor for id of injectable value, if this bean property supports
+     * value injection.
+     * 
+     * @since 1.9
+     */
+    public Object getInjectableValueId() { return null; }
     
     /*
     /**********************************************************
@@ -291,6 +333,35 @@ public abstract class SettableBeanProperty
         return _valueDeserializer.deserialize(jp, ctxt);
     }
 
+    /**
+     * Method that can be called to locate value to be injected for this
+     * property, if it is configured for this.
+     * 
+     * @since 1.9
+     */
+    public Object findInjectableValue(DeserializationContext context, Object beanInstance)
+    {
+        if (_injectableValueId == null) {
+            return null;
+        }
+        return context.findInjectableValue(_injectableValueId, this, beanInstance);
+    }
+    
+    /**
+     * Method to find value to inject, and inject it to this property.
+     * 
+     * @since 1.9
+     */
+    public void inject(DeserializationContext context, Object beanInstance)
+        throws IOException
+    {
+        if (_injectableValueId == null) {
+            throw new IllegalStateException("No injectable value for property '"+getName()+"' (type "
+                    +getClass().getName()+")");
+        }
+        set(beanInstance, findInjectableValue(context, beanInstance));
+    }
+    
     /*
     /**********************************************************
     /* Helper methods
@@ -374,9 +445,20 @@ public abstract class SettableBeanProperty
             _setter = src._setter;
         }
 
+        protected MethodProperty(MethodProperty src, Object injectableValueId) {
+             super(src, injectableValueId);
+             _annotated = src._annotated;
+             _setter = src._setter;
+         }
+        
         @Override
-        public SettableBeanProperty withValueDeserializer(JsonDeserializer<Object> deser) {
+        public MethodProperty withValueDeserializer(JsonDeserializer<Object> deser) {
             return new MethodProperty(this, deser);
+        }
+
+        @Override
+        public MethodProperty withInjectableId(Object valueId) {
+            return new MethodProperty(this, valueId);
         }
         
         /*
@@ -447,9 +529,20 @@ public abstract class SettableBeanProperty
             _getter = src._getter;
         }
 
+        protected SetterlessProperty(SetterlessProperty src, Object injectableValueId) {
+            super(src, injectableValueId);
+            _annotated = src._annotated;
+            _getter = src._getter;
+        }
+        
         @Override
         public SetterlessProperty withValueDeserializer(JsonDeserializer<Object> deser) {
             return new SetterlessProperty(this, deser);
+        }
+
+        @Override
+        public SetterlessProperty withInjectableId(Object valueId) {
+            return new SetterlessProperty(this, valueId);
         }
         
         /*
@@ -539,9 +632,20 @@ public abstract class SettableBeanProperty
             _field = src._field;
         }
 
+        protected FieldProperty(FieldProperty src, Object injectableValueId) {
+            super(src, injectableValueId);
+            _annotated = src._annotated;
+            _field = src._field;
+        }
+        
         @Override
         public FieldProperty withValueDeserializer(JsonDeserializer<Object> deser) {
             return new FieldProperty(this, deser);
+        }
+
+        @Override
+        public FieldProperty withInjectableId(Object valueId) {
+            return new FieldProperty(this, valueId);
         }
         
         /*
@@ -627,9 +731,22 @@ public abstract class SettableBeanProperty
             _backProperty = src._backProperty;
         }
 
+        protected ManagedReferenceProperty(ManagedReferenceProperty src, Object injectableValueId) {
+            super(src, injectableValueId);
+            _referenceName = src._referenceName;
+            _isContainer = src._isContainer;
+            _managedProperty = src._managedProperty;
+            _backProperty = src._backProperty;
+        }
+        
         @Override
         public ManagedReferenceProperty withValueDeserializer(JsonDeserializer<Object> deser) {
             return new ManagedReferenceProperty(this, deser);
+        }
+
+        @Override
+        public ManagedReferenceProperty withInjectableId(Object valueId) {
+            return new ManagedReferenceProperty(this, valueId);
         }
         
         /*
@@ -734,9 +851,20 @@ public abstract class SettableBeanProperty
             _creator = src._creator;
         }
 
+        protected InnerClassProperty(InnerClassProperty src, Object injectableValueId) {
+            super(src, injectableValueId);
+            _delegate = src._delegate;
+            _creator = src._creator;
+        }
+        
         @Override
         public InnerClassProperty withValueDeserializer(JsonDeserializer<Object> deser) {
             return new InnerClassProperty(this, deser);
+        }
+
+        @Override
+        public InnerClassProperty withInjectableId(Object valueId) {
+            return new InnerClassProperty(this, valueId);
         }
         
         // // // BeanProperty impl
