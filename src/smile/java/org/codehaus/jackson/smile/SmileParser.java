@@ -543,6 +543,7 @@ public class SmileParser
     @Override
     public JsonToken nextToken() throws IOException, JsonParseException
     {
+        _numTypesValid = NR_UNKNOWN;
         // For longer tokens (text, binary), we'll only read when requested
         if (_tokenIncomplete) {
             _skipIncomplete();
