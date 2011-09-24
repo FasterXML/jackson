@@ -107,7 +107,7 @@ public class SerializationConfig
          * Note that this feature has lower precedence than per-class
          * annotations, and is only used if there isn't more granular
          * configuration available.
-         *<P>
+         *<p>
          * Feature is enabled by default.
          *
          * @since 1.1
@@ -121,9 +121,25 @@ public class SerializationConfig
          * {@link java.lang.reflect.AccessibleObject#setAccessible}
          * may be called to enable access to otherwise unaccessible
          * objects.
+         *<p>
+         * Feature is enabled by default.
          */
         CAN_OVERRIDE_ACCESS_MODIFIERS(true),
-            
+
+        /**
+         * Feature that determines whether getters (getter methods)
+         * can be auto-detected if there is no matching mutator (setter,
+         * constructor parameter or field) or not: if set to true,
+         * only getters that match a mutator are auto-discovered; if
+         * false, all auto-detectable getters can be discovered.
+         *<p>
+         * Feature is disabled by default for backwards compatibility
+         * reasons.
+         * 
+         * @since 1.9
+         */
+        REQUIRE_SETTERS_FOR_GETTERS(false),
+        
         /*
         /******************************************************
         /* Generic output features
