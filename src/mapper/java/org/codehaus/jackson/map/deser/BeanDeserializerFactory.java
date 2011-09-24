@@ -1150,7 +1150,7 @@ public class BeanDeserializerFactory
     
     /**
      * Method called locate all members used for value injection (if any),
-     * constructor {@link ValueInjector} instances, and add them to builder.
+     * constructor {@link org.codehaus.jackson.map.deser.impl.ValueInjector} instances, and add them to builder.
      * 
      * @since 1.9
      */

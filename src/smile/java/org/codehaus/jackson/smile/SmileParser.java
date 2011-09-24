@@ -1146,14 +1146,20 @@ public class SmileParser
     public int nextIntValue(int defaultValue)
         throws IOException, JsonParseException
     {
-        return (nextToken() == JsonToken.VALUE_NUMBER_INT) ? getIntValue() : defaultValue;
+        if (nextToken() == JsonToken.VALUE_NUMBER_INT) {
+            return getIntValue();
+        }
+        return defaultValue;
     }
 
     @Override
     public long nextLongValue(long defaultValue)
         throws IOException, JsonParseException
     {
-        return (nextToken() == JsonToken.VALUE_NUMBER_INT) ? getLongValue() : defaultValue;
+        if (nextToken() == JsonToken.VALUE_NUMBER_INT) {
+            return getLongValue();
+        }
+        return defaultValue;
     }
 
     @Override
