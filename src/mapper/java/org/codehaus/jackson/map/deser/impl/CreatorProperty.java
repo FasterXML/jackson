@@ -20,9 +20,14 @@ import org.codehaus.jackson.type.JavaType;
  * It is not a full-featured implementation in that its set method
  * should never be called -- instead, value must separately passed.
  *<p>
+ * Note on injectable values (1.9): unlike with other mutators, where
+ * deserializer and injecting are separate, here we deal the two as related
+ * things. This is necessary to add proper priority, as well as to simplify
+ * coordination.
+ *<p>
  * Note that this class was moved in Jackson 1.9
  * from being a static sub-class of "org.codehaus.jackson.map.deser.SettableBeanProperty"
- * into separate class, to make it easier to use it for custom creators
+ * into separate class, to make it easier to use it for custom creators.
  */
 public class CreatorProperty
     extends SettableBeanProperty
@@ -33,7 +38,7 @@ public class CreatorProperty
      * May be null when a synthetic instance is created.
      */
     protected final AnnotatedParameter _annotated;
-
+    
     /**
      * @param name Name of the logical property
      * @param type Type of the property, used to find deserializer
@@ -46,7 +51,7 @@ public class CreatorProperty
      *    method parameter; used for accessing annotations of the property
      */
     public CreatorProperty(String name, JavaType type, TypeDeserializer typeDeser,
-            Annotations contextAnnotations, AnnotatedParameter param,                 
+            Annotations contextAnnotations, AnnotatedParameter param,
             int index)
     {
         super(name, type, typeDeser, contextAnnotations);
@@ -59,9 +64,19 @@ public class CreatorProperty
         _annotated = src._annotated;
     }
 
+    protected CreatorProperty(CreatorProperty src, Object injectableValueId) {
+        super(src, injectableValueId);
+        _annotated = src._annotated;
+    }
+    
     @Override
     public CreatorProperty withValueDeserializer(JsonDeserializer<Object> deser) {
         return new CreatorProperty(this, deser);
+    }
+
+    @Override
+    public CreatorProperty withInjectableId(Object valueId) {
+        return new CreatorProperty(this, _injectableValueId);
     }
     
     /*
@@ -79,7 +94,7 @@ public class CreatorProperty
     }
 
     @Override public AnnotatedMember getMember() {  return _annotated; }
-
+    
     /*
     /**********************************************************
     /* Overridden methods
