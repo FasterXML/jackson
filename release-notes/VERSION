@@ -102,7 +102,9 @@ Description:
     allow mapping JSON Array to Object[]
    (suggested by Simone B)
   * [JACKSON-653] Add 'JsonParser.isNextTokenName()' for more efficient field name matching
-
+  * [JACKSON-666] Add 'Add SerializationConfig.Feature.REQUIRE_SETTERS_FOR_GETTERS' to allow
+    suppressing use of getters for which there is no matching mutator.
+  
   Issues handled by new external projects:
 
   * [JACKSON-51]: Implement Just-In-Time code generation for serialization

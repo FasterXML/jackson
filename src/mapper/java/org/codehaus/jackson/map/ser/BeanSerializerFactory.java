@@ -554,6 +554,11 @@ public class BeanSerializerFactory
         // [JACKSON-429]: ignore specified types
         removeIgnorableTypes(config, beanDesc, properties);
         
+        // and possible remove ones without matching mutator...
+        if (config.isEnabled(SerializationConfig.Feature.REQUIRE_SETTERS_FOR_GETTERS)) {
+            removeSetterlessGetters(config, beanDesc, properties);
+        }
+        
         // nothing? can't proceed (caller may or may not throw an exception)
         if (properties.isEmpty()) {
             return null;
@@ -709,6 +714,24 @@ public class BeanSerializerFactory
             }
             // lotsa work, and yes, it is ignorable type, so:
             if (result.booleanValue()) {
+                it.remove();
+            }
+        }
+    }
+
+    /**
+     * Helper method that will remove all properties that do not have a
+     * mutator.
+     * 
+     * @since 1.9
+     */
+    protected void removeSetterlessGetters(SerializationConfig config, BasicBeanDescription beanDesc,
+            List<BeanPropertyDefinition> properties)
+    {
+        Iterator<BeanPropertyDefinition> it = properties.iterator();
+        while (it.hasNext()) {
+            BeanPropertyDefinition property = it.next();
+            if (!property.couldDeserialize()) {
                 it.remove();
             }
         }

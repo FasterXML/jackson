@@ -238,13 +238,14 @@ public class TestAnnotations
     public void testGettersWithoutSetters() throws Exception
     {
         ObjectMapper m = new ObjectMapper();
-        GettersWithoutSetters bean = new GettersWithoutSetters(123);        
+        GettersWithoutSetters bean = new GettersWithoutSetters(123);
         assertFalse(m.isEnabled(SerializationConfig.Feature.REQUIRE_SETTERS_FOR_GETTERS));
     
         // by default, all 4 found:
         assertEquals("{\"a\":3,\"b\":4,\"c\":5,\"d\":6}", m.writeValueAsString(bean));
 
         // but 3 if we require mutator:
+        m = new ObjectMapper();
         m.enable(SerializationConfig.Feature.REQUIRE_SETTERS_FOR_GETTERS);
         assertEquals("{\"a\":3,\"c\":5,\"d\":6}", m.writeValueAsString(bean));
     }

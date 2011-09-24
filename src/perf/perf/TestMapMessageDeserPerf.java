@@ -78,7 +78,7 @@ public class TestMapMessageDeserPerf
             if (lf) {
                 System.out.println();
             }
-            System.out.println("Test '"+msg+"' -> "+curr+" msecs"
+            System.out.println("Test '"+msg+"' ("+i+") -> "+curr+" msecs"
                     +"("+(sum & 0xFF)+")"
             );
         }
