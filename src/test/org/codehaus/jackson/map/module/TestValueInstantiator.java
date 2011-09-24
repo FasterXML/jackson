@@ -6,6 +6,7 @@ import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonValueInstantiator;
 import org.codehaus.jackson.map.deser.*;
+import org.codehaus.jackson.map.deser.impl.CreatorProperty;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 

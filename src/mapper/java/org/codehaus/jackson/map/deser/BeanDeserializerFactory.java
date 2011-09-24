@@ -5,6 +5,7 @@ import java.util.*;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.deser.impl.CreatorCollector;
+import org.codehaus.jackson.map.deser.impl.CreatorProperty;
 import org.codehaus.jackson.map.deser.std.ThrowableDeserializer;
 import org.codehaus.jackson.map.introspect.*;
 import org.codehaus.jackson.map.type.*;
@@ -803,71 +804,80 @@ public class BeanDeserializerFactory
             boolean isVisible =  vchecker.isCreatorVisible(ctor);
             // some single-arg constructors (String, number) are auto-detected
             if (argCount == 1) {
-                /* but note: if we do have parameter name, it'll be
-                 * "property constructor", and needs to be skipped for now
-                 */
+                // note: if we do have parameter name, it'll be "property constructor":
                 AnnotatedParameter param = ctor.getParameter(0);
-				String name = intr.findPropertyNameForParam(param);
-                if (name == null || name.length() == 0) { // not property based
-                    Class<?> type = ctor.getParameterClass(0);
-                    if (type == String.class) {
-                        if (isCreator || isVisible) {
-                            creators.addStringCreator(ctor);
-                        }
-                        continue;
-                    }
-                    if (type == int.class || type == Integer.class) {
-                        if (isCreator || isVisible) {
-                            creators.addIntCreator(ctor);
-                        }
-                        continue;
-                    }
-                    if (type == long.class || type == Long.class) {
-                        if (isCreator || isVisible) {
-                            creators.addLongCreator(ctor);
-                        }
-                        continue;
-                    }
-                    if (type == double.class || type == Double.class) {
-                        if (isCreator || isVisible) {
-                            creators.addDoubleCreator(ctor);
-                        }
-                        continue;
-                    }
+                String name = intr.findPropertyNameForParam(param);
+                Object injectId = intr.findInjectableValueId(param);
 
-                    // Delegating Creator ok iff it has @JsonCreator (etc)
-                    if (isCreator) {
-                        creators.addDelegatingCreator(ctor);
-                    }
-                    // otherwise just ignored
+                if ((injectId != null) || (name != null && name.length() > 0)) { // property-based
+                    // We know there's a name and it's only 1 parameter.
+                    SettableBeanProperty[] properties = new SettableBeanProperty[1];
+                    properties[0] = constructCreatorProperty(config, beanDesc, name, 0, param, injectId);
+                    creators.addPropertyCreator(ctor, properties);
                     continue;
                 }
-                // We know there's a name and it's only 1 parameter.
-                CreatorProperty[] properties = new CreatorProperty[1];
-                properties[0] = constructCreatorProperty(config, beanDesc, name, 0, param);
-                creators.addPropertyCreator(ctor, properties);
+
+                // otherwise either 'simple' number, String, or general delegate:
+                Class<?> type = ctor.getParameterClass(0);
+                if (type == String.class) {
+                    if (isCreator || isVisible) {
+                        creators.addStringCreator(ctor);
+                    }
+                    continue;
+                }
+                if (type == int.class || type == Integer.class) {
+                    if (isCreator || isVisible) {
+                        creators.addIntCreator(ctor);
+                    }
+                    continue;
+                }
+                if (type == long.class || type == Long.class) {
+                    if (isCreator || isVisible) {
+                        creators.addLongCreator(ctor);
+                    }
+                    continue;
+                }
+                if (type == double.class || type == Double.class) {
+                    if (isCreator || isVisible) {
+                        creators.addDoubleCreator(ctor);
+                    }
+                    continue;
+                }
+
+                // Delegating Creator ok iff it has @JsonCreator (etc)
+                if (isCreator) {
+                    creators.addDelegatingCreator(ctor);
+                }
+                // otherwise just ignored
                 continue;
             } else if (!isCreator && !isVisible) {
             	continue;
             }
             // [JACKSON-541] improved handling a bit so:
-            // 2 or more args; all params must have name annotations.
+            // 2 or more args; all params must have name annotations
+            // ... or @JacksonInject (or equivalent)
             // But if it was auto-detected and there's no annotations, keep silent (was not meant to be a creator?)
             boolean annotationFound = false;
             boolean notAnnotatedParamFound = false;
-            CreatorProperty[] properties = new CreatorProperty[argCount];
+            SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
             for (int i = 0; i < argCount; ++i) {
                 AnnotatedParameter param = ctor.getParameter(i);
                 String name = (param == null) ? null : intr.findPropertyNameForParam(param);
+                Object injectId = intr.findInjectableValueId(param);
+
                 // If some parameters are annotated and others not, it's invalid.
                 // If the constructor is annotated with @JsonCreator, all params must have annotation
-                notAnnotatedParamFound |= (name == null || name.length() == 0);
+                boolean hasName = (name != null && name.length() > 0);
+                boolean hasInject = (injectId != null);
+                
+                notAnnotatedParamFound |= (!hasName && !hasInject);
+
                 annotationFound |= !notAnnotatedParamFound;
                 if (notAnnotatedParamFound && (annotationFound || isCreator)) {
                     throw new IllegalArgumentException("Argument #"+i+" of constructor "+ctor+" has no property name annotation; must have name when multiple-paramater constructor annotated as Creator");
                 }
                 if (!notAnnotatedParamFound) {
-                    properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
+                    properties[i] = constructCreatorProperty(config, beanDesc, name, i, param, injectId);
                 }
             }
             if (annotationFound) {
@@ -893,8 +903,11 @@ public class BeanDeserializerFactory
                 /* but as above: if we do have parameter name, it'll be
                  * "property constructor", and needs to be skipped for now
                  */
-                String name = intr.findPropertyNameForParam(factory.getParameter(0));
-                if (name == null || name.length() == 0) { // not property based
+                AnnotatedParameter param = factory.getParameter(0);
+                String name = intr.findPropertyNameForParam(param);
+                Object injectId = intr.findInjectableValueId(param);
+
+                if ((injectId == null) && (name == null || name.length() == 0)) { // not property based
                     Class<?> type = factory.getParameterClass(0);
                     if (type == String.class) {
                         if (isCreator || vchecker.isCreatorVisible(factory)) {
@@ -940,15 +953,16 @@ public class BeanDeserializerFactory
                 }
             }
             // 1 or more args; all params must have name annotations
-            CreatorProperty[] properties = new CreatorProperty[argCount];
+            SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
             for (int i = 0; i < argCount; ++i) {
                 AnnotatedParameter param = factory.getParameter(i);
                 String name = intr.findPropertyNameForParam(param);
+                Object injectableId = intr.findInjectableValueId(param);
                 // At this point, name annotation is NOT optional
-                if (name == null || name.length() == 0) {
+                if ((name == null || name.length() == 0) && (injectableId == null)) {
                     throw new IllegalArgumentException("Argument #"+i+" of factory method "+factory+" has no property name annotation; must have when multiple-paramater static method annotated as Creator");
                 }
-                properties[i] = constructCreatorProperty(config, beanDesc, name, i, param);
+                properties[i] = constructCreatorProperty(config, beanDesc, name, i, param, injectableId);
             }
             creators.addPropertyCreator(factory, properties);
         }
@@ -956,12 +970,13 @@ public class BeanDeserializerFactory
 
     /**
      * Method that will construct a property object that represents
-    * a logical property passed via Creator (constructor or static
-    * factory method)
+     * a logical property passed via Creator (constructor or static
+     * factory method)
      */
-    protected CreatorProperty constructCreatorProperty(DeserializationConfig config,
+    protected SettableBeanProperty constructCreatorProperty(DeserializationConfig config,
             BasicBeanDescription beanDesc, String name, int index,
-            AnnotatedParameter param)
+            AnnotatedParameter param,
+            Object injectableValueId)
         throws JsonMappingException
     {
         JavaType t0 = config.getTypeFactory().constructType(param.getParameterType(), beanDesc.bindingsForBeanType());
@@ -981,11 +996,14 @@ public class BeanDeserializerFactory
         if (typeDeser == null) {
             typeDeser = findTypeDeserializer(config, type, property);
         }
-        CreatorProperty prop = new CreatorProperty(name, type, typeDeser,
+        SettableBeanProperty prop = new CreatorProperty(name, type, typeDeser,
                 beanDesc.getClassAnnotations(), param, index);
         if (deser != null) {
             prop = prop.withValueDeserializer(deser);
         }
+        
+        // !!! TODO: support injectable values !!!
+        
         return prop;
     }
     

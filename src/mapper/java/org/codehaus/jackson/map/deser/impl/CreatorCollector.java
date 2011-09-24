@@ -4,7 +4,7 @@ import java.lang.reflect.Member;
 import java.util.*;
 
 import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.deser.CreatorProperty;
+import org.codehaus.jackson.map.deser.SettableBeanProperty;
 import org.codehaus.jackson.map.deser.ValueInstantiator;
 import org.codehaus.jackson.map.deser.std.StdValueInstantiator;
 import org.codehaus.jackson.map.introspect.*;
@@ -30,7 +30,7 @@ public class CreatorCollector
 
     protected AnnotatedWithParams _delegateCreator;
     protected AnnotatedWithParams _propertyBasedCreator;
-    protected CreatorProperty[] _propertyBasedArgs = null;
+    protected SettableBeanProperty[] _propertyBasedArgs = null;
 
     /*
     /**********************************************************
@@ -101,7 +101,7 @@ public class CreatorCollector
         _delegateCreator = verifyNonDup(creator, _delegateCreator, "delegate");
     }
 
-    public void addPropertyCreator(AnnotatedWithParams creator, CreatorProperty[] properties)
+    public void addPropertyCreator(AnnotatedWithParams creator, SettableBeanProperty[] properties)
     {
         _propertyBasedCreator = verifyNonDup(creator, _propertyBasedCreator, "property-based");
         // [JACKSON-470] Better ensure we have no duplicate names either...

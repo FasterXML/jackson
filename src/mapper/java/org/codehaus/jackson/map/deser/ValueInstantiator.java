@@ -136,7 +136,7 @@ public abstract class ValueInstantiator
      * These arguments are bound from JSON, using specified
      * property types to locate deserializers.
      */
-    public CreatorProperty[] getFromObjectArguments() {
+    public SettableBeanProperty[] getFromObjectArguments() {
         return null;
     }
 

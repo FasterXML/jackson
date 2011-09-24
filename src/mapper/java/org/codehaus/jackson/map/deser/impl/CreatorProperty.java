@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.deser;
+package org.codehaus.jackson.map.deser.impl;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -8,6 +8,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
 import org.codehaus.jackson.map.TypeDeserializer;
+import org.codehaus.jackson.map.deser.SettableBeanProperty;
 import org.codehaus.jackson.map.introspect.AnnotatedMember;
 import org.codehaus.jackson.map.introspect.AnnotatedParameter;
 import org.codehaus.jackson.map.util.Annotations;
@@ -34,11 +35,6 @@ public class CreatorProperty
     protected final AnnotatedParameter _annotated;
 
     /**
-     * Index of the property
-     */
-    final protected int _creatorIndex;
-
-    /**
      * @param name Name of the logical property
      * @param type Type of the property, used to find deserializer
      * @param typeDeser Type deserializer to use for handling polymorphic type
@@ -48,21 +44,19 @@ public class CreatorProperty
      *    this property)
      * @param param Representation of property, constructor or factory
      *    method parameter; used for accessing annotations of the property
-     * @param creatorIndex
      */
     public CreatorProperty(String name, JavaType type, TypeDeserializer typeDeser,
             Annotations contextAnnotations, AnnotatedParameter param,                 
-            int creatorIndex)
+            int index)
     {
         super(name, type, typeDeser, contextAnnotations);
         _annotated = param;
-        _creatorIndex = creatorIndex;
+        _propertyIndex = index;
     }
 
     protected CreatorProperty(CreatorProperty src, JsonDeserializer<Object> deser) {
         super(src, deser);
         _annotated = src._annotated;
-        _creatorIndex = src._creatorIndex;
     }
 
     @Override
@@ -91,12 +85,6 @@ public class CreatorProperty
     /* Overridden methods
     /**********************************************************
      */
-    
-    /**
-     * Method to use for accessing index of the property (related to
-     * other properties in the same context).
-     */
-    public int getCreatorIndex() { return _creatorIndex; }
 
     @Override
     public void deserializeAndSet(JsonParser jp, DeserializationContext ctxt,

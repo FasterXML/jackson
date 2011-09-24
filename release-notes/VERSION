@@ -35,6 +35,8 @@ Description:
    (suggested by Bruce P)
   * [JACKSON-595] Terse Visibility Config (ObjectMapper.setVisibility, related)
    (suggested by Bruce P)
+  * [JACKSON-598] Add set of standard naming-strategy implementations
+   (suggested by Bruce P)
   * [JACKSON-599] Expose Settability Of SimpleModule Serializers/Deserializers
    (suggested by Bruce P)
   * [JACKSON-606] Add Built-in Support for Date Map Keys as Timestamps

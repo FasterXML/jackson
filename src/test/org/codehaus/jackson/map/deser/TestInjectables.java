@@ -1,5 +1,6 @@
 package org.codehaus.jackson.map.deser;
 
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonInject;
 
@@ -33,6 +34,17 @@ public class TestInjectables extends BaseMapTest
         @JacksonInject("x") protected String prop1;
         @JacksonInject("x") protected String prop2;
     }
+
+    static class CtorBean {
+        protected String name;
+        protected int age;
+        
+        public CtorBean(@JacksonInject String n, @JsonProperty int a)
+        {
+            name = n;
+            age = a;
+        }
+    }
     
     /*
     /**********************************************************
@@ -54,7 +66,18 @@ public class TestInjectables extends BaseMapTest
         assertEquals("xyz", bean.otherStuff);
         assertEquals(37L, bean.third);
     }
- 
+
+    public void testWithCtors() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setInjectableValues(new InjectableValues.Std()
+            .addValue(String.class, "Bubba")
+            );
+        CtorBean bean = mapper.readValue("{\"age\":55}", CtorBean.class);
+        assertEquals(55, bean.age);
+        assertEquals("Bubba", bean.name);
+    }
+    
     public void testInvalidDup() throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();

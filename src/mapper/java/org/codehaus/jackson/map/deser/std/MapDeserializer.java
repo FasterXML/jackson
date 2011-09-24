@@ -10,7 +10,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JacksonStdImpl;
-import org.codehaus.jackson.map.deser.CreatorProperty;
+import org.codehaus.jackson.map.deser.SettableBeanProperty;
 import org.codehaus.jackson.map.deser.ValueInstantiator;
 import org.codehaus.jackson.map.deser.impl.PropertyBasedCreator;
 import org.codehaus.jackson.map.deser.impl.PropertyValueBuffer;
@@ -192,7 +192,7 @@ public class MapDeserializer
             _delegateDeserializer = findDeserializer(config, provider, delegateType, property);
         }
         if (_propertyBasedCreator != null) {
-            for (CreatorProperty prop : _propertyBasedCreator.getCreatorProperties()) {
+            for (SettableBeanProperty prop : _propertyBasedCreator.getCreatorProperties()) {
                 if (!prop.hasValueDeserializer()) {
                     _propertyBasedCreator.assignDeserializer(prop, findDeserializer(config, provider, prop.getType(), prop));
                 }
@@ -349,11 +349,11 @@ public class MapDeserializer
                 continue;
             }
             // creator property?
-            CreatorProperty prop = creator.findCreatorProperty(propName);
+            SettableBeanProperty prop = creator.findCreatorProperty(propName);
             if (prop != null) {
                 // Last property to set?
                 Object value = prop.deserialize(jp, ctxt);
-                if (buffer.assignParameter(prop.getCreatorIndex(), value)) {
+                if (buffer.assignParameter(prop.getPropertyIndex(), value)) {
                     jp.nextToken();
                     Map<Object,Object> result;
                     try {

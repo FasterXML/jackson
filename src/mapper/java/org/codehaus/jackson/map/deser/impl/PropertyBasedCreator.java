@@ -7,7 +7,7 @@ import java.util.HashMap;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.JsonDeserializer;
-import org.codehaus.jackson.map.deser.CreatorProperty;
+import org.codehaus.jackson.map.deser.SettableBeanProperty;
 import org.codehaus.jackson.map.deser.ValueInstantiator;
 import org.codehaus.jackson.map.util.ClassUtil;
 
@@ -28,7 +28,7 @@ public final class PropertyBasedCreator
      * method (whichever one is null: one property for each
      * parameter for that one), keyed by logical property name
      */
-    protected final HashMap<String, CreatorProperty> _properties;
+    protected final HashMap<String, SettableBeanProperty> _properties;
 
     /**
      * If some property values must always have a non-null value (like
@@ -39,12 +39,12 @@ public final class PropertyBasedCreator
     public PropertyBasedCreator(ValueInstantiator valueInstantiator)
     {
         _valueInstantiator = valueInstantiator;
-        _properties = new HashMap<String, CreatorProperty>();
+        _properties = new HashMap<String, SettableBeanProperty>();
         // [JACKSON-372]: primitive types need extra care
         Object[] defValues = null;
-        CreatorProperty[] creatorProps = valueInstantiator.getFromObjectArguments();
+        SettableBeanProperty[] creatorProps = valueInstantiator.getFromObjectArguments();
         for (int i = 0, len = creatorProps.length; i < len; ++i) {
-            CreatorProperty prop = creatorProps[i];
+            SettableBeanProperty prop = creatorProps[i];
             _properties.put(prop.getName(), prop);
             if (prop.getType().isPrimitive()) {
                 if (defValues == null) {
@@ -56,15 +56,15 @@ public final class PropertyBasedCreator
         _defaultValues = defValues;
     }
 
-    public Collection<CreatorProperty> getCreatorProperties() {
+    public Collection<SettableBeanProperty> getCreatorProperties() {
         return _properties.values();
     }
     
-    public CreatorProperty findCreatorProperty(String name) {
+    public SettableBeanProperty findCreatorProperty(String name) {
         return _properties.get(name);
     }
 
-    public void assignDeserializer(CreatorProperty prop, JsonDeserializer<Object> deser) {
+    public void assignDeserializer(SettableBeanProperty prop, JsonDeserializer<Object> deser) {
         prop = prop.withValueDeserializer(deser);
         _properties.put(prop.getName(), prop);
     }
