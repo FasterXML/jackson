@@ -1,4 +1,4 @@
-package org.codehaus.jackson.map.deser;
+package org.codehaus.jackson.map.tree;
 
 import org.codehaus.jackson.map.BaseMapTest;
 
