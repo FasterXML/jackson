@@ -31,6 +31,12 @@ public class TestAbstractParentChild extends BaseMapTest
         public ConcreteNode() { }
         public ConcreteNode(String id) { this.id = id; }
     }
+
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
     
     /* 22-Sep-2010, tatu: This is for [JACKSON-368]. Easy to reproduce the issue,
      *   but alas not nearly as easy to resolve. Problem is that AbstractDeserializer

@@ -33,6 +33,12 @@ public class TestSerializationFiltering extends BaseMapTest
         }
     }
 
+    /*
+    /**********************************************************
+    /* Unit tests
+    /**********************************************************
+     */
+    
     // should also work for @JsonAnyGetter, as per [JACKSON-516]
     public void testAnyGetterFiltering() throws Exception
     {

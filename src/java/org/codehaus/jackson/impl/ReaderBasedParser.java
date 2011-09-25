@@ -501,6 +501,114 @@ public final class ReaderBasedParser
         }
         return (_currToken = t);
     }
+
+    // note: identical to one in Utf8StreamParser
+    @Override
+    public String nextTextValue()
+        throws IOException, JsonParseException
+    {
+        if (_currToken == JsonToken.FIELD_NAME) { // mostly copied from '_nextAfterName'
+            _nameCopied = false;
+            JsonToken t = _nextToken;
+            _nextToken = null;
+            _currToken = t;
+            if (t == JsonToken.VALUE_STRING) {
+                if (_tokenIncomplete) {
+                    _tokenIncomplete = false;
+                    _finishString();
+                }
+                return _textBuffer.contentsAsString();
+            }
+            if (t == JsonToken.START_ARRAY) {
+                _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
+            } else if (t == JsonToken.START_OBJECT) {
+                _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
+            }
+            return null;
+        }
+        // !!! TODO: optimize this case as well
+        return (nextToken() == JsonToken.VALUE_STRING) ? getText() : null;
+    }
+
+    // note: identical to one in Utf8StreamParser
+    @Override
+    public int nextIntValue(int defaultValue)
+        throws IOException, JsonParseException
+    {
+        if (_currToken == JsonToken.FIELD_NAME) {
+            _nameCopied = false;
+            JsonToken t = _nextToken;
+            _nextToken = null;
+            _currToken = t;
+            if (t == JsonToken.VALUE_NUMBER_INT) {
+                return getIntValue();
+            }
+            if (t == JsonToken.START_ARRAY) {
+                _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
+            } else if (t == JsonToken.START_OBJECT) {
+                _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
+            }
+            return defaultValue;
+        }
+        // !!! TODO: optimize this case as well
+        return (nextToken() == JsonToken.VALUE_NUMBER_INT) ? getIntValue() : defaultValue;
+    }
+
+    // note: identical to one in Utf8StreamParser
+    @Override
+    public long nextLongValue(long defaultValue)
+        throws IOException, JsonParseException
+    {
+        if (_currToken == JsonToken.FIELD_NAME) { // mostly copied from '_nextAfterName'
+            _nameCopied = false;
+            JsonToken t = _nextToken;
+            _nextToken = null;
+            _currToken = t;
+            if (t == JsonToken.VALUE_NUMBER_INT) {
+                return getLongValue();
+            }
+            if (t == JsonToken.START_ARRAY) {
+                _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
+            } else if (t == JsonToken.START_OBJECT) {
+                _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
+            }
+            return defaultValue;
+        }
+        // !!! TODO: optimize this case as well
+        return (nextToken() == JsonToken.VALUE_NUMBER_INT) ? getLongValue() : defaultValue;
+    }
+
+    // note: identical to one in Utf8StreamParser
+    @Override
+    public Boolean nextBooleanValue()
+        throws IOException, JsonParseException
+    {
+        if (_currToken == JsonToken.FIELD_NAME) { // mostly copied from '_nextAfterName'
+            _nameCopied = false;
+            JsonToken t = _nextToken;
+            _nextToken = null;
+            _currToken = t;
+            if (t == JsonToken.VALUE_TRUE) {
+                return Boolean.TRUE;
+            }
+            if (t == JsonToken.VALUE_FALSE) {
+                return Boolean.FALSE;
+            }
+            if (t == JsonToken.START_ARRAY) {
+                _parsingContext = _parsingContext.createChildArrayContext(_tokenInputRow, _tokenInputCol);
+            } else if (t == JsonToken.START_OBJECT) {
+                _parsingContext = _parsingContext.createChildObjectContext(_tokenInputRow, _tokenInputCol);
+            }
+            return null;
+        }
+        switch (nextToken()) {
+        case VALUE_TRUE:
+            return Boolean.TRUE;
+        case VALUE_FALSE:
+            return Boolean.FALSE;
+        }
+        return null;
+    }
     
     @Override
     public void close() throws IOException
