@@ -2,7 +2,7 @@ package org.codehaus.jackson.jaxb;
 
 import java.util.*;
 
-import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
@@ -90,6 +90,43 @@ public class TestAdapters extends BaseJaxbTest
         }
     }
     
+    // [JACKSON-656]
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    @XmlType(name = "Paging", propOrder = { "numFound" })
+    public static class Paging {
+
+            @XmlElement(type = String.class)
+            @XmlJavaTypeAdapter(Adapter1.class)
+            @XmlSchemaType(name = "long")
+            protected Long numFound;
+
+            public Long getNumFound() {
+                    return numFound;
+            }
+
+            public void setNumFound(Long value) {
+                    this.numFound = value;
+            }
+
+            // ... 
+    }
+
+    public static class Adapter1 extends XmlAdapter<String, Long> {
+        @Override
+        public Long unmarshal(String value) {
+            return ((long) javax.xml.bind.DatatypeConverter.parseLong(value));
+        }
+
+        @Override
+        public String marshal(Long value) {
+            if (value == null) {
+                return null;
+            }
+            return (javax.xml.bind.DatatypeConverter.printLong((long) (long) value));
+        }   
+    }    
+    
     /*
     /**********************************************************
     /* Unit tests
@@ -117,5 +154,16 @@ public class TestAdapters extends BaseJaxbTest
         String json = mapper.writeValueAsString(input);
         Bean288 output = mapper.readValue(json, Bean288.class);
         assertNotNull(output);
+    }
+
+    // [JACKSON-656]
+
+    public void testJackson656() throws Exception
+    {
+            Paging p = new Paging();
+            p.setNumFound(3232l);
+            ObjectMapper mapper = getJaxbMapper();
+            String json = mapper.writeValueAsString(p);
+            System.err.println("JSON == "+json);
     }
 }
