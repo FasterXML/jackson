@@ -94,8 +94,7 @@ public class TestAdapters extends BaseJaxbTest
 
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "Paging", propOrder = { "numFound" })
-    public static class Paging {
-
+    public static class Bean656 {
             @XmlElement(type = String.class)
             @XmlJavaTypeAdapter(Adapter1.class)
             @XmlSchemaType(name = "long")
@@ -108,8 +107,6 @@ public class TestAdapters extends BaseJaxbTest
             public void setNumFound(Long value) {
                     this.numFound = value;
             }
-
-            // ... 
     }
 
     public static class Adapter1 extends XmlAdapter<String, Long> {
@@ -160,10 +157,10 @@ public class TestAdapters extends BaseJaxbTest
 
     public void testJackson656() throws Exception
     {
-            Paging p = new Paging();
-            p.setNumFound(3232l);
-            ObjectMapper mapper = getJaxbMapper();
-            String json = mapper.writeValueAsString(p);
-            System.err.println("JSON == "+json);
+        Bean656 bean = new Bean656();
+        bean.setNumFound(3232l);
+        ObjectMapper mapper = getJaxbMapper();
+        String json = mapper.writeValueAsString(bean);
+        assertEquals("{\"numFound\":\"3232\"}", json);
     }
 }
