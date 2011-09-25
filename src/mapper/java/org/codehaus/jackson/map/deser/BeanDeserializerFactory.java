@@ -811,7 +811,7 @@ public class BeanDeserializerFactory
 
                 if ((injectId != null) || (name != null && name.length() > 0)) { // property-based
                     // We know there's a name and it's only 1 parameter.
-                    SettableBeanProperty[] properties = new SettableBeanProperty[1];
+                    CreatorProperty[] properties = new CreatorProperty[1];
                     properties[0] = constructCreatorProperty(config, beanDesc, name, 0, param, injectId);
                     creators.addPropertyCreator(ctor, properties);
                     continue;
@@ -859,7 +859,7 @@ public class BeanDeserializerFactory
             // But if it was auto-detected and there's no annotations, keep silent (was not meant to be a creator?)
             boolean annotationFound = false;
             boolean notAnnotatedParamFound = false;
-            SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
+            CreatorProperty[] properties = new CreatorProperty[argCount];
             for (int i = 0; i < argCount; ++i) {
                 AnnotatedParameter param = ctor.getParameter(i);
                 String name = (param == null) ? null : intr.findPropertyNameForParam(param);
@@ -953,7 +953,7 @@ public class BeanDeserializerFactory
                 }
             }
             // 1 or more args; all params must have name annotations
-            SettableBeanProperty[] properties = new SettableBeanProperty[argCount];
+            CreatorProperty[] properties = new CreatorProperty[argCount];
             for (int i = 0; i < argCount; ++i) {
                 AnnotatedParameter param = factory.getParameter(i);
                 String name = intr.findPropertyNameForParam(param);
@@ -973,7 +973,7 @@ public class BeanDeserializerFactory
      * a logical property passed via Creator (constructor or static
      * factory method)
      */
-    protected SettableBeanProperty constructCreatorProperty(DeserializationConfig config,
+    protected CreatorProperty constructCreatorProperty(DeserializationConfig config,
             BasicBeanDescription beanDesc, String name, int index,
             AnnotatedParameter param,
             Object injectableValueId)
@@ -996,14 +996,11 @@ public class BeanDeserializerFactory
         if (typeDeser == null) {
             typeDeser = findTypeDeserializer(config, type, property);
         }
-        SettableBeanProperty prop = new CreatorProperty(name, type, typeDeser,
-                beanDesc.getClassAnnotations(), param, index);
+        CreatorProperty prop = new CreatorProperty(name, type, typeDeser,
+                beanDesc.getClassAnnotations(), param, index, injectableValueId);
         if (deser != null) {
             prop = prop.withValueDeserializer(deser);
         }
-        
-        // !!! TODO: support injectable values !!!
-        
         return prop;
     }
     

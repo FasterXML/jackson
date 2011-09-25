@@ -38,6 +38,14 @@ public class CreatorProperty
      * May be null when a synthetic instance is created.
      */
     protected final AnnotatedParameter _annotated;
+
+    /**
+     * Id of value to inject, if value injection should be used for this parameter
+     * (in addition to, or instead of, regular deserialization).
+     * 
+     * @since 1.9
+     */
+    protected final Object _injectableValueId;
     
     /**
      * @param name Name of the logical property
@@ -52,21 +60,18 @@ public class CreatorProperty
      */
     public CreatorProperty(String name, JavaType type, TypeDeserializer typeDeser,
             Annotations contextAnnotations, AnnotatedParameter param,
-            int index)
+            int index, Object injectableValueId)
     {
         super(name, type, typeDeser, contextAnnotations);
         _annotated = param;
         _propertyIndex = index;
+        _injectableValueId = injectableValueId;
     }
 
     protected CreatorProperty(CreatorProperty src, JsonDeserializer<Object> deser) {
         super(src, deser);
         _annotated = src._annotated;
-    }
-
-    protected CreatorProperty(CreatorProperty src, Object injectableValueId) {
-        super(src, injectableValueId);
-        _annotated = src._annotated;
+        _injectableValueId = src._injectableValueId;
     }
     
     @Override
@@ -74,9 +79,30 @@ public class CreatorProperty
         return new CreatorProperty(this, deser);
     }
 
-    @Override
-    public CreatorProperty withInjectableId(Object valueId) {
-        return new CreatorProperty(this, _injectableValueId);
+    /**
+     * Method that can be called to locate value to be injected for this
+     * property, if it is configured for this.
+     * 
+     * @since 1.9
+     */
+    public Object findInjectableValue(DeserializationContext context, Object beanInstance)
+    {
+        if (_injectableValueId == null) {
+            throw new IllegalStateException("Property '"+getName()
+                    +"' (type "+getClass().getName()+") has no injectable value id configured");
+        }
+        return context.findInjectableValue(_injectableValueId, this, beanInstance);
+    }
+    
+    /**
+     * Method to find value to inject, and inject it to this property.
+     * 
+     * @since 1.9
+     */
+    public void inject(DeserializationContext context, Object beanInstance)
+        throws IOException
+    {
+        set(beanInstance, findInjectableValue(context, beanInstance));
     }
     
     /*
@@ -117,5 +143,10 @@ public class CreatorProperty
          * For now, let's just bail out without fuss.
          */
         //throw new IllegalStateException("Method should never be called on a "+getClass().getName());
+    }
+
+    @Override
+    public Object getInjectableValueId() {
+        return _injectableValueId;
     }
 }

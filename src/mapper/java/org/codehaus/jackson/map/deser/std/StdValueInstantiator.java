@@ -7,6 +7,7 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.deser.SettableBeanProperty;
 import org.codehaus.jackson.map.deser.ValueInstantiator;
+import org.codehaus.jackson.map.deser.impl.CreatorProperty;
 import org.codehaus.jackson.map.introspect.AnnotatedWithParams;
 import org.codehaus.jackson.type.JavaType;
 
@@ -42,7 +43,7 @@ public class StdValueInstantiator
 
     // // // With-args (property-based) construction
 
-    protected SettableBeanProperty[] _constructorArguments;
+    protected CreatorProperty[] _constructorArguments;
     protected AnnotatedWithParams _withArgsCreator;
 
     // // // Delegate construction
@@ -109,7 +110,7 @@ public class StdValueInstantiator
      */
     public void configureFromObjectSettings(AnnotatedWithParams defaultCreator,
             AnnotatedWithParams delegateCreator, JavaType delegateType,
-            AnnotatedWithParams withArgsCreator, SettableBeanProperty[] constructorArgs)
+            AnnotatedWithParams withArgsCreator, CreatorProperty[] constructorArgs)
     {
         _defaultCreator = defaultCreator;
         _delegateCreator = delegateCreator;

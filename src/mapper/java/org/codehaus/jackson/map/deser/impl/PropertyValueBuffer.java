@@ -37,8 +37,7 @@ public final class PropertyValueBuffer
      */
     private PropertyValue _buffered;
     
-    public PropertyValueBuffer(JsonParser jp, DeserializationContext ctxt,
-                               int paramCount)
+    public PropertyValueBuffer(JsonParser jp, DeserializationContext ctxt, int paramCount)
     {
         _parser = jp;
         _context = ctxt;
@@ -46,6 +45,18 @@ public final class PropertyValueBuffer
         _creatorParameters = new Object[paramCount];
     }
 
+    public void inject(SettableBeanProperty[] injectableProperties)
+    {
+        for (int i = 0, len = injectableProperties.length; i < len; ++i) {
+            SettableBeanProperty prop = injectableProperties[i];
+            if (prop != null) {
+                // null since there is no POJO yet
+                _creatorParameters[i] = _context.findInjectableValue(prop.getInjectableValueId(),
+                        prop, null);
+            }
+        }
+    }
+    
     /**
      * @param defaults If any of parameters requires nulls to be replaced with a non-null
      *    object (usually primitive types), this is a non-null array that has such replacement

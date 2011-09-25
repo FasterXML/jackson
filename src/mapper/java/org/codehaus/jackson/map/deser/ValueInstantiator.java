@@ -135,6 +135,9 @@ public abstract class ValueInstantiator
      * (when {@link #canCreateFromObjectWith()} returns  true).
      * These arguments are bound from JSON, using specified
      * property types to locate deserializers.
+     *<p>
+     * NOTE: all properties will be of type
+     * {@link org.codehaus.jackson.map.deser.impl.CreatorProperty}.
      */
     public SettableBeanProperty[] getFromObjectArguments() {
         return null;

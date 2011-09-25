@@ -108,7 +108,7 @@ public class TestValueInstantiator extends BaseMapTest
         public CreatorProperty[] getFromObjectArguments() {
             return  new CreatorProperty[] {
                     new CreatorProperty("type", TypeFactory.defaultInstance().constructType(Class.class),
-                            null, null, null, 0)
+                            null, null, null, 0, null)
             };
         }
 
@@ -137,7 +137,7 @@ public class TestValueInstantiator extends BaseMapTest
         public CreatorProperty[] getFromObjectArguments() {
             return  new CreatorProperty[] {
                     new CreatorProperty("name", TypeFactory.defaultInstance().constructType(String.class),
-                            null, null, null, 0)
+                            null, null, null, 0, null)
             };
         }
 
@@ -364,7 +364,7 @@ public class TestValueInstantiator extends BaseMapTest
                     public CreatorProperty[] getFromObjectArguments() {
                         return  new CreatorProperty[] {
                                 new CreatorProperty("secret", TypeFactory.defaultInstance().constructType(String.class),
-                                        null, null, null, 0)
+                                        null, null, null, 0, null)
                         };
                     }
         

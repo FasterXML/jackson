@@ -39,7 +39,7 @@ public class TestInjectables extends BaseMapTest
         protected String name;
         protected int age;
         
-        public CtorBean(@JacksonInject String n, @JsonProperty int a)
+        public CtorBean(@JacksonInject String n, @JsonProperty("age") int a)
         {
             name = n;
             age = a;

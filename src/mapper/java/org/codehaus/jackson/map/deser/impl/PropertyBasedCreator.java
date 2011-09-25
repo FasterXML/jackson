@@ -35,6 +35,14 @@ public final class PropertyBasedCreator
      * primitive types do), this array contains such default values.
      */
     protected final Object[]  _defaultValues;
+
+    /**
+     * Array that contains properties that expect value to inject, if any;
+     * null if no injectable values are expected.
+     * 
+     * @since 1.9
+     */
+    protected final SettableBeanProperty[] _propertiesWithInjectables;
     
     public PropertyBasedCreator(ValueInstantiator valueInstantiator)
     {
@@ -43,6 +51,7 @@ public final class PropertyBasedCreator
         // [JACKSON-372]: primitive types need extra care
         Object[] defValues = null;
         SettableBeanProperty[] creatorProps = valueInstantiator.getFromObjectArguments();
+        SettableBeanProperty[] propertiesWithInjectables = null;
         for (int i = 0, len = creatorProps.length; i < len; ++i) {
             SettableBeanProperty prop = creatorProps[i];
             _properties.put(prop.getName(), prop);
@@ -52,8 +61,16 @@ public final class PropertyBasedCreator
                 }
                 defValues[i] = ClassUtil.defaultValue(prop.getType().getRawClass());
             }
+            Object injectableValueId = prop.getInjectableValueId();
+            if (injectableValueId != null) {
+                if (propertiesWithInjectables == null) {
+                    propertiesWithInjectables = new SettableBeanProperty[len];
+                }
+                propertiesWithInjectables[i] = prop;
+            }
         }
         _defaultValues = defValues;
+        _propertiesWithInjectables = propertiesWithInjectables;        
     }
 
     public Collection<SettableBeanProperty> getCreatorProperties() {
@@ -74,7 +91,11 @@ public final class PropertyBasedCreator
      */
     public PropertyValueBuffer startBuilding(JsonParser jp, DeserializationContext ctxt)
     {
-        return new PropertyValueBuffer(jp, ctxt, _properties.size());
+        PropertyValueBuffer buffer = new PropertyValueBuffer(jp, ctxt, _properties.size());
+        if (_propertiesWithInjectables != null) {
+            buffer.inject(_propertiesWithInjectables);
+        }
+        return buffer;
     }
     
     public Object build(PropertyValueBuffer buffer) throws IOException
