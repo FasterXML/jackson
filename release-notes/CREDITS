@@ -770,5 +770,8 @@ Simone Bordet:
 David Phillips:
   * Requested [JACKSON-671] Add convenience constructor for 'MinimalPrettyPrinter'
    [1.9.0]
-   
-   
+
+Kirill Sukhanov:
+  * Suggested [JACKSON-650] Allow dealing with missing filter ids, by adding
+    'SimpleFilterProvider.setFailOnUnknownId()' to specify if exception is thrown or not.
+   [1.9.0]

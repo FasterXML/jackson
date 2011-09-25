@@ -189,6 +189,12 @@ public abstract class BeanSerializerBase
             props = _props;
         }
         final BeanPropertyFilter filter = findFilter(provider);
+        // better also allow missing filter actually..
+        if (filter == null) {
+            serializeFields(bean, jgen, provider);
+            return;
+        }
+        
         int i = 0;
         try {
             for (final int len = props.length; i < len; ++i) {
@@ -222,16 +228,12 @@ public abstract class BeanSerializerBase
     {
         final Object filterId = _propertyFilterId;
         FilterProvider filters = provider.getFilterProvider();
-        // Not ok to miss the provider, if a filter is declared to be needed!
+        // Not ok to miss the provider, if a filter is declared to be needed.
         if (filters == null) {
             throw new JsonMappingException("Can not resolve BeanPropertyFilter with id '"+filterId+"'; no FilterProvider configured");
         }
         BeanPropertyFilter filter = filters.findFilter(filterId);
-        // But is it ok not to find a filter? For now let's assume it is not; can add a feature to disable errors if need be
-        if (filter == null) {
-            throw new JsonMappingException("No filter configured with id '"+filterId+"' (type "
-                    +filterId.getClass().getName()+")");
-        }
+        // But whether unknown ids are ok just depends on filter provider; if we get null that's fine
         return filter;
     }
     

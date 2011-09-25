@@ -22,6 +22,16 @@ public class SimpleFilterProvider extends FilterProvider
      */
     protected BeanPropertyFilter _defaultFilter;
 
+    /**
+     * Flag that indicates whether request for an unknown filter id should
+     * result an exception (default) or not.
+     * Note that this is only relevant if no default filter has been
+     * configured.
+     * 
+     * @since 1.9
+     */
+    protected boolean _cfgFailOnUnknownId = true;
+    
     /*
     /**********************************************************
     /* Life-cycle: constructing, configuring
@@ -50,6 +60,28 @@ public class SimpleFilterProvider extends FilterProvider
         _defaultFilter = f;
         return this;
     }
+
+    /**
+     * @since 1.9
+     */
+    public BeanPropertyFilter getDefaultFilter() {
+        return _defaultFilter;
+    }
+    
+    /**
+     * @since 1.9
+     */
+    public SimpleFilterProvider setFailOnUnknownId(boolean state) {
+        _cfgFailOnUnknownId = state;
+        return this;
+    }
+
+    /**
+     * @since 1.9
+     */
+    public boolean willFailOnUnknownId() {
+        return _cfgFailOnUnknownId;
+    }
     
     public SimpleFilterProvider addFilter(String id, BeanPropertyFilter filter) {
         _filtersById.put(id, filter);
@@ -70,6 +102,13 @@ public class SimpleFilterProvider extends FilterProvider
     public BeanPropertyFilter findFilter(Object filterId)
     {
         BeanPropertyFilter f = _filtersById.get(filterId);
-        return (f == null) ? _defaultFilter : f;
+        if (f == null) {
+            f = _defaultFilter;
+            if (f == null && _cfgFailOnUnknownId) {
+                throw new IllegalArgumentException("No filter configured with id '"+filterId+"' (type "
+                        +filterId.getClass().getName()+")");
+            }
+        }
+        return f;
     }
 }
