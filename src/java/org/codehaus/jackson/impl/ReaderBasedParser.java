@@ -502,6 +502,12 @@ public final class ReaderBasedParser
         return (_currToken = t);
     }
 
+    /*
+    @Override
+    public boolean nextFieldName(SerializableString str)
+         throws IOException, JsonParseException
+     */
+
     // note: identical to one in Utf8StreamParser
     @Override
     public String nextTextValue()

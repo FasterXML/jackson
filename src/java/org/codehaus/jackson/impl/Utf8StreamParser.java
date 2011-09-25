@@ -4,7 +4,6 @@ import java.io.*;
 
 import org.codehaus.jackson.*;
 import org.codehaus.jackson.io.IOContext;
-import org.codehaus.jackson.io.SerializedString;
 import org.codehaus.jackson.sym.*;
 import org.codehaus.jackson.util.*;
 
@@ -635,96 +634,7 @@ public final class Utf8StreamParser
     {
         // // // Note: most of code below is copied from nextToken()
         
-        if (_currToken == JsonToken.FIELD_NAME) { // can't have name right after name
-            _nextAfterName();
-            return false;
-        }
-        if (_tokenIncomplete) {
-            _skipString();
-        }
-        int i = _skipWSOrEnd();
-        if (i < 0) { // end-of-input
-            close();
-            _currToken = null;
-            return false;
-        }
-        _tokenInputTotal = _currInputProcessed + _inputPtr - 1;
-        _tokenInputRow = _currInputRow;
-        _tokenInputCol = _inputPtr - _currInputRowStart - 1;
-
-        // finally: clear any data retained so far
-        _binaryValue = null;
-
-        // Closing scope?
-        if (i == INT_RBRACKET) {
-            if (!_parsingContext.inArray()) {
-                _reportMismatchedEndMarker(i, '}');
-            }
-            _parsingContext = _parsingContext.getParent();
-            _currToken = JsonToken.END_ARRAY;
-            return false;
-        }
-        if (i == INT_RCURLY) {
-            if (!_parsingContext.inObject()) {
-                _reportMismatchedEndMarker(i, ']');
-            }
-            _parsingContext = _parsingContext.getParent();
-            _currToken = JsonToken.END_OBJECT;
-            return false;
-        }
-
-        // Nope: do we then expect a comma?
-        if (_parsingContext.expectComma()) {
-            if (i != INT_COMMA) {
-                _reportUnexpectedChar(i, "was expecting comma to separate "+_parsingContext.getTypeDesc()+" entries");
-            }
-            i = _skipWS();
-        }
-
-        if (!_parsingContext.inObject()) {
-            _nextTokenNotInObject(i);
-            return false;
-        }
-        
-        // // // This part differs, name parsing
-        if (i == INT_QUOTE) {
-            // when doing literal match, must consider escaping:
-            byte[] nameBytes = str.asQuotedUTF8();
-            final int len = nameBytes.length;
-            if ((_inputPtr + len) < _inputEnd) { // maybe...
-                // first check length match by
-                final int end = _inputPtr+len;
-                if (_inputBuffer[end] == INT_QUOTE) {
-                    int offset = 0;
-                    final int ptr = _inputPtr;
-                    while (true) {
-                        if (offset == len) { // yes, match!
-                            _inputPtr = end+1; // skip current value first
-                            // First part is simple; setting of name
-                            _parsingContext.setCurrentName(str.getValue());
-                            _currToken = JsonToken.FIELD_NAME;
-                            // But then we also must handle following value etc
-                            _isNextTokenNameYes();
-                            return true;
-                        }
-                        if (nameBytes[offset] != _inputBuffer[ptr+offset]) {
-                            break;
-                        }
-                        ++offset;
-                    }
-                }
-            }
-        }
-        _isNextTokenNameNo(i);
-        return false;
-    }
-
-    @Override
-    public boolean nextFieldName(SerializedString str)
-         throws IOException, JsonParseException
-    {
-       // // // Note: most of code below is copied from nextToken()
-        
+        _numTypesValid = NR_UNKNOWN;
         if (_currToken == JsonToken.FIELD_NAME) { // can't have name right after name
             _nextAfterName();
             return false;
@@ -810,7 +720,7 @@ public final class Utf8StreamParser
     }
 
     private final void _isNextTokenNameYes()
-            throws IOException, JsonParseException
+        throws IOException, JsonParseException
     {
         // very first thing: common case, colon, value, no white space
         int i;
