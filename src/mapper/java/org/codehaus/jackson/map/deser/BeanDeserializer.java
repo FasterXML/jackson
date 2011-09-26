@@ -177,7 +177,7 @@ public class BeanDeserializer
      */
 
     /**
-     * @since 1.9.0 Use the constructor that takes {@link ValueInstantiator} instead
+     * @deprecated (since 1.9) Use the constructor that takes {@link ValueInstantiator} instead
      */
     @Deprecated
     public BeanDeserializer(AnnotatedClass forClass, JavaType type, BeanProperty property,
@@ -196,7 +196,23 @@ public class BeanDeserializer
     /**
      * @since 1.9
      */
-    public BeanDeserializer(AnnotatedClass forClass, JavaType type, BeanProperty property,
+    public BeanDeserializer(BeanDescription beanDesc, BeanProperty property,
+            ValueInstantiator valueInstantiator,
+            BeanPropertyMap properties, Map<String, SettableBeanProperty> backRefs,
+            HashSet<String> ignorableProps, boolean ignoreAllUnknown,
+            SettableAnyProperty anySetter, List<ValueInjector> injectables)
+    {
+        this(beanDesc.getClassInfo(), beanDesc.getType(), property,
+                valueInstantiator,
+                properties, backRefs,
+                ignorableProps, ignoreAllUnknown,
+                anySetter, injectables);
+    }
+    
+    /**
+     * @since 1.9
+     */
+    protected BeanDeserializer(AnnotatedClass forClass, JavaType type, BeanProperty property,
             ValueInstantiator valueInstantiator,
             BeanPropertyMap properties, Map<String, SettableBeanProperty> backRefs,
             HashSet<String> ignorableProps, boolean ignoreAllUnknown,

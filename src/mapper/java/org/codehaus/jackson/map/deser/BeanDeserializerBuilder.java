@@ -218,7 +218,7 @@ public class BeanDeserializerBuilder
     {
         BeanPropertyMap propertyMap = new BeanPropertyMap(_properties.values());
         propertyMap.assignIndexes();
-        return new BeanDeserializer(_beanDesc.getClassInfo(), _beanDesc.getType(), forProperty,
+        return new BeanDeserializer(_beanDesc, forProperty,
                 _valueInstantiator, propertyMap, _backRefProperties, _ignorableProps, _ignoreAllUnknown,
                 _anySetter, _injectables);
     }
