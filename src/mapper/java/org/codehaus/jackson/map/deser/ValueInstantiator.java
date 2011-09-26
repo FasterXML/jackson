@@ -146,6 +146,9 @@ public abstract class ValueInstantiator
     /**
      * Method that can be used to determine what is the type of delegate
      * type to use, if any; if no delegates are used, will return null.
+     * If non-null type is returned, deserializer will bind JSON into
+     * specified type (using standard deserializer for that type), and
+     * pass that to instantiator.
      */
     public JavaType getDelegateType() {
         return null;
