@@ -1,5 +1,7 @@
 package org.codehaus.jackson.map;
 
+import java.util.*;
+
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
@@ -41,7 +43,7 @@ public class TestNamingStrategy extends BaseMapTest
             return "Set-"+defaultName;
         }
     }
-
+    
     static class CStyleStrategy extends PropertyNamingStrategy
     {
         @Override
@@ -111,6 +113,26 @@ public class TestNamingStrategy extends BaseMapTest
             age = a;
         }
     }
+
+    static class Value {
+        public int intValue;
+        
+        public Value() { this(0); }
+        public Value(int v) { intValue = v; }
+    }
+
+    static class SetterlessWithValue
+    {
+        protected ArrayList<Value> values = new ArrayList<Value>();
+
+        public List<Value> getValueList() { return values; }
+
+        public SetterlessWithValue add(int v) {
+            values.add(new Value(v));
+            return this;
+        }
+    }
+    
     
     /*
     /**********************************************************************
@@ -159,5 +181,19 @@ public class TestNamingStrategy extends BaseMapTest
         assertEquals("Joe", result.firstName);
         assertEquals("Sixpack", result.lastName);
         assertEquals(42, result.age);
+    }
+
+    public void testWithGetterAsSetter() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setPropertyNamingStrategy(new CStyleStrategy());
+        SetterlessWithValue input = new SetterlessWithValue().add(3);
+        String json = mapper.writeValueAsString(input);
+        assertEquals("{\"value_list\":[{\"int_value\":3}]}", json);
+
+        SetterlessWithValue result = mapper.readValue(json, SetterlessWithValue.class);
+        assertNotNull(result.values);
+        assertEquals(1, result.values.size());
+        assertEquals(3, result.values.get(0).intValue);
     }
 }

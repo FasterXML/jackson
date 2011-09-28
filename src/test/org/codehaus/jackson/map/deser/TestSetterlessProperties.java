@@ -45,7 +45,7 @@ public class TestSetterlessProperties
             throw new IllegalStateException("Should not get called");
         }
     }
-    
+
     /*
     /**********************************************************
     /* Unit tests

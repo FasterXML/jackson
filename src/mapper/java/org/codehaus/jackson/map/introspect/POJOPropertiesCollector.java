@@ -645,6 +645,11 @@ public class POJOPropertiesCollector
                     name = naming.nameForConstructorParameter(_config, prop.getConstructorParameter(), name);
                 } else if (prop.hasField()) {
                     name = naming.nameForField(_config, prop.getField(), name);
+                } else if (prop.hasGetter()) {
+                    /* Plus, when getter-as-setter is used, need to convert that too..
+                     * (should we verify that's enabled? For now, assume it's ok always)
+                     */
+                    name = naming.nameForGetterMethod(_config, prop.getGetter(), name);
                 }
             }
             if (!name.equals(prop.getName())) {
