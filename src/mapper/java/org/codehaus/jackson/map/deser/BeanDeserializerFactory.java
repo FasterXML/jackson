@@ -909,6 +909,7 @@ public class BeanDeserializerFactory
 
                 if ((injectId == null) && (name == null || name.length() == 0)) { // not property based
                     Class<?> type = factory.getParameterClass(0);
+                    
                     if (type == String.class) {
                         if (isCreator || vchecker.isCreatorVisible(factory)) {
                             creators.addStringCreator(factory);

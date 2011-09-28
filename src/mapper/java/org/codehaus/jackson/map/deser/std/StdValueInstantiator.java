@@ -265,12 +265,7 @@ public class StdValueInstantiator
                 throw wrapException(e);
             }
         }
-        // and finally, empty Strings might be accepted as null Object...
-        if (_cfgEmptyStringsAsObjects && value.length() == 0) {
-            return null;
-        }
-        throw new JsonMappingException("Can not instantiate value of type "+getValueTypeDesc()
-                +" from JSON String; no single-String constructor/factory method");
+        return _createFromStringFallbacks(value);
     }
     
     @Override
@@ -361,6 +356,30 @@ public class StdValueInstantiator
     /**********************************************************
      */
 
+    protected Object _createFromStringFallbacks(String value) throws IOException, JsonProcessingException
+    {
+        /* 28-Sep-2011, tatu: Ok this is not clean at all; but since there are legacy
+         *   systems that expect conversions in some cases, let's just add a minimal
+         *   patch (note: same could conceivably be used for numbers too).
+         */
+        if (_fromBooleanCreator != null) {
+            String str = value.trim();
+            if ("true".equals(str)) {
+                return createFromBoolean(true);
+            }
+            if ("false".equals(str)) {
+                return createFromBoolean(false);
+            }
+        }
+        
+        // and finally, empty Strings might be accepted as null Object...
+        if (_cfgEmptyStringsAsObjects && value.length() == 0) {
+            return null;
+        }
+        throw new JsonMappingException("Can not instantiate value of type "+getValueTypeDesc()
+                +" from JSON String; no single-String constructor/factory method");
+    }
+    
     protected JsonMappingException wrapException(Throwable t)
     {
         while (t.getCause() != null) {
