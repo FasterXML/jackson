@@ -154,6 +154,18 @@ public class TestCreators2
             this.props = props;
         }
     }
+
+    static class BooleanBean
+    {
+        protected Boolean value;
+
+        public BooleanBean(Boolean v) { value = v; }
+        
+        @JsonCreator
+        protected static BooleanBean create(Boolean value) {
+            return new BooleanBean(value);
+        }
+    }
     
     /*
     /**********************************************************
@@ -293,5 +305,17 @@ public class TestCreators2
         AbstractBaseImpl impl = (AbstractBaseImpl) bean;
         assertEquals(1, impl.props.size());
         assertEquals(Integer.valueOf(3), impl.props.get("a"));
+    }
+
+    public void testBooleanDelegate() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        // should obviously work with booleans...
+        BooleanBean bb = m.readValue("true", BooleanBean.class);
+        assertEquals(Boolean.TRUE, bb.value);
+
+        // but also with value conversion from String
+        bb = m.readValue(quote("true"), BooleanBean.class);
+        assertEquals(Boolean.TRUE, bb.value);
     }
 }
