@@ -325,7 +325,7 @@ public class StdValueInstantiator
     {
         try {
             if (_fromBooleanCreator != null) {
-                return _fromDoubleCreator.call1(Boolean.valueOf(value));
+                return _fromBooleanCreator.call1(Boolean.valueOf(value));
             }
         } catch (Exception e) {
             throw wrapException(e);
