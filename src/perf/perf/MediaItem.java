@@ -10,6 +10,10 @@ import org.codehaus.jackson.*;
  */
 public class MediaItem
 {
+    public enum Player { JAVA, FLASH;  }
+
+    public enum Size { SMALL, LARGE; }
+
     private List<Photo> _photos;
     private Content _content;
 
@@ -116,8 +120,6 @@ public class MediaItem
             sFields.put("height", F_HEIGHT);
             sFields.put("size", F_SIZE);
         }
-        
-        public enum Size { SMALL, LARGE; }
     
       private String _uri;
       private String _title;
@@ -234,8 +236,6 @@ public class MediaItem
             sFields.put("persons", F_PERSONS);
             sFields.put("copyright", F_COPYRIGHT);
         }
-
-        public enum Player { JAVA, FLASH;  }
     
         private Player _player;
         private String _uri;
