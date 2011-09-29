@@ -83,14 +83,16 @@ public final class TestSerPerf
             stuff = smileMapper.writeValueAsBytes(item);
             System.out.println(" Smile size: "+stuff.length+" bytes");
         }
+
+        JsonNode root = jsonMapper.valueToTree(item);
         
         while (true) {
 //            Thread.sleep(150L);
             ++i;
-            int round = (i % 4);
+            int round = (i % 3);
 
             // override?
-            round = 4;
+//            round = 4;
 
             long curr = System.currentTimeMillis();
             String msg;
@@ -108,28 +110,37 @@ public final class TestSerPerf
                 break;
 
             case 2:
+                msg = "Serialize, JsonNode";
+                sum += testNodeSer(jsonMapper, root, REPS+REPS, result);
+//                sum += testNodeSer(smileMapper, root, REPS+REPS, result);
+                break;
+
+                /*
+            case 3:
                 msg = "Serialize, Smile";
                 sum += testObjectSer(smileMapper, item, REPS, result);
                 break;
 
-            case 3:
+            case 4:
                 msg = "Serialize, Smile/manual";
                 sum += testObjectSer(smileFactory, item, REPS+REPS, result);
                 break;
-
-            case 4:
-                msg = "Serialize, BSON";
-                /*
-                sum += testObjectSer(new ObjectMapper(new BsonFactory()), item, REPS, result);
-                */
-                break;
+*/
                 
+
+            /*
+             case 4:
+                msg = "Serialize, BSON";
+                sum += testObjectSer(new ObjectMapper(new BsonFactory()), item, REPS, result);
+                break;
+                */
+
             default:
                 throw new Error("Internal error");
             }
 
             curr = System.currentTimeMillis() - curr;
-//            if (round == 0) {  System.out.println(); }
+            if (round == 0) {  System.out.println(); }
             System.out.println("Test '"+msg+"' -> "+curr+" msecs ("+(sum & 0xFF)+").");
             if ((i & 0x1F) == 0) { // GC every 64 rounds
                 System.out.println("[GC]");
@@ -150,6 +161,16 @@ public final class TestSerPerf
         return result.size(); // just to get some non-optimizable number
     }
 
+    protected int testNodeSer(ObjectMapper mapper, JsonNode value, int reps, ByteArrayOutputStream result)
+            throws Exception
+        {
+            for (int i = 0; i < reps; ++i) {
+                result.reset();
+                mapper.writeValue(result, value);
+            }
+            return result.size(); // just to get some non-optimizable number
+        }
+    
     protected int testObjectSer(JsonFactory jf, MediaItem value, int reps, ByteArrayOutputStream result)
         throws Exception
     {
