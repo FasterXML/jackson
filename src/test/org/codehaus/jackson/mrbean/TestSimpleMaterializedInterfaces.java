@@ -4,6 +4,7 @@ import static org.junit.Assert.assertArrayEquals;
 
 import org.codehaus.jackson.map.BaseMapTest;
 import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.mrbean.AbstractTypeMaterializer;
 
@@ -46,6 +47,11 @@ public class TestSimpleMaterializedInterfaces
         public int[] getValues();
         public String[] getWords();
         public void setWords(String[] words);
+    }
+
+    // how about non-public classes?
+    interface NonPublicBean {
+        public abstract int getX();
     }
     
     /*
@@ -186,5 +192,18 @@ public class TestSimpleMaterializedInterfaces
             verifyException(e, "Unimplemented method 'foobar'");
         }
     }
+
+    // As per [JACKSON-683]: fail gracefully if super type not public
+    public void testNonPublic() throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new MrBeanModule());
+        try {
+            mapper.readValue("{\"x\":3}", NonPublicBean.class);
+            fail("Should have thrown an exception");
+        } catch (JsonMappingException e) {
+            verifyException(e, "is not public");
+        }
+    }    
     
 }

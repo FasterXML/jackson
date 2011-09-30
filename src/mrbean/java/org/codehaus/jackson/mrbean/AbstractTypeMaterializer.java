@@ -1,5 +1,7 @@
 package org.codehaus.jackson.mrbean;
 
+import java.lang.reflect.Modifier;
+
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.Versioned;
 import org.codehaus.jackson.map.AbstractTypeResolver;
@@ -32,7 +34,17 @@ public class AbstractTypeMaterializer
          * true, will throw an exception during materialization; if false,
          * will materialize method that throws exception only if called.
          */
-        FAIL_ON_UNMATERIALIZED_METHOD(false)
+        FAIL_ON_UNMATERIALIZED_METHOD(false),
+        
+        /**
+         * Feature that determines what happens when attempt is made to
+         * generate implementation of non-public class or interface.
+         * If true, an exception is thrown; if false, will just quietly
+         * ignore attempts.
+         * 
+         * @since 1.9
+         */
+        FAIL_ON_NON_PUBLIC_TYPES(true)
         ;
 
         final boolean _defaultState;
@@ -170,9 +182,21 @@ public class AbstractTypeMaterializer
         if (type.isContainerType() || type.isPrimitive() || type.isEnumType() || type.isThrowable()) {
             return null;
         }
+        Class<?> cls = type.getRawClass();
+        /* [JACKSON-683] Fail on non-public classes, since we can't easily force
+         *   access to such classes (unless we tried to generate impl classes in that
+         *   package)
+         */
+        if (!Modifier.isPublic(cls.getModifiers())) {
+            if (isEnabled(Feature.FAIL_ON_NON_PUBLIC_TYPES)) {
+                throw new IllegalArgumentException("Can not materialize implementation of "+cls+" since it is not public ");
+            }
+            return null;
+        }
+        
         // might want to skip proxies, local types too... but let them be for now:
         //if (intr.findTypeResolver(beanDesc.getClassInfo(), type) == null) {
-        return config.constructType(materializeClass(config, type.getRawClass()));
+        return config.constructType(materializeClass(config, cls));
     }
 
     /*

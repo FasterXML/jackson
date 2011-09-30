@@ -77,6 +77,8 @@ Description:
    (requested by Chistropher C)
   * [JACKSON-671] Add convenience constructor for 'MinimalPrettyPrinter'
    (requested by David P)
+  * [JACKSON-683] Mr Bean: Fail gracefully if attempt is made to materialize
+    non-public type (since impl class on different package than base class)
 
   New features:
 
