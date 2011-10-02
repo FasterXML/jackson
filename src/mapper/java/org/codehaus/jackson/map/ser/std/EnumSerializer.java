@@ -51,12 +51,21 @@ public class EnumSerializer
     public final void serialize(Enum<?> en, JsonGenerator jgen, SerializerProvider provider)
         throws IOException, JsonGenerationException
     {
+        // [JACKSON-684]: serialize as index?
+        if (provider.isEnabled(SerializationConfig.Feature.WRITE_ENUMS_USING_INDEX)) {
+            jgen.writeNumber(en.ordinal());
+            return;
+        }
         jgen.writeString(_values.serializedValueFor(en));
     }
     
     @Override
     public JsonNode getSchema(SerializerProvider provider, Type typeHint)
     {
+        // [JACKSON-684]: serialize as index?
+        if (provider.isEnabled(SerializationConfig.Feature.WRITE_ENUMS_USING_INDEX)) {
+            return createSchemaNode("integer", true);
+        }
         ObjectNode objectNode = createSchemaNode("string", true);
         if (typeHint != null) {
             JavaType type = provider.constructType(typeHint);

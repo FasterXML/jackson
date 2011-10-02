@@ -79,6 +79,8 @@ Description:
    (requested by David P)
   * [JACKSON-683] Mr Bean: Fail gracefully if attempt is made to materialize
     non-public type (since impl class on different package than base class)
+  * [JACKSON-684] Add SerializationConfig.Feature.WRITE_ENUMS_USING_INDEX to serialize
+    Enums as int (index)
 
   New features:
 

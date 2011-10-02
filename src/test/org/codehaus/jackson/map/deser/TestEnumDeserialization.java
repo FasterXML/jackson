@@ -184,4 +184,16 @@ public class TestEnumDeserialization
             verifyException(e, "Not allowed to deserialize Enum value out of JSON number");
         }
     }
+
+    // [JACKSON-684], enums using index
+    public void testEnumsWithIndex() throws Exception
+    {
+        // by default numbers are fine:
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationConfig.Feature.WRITE_ENUMS_USING_INDEX);
+        String json = mapper.writeValueAsString(TestEnum.RULES);
+        assertEquals(String.valueOf(TestEnum.RULES.ordinal()), json);
+        TestEnum result = mapper.readValue(json, TestEnum.class);
+        assertSame(TestEnum.RULES, result);
+    }        
 }

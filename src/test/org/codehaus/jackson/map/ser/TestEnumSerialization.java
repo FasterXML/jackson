@@ -224,4 +224,17 @@ public class TestEnumSerialization
         String json = new ObjectMapper().writeValueAsString(bean);
         assertEquals("{\"map\":{\"b\":3}}", json);
     }
+    
+    // [JACKSON-684]
+    public void testAsIndex() throws Exception
+    {
+        // By default, serialize using name
+        ObjectMapper mapper = new ObjectMapper();
+        assertFalse(mapper.isEnabled(SerializationConfig.Feature.WRITE_ENUMS_USING_INDEX));
+        assertEquals(quote("B"), mapper.writeValueAsString(TestEnum.B));
+
+        // but we can change (dynamically, too!) it to be number-based
+        mapper.enable(SerializationConfig.Feature.WRITE_ENUMS_USING_INDEX);
+        assertEquals("1", mapper.writeValueAsString(TestEnum.B));
+    }
 }
