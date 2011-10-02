@@ -917,6 +917,7 @@ public class SmileParser
                 }
                 // _handleSharedString...
                 {
+                    --ch;
                     if (ch >= _seenStringValueCount) {
                         _reportInvalidSharedStringValue(ch);
                     }
