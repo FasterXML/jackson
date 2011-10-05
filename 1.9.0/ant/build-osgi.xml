@@ -1,0 +1,424 @@
+<?xml version="1.0" standalone='yes'?>
+<!-- This Ant build file fragment contains targets needed to build
+     distributable OSGi-aware artifacts,
+     as well as "jackson-all" non-bundle jar
+  -->
+
+<project name="OSGi export tasks for Jackson" basedir=".">
+
+  <!-- Need BND task for OSGi bundle/metadata creation -->
+  <taskdef name="osgiJar" classname="net.luminis.build.plugin.bnd.BuildTask">
+    <classpath>
+     <fileset dir="${basedir}/lib/ant" includes="bndtask*.jar" />
+    </classpath>
+  </taskdef>
+	
+  <target name="jars.asl" depends="jar.core.asl, jar.mapper.asl" />
+  <target name="jars.lgpl" depends="jar.core.lgpl, jar.mapper.lgpl" />
+  <target name="jars.other" depends="jar.jaxrs, jar.xc, jar.smile, jar.mrbean" />
+  <target name="jars.tools" depends="jar.tool.smile" />
+
+  <!-- Let's build our JARs as OSGi bundles; then they work
+        both within and outside of OSGi containers
+   -->
+
+  <!-- Jackson requires Java5 (enums, some generics) -->
+  <!-- 02-Feb-2011, tatu: As per [JACKSON-481], it looks like OSGi
+     requires adding _all_ applicable envs... yuck
+    -->
+  <property name="REQ_JDK_VERSION" value="J2SE-1.5, JavaSE-1.6" />
+
+  <!-- ASL-licensed: core, mapper jars -->
+
+    <target name="jar.core.asl" depends="compile.core">
+        <osgiJar
+         outputdir="${dir.build}"
+         bundleName="${IMPL_TITLE_CORE}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="jackson-core-asl"
+         bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-core-asl-${IMPL_VERSION}"
+         exportpackage="
+org.codehaus.jackson;version=${IMPL_VERSION},
+org.codehaus.jackson.annotate;version=${IMPL_VERSION},
+org.codehaus.jackson.format;version=${IMPL_VERSION},
+org.codehaus.jackson.impl;version=${IMPL_VERSION},
+org.codehaus.jackson.io;version=${IMPL_VERSION},
+org.codehaus.jackson.sym;version=${IMPL_VERSION},
+org.codehaus.jackson.type;version=${IMPL_VERSION},
+org.codehaus.jackson.util;version=${IMPL_VERSION}
+"
+         privatePackage=""
+         includeResource="META-INF=release-notes/asl"
+         includeIncludeResourceHeader="false"
+        >
+        <classpath><pathelement path="${dir.build.classes.core}" /></classpath>
+        <manifest>
+          <attribute name="Built-By" value="${user.name}"/>
+          <attribute name="Implementation-Title"   value="${IMPL_TITLE_CORE}"/>
+          <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+          <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+          <attribute name="Specification-Title"   value="${JSON_TITLE}"/>
+          <attribute name="Specification-Version" value="${JSON_VERSION}"/>
+          <attribute name="Specification-Vendor"  value="${JSON_VENDOR}"/>
+       </manifest>
+      </osgiJar>
+    </target> 
+
+    <target name="jar.mapper.asl" depends="compile.mapper">
+        <osgiJar
+         outputdir="${dir.build}"
+         bundleName="${IMPL_TITLE_MAPPER}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="jackson-mapper-asl"
+         bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-mapper-asl-${IMPL_VERSION}"
+         importPackage="
+org.codehaus.jackson;version='${IMPL_VERSION}',
+org.codehaus.jackson.annotate;version='${IMPL_VERSION}',
+org.codehaus.jackson.format;version='${IMPL_VERSION}',
+org.codehaus.jackson.impl;version='${IMPL_VERSION}',
+org.codehaus.jackson.io;version='${IMPL_VERSION}',
+org.codehaus.jackson.type;version='${IMPL_VERSION}',
+org.codehaus.jackson.util;version='${IMPL_VERSION}',
+org.xml.sax,org.w3c.dom,
+javax.xml.datatype, javax.xml.namespace, javax.xml.parsers
+"
+         dynamicImportPackage="
+org.joda.time, org.joda.time.format,
+org.w3c.dom.ls, org.w3c.dom.bootstrap"
+         exportpackage="
+org.codehaus.jackson.map;version=${IMPL_VERSION},
+org.codehaus.jackson.map.annotate;version=${IMPL_VERSION},
+org.codehaus.jackson.map.deser;version=${IMPL_VERSION},
+org.codehaus.jackson.map.deser.impl;version=${IMPL_VERSION},
+org.codehaus.jackson.map.deser.std;version=${IMPL_VERSION},
+org.codehaus.jackson.map.exc;version=${IMPL_VERSION},
+org.codehaus.jackson.map.introspect;version=${IMPL_VERSION},
+org.codehaus.jackson.map.jsontype;version=${IMPL_VERSION},
+org.codehaus.jackson.map.jsontype.impl;version=${IMPL_VERSION},
+org.codehaus.jackson.map.module;version=${IMPL_VERSION},
+org.codehaus.jackson.map.ser;version=${IMPL_VERSION},
+org.codehaus.jackson.map.ser.impl;version=${IMPL_VERSION},
+org.codehaus.jackson.map.ser.std;version=${IMPL_VERSION},
+org.codehaus.jackson.map.type;version=${IMPL_VERSION},
+org.codehaus.jackson.map.util;version=${IMPL_VERSION},
+org.codehaus.jackson.node;version=${IMPL_VERSION},
+org.codehaus.jackson.schema;version=${IMPL_VERSION}
+"
+         privatePackage="
+org.codehaus.jackson.map.ext
+"
+         includeResource="META-INF=release-notes/asl"
+         includeIncludeResourceHeader="false"
+        >
+        <classpath><pathelement path="${dir.build.classes.mapper}" /></classpath>
+        <manifest>
+          <attribute name="Built-By" value="${user.name}"/>
+          <attribute name="Implementation-Title"   value="${IMPL_TITLE_MAPPER}"/>
+          <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+          <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+        </manifest>
+      </osgiJar>
+    </target> 
+
+    <!-- LGPL-licensed: core, mapper jars -->
+
+    <target name="jar.core.lgpl" depends="compile.core">
+        <osgiJar
+         outputdir="${dir.build}"
+         bundleName="${IMPL_TITLE_CORE}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="jackson-core-lgpl"
+         bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.gnu.org/licenses/lgpl-2.1.html"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-core-lgpl-${IMPL_VERSION}"
+         exportpackage='
+org.codehaus.jackson;version=${IMPL_VERSION},
+org.codehaus.jackson.annotate;version=${IMPL_VERSION},
+org.codehaus.jackson.format;version=${IMPL_VERSION},
+org.codehaus.jackson.impl;version=${IMPL_VERSION},
+org.codehaus.jackson.io;version=${IMPL_VERSION},
+org.codehaus.jackson.sym;version=${IMPL_VERSION},
+org.codehaus.jackson.type;version=${IMPL_VERSION},
+org.codehaus.jackson.util;version=${IMPL_VERSION}
+'
+         privatePackage=""
+         includeResource="META-INF=release-notes/lgpl"
+         includeIncludeResourceHeader="false"
+        >
+        <classpath>
+              <pathelement path="${dir.build.classes.core}" />
+        </classpath>
+        <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Implementation-Title"   value="${IMPL_TITLE_CORE}"/>
+            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+            <attribute name="Specification-Title"   value="${JSON_TITLE}"/>
+            <attribute name="Specification-Version" value="${JSON_VERSION}"/>
+            <attribute name="Specification-Vendor"  value="${JSON_VENDOR}"/>
+          </manifest>
+        </osgiJar>
+    </target> 
+
+    <target name="jar.mapper.lgpl" depends="compile.mapper">
+        <osgiJar
+         outputdir="${dir.build}"
+         bundleName="${IMPL_TITLE_MAPPER}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="jackson-mapper-lgpl"
+         bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.gnu.org/licenses/lgpl-2.1.html"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-mapper-lgpl-${IMPL_VERSION}"
+         importPackage="
+org.codehaus.jackson;version='${IMPL_VERSION}',
+org.codehaus.jackson.annotate;version='${IMPL_VERSION}',
+org.codehaus.jackson.format;version='${IMPL_VERSION}',
+org.codehaus.jackson.impl;version='${IMPL_VERSION}',
+org.codehaus.jackson.io;version='${IMPL_VERSION}',
+org.codehaus.jackson.type;version='${IMPL_VERSION}',
+org.codehaus.jackson.util;version='${IMPL_VERSION}',
+org.xml.sax, org.w3c.dom,
+javax.xml.datatype, javax.xml.namespace, javax.xml.parsers
+"
+         dynamicImportPackage="
+org.joda.time, org.joda.time.format,
+org.w3c.dom.ls, org.w3c.dom.bootstrap"
+         exportpackage="
+org.codehaus.jackson.map;version=${IMPL_VERSION},
+org.codehaus.jackson.map.annotate;version=${IMPL_VERSION},
+org.codehaus.jackson.map.deser;version=${IMPL_VERSION},
+org.codehaus.jackson.map.deser.impl;version=${IMPL_VERSION},
+org.codehaus.jackson.map.deser.std;version=${IMPL_VERSION},
+org.codehaus.jackson.map.exc;version=${IMPL_VERSION},
+org.codehaus.jackson.map.introspect;version=${IMPL_VERSION},
+org.codehaus.jackson.map.jsontype;version=${IMPL_VERSION},
+org.codehaus.jackson.map.jsontype.impl;version=${IMPL_VERSION},
+org.codehaus.jackson.map.module;version=${IMPL_VERSION},
+org.codehaus.jackson.map.ser;version=${IMPL_VERSION},
+org.codehaus.jackson.map.ser.impl;version=${IMPL_VERSION},
+org.codehaus.jackson.map.ser.std;version=${IMPL_VERSION},
+org.codehaus.jackson.map.type;version=${IMPL_VERSION},
+org.codehaus.jackson.map.util;version=${IMPL_VERSION},
+org.codehaus.jackson.node;version=${IMPL_VERSION},
+org.codehaus.jackson.schema;version=${IMPL_VERSION}
+"
+         privatePackage="
+org.codehaus.jackson.map.ext
+"
+         includeResource="META-INF=release-notes/lgpl"
+         includeIncludeResourceHeader="false"
+        >
+        <classpath><pathelement path="${dir.build.classes.mapper}" /></classpath>
+        <manifest>
+          <attribute name="Built-By" value="${user.name}"/>
+          <attribute name="Implementation-Title"   value="${IMPL_TITLE_MAPPER}"/>
+          <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+          <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+        </manifest>
+      </osgiJar>
+    </target> 
+
+    <!-- Others, ASL+LGPL licensed, just a single jar
+        (OSGi nominally just lists ASL, not sure if/how to
+        add multiple?)
+      -->
+
+    <!-- First, JAX-RS provider jar -->
+
+    <!-- 06-May-2009, tatu: Removed META-INF/services
+       registration as it could conflict with other
+       JAX-RS json providers.
+
+       includeResource="META-INF/services=${dir.src.resource.jaxrs}"
+
+      -->
+    <target name="jar.jaxrs" depends="compile.jaxrs">
+        <osgiJar
+         outputdir="${dir.build}"
+         bundleName="${IMPL_TITLE_JAXRS}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="jackson-jaxrs"
+         bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-jaxrs-${IMPL_VERSION}"
+         importPackage="
+javax.ws.rs
+,javax.ws.rs.core
+,javax.ws.rs.ext
+,org.codehaus.jackson;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.annotate;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.introspect;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.type;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.util;version='${IMPL_VERSION}'
+,org.codehaus.jackson.type;version='${IMPL_VERSION}'
+,org.codehaus.jackson.util;version='${IMPL_VERSION}'
+"
+         dynamicImportPackage="org.codehaus.jackson.xc"
+         exportpackage="
+org.codehaus.jackson.jaxrs;version=${IMPL_VERSION}"
+         includeResource="META-INF=release-notes/asl"
+         includeIncludeResourceHeader="false"
+        >
+        <classpath><pathelement path="${dir.build.classes.jaxrs}" /></classpath>
+        <manifest>
+          <attribute name="Built-By" value="${user.name}"/>
+          <attribute name="Implementation-Title"   value="${IMPL_TITLE_JAXRS}"/>
+          <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+          <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+        </manifest>
+      </osgiJar>
+    </target> 
+
+    <!-- "Mister Bean", the Bean Materializer -->
+    <target name="jar.mrbean" depends="compile.mrbean">
+        <osgiJar
+         outputdir="${dir.build}"
+         bundleName="${IMPL_TITLE_MRBEAN}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="jackson-mrbean"
+         bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-mrbean-${IMPL_VERSION}"
+         importPackage="
+org.codehaus.jackson;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.type;version='${IMPL_VERSION}'
+,org.codehaus.jackson.type;version='${IMPL_VERSION}'
+,org.codehaus.jackson.util;version='${IMPL_VERSION}'
+"
+         privatePackage="!org.codehaus.jackson.mrbean, *"
+         exportpackage="
+org.codehaus.jackson.mrbean;version=${IMPL_VERSION}"
+         includeResource="META-INF=release-notes/asl"
+         includeIncludeResourceHeader="false"
+        >
+        <classpath><pathelement path="${dir.build.classes.mrbean}" /></classpath>
+        <manifest>
+          <attribute name="Built-By" value="${user.name}"/>
+          <attribute name="Implementation-Title"   value="${IMPL_TITLE_MRBEAN}"/>
+          <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+          <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+        </manifest>
+      </osgiJar>
+    </target> 
+
+    <!-- Then XC (Xml Compatibility) jar, since 1.1 -->
+    <target name="jar.xc" depends="compile.xc">
+        <osgiJar
+         outputdir="${dir.build}"
+         bundleName="${IMPL_TITLE_XC}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="jackson-xc"
+         bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-xc-${IMPL_VERSION}"
+         importPackage="
+javax.activation
+,javax.xml.bind
+,javax.xml.bind.annotation
+,javax.xml.bind.annotation.adapters
+,org.codehaus.jackson;version='${IMPL_VERSION}'
+,org.codehaus.jackson.annotate;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.annotate;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.deser;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.deser.std;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.introspect;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.jsontype;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.jsontype.impl;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.ser;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.ser.std;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.type;version='${IMPL_VERSION}'
+,org.codehaus.jackson.map.util;version='${IMPL_VERSION}'
+,org.codehaus.jackson.node;version='${IMPL_VERSION}'
+,org.codehaus.jackson.schema;version='${IMPL_VERSION}'
+,org.codehaus.jackson.type;version='${IMPL_VERSION}'
+,org.codehaus.jackson.util;version='${IMPL_VERSION}'
+"
+         dynamicImportPackage="org.w3c.dom
+,javax.xml.namespace, javax.xml.parsers, javax.xml.transform
+"
+         exportPackage="
+org.codehaus.jackson.xc;version='${IMPL_VERSION}'
+"
+         privatePackage="
+"
+         includeResource="META-INF=release-notes/asl"
+         includeIncludeResourceHeader="false"
+        >
+        <classpath><pathelement path="${dir.build.classes.xc}" /></classpath>
+        <manifest>
+          <attribute name="Built-By" value="${user.name}"/>
+          <attribute name="Implementation-Title"   value="${IMPL_TITLE_XC}"/>
+          <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+          <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+        </manifest>
+      </osgiJar>
+    </target> 
+
+    <!-- and finally Smile, binary format handler -->
+    <target name="jar.smile" depends="compile.smile">
+        <osgiJar
+         outputdir="${dir.build}"
+         bundleName="${IMPL_TITLE_SMILE}"
+         bundleVendor="${IMPL_VENDOR}"
+         bundleSymbolicName="jackson-smile"
+         bundleVersion="${IMPL_VERSION}"
+         bundleLicense="http://www.apache.org/licenses/LICENSE-2.0.txt"
+         bundleRequiredExecutionEnvironment="${REQ_JDK_VERSION}"
+         filename="jackson-smile-${IMPL_VERSION}"
+         importPackage="
+org.codehaus.jackson;version='${IMPL_VERSION}',
+org.codehaus.jackson.format;version='${IMPL_VERSION}',
+org.codehaus.jackson.impl;version='${IMPL_VERSION}',
+org.codehaus.jackson.io;version='${IMPL_VERSION}',
+org.codehaus.jackson.sym;version='${IMPL_VERSION}',
+org.codehaus.jackson.util;version='${IMPL_VERSION}'
+"
+         exportpackage="
+org.codehaus.jackson.smile;version=${IMPL_VERSION}"
+         includeResource="META-INF=release-notes/asl"
+         includeIncludeResourceHeader="false"
+        >
+        <classpath><pathelement path="${dir.build.classes.smile}" /></classpath>
+        <manifest>
+          <attribute name="Built-By" value="${user.name}"/>
+          <attribute name="Implementation-Title"   value="${IMPL_TITLE_SMILE}"/>
+          <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+          <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+        </manifest>
+      </osgiJar>
+    </target> 
+
+	<!-- 29-Oct-2010, tatu: one new tool, to help debug Smile... -->
+    <target name="jar.tool.smile" depends="compile.smile, jar.core.asl, jar.smile">
+      <jar jarfile="${dir.build}/smile-tool-${IMPL_VERSION}.jar">
+        <manifest>
+            <attribute name="Built-By" value="${user.name}"/>
+            <attribute name="Implementation-Title"   value="Smile Tool"/>
+            <attribute name="Implementation-Version" value="${IMPL_VERSION}"/>
+            <attribute name="Implementation-Vendor"  value="${IMPL_VENDOR}"/>
+            <attribute name="Main-Class"  value="org.codehaus.jackson.smile.Tool"/>
+        </manifest>
+      	<!-- need everything from core, smile packages, but nothing else -->
+        <fileset dir="${dir.build.classes.core}">
+            <include name="org/codehaus/jackson/**/*.class" />
+        </fileset>
+        <fileset dir="${dir.build.classes.smile}">
+            <include name="org/codehaus/jackson/**/*.class" />
+        </fileset>
+      </jar>
+    </target> 
+</project>
