@@ -1,0 +1,220 @@
+<?xml version="1.0" standalone='yes'?>
+<!-- This Ant build file fragment contains targets for
+     deploying artifacts to Maven repositories
+  -->
+
+<project name="Tasks for Maven deployment" basedir="."
+  xmlns:artifact="antlib:org.apache.maven.artifact.ant"
+>
+
+  <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+    uri="urn:maven-artifact-ant"
+ >
+    <classpath>
+        <fileset dir="${dir.lib}/ant">
+          <include name="maven-ant*.jar" />
+        </fileset>
+    </classpath>
+  </typedef>
+
+  <target name="maven.init">
+    <!-- First regular release poms -->
+    <artifact:pom id="pom.asl.core" file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}.pom" />
+    <artifact:pom id="pom.asl.mapper" file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}.pom" />
+    <artifact:pom id="pom.lgpl.core" file="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}.pom" />
+    <artifact:pom id="pom.lgpl.mapper" file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}.pom" />
+    <artifact:pom id="pom.jaxrs" file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.pom" />
+    <artifact:pom id="pom.xc" file="${dir.dist}/jackson-xc-${IMPL_VERSION}.pom" />
+    <artifact:pom id="pom.smile" file="${dir.dist}/jackson-smile-${IMPL_VERSION}.pom" />
+    <artifact:pom id="pom.mrbean" file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}.pom" />
+
+    <!-- And then snapshots -->
+    <artifact:pom id="pom.snapshot.core" file="${dir.snapshot}/jackson-core-asl-${IMPL_VERSION}-SNAPSHOT.pom" />
+    <artifact:pom id="pom.snapshot.mapper" file="${dir.snapshot}/jackson-mapper-asl-${IMPL_VERSION}-SNAPSHOT.pom" />
+    <artifact:pom id="pom.snapshot.jaxrs" file="${dir.snapshot}/jackson-jaxrs-${IMPL_VERSION}-SNAPSHOT.pom" />
+    <artifact:pom id="pom.snapshot.xc" file="${dir.snapshot}/jackson-xc-${IMPL_VERSION}-SNAPSHOT.pom" />
+    <artifact:pom id="pom.snapshot.smile" file="${dir.snapshot}/jackson-smile-${IMPL_VERSION}-SNAPSHOT.pom" />
+    <artifact:pom id="pom.snapshot.mrbean" file="${dir.snapshot}/jackson-mrbean-${IMPL_VERSION}-SNAPSHOT.pom" />
+  </target>
+
+  <target name="maven.repos" depends="maven.init">
+    <!-- need user, password: -->
+    <fail unless="user" message="Must define -Duser" />
+    <fail unless="password" message="Must define -Dpassword" />
+
+    <!-- uploads done using webdav, need to register -->
+    <artifact:install-provider artifactId="wagon-webdav" version="1.0-beta-1" />
+
+    <echo message="(authenticating as user '${user}')" />
+    <artifact:remoteRepository id="repo.release"
+      url="dav:https://dav.codehaus.org/repository/jackson"
+   >
+      <authentication username="${user}" password="${password}" />
+      <releases enabled="true"/> 
+      <snapshots enabled="false"/> 
+    </artifact:remoteRepository>
+
+    <artifact:remoteRepository id="repo.snapshot"
+      url="dav:https://dav.codehaus.org/snapshots.repository/jackson"
+   >
+      <authentication username="${user}" password="${password}" />
+      <releases enabled="false"/> 
+      <snapshots enabled="true"/> 
+    </artifact:remoteRepository>
+  </target>
+
+  <!-- target for installing release versions locally -->
+  <target name="maven.local.release" depends="maven.init">
+    <artifact:install pomRefId="pom.asl.core"
+     file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}.jar">
+      <attach file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+      <attach file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}-javadoc.jar" type="jar" classifier="sources" />
+    </artifact:install>
+    <artifact:install pomRefId="pom.asl.mapper"
+     file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}.jar">
+      <attach file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
+      <attach file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-javadoc.jar" type="source" classifier="sources" />
+    </artifact:install>
+    <artifact:install pomRefId="pom.lgpl.core"
+     file="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}.jar">
+      <attach file="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
+    </artifact:install>
+    <artifact:install pomRefId="pom.lgpl.mapper"
+     file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}.jar">
+      <attach file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
+    </artifact:install>
+    <artifact:install pomRefId="pom.jaxrs"
+     file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.jar">
+      <attach file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
+    </artifact:install>
+    <artifact:install pomRefId="pom.xc"
+     file="${dir.dist}/jackson-xc-${IMPL_VERSION}.jar">
+      <attach file="${dir.dist}/jackson-xc-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
+    </artifact:install>
+    <artifact:install pomRefId="pom.smile"
+     file="${dir.dist}/jackson-smile-${IMPL_VERSION}.jar">
+      <attach file="${dir.dist}/jackson-smile-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
+    </artifact:install>
+    <artifact:install pomRefId="pom.mrbean"
+     file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}.jar">
+      <attach file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}-sources.jar" type="source" classifier="sources" />
+    </artifact:install>
+  </target>
+
+  <!-- target for deploying SNAPSHOT versions in "real" Maven
+     - repository
+     -
+     - about settings:
+     -
+     - + uniqueVersion=true, so we get proper (?) names
+    -->
+  <target name="maven.remote.snapshot" depends="maven.repos">
+
+    <artifact:deploy pomRefId="pom.snapshot.core" uniqueVersion="true"
+     file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.snapshot" />
+      <attach file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.snapshot.mapper" uniqueVersion="true"
+     file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.snapshot" />
+      <attach file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.snapshot.jaxrs" uniqueVersion="true"
+     file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.snapshot" />
+      <attach file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.snapshot.xc" uniqueVersion="true"
+     file="${dir.dist}/jackson-xc-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.snapshot" />
+      <attach file="${dir.dist}/jackson-xc-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.snapshot.smile" uniqueVersion="true"
+     file="${dir.dist}/jackson-smile-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.snapshot" />
+      <attach file="${dir.dist}/jackson-smile-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.snapshot.mrbean" uniqueVersion="true"
+     file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.snapshot" />
+      <attach file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+  </target>
+
+  <!-- target for deploying release versions in "real" Maven
+     -
+     - about settings: "uniqueVersion" set to false, to support
+     - possible redeployment
+    -->
+  <target name="maven.remote.release" depends="maven.repos">
+    <artifact:deploy pomRefId="pom.asl.core" uniqueVersion="false"
+     file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.release" />
+      <attach file="${dir.dist}/jackson-core-asl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.asl.mapper" uniqueVersion="false"
+     file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.release" />
+      <attach file="${dir.dist}/jackson-mapper-asl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.lgpl.core" uniqueVersion="false"
+     file="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.release" />
+      <attach file="${dir.dist}/jackson-core-lgpl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.lgpl.mapper" uniqueVersion="false"
+     file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.release" />
+      <attach file="${dir.dist}/jackson-mapper-lgpl-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.jaxrs" uniqueVersion="false"
+     file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.release" />
+      <attach file="${dir.dist}/jackson-jaxrs-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.xc" uniqueVersion="false"
+     file="${dir.dist}/jackson-xc-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.release" />
+      <attach file="${dir.dist}/jackson-xc-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.smile" uniqueVersion="false"
+     file="${dir.dist}/jackson-smile-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.release" />
+      <attach file="${dir.dist}/jackson-smile-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+    <artifact:deploy pomRefId="pom.mrbean" uniqueVersion="false"
+     file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}.jar"
+   >
+      <remoteRepository refid="repo.release" />
+      <attach file="${dir.dist}/jackson-mrbean-${IMPL_VERSION}-sources.jar" type="jar" classifier="sources" />
+    </artifact:deploy>
+
+  </target>
+
+</project>
