@@ -28,7 +28,7 @@ public final class TestDeserPerf
     private MediaItem buildItem()
     {
         MediaItem.Content content = new MediaItem.Content();
-        content.setPlayer(MediaItem.Content.Player.JAVA);
+        content.setPlayer(MediaItem.Player.JAVA);
         content.setUri("http://javaone.com/keynote.mpg");
         content.setTitle("Javaone Keynote");
         content.setWidth(640);
@@ -43,8 +43,8 @@ public final class TestDeserPerf
 
         MediaItem item = new MediaItem(content);
 
-        item.addPhoto(new MediaItem.Photo("http://javaone.com/keynote_large.jpg", "Javaone Keynote", 1024, 768, MediaItem.Photo.Size.LARGE));
-        item.addPhoto(new MediaItem.Photo("http://javaone.com/keynote_small.jpg", "Javaone Keynote", 320, 240, MediaItem.Photo.Size.SMALL));
+        item.addPhoto(new MediaItem.Photo("http://javaone.com/keynote_large.jpg", "Javaone Keynote", 1024, 768, MediaItem.Size.LARGE));
+        item.addPhoto(new MediaItem.Photo("http://javaone.com/keynote_small.jpg", "Javaone Keynote", 320, 240, MediaItem.Size.SMALL));
 
         return item;
     }
