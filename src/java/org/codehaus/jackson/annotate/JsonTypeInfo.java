@@ -72,12 +72,17 @@ public @interface JsonTypeInfo
 
         /**
          * Means that Java class name with minimal path is used as the type identifier.
-         * Minimal means that only class name, and that part of preceding Java
+         * Minimal means that only the class name, and that part of preceding Java
          * package name is included that is needed to construct fully-qualified name
-         * given fully-qualified name of the declared supertype.
+         * given fully-qualified name of the declared supertype; additionally a single
+         * leading dot ('.') must be used to indicate that partial class name is used.
          * For example, for supertype "com.foobar.Base", and concrete type
-         * "com.foo.Impl", only "Impl" would be included; and for "com.foo.impl.Impl2"
-         * only "impl.Impl2" would be included.
+         * "com.foo.Impl", only ".Impl" would be included; and for "com.foo.impl.Impl2"
+         * only ".impl.Impl2" would be included.<br />
+         * <b>NOTE</b>: leading dot ('.') MUST be used to denote partial (minimal) name;
+         * if it is missing, value is assumed to be fully-qualified name. Fully-qualified
+         * name is used in cases where subtypes are not in same package (or sub-package
+         * thereof) as base class.
          *<p>
          * If all related classes are in the same Java package, this option can reduce
          * amount of type information overhead, especially for small types.
