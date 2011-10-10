@@ -104,11 +104,18 @@ public class BeanDeserializerBuilder
 
         // let's make copy of properties
         _properties.putAll(src._properties);
-        
+        _backRefProperties = _copy(src._backRefProperties);
         // Hmmh. Should we create defensive copies here? For now, not yet
-        _backRefProperties = src._backRefProperties;
         _ignorableProps = src._ignorableProps;
         _valueInstantiator = src._valueInstantiator;
+    }
+
+    private static HashMap<String, SettableBeanProperty> _copy(HashMap<String, SettableBeanProperty> src)
+    {
+        if (src == null) {
+            return null;
+        }
+        return new HashMap<String, SettableBeanProperty>(src);
     }
     
     /**
