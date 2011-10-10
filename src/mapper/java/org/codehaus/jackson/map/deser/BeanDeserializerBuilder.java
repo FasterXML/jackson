@@ -35,8 +35,11 @@ public class BeanDeserializerBuilder
     
     /**
      * Properties to deserialize collected so far.
+     *<p>
+     * Note: since 1.9.1, LinkedHashMap has been used, since preservation
+     * of order is actually important for some use cases.
      */
-    final protected HashMap<String, SettableBeanProperty> _properties = new HashMap<String, SettableBeanProperty>();
+    final protected HashMap<String, SettableBeanProperty> _properties = new LinkedHashMap<String, SettableBeanProperty>();
 
     /**
      * Value injectors for deserialization
@@ -128,7 +131,12 @@ public class BeanDeserializerBuilder
             throw new IllegalArgumentException("Duplicate property '"+prop.getName()+"' for "+_beanDesc.getType());
         }
     }
-    
+
+    /**
+     * Method called to add a property that represents so-called back reference;
+     * reference that "points back" to object that has forward reference to
+     * currently built bean.
+     */
     public void  addBackReferenceProperty(String referenceName, SettableBeanProperty prop)
     {
         if (_backRefProperties == null) {
@@ -152,6 +160,10 @@ public class BeanDeserializerBuilder
     /**
      * Method that allows accessing all properties that this
      * builder currently contains.
+     *<p>
+     * Note that properties are returned in order that properties
+     * are ordered (explictly, or by rule), which is the serialization
+     * order.
      * 
      * @since 1.8.3
      */

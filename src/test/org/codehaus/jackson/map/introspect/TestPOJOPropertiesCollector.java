@@ -1,6 +1,7 @@
 package org.codehaus.jackson.map.introspect;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.codehaus.jackson.annotate.*;
@@ -92,6 +93,17 @@ public class TestPOJOPropertiesCollector
         public void setFoobar(int v) { x = v; }
     }
 
+    // Testing that property order is obeyed, even for deserialization purposes
+    @JsonPropertyOrder({"a", "b", "c", "d"})
+    static class SortedProperties
+    {
+        public int b;
+        public int c;
+        
+        public void setD(int value) { }
+        public void setA(int value) { }
+    }
+    
     /*
     /**********************************************************
     /* Unit tests
@@ -231,6 +243,18 @@ public class TestPOJOPropertiesCollector
         assertTrue(ign.contains("b"));
     }
 
+    public void testSimpleOrderingForDeserialization()
+    {
+        ObjectMapper m = new ObjectMapper();
+        POJOPropertiesCollector coll = collector(m, SortedProperties.class, false);
+        List<BeanPropertyDefinition> props = coll.getProperties();
+        assertEquals(4, props.size());
+        assertEquals("a", props.get(0).getName());
+        assertEquals("b", props.get(1).getName());
+        assertEquals("c", props.get(2).getName());
+        assertEquals("d", props.get(3).getName());
+    }
+    
     /*
     /**********************************************************
     /* Helper methods
