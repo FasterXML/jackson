@@ -76,6 +76,10 @@ public class TestBasicAnnotations
 
         public void setZ(int value) { _z = value; }
     }
+
+    static class BeanWithDeserialize {
+        @JsonDeserialize private int a;
+    }
     
     /*
     /**********************************************************
@@ -145,5 +149,13 @@ public class TestBasicAnnotations
         assertEquals(1, result._x);
         assertEquals(2, result._y);
         assertEquals(3, result._z);
+    }
+
+    public void testImpliedProperty() throws Exception
+    {
+        ObjectMapper m = new ObjectMapper();
+        BeanWithDeserialize bean = m.readValue("{\"a\":3}", BeanWithDeserialize.class);
+        assertNotNull(bean);
+        assertEquals(3, bean.a);
     }
 }

@@ -3,6 +3,7 @@ package org.codehaus.jackson.map;
 import java.util.*;
 
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.introspect.AnnotatedField;
 import org.codehaus.jackson.map.introspect.AnnotatedMethod;
 
@@ -132,7 +133,14 @@ public class TestNamingStrategy extends BaseMapTest
             return this;
         }
     }
-    
+
+    static class RenamedCollectionBean
+    {
+        @JsonDeserialize
+        private List<String> theValues = Collections.emptyList();
+        
+        public List<String> getTheValues() { return theValues; }
+    }
     
     /*
     /**********************************************************************
@@ -195,5 +203,16 @@ public class TestNamingStrategy extends BaseMapTest
         assertNotNull(result.values);
         assertEquals(1, result.values.size());
         assertEquals(3, result.values.get(0).intValue);
+    }
+
+    // For [JACKSON-687]
+    public void testJson() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
+//        mapper.disable(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS);
+        RenamedCollectionBean foo = mapper.readValue("{\"the_values\":[\"a\"]}", RenamedCollectionBean.class);
+        assertNotNull(foo.getTheValues());
+        assertEquals(1, foo.getTheValues().size());
+        assertEquals("a", foo.getTheValues().get(0));
     }
 }
