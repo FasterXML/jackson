@@ -1,12 +1,26 @@
-Version: 1.9.0
+Version: 1.9.1
 
 Release date:
-  04-Oct-2011
+  xx-Oct-2011
+
+Description:
+  The first patch release for 1.9.
+  
+  Fixes:
+  
+  * [JACKSON-687] Problems with PropertyNamingStrategy, property merging
+   (reported by Pascal G)  
+  
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
 
 Description:
   Another minor release. Major internal rewrite for property introspection; other
   big changes to prepare for upcoming 2.0 version, including significant
   number of newly deprecated methods.
+
+1.9.0 [04-Oct-2011]
 
   Fixes:
   
@@ -124,10 +138,6 @@ Description:
   * Removed 'org.codehaus.jackson.annotate.JsonClass, JsonKeyClass and
     JsonContentClass (deprecated since 1.1)
   * Move TokenBufferDeserializer to separate class (from inside StdDeserializer)
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.8.4 [25-Jul-2011]
 

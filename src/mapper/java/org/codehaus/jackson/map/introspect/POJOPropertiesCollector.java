@@ -655,7 +655,15 @@ public class POJOPropertiesCollector
             if (!name.equals(prop.getName())) {
                 prop = prop.withName(name);
             }
-            _properties.put(name, prop);
+            /* As per [JACKSON-687], need to consider case where there may already be
+             * something in there...
+             */
+            POJOPropertyBuilder old = _properties.get(name);
+            if (old == null) {
+                _properties.put(name, prop);
+            } else {
+                old.addAll(prop);
+            }
         }
     }
     

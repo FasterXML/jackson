@@ -134,7 +134,8 @@ public class TestStdNamingStrategies extends BaseMapTest
                 {"_user_name", "user_name"},
                 {"_UserName", "user_name"},
                 {"_User_Name", "user_name"},
-                {"UGLY_NAME", "ugly_name"}
+                {"UGLY_NAME", "ugly_name"},
+                {"_Bars", "bars" }
     });
     
     private ObjectMapper mapper;

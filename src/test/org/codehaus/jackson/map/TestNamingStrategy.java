@@ -134,12 +134,22 @@ public class TestNamingStrategy extends BaseMapTest
         }
     }
 
+    // [JACKSON-687]
+    static class LcStrategy extends PropertyNamingStrategy.PropertyNamingStrategyBase
+    {
+        @Override
+        public String translate(String propertyName) {
+            return propertyName.toLowerCase();
+        }
+    }
+    
     static class RenamedCollectionBean
     {
         @JsonDeserialize
-        private List<String> theValues = Collections.emptyList();
+        private List<String> THEvalues = Collections.emptyList();
         
-        public List<String> getTheValues() { return theValues; }
+        // intentionally odd name, to be renamed by naming strategy
+        public List<String> getTheVALUEs() { return THEvalues; }
     }
     
     /*
@@ -206,13 +216,14 @@ public class TestNamingStrategy extends BaseMapTest
     }
 
     // For [JACKSON-687]
-    public void testJson() throws Exception {
+    public void testJson() throws Exception
+    {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
+        mapper.setPropertyNamingStrategy(new LcStrategy());
 //        mapper.disable(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS);
-        RenamedCollectionBean foo = mapper.readValue("{\"the_values\":[\"a\"]}", RenamedCollectionBean.class);
-        assertNotNull(foo.getTheValues());
-        assertEquals(1, foo.getTheValues().size());
-        assertEquals("a", foo.getTheValues().get(0));
+        RenamedCollectionBean foo = mapper.readValue("{\"thevalues\":[\"a\"]}", RenamedCollectionBean.class);
+        assertNotNull(foo.getTheVALUEs());
+        assertEquals(1, foo.getTheVALUEs().size());
+        assertEquals("a", foo.getTheVALUEs().get(0));
     }
 }
