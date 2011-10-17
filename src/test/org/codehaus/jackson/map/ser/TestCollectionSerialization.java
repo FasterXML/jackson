@@ -90,6 +90,16 @@ public class TestCollectionSerialization
     static class EmptyArrayBean {
         public String[] empty = new String[0];
     }
+
+    // [JACKSIN-689]
+    static class BeanWithIterable {
+        private final ArrayList<String> values = new ArrayList<String>();
+        {
+            values.add("value");
+        }
+
+        public Iterable<String> getValues() { return values; }
+    }
     
     /*
     /**********************************************************
@@ -226,10 +236,8 @@ public class TestCollectionSerialization
         assertEquals("[1,2,3]", sw.toString().trim());
     }
 
-    /**
-     * Test that checks that empty collections are properly serialized
-     * when they are Bean properties
-     */
+    // Test that checks that empty collections are properly serialized
+    // when they are Bean properties
     @SuppressWarnings("unchecked")
     public void testEmptyBeanCollection()
         throws IOException
@@ -274,9 +282,7 @@ public class TestCollectionSerialization
         assertEquals(0, map2.size());
     }
 
-    /**
-     * Should also be able to serialize null EnumMaps as expected
-     */
+    // Should also be able to serialize null EnumMaps as expected
     public void testNullBeanEnumMap()
         throws IOException
     {
@@ -289,9 +295,7 @@ public class TestCollectionSerialization
         assertNull(result.get("map"));
     }
 
-    /**
-     * Test [JACKSON-220]
-     */
+    // Test [JACKSON-220]
     public void testListSerializer() throws IOException
     {
         ObjectMapper m = new ObjectMapper();
@@ -314,5 +318,12 @@ public class TestCollectionSerialization
         m.configure(SerializationConfig.Feature.WRITE_EMPTY_JSON_ARRAYS, false);
         assertEquals("{}", m.writeValueAsString(list));
         assertEquals("{}", m.writeValueAsString(array));
+    }
+    
+    // [JACKSON-689]
+    public void testWithIterable() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        assertEquals("{\"values\":[\"value\"]}", m.writeValueAsString(new BeanWithIterable()));
     }
 }
