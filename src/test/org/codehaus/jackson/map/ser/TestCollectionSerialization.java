@@ -81,6 +81,16 @@ public class TestCollectionSerialization
         }
     }
 
+    // [JACKSIN-689]
+    static class BeanWithIterable {
+        private final ArrayList<String> values = new ArrayList<String>();
+        {
+            values.add("value");
+        }
+
+        public Iterable<String> getValues() { return values; }
+    }
+
     /*
     /**********************************************************
     /* Test methods
@@ -286,5 +296,12 @@ public class TestCollectionSerialization
     {
         ObjectMapper m = new ObjectMapper();
         assertEquals("\"[ab, cd, ef]\"", m.writeValueAsString(new PseudoList("ab", "cd", "ef")));
+    }
+
+    // [JACKSON-689]
+    public void testWithIterable() throws IOException
+    {
+        ObjectMapper m = new ObjectMapper();
+        assertEquals("{\"values\":[\"value\"]}", m.writeValueAsString(new BeanWithIterable()));
     }
 }

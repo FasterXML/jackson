@@ -1,10 +1,18 @@
-Version: 1.8.6
+Version: 1.8.7
 
 Release date:
-  04-Oct-2011
+  xx-Nov-2011
 
 Description:
   A patch release for 1.8.
+
+  Fixes:
+
+------------------------------------------------------------------------
+=== History: ===
+------------------------------------------------------------------------
+
+1.8.6 [04-Oct-2011]
 
   Fixes:
 
@@ -14,10 +22,6 @@ Description:
    (reported by Ransom B)
   * [JACKSON-677] Inner generic type references not working properly
    (reported by William B)
-
-------------------------------------------------------------------------
-=== History: ===
-------------------------------------------------------------------------
 
 1.8.5 [04-Aug-2011]
 
