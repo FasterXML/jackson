@@ -590,6 +590,13 @@ public abstract class MapperConfig<T extends MapperConfig<T>>
     public final JavaType constructType(TypeReference<?> valueTypeRef) {
         return getTypeFactory().constructType(valueTypeRef.getType(), (TypeBindings) null);
     }
+
+    /**
+     * @since 1.9.1
+     */
+    public JavaType constructSpecializedType(JavaType baseType, Class<?> subclass) {
+        return getTypeFactory().constructSpecializedType(baseType, subclass);
+    }
     
     /*
     /**********************************************************

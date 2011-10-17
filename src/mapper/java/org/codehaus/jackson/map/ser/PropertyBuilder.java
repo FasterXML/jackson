@@ -180,7 +180,7 @@ public class PropertyBuilder
                  *   and actually accept subtypes too for serialization. Bit dangerous in theory
                  *   but need to trust user here...
                  */
-                declaredType = declaredType.forcedNarrowBy(serClass);
+                declaredType = _config.constructSpecializedType(declaredType, serClass);
             }
             useStaticTyping = true;
         }

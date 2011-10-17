@@ -112,7 +112,8 @@ public class StdContainerSerializers
                         if (serializer == null) {
                             // To fix [JACKSON-508]
                             if (_elementType.hasGenericTypes()) {
-                                serializer = _findAndAddDynamic(serializers, _elementType.forcedNarrowBy(cc), provider);
+                                serializer = _findAndAddDynamic(serializers,
+                                        provider.constructSpecializedType(_elementType, cc), provider);
                             } else {
                                 serializer = _findAndAddDynamic(serializers, cc, provider);
                             }
@@ -174,7 +175,8 @@ public class StdContainerSerializers
                         if (serializer == null) {
                             // To fix [JACKSON-508]
                             if (_elementType.hasGenericTypes()) {
-                                serializer = _findAndAddDynamic(serializers, _elementType.forcedNarrowBy(cc), provider);
+                                serializer = _findAndAddDynamic(serializers,
+                                        provider.constructSpecializedType(_elementType, cc), provider);
                             } else {
                                 serializer = _findAndAddDynamic(serializers, cc, provider);
                             }

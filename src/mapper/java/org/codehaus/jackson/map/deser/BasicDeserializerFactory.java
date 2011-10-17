@@ -290,7 +290,7 @@ public abstract class BasicDeserializerFactory
                 throw new IllegalArgumentException("Can not find a deserializer for non-concrete Collection type "+type);
             }
             collectionClass = fallback;
-            type = (CollectionType) type.forcedNarrowBy(collectionClass);
+            type = (CollectionType) config.constructSpecializedType(type, collectionClass);
             // But if so, also need to re-check creators...
             beanDesc = config.introspectForCreation(type);
         }
@@ -413,7 +413,7 @@ public abstract class BasicDeserializerFactory
                 throw new IllegalArgumentException("Can not find a deserializer for non-concrete Map type "+type);
             }
             mapClass = fallback;
-            type = (MapType) type.forcedNarrowBy(mapClass);
+            type = (MapType) config.constructSpecializedType(type, mapClass);
             // But if so, also need to re-check creators...
             beanDesc = config.introspectForCreation(type);
         }

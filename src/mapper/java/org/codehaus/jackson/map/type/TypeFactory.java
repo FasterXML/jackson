@@ -301,7 +301,7 @@ public final class TypeFactory
 
     /**
      * Factory method for creating a subtype of given base type, as defined
-     * ny specified subclass; but retaining generic type information if any.
+     * by specified subclass; but retaining generic type information if any.
      * Can be used, for example, to get equivalent of "HashMap&lt;String,Integer>"
      * from "Map&ltString,Integer>" by giving <code>HashMap.class</code>
      * as subclass.

@@ -182,6 +182,13 @@ public abstract class SerializerProvider
     public JavaType constructType(Type type) {
          return _config.getTypeFactory().constructType(type);
     }
+
+    /**
+     * @since 1.9.1
+     */
+    public JavaType constructSpecializedType(JavaType baseType, Class<?> subclass) {
+        return _config.constructSpecializedType(baseType, subclass);
+    }
     
     /*
     /**********************************************************

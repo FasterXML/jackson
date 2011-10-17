@@ -85,8 +85,8 @@ public class UnwrappingBeanPropertyWriter
     {
         JsonSerializer<Object> serializer;
         if (_nonTrivialBaseType != null) {
-            JavaType t = _nonTrivialBaseType.forcedNarrowBy(type);
-            serializer = provider.findValueSerializer(t, this);
+            JavaType subtype = provider.constructSpecializedType(_nonTrivialBaseType, type);
+            serializer = provider.findValueSerializer(subtype, this);
         } else {
             serializer = provider.findValueSerializer(type, this);
         }

@@ -61,6 +61,10 @@ public abstract class TypeDeserializerBase extends TypeDeserializer
         if (defaultImpl == null) {
             _defaultImpl = null;
         } else {
+            /* 16-Oct-2011, tatu: should call this via TypeFactory; this is
+             *    not entirely safe... however, since Collections/Maps are
+             *    seldom (if ever) base types, may be ok.
+             */
             _defaultImpl = baseType.forcedNarrowBy(defaultImpl);
         }
     }

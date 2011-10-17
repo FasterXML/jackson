@@ -251,7 +251,8 @@ public class MapSerializer
                 JsonSerializer<Object> serializer = serializers.serializerFor(cc);
                 if (serializer == null) {
                     if (_valueType.hasGenericTypes()) {
-                        serializer = _findAndAddDynamic(serializers, _valueType.forcedNarrowBy(cc), provider);
+                        serializer = _findAndAddDynamic(serializers,
+                                provider.constructSpecializedType(_valueType, cc), provider);
                     } else {
                         serializer = _findAndAddDynamic(serializers, cc, provider);
                     }

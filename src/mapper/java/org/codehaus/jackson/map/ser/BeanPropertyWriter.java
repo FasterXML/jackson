@@ -457,7 +457,7 @@ public class BeanPropertyWriter
     {
         PropertySerializerMap.SerializerAndMapResult result;
         if (_nonTrivialBaseType != null) {
-            JavaType t = _nonTrivialBaseType.forcedNarrowBy(type);
+            JavaType t = provider.constructSpecializedType(_nonTrivialBaseType, type);
             result = map.findAndAddSerializer(t, provider, this);
         } else {
             result = map.findAndAddSerializer(type, provider, this);
