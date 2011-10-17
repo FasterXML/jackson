@@ -339,8 +339,10 @@ public abstract class BasicSerializerFactory
             return buildIteratorSerializer(config, javaType, beanDesc, property, staticTyping);
         }
         if (Iterable.class.isAssignableFrom(type)) {
+System.err.println("DEBUG: iterable "+type+"? YES");           
             return buildIterableSerializer(config, javaType, beanDesc, property, staticTyping);
         }
+System.err.println("DEBUG: iterable "+type+"? no");  
         if (CharSequence.class.isAssignableFrom(type)) {
             return ToStringSerializer.instance;
         }
