@@ -10,6 +10,8 @@ Description:
   
   * [JACKSON-687] Problems with PropertyNamingStrategy, property merging
    (reported by Pascal G)  
+  * [JACKSON-689] Deserialization of Iterable fails
+   (reported by Pascal G)
   
 ------------------------------------------------------------------------
 === History: ===

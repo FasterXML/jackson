@@ -631,6 +631,8 @@ Pascal Glinas:
    [1.9.0]
   * Reported [JACKSON-687] Problems with PropertyNamingStrategy, property merging
    [1.9.1]
+  * Reported [JACKSON-689] Deserialization of Iterable fails
+   [1.9.1]
 
 Maik Jorra:
   * Reported [JACKSON-540] Side-effects with ObjectMapper.canSerialize(),
