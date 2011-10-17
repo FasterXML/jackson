@@ -1,11 +1,5 @@
 package org.codehaus.jackson.map.type;
 
-/*
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-*/
-
 import java.util.*;
 
 import org.codehaus.jackson.type.JavaType;
@@ -66,7 +60,20 @@ public final class SimpleType
     protected JavaType _narrow(Class<?> subclass)
     {
         // Should we check that there is a sub-class relationship?
-        return new SimpleType(subclass, _typeNames, _typeParameters);
+        /* As per [JACKSON-689], Iterable-to-Collection can be problematic;
+         * needs handling. Not very clean, but can't think of better way
+         * quite yet... revisit if/when we find other special cases
+         */
+        if (_class == Iterable.class) {
+            // Specific issue here: should call TypeFactory, but we have no access...
+            if (Collection.class.isAssignableFrom(subclass)) {
+                JavaType elemType = (_typeParameters == null) ?
+                        constructUnsafe(Object.class) : _typeParameters[0];
+                // this is unclean too, ref to other impl type...
+                return CollectionType.construct(subclass, elemType);
+            }
+        }
+	return new SimpleType(subclass, _typeNames, _typeParameters);
     }
 
     @Override
