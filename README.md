@@ -38,8 +38,40 @@ In addition, there are other experimental and external data format implementatio
 
 ### Third-party datatype modules
 
+These extensions are plug-in Jackson `Module`s (registered with `ObjectMapper.registerModule()`),
+and add support for datatypes of various commonly used Java libraries, by adding
+serializers and deserializers so that Jackson `databind` package (`ObjectMapper` / `ObjectReader` / `ObjectWriter`) can read and write these types.
+
+* [Guava](../../../jackson-datatype-guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
+* [Hibernate](../../../jackson-module-hibernate)
+* [HPPC](../../../jackson-datatype-hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
+* [Joda](../../../jackson-datatype-joda): support for types of [Joda](http://joda-time.sourceforge.net/) date/time library datatypes
+* [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
+* [JSR-310](../../../jackson-datatype-jsr310): support for "Java 8 Dates" -- experimental, until Java 8 is finalized
+* [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
+
+### Providers for JAX-RS
+
+[Jackson JAX-RS Providers](../../../jackson-jaxrs-providers) has handlers to add dataformat
+support for JAX-RS implementations (like Jersey, RESTeasy, CXF).
+Providers implement `MessageBodyReader` and `MessageBodyWriter`.
+
 ### Other
 
+* Afterburner
+* JAXB Annotations
+* Mr Bean
+* Paranamer
+* JSON Schema generator
+
+## Documentation
+
+### Web sites
+
+* [jackson-docs](../../../jackson-docs) is our Github Jackson documentation hub
+* [Jackson Wiki](wiki.fasterxml.com/JacksonHome) contains older documentation (some 1.x specific; but mostly relevant for both 1.x and 2.x)
+* [CowTalk](http://cowtowncoder.com/blog/blog.html) -- Blog with lots of Jackson-specific content
+* [Jackson Users](http://jackson-users.ning.com) is a Jackson-specific discussion forum
 
 ### Older resources
 
