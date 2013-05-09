@@ -43,7 +43,7 @@ and add support for datatypes of various commonly used Java libraries, by adding
 serializers and deserializers so that Jackson `databind` package (`ObjectMapper` / `ObjectReader` / `ObjectWriter`) can read and write these types.
 
 * [Guava](../../../jackson-datatype-guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
-* [Hibernate](../../../jackson-module-hibernate)
+* [Hibernate](../../../jackson-module-hibernate): support for Hibernate features (lazy-loading, proxies)
 * [HPPC](../../../jackson-datatype-hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
 * [Joda](../../../jackson-datatype-joda): support for types of [Joda](http://joda-time.sourceforge.net/) date/time library datatypes
 * [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
@@ -58,11 +58,11 @@ Providers implement `MessageBodyReader` and `MessageBodyWriter`.
 
 ### Other
 
-* Afterburner
-* JAXB Annotations
-* Mr Bean
-* Paranamer
-* JSON Schema generator
+* [Afterburner](https://github.com/FasterXML/jackson-module-afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection
+* [JAXB Annotations](https://github.com/FasterXML/jackson-module-jaxb-annotations): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
+* [Mr Bean](https://github.com/FasterXML/jackson-module-mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
+* [Paranamer](https://github.com/FasterXML/jackson-module-paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
+* [JSON Schema generator](https://github.com/FasterXML/jackson-module-jsonSchema): Generate JSON Schema, based on Jackson POJO introspection, including annotations
 
 ## Documentation
 
