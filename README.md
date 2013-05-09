@@ -4,7 +4,11 @@ This will the portal page for Jackson Project, at github.
 It shall contain links to all active Jackson projects owned by Jackson project team;
 as well as additional links to external resources.
 
-## Active Jackson projects by Project team
+## Active Jackson projects
+
+Most projects listed below are lead by Jackson development team; but some by
+other at-large Jackson community members.
+We try to keep versioning of modules compatible to reduce confusion regarding which versions work together.
 
 ### Core modules
 
