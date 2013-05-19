@@ -19,6 +19,26 @@ These are three and they are known as:
 * [Annotations](../../../jackson-annotations) ([docs](../../../jackson-annotations/wiki)) ("jackson-annotations") contains standard Jackson annotations
 * [Databind](../../../jackson-databind) ([docs](../../../jackson-databind/wiki/Documentation)) ("jackson-databind") implements data-binding (and object serialization) support on `streaming` package; it depends both on `streaming` and `annotations` packages
 
+### Third-party datatype modules
+
+These extensions are plug-in Jackson `Module`s (registered with `ObjectMapper.registerModule()`),
+and add support for datatypes of various commonly used Java libraries, by adding
+serializers and deserializers so that Jackson `databind` package (`ObjectMapper` / `ObjectReader` / `ObjectWriter`) can read and write these types.
+
+* [Guava](../../../jackson-datatype-guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
+* [Hibernate](../../../jackson-module-hibernate): support for Hibernate features (lazy-loading, proxies)
+* [HPPC](../../../jackson-datatype-hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
+* [Joda](../../../jackson-datatype-joda): support for types of [Joda](http://joda-time.sourceforge.net/) date/time library datatypes
+* [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
+* [JSR-310](../../../jackson-datatype-jsr310): support for "Java 8 Dates" -- experimental, until Java 8 is finalized
+* [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
+
+### Providers for JAX-RS
+
+[Jackson JAX-RS Providers](../../../jackson-jaxrs-providers) has handlers to add dataformat
+support for JAX-RS implementations (like Jersey, RESTeasy, CXF).
+Providers implement `MessageBodyReader` and `MessageBodyWriter`.
+
 ### Data format modules
 
 Data format modules offer support for data formats other than JSON.
@@ -39,26 +59,6 @@ In addition, there are other experimental and external data format implementatio
 ### JVM Language modules
 
 * [Scala](https://github.com/FasterXML/jackson-module-scala) to handle native Scala types (including but not limited to Scala collection/map types, case classes)
-
-### Third-party datatype modules
-
-These extensions are plug-in Jackson `Module`s (registered with `ObjectMapper.registerModule()`),
-and add support for datatypes of various commonly used Java libraries, by adding
-serializers and deserializers so that Jackson `databind` package (`ObjectMapper` / `ObjectReader` / `ObjectWriter`) can read and write these types.
-
-* [Guava](../../../jackson-datatype-guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
-* [Hibernate](../../../jackson-module-hibernate): support for Hibernate features (lazy-loading, proxies)
-* [HPPC](../../../jackson-datatype-hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
-* [Joda](../../../jackson-datatype-joda): support for types of [Joda](http://joda-time.sourceforge.net/) date/time library datatypes
-* [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
-* [JSR-310](../../../jackson-datatype-jsr310): support for "Java 8 Dates" -- experimental, until Java 8 is finalized
-* [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
-
-### Providers for JAX-RS
-
-[Jackson JAX-RS Providers](../../../jackson-jaxrs-providers) has handlers to add dataformat
-support for JAX-RS implementations (like Jersey, RESTeasy, CXF).
-Providers implement `MessageBodyReader` and `MessageBodyWriter`.
 
 ### Other
 
