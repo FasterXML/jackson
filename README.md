@@ -15,9 +15,9 @@ We try to keep versioning of modules compatible to reduce confusion regarding wh
 Core modules are the foundation on which extensions (modules) build upon.
 These are three and they are known as:
 
-* [Streaming](../../../jackson-core) [docs](../../../jackson-core/wiki) ("jackson-core") defines low-level streaming API, and includes JSON-specific implementations
-* [Annotations](../../../jackson-annotations) [docs](../../../jackson-annotations/wiki)  ("jackson-annotations") contains standard Jackson annotations
-* [Databind](../../../jackson-databind) ("jackson-databind") [docs](../../../jackson-core/wiki/Documentation)  implements data-binding (and object serialization) support on `streaming` package; it depends both on `streaming` and `annotations` packages
+* [Streaming](../../../jackson-core) ([docs](../../../jackson-core/wiki)) ("jackson-core") defines low-level streaming API, and includes JSON-specific implementations
+* [Annotations](../../../jackson-annotations) ([docs](../../../jackson-annotations/wiki)) ("jackson-annotations") contains standard Jackson annotations
+* [Databind](../../../jackson-databind) [docs](../../../jackson-databind/wiki/Documentation) ("jackson-databind") implements data-binding (and object serialization) support on `streaming` package; it depends both on `streaming` and `annotations` packages
 
 ### Data format modules
 
