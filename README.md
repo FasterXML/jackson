@@ -17,7 +17,7 @@ These are three and they are known as:
 
 * [Streaming](../../../jackson-core) ([docs](../../../jackson-core/wiki)) ("jackson-core") defines low-level streaming API, and includes JSON-specific implementations
 * [Annotations](../../../jackson-annotations) ([docs](../../../jackson-annotations/wiki)) ("jackson-annotations") contains standard Jackson annotations
-* [Databind](../../../jackson-databind) [docs](../../../jackson-databind/wiki/Documentation) ("jackson-databind") implements data-binding (and object serialization) support on `streaming` package; it depends both on `streaming` and `annotations` packages
+* [Databind](../../../jackson-databind) ([docs](../../../jackson-databind/wiki/Documentation)) ("jackson-databind") implements data-binding (and object serialization) support on `streaming` package; it depends both on `streaming` and `annotations` packages
 
 ### Data format modules
 
