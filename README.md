@@ -77,6 +77,10 @@ In addition, there are other experimental and external data format implementatio
 * [CowTalk](http://cowtowncoder.com/blog/blog.html) -- Blog with lots of Jackson-specific content
 * [Jackson Users](http://jackson-users.ning.com) is a Jackson-specific discussion forum
 
+### Paperwork
+
+* Jackson [Contributor License Agreement](../../contributor-agreement.pdf) (CLA) is a one-page document we need from every contributor of code (we will request it for pull requests)
+
 ### Older resources
 
 These are obsolete resources, mostly useful for historical interest:
