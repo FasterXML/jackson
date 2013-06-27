@@ -79,7 +79,7 @@ In addition, there are other experimental and external data format implementatio
 
 ### Paperwork
 
-* Jackson [Contributor License Agreement](../../contributor-agreement.pdf) (CLA) is a one-page document we need from every contributor of code (we will request it for pull requests)
+* Jackson [Contributor License Agreement](../../blob/master/contributor-agreement.pdf) (CLA) is a one-page document we need from every contributor of code (we will request it for pull requests)
 
 ### Older resources
 
