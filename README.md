@@ -63,13 +63,22 @@ And in addition there are other data format modules, provided by developers outs
 
 * [Scala](https://github.com/FasterXML/jackson-module-scala) to handle native Scala types (including but not limited to Scala collection/map types, case classes)
 
-### Other
+### Other, stable
+
+Other fully usable modules by FasterXML team include:
 
 * [Afterburner](https://github.com/FasterXML/jackson-module-afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection
 * [JAXB Annotations](https://github.com/FasterXML/jackson-module-jaxb-annotations): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
+* [JSON Schema generator](https://github.com/FasterXML/jackson-module-jsonSchema): Generate JSON Schema, based on Jackson POJO introspection, including annotations
 * [Mr Bean](https://github.com/FasterXML/jackson-module-mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
 * [Paranamer](https://github.com/FasterXML/jackson-module-paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
-* [JSON Schema generator](https://github.com/FasterXML/jackson-module-jsonSchema): Generate JSON Schema, based on Jackson POJO introspection, including annotations
+
+### Other, experimental
+
+And finally, there are other still experimental modules provided by FasterXML team
+
+* [Guice](https://github.com/FasterXML/jackson-module-guice): extension that allows injection values from Guice injectors (and basic Guice annotations), instead of standard `@JacksonInject` (or in addition to)
+    * note: as of 2.2.x, this is in proof-of-concept stage; should become stable for 2.3
 
 ## Documentation
 
