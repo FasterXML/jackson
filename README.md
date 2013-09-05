@@ -4,6 +4,18 @@ This will the portal page for Jackson Project, at github.
 It shall contain links to all active Jackson projects owned by Jackson project team;
 as well as additional links to external resources.
 
+## Actively developer versions
+
+Two major branches exist: 1.x is in maintenance mode, and only bug-fix versions are released; 2.x is the actively developed version. Versions use different Java packages and Maven artifact ids, so they are not mutually compatibly, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x, without conflicts. This is by design.
+
+The latest stable versions from these branches are:
+
+* 2.2.3, released 22-Aug-2013 ([release notes](http://wiki.fasterxml.com/JacksonRelease223))
+* 1.9.13, released 14-Jul-2013
+
+Recommended way to use Jackson is via Maven; releases are made to Central Maven Repository.
+Individual project pages typically contain download links, leading to CMR.
+
 ## Active Jackson projects
 
 Most projects listed below are lead by Jackson development team; but some by
