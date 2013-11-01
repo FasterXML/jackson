@@ -97,7 +97,7 @@ And finally, there are other still experimental modules provided by FasterXML te
 ### Web sites
 
 * [jackson-docs](../../../jackson-docs) is our Github Jackson documentation hub
-* [Jackson Wiki](wiki.fasterxml.com/JacksonHome) contains older documentation (some 1.x specific; but mostly relevant for both 1.x and 2.x)
+* [Jackson Wiki](http://wiki.fasterxml.com/JacksonHome) contains older documentation (some 1.x specific; but mostly relevant for both 1.x and 2.x)
 * [CowTalk](http://cowtowncoder.com/blog/blog.html) -- Blog with lots of Jackson-specific content
 * [Jackson Users](http://jackson-users.ning.com) is a Jackson-specific discussion forum
 
