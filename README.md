@@ -10,7 +10,7 @@ Jackson has two major branches: 1.x is in maintenance mode, and only bug-fix ver
 
 The latest stable versions from these branches are:
 
-* 2.2.3, released 22-Aug-2013 ([release notes](http://wiki.fasterxml.com/JacksonRelease223))
+* 2.3.1, released 28-Dec-2013
 * 1.9.13, released 14-Jul-2013
 
 Recommended way to use Jackson is via Maven; releases are made to Central Maven Repository.
