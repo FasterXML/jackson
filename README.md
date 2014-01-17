@@ -4,6 +4,13 @@ This will the portal page for Jackson Project, at github.
 It shall contain links to all active Jackson projects owned by Jackson project team;
 as well as additional links to external resources.
 
+**NOTE**
+
+Please DO NOT file bugs at issue tracker of this project -- bugs should be
+report ideally against component they affect. If you are unsure where that is,
+the most likely component is `jackson-databind`, so you would use
+[Jackson Databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues)
+
 ## Actively developed versions
 
 Jackson has two major branches: 1.x is in maintenance mode, and only bug-fix versions are released; 2.x is the actively developed version. Versions use different Java packages and Maven artifact ids, so they are not mutually compatibly, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x, without conflicts. This is by design.
