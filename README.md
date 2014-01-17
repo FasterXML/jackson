@@ -4,12 +4,12 @@ This will the portal page for Jackson Project, at github.
 It shall contain links to all active Jackson projects owned by Jackson project team;
 as well as additional links to external resources.
 
-**NOTE**
+### NOTE on reporting Bugs
 
-Please DO NOT file bugs at issue tracker of this project -- bugs should be
-report ideally against component they affect. If you are unsure where that is,
-the most likely component is `jackson-databind`, so you would use
-[Jackson Databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues)
+Please **do not** file bugs at this project's issue tracker: bugs should be
+report ideally against component they affect.
+If you are unsure where that is, the most likely component is `jackson-databind`, so you would use
+[Jackson Databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues).
 
 ## Actively developed versions
 
