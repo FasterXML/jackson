@@ -73,10 +73,12 @@ Currently following data format modules are fully usable and supported:
 In addition, following experimental data formats are available:
 
 * [Avro](../../../jackson-dataformat-avro): supports [Avro](http://en.wikipedia.org/wiki/Apache_Avro) data format, with `streaming` implementation plus additional `databind`-level support for Avro Schemas
+* [CBOR](../../../jackson-dataformat-cbor): supports [CBOR](http://tools.ietf.org/search/rfc7049) data format; complete implementation, but not yet extensively deployed.
 
 And in addition there are other data format modules, provided by developers outside Jackson core team:
 
 * [bson4jackson](https://github.com/michel-kraemer/bson4jackson): adds support for [BSON](http://en.wikipedia.org/wiki/BSON) data format (by Mongo project). Basic `streaming` implementation (no `databind` changes) -- external project
+* [HOCON](https://github.com/jclawson/jackson-dataformat-hocon): experimental, partial implementation to support [HOCON](https://github.com/typesafehub/config) format -- work in progress
 
 ### JVM Language modules
 
