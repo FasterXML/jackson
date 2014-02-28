@@ -23,6 +23,8 @@ The latest stable versions from these branches are:
 Recommended way to use Jackson is via Maven; releases are made to Central Maven Repository.
 Individual project pages typically contain download links, leading to CMR.
 
+Release notes found from [Jackson Releases](../../wiki/Jackson-Releases) page.
+
 ## Active Jackson projects
 
 Most projects listed below are lead by Jackson development team; but some by
