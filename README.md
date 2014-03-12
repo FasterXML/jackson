@@ -14,7 +14,7 @@ is `jackson-databind`, so you would use
 
 ## Actively developed versions
 
-Jackson has two major branches: 1.x is in maintenance mode, and only bug-fix versions are released; 2.x is the actively developed version. Versions use different Java packages and Maven artifact ids, so they are not mutually compatibly, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x, without conflicts. This is by design.
+Jackson has two major branches: 1.x is in maintenance mode, and only bug-fix versions are released; 2.x is the actively developed version. Versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x, without conflicts. This is by design.
 
 The latest stable versions from these branches are:
 
@@ -23,6 +23,8 @@ The latest stable versions from these branches are:
 
 Recommended way to use Jackson is via Maven; releases are made to Central Maven Repository.
 Individual project pages typically contain download links, leading to CMR.
+
+Release notes found from [Jackson Releases](../../wiki/Jackson-Releases) page.
 
 ## Active Jackson projects
 
