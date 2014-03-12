@@ -6,9 +6,10 @@ as well as additional links to external resources.
 
 ### NOTE on reporting Bugs
 
-Please **do not** file bugs at this project's issue tracker: bugs should be
-report ideally against component they affect.
-If you are unsure where that is, the most likely component is `jackson-databind`, so you would use
+Jackson bugs need to be reported against component they affect: for this reason, issue tracker
+is not enabled for this project.
+If you are unsure which specific project issue affects, the most likely component
+is `jackson-databind`, so you would use
 [Jackson Databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues).
 
 ## Actively developed versions
