@@ -3,34 +3,28 @@
 This will the portal page for Jackson Project.
 Jackson is a suite of data-processing tools for Java (and JVM platform),
 including the flagship [JSON](https://en.wikipedia.org/wiki) parsing and generation library,
-as well as additional modules to process data encoded
-[XML](https://github.com/FasterXML/jackson-dataformat-xml),
+as well as additional modules to process data encoded in
+[Avro](https://github.com/FasterXML/jackson-dataformat-avro),
+[CBOR](https://github.com/FasterXML/jackson-dataformat-cbor),
 [CSV](https://github.com/FasterXML/jackson-dataformat-csv),
-[YAML](https://github.com/FasterXML/jackson-dataformat-yaml),
-[Smile](https://github.com/FasterXML/jackson-dataformat-smile) or
-[CBOR](https://github.com/FasterXML/jackson-dataformat-cbor).
+[Smile](https://github.com/FasterXML/jackson-dataformat-smile),
+[XML](https://github.com/FasterXML/jackson-dataformat-xml)
+or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml)
+(and list of supported format is still growing!)
 
 Portal shall contain links to all active Jackson projects owned by Jackson project team;
 as well as additional links to external resources.
 
-### NOTE on reporting Bugs
-
-Jackson bugs need to be reported against component they affect: for this reason, issue tracker
-is not enabled for this project.
-If you are unsure which specific project issue affects, the most likely component
-is `jackson-databind`, so you would use
-[Jackson Databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues).
-
 ## Actively developed versions
 
-Jackson has two major branches: 1.x is in maintenance mode, and only bug-fix versions are released; 2.x is the actively developed version. Versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x, without conflicts. This is by design.
+Jackson suite has two major branches: 1.x is in maintenance mode, and only bug-fix versions are released; 2.x is the actively developed version. Versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x, without conflicts. This is by design.
 
 The latest stable versions from these branches are:
 
-* 2.3.1, released 28-Dec-2013
+* 2.3.2, released 01-Mar-2013
 * 1.9.13, released 14-Jul-2013
 
-Recommended way to use Jackson is via Maven; releases are made to Central Maven Repository.
+Recommended way to use Jackson is via Maven; releases are made to Central Maven Repository (CMR).
 Individual project pages typically contain download links, leading to CMR.
 
 Release notes found from [Jackson Releases](../../wiki/Jackson-Releases) page.
@@ -63,12 +57,15 @@ serializers and deserializers so that Jackson `databind` package (`ObjectMapper`
 * [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
 * [JSR-310](../../../jackson-datatype-jsr310): support for "Java 8 Dates" -- experimental, until Java 8 is finalized
 * [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
+* [JDK7](../../../jackson-datatype-jdk7): support for JDK 7 data types not included in previous versions
+* [JDK8](../../../jackson-datatype-jdk8): support for JDK 8 data types not included in previous versions
 
 ### Providers for JAX-RS
 
 [Jackson JAX-RS Providers](../../../jackson-jaxrs-providers) has handlers to add dataformat
 support for JAX-RS implementations (like Jersey, RESTeasy, CXF).
 Providers implement `MessageBodyReader` and `MessageBodyWriter`.
+Supported formats currently include `JSON`, `Smile`, `XML` and `CBOR`.
 
 ### Data format modules
 
@@ -86,6 +83,7 @@ In addition, following experimental data formats are available:
 
 * [Avro](../../../jackson-dataformat-avro): supports [Avro](http://en.wikipedia.org/wiki/Apache_Avro) data format, with `streaming` implementation plus additional `databind`-level support for Avro Schemas
 * [CBOR](../../../jackson-dataformat-cbor): supports [CBOR](http://tools.ietf.org/search/rfc7049) data format; complete implementation, but not yet extensively deployed.
+    * note: this module is expected to mature quickly, so that version 2.4 should be production ready.
 
 And in addition there are other data format modules, provided by developers outside Jackson core team:
 
@@ -121,6 +119,14 @@ And finally, there are other still experimental modules provided by FasterXML te
 * [Jackson Wiki](http://wiki.fasterxml.com/JacksonHome) contains older documentation (some 1.x specific; but mostly relevant for both 1.x and 2.x)
 * [CowTalk](http://cowtowncoder.com/blog/blog.html) -- Blog with lots of Jackson-specific content
 * [Jackson Users](http://jackson-users.ning.com) is a Jackson-specific discussion forum
+
+### Note on reporting Bugs
+
+Jackson bugs need to be reported against component they affect: for this reason, issue tracker
+is not enabled for this project.
+If you are unsure which specific project issue affects, the most likely component
+is `jackson-databind`, so you would use
+[Jackson Databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues).
 
 ### Paperwork
 
