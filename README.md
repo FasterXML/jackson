@@ -1,7 +1,16 @@
 ## Jackson Project Home @github
 
-This will the portal page for Jackson Project, at github.
-It shall contain links to all active Jackson projects owned by Jackson project team;
+This will the portal page for Jackson Project.
+Jackson is a suite of data-processing tools for Java (and JVM platform),
+including the flagship [JSON](https://en.wikipedia.org/wiki) parsing and generation library,
+as well as additional modules to process data encoded
+[XML](https://github.com/FasterXML/jackson-dataformat-xml),
+[CSV](https://github.com/FasterXML/jackson-dataformat-csv),
+[YAML](https://github.com/FasterXML/jackson-dataformat-yaml),
+[Smile](https://github.com/FasterXML/jackson-dataformat-smile) or
+[CBOR](https://github.com/FasterXML/jackson-dataformat-cbor).
+
+Portal shall contain links to all active Jackson projects owned by Jackson project team;
 as well as additional links to external resources.
 
 ### NOTE on reporting Bugs
