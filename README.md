@@ -94,22 +94,34 @@ And in addition there are other data format modules, provided by developers outs
 
 * [Scala](https://github.com/FasterXML/jackson-module-scala) to handle native Scala types (including but not limited to Scala collection/map types, case classes)
 
-### Other, stable
+### Other modules, stable
 
 Other fully usable modules by FasterXML team include:
 
-* [Afterburner](https://github.com/FasterXML/jackson-module-afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection
-* [JAXB Annotations](https://github.com/FasterXML/jackson-module-jaxb-annotations): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
-* [JSON Schema generator](https://github.com/FasterXML/jackson-module-jsonSchema): Generate JSON Schema, based on Jackson POJO introspection, including annotations
-* [Mr Bean](https://github.com/FasterXML/jackson-module-mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
-* [Paranamer](https://github.com/FasterXML/jackson-module-paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
+* [Afterburner](../../../jackson-module-afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection
+* [JAXB Annotations](../../../jackson-module-jaxb-annotations): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
+* [JSON Schema generator](../../../jackson-module-jsonSchema): Generate JSON Schema, based on Jackson POJO introspection, including annotations
+* [Mr Bean](../../../jackson-module-mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
+* [Paranamer](../../../jackson-module-paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
 
-### Other, experimental
+### Other modules, experimental
 
 And finally, there are other still experimental modules provided by FasterXML team
 
-* [Guice](https://github.com/FasterXML/jackson-module-guice): extension that allows injection values from Guice injectors (and basic Guice annotations), instead of standard `@JacksonInject` (or in addition to)
+* [Guice](../../../jackson-module-guice): extension that allows injection values from Guice injectors (and basic Guice annotations), instead of standard `@JacksonInject` (or in addition to)
     * note: as of 2.2.x, this is in proof-of-concept stage; should become stable for 2.3
+* [JDK 8 Parameter names](../../../jackson-module-parameter-names): Module that adds support for using a new JDK8 feature: ability to access names of constructor and method parameters.
+
+### Jackson jr
+
+While [Jackson databind](../../../jackson-databind) is a good choice for general-purpose data-binding, its
+footprint and startup overhead may be problematic in some domains, such as mobile phones; and especially
+for light usage (couple of reads or writes). In addition, some developers find full Jackson API overwhelming.
+
+For all these reasons, we decided to create a much simpler, smaller library, which supports a subset of
+functionality, called [Jackson jr](../../../jackson-jr).
+It builds on [Jackson Streaming API](../../../jackson-core), but does not depend on databind. As a result
+its size (both jar, and runtime memory usage) is considerably smaller; and its API is very compact.
 
 ## Documentation
 
