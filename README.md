@@ -58,7 +58,6 @@ serializers and deserializers so that Jackson `databind` package (`ObjectMapper`
 * [JSR-310](../../../jackson-datatype-jsr310): support for "Java 8 Dates" -- experimental, until Java 8 is finalized
 * [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
 * [JDK7](../../../jackson-datatype-jdk7): support for JDK 7 data types not included in previous versions
-* [JDK8](../../../jackson-datatype-jdk8): support for JDK 8 data types not included in previous versions
 
 ### Providers for JAX-RS
 
