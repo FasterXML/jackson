@@ -21,7 +21,7 @@ Jackson suite has two major branches: 1.x is in maintenance mode, and only bug-f
 
 The latest stable versions from these branches are:
 
-* 2.3.2, released 01-Mar-2014
+* 2.4.1, released 17-Jun-2014
 * 1.9.13, released 14-Jul-2013
 
 Recommended way to use Jackson is via Maven; releases are made to Central Maven Repository (CMR).
