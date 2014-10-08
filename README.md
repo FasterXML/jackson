@@ -10,7 +10,7 @@ as well as additional modules to process data encoded in
 [Smile](https://github.com/FasterXML/jackson-dataformat-smile),
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
 or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml)
-(and list of supported format is still growing!)
+(and list of supported format is still growing -- see additional experimental/external projects listed below!)
 
 Portal shall contain links to all active Jackson projects owned by Jackson project team;
 as well as additional links to external resources.
@@ -21,7 +21,7 @@ Jackson suite has two major branches: 1.x is in maintenance mode, and only bug-f
 
 The latest stable versions from these branches are:
 
-* 2.4.1, released 17-Jun-2014
+* 2.4.3, released 04-Oct-2014
 * 1.9.13, released 14-Jul-2013
 
 Recommended way to use Jackson is via Maven; releases are made to Central Maven Repository (CMR).
