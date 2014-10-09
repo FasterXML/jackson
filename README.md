@@ -55,10 +55,10 @@ serializers and deserializers so that Jackson `databind` package (`ObjectMapper`
 * [HPPC](../../../jackson-datatype-hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
 * [Joda](../../../jackson-datatype-joda): support for types of [Joda](http://joda-time.sourceforge.net/) date/time library datatypes
 * [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
-* [JSR-310](../../../jackson-datatype-jsr310): support for "Java 8 Dates"
+* [JSR-310](../../../jackson-datatype-jsr310): support for "Java 8 Dates" (ones added in JDK 8)
 * [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
 * [JDK7](../../../jackson-datatype-jdk7): support for JDK 7 data types not included in previous versions
-* [JDK8](../../../jackson-datatype-jdk8): support for JDK 8 data types not included in previous versions, including `Optional`
+* [JDK8](../../../jackson-datatype-jdk8): support for JDK 8 data types not included in previous versions, including `Optional` (but excluding new Date types which are in JSR-310 module above)
 
 ### Providers for JAX-RS
 
