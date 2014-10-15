@@ -92,6 +92,7 @@ There are also other data format modules, provided by developers outside Jackson
 
 ### JVM Language modules
 
+* [Kotlin](https://github.com/FasterXML/jackson-module-kotlin) to handle native types of [Kotlin](http://kotlinlang.org/) (NOTE: 2.4.3 the first official release)
 * [Scala](https://github.com/FasterXML/jackson-module-scala) to handle native Scala types (including but not limited to Scala collection/map types, case classes)
 
 ### Other modules, stable
