@@ -95,13 +95,22 @@ There are also other data format modules, provided by developers outside Jackson
 * [Kotlin](https://github.com/FasterXML/jackson-module-kotlin) to handle native types of [Kotlin](http://kotlinlang.org/) (NOTE: 2.4.3 the first official release)
 * [Scala](https://github.com/FasterXML/jackson-module-scala) to handle native Scala types (including but not limited to Scala collection/map types, case classes)
 
+### Support for Schemas
+
+Jackson annotations define intended properties and expected handling for POJOs, and in addition to Jackson itself
+using this for reading/writing JSON and other formats, it also allows generation of external schemas.
+Some of this functionality is included in above-mentioned data-format extensions; but there are also
+many stand-alone Schema tools, such as:
+
+* [Ember Schema Generator](../../../../marcus-nl/ember-schema-generator): Generate schemas for [Ember.js](https://github.com/emberjs/ember.js)
+* [JSON Schema generator](../../../jackson-module-jsonSchema): Generate JSON Schema, based on Jackson POJO introspection, including annotations
+
 ### Other modules, stable
 
 Other fully usable modules by FasterXML team include:
 
 * [Afterburner](../../../jackson-module-afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection
 * [JAXB Annotations](../../../jackson-module-jaxb-annotations): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
-* [JSON Schema generator](../../../jackson-module-jsonSchema): Generate JSON Schema, based on Jackson POJO introspection, including annotations
 * [Mr Bean](../../../jackson-module-mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
 * [Paranamer](../../../jackson-module-paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
 
