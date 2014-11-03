@@ -1,6 +1,6 @@
 ## Jackson Project Home @github
 
-This will the portal page for Jackson Project.
+This will be the portal page for Jackson Project.
 Jackson is a suite of data-processing tools for Java (and JVM platform),
 including the flagship [JSON](https://en.wikipedia.org/wiki/JSON) parsing and generation library,
 as well as additional modules to process data encoded in
