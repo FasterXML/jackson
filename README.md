@@ -54,12 +54,13 @@ serializers and deserializers so that Jackson `databind` package (`ObjectMapper`
 * [Hibernate](../../../jackson-datatype-hibernate): support for Hibernate features (lazy-loading, proxies)
 * [HPPC](../../../jackson-datatype-hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
 * [Joda](../../../jackson-datatype-joda): support for types of [Joda](http://joda-time.sourceforge.net/) date/time library datatypes
-* [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
+* [JDK7](../../../jackson-datatype-jdk7): support for JDK 7 data types not included in previous versions
+* [JDK8](../../../jackson-datatype-jdk8): support for JDK 8 data types not included in previous versions, including `Optional` (but excluding new Date types which are in JSR-310 module above)
 * [JSR-310](../../../jackson-datatype-jsr310): support for "Java 8 Dates" (ones added in JDK 8)
     * Also, for pre-Java8 users can use ["ThreeTen"](https://github.com/lldata/jackson-datatype-threetenbp) module for backport on Java7
 * [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
-* [JDK7](../../../jackson-datatype-jdk7): support for JDK 7 data types not included in previous versions
-* [JDK8](../../../jackson-datatype-jdk8): support for JDK 8 data types not included in previous versions, including `Optional` (but excluding new Date types which are in JSR-310 module above)
+* [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
+* [Yandex Bolts](https://github.com/v1ctor/jackson-datatype-bolts) support for reading/writing types defined by [Yandex Bolts](https://bitbucket.org/stepancheg/bolts/wiki/Home) collection types (Functional Programming inspired immutable collections)
 
 ### Providers for JAX-RS
 
