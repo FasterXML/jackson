@@ -87,6 +87,7 @@ There are also other data format modules, provided by developers outside Jackson
 
 * [bson4jackson](https://github.com/michel-kraemer/bson4jackson): adds support for [BSON](http://en.wikipedia.org/wiki/BSON) data format (by Mongo project).
     * Implemented as full streaming implementation, which allows full access (streaming, data-binding, tree-model)
+    * Also see [MongoJack] library below; while not a dataformat module, it allows access to BDON data as well.
 * [MessagePack](https://github.com/komamitsu/jackson-dataformat-msgpack): adds [MessagePack](http://en.wikipedia.org/wiki/MessagePack) (aka `MsgPack`) support
     * Implemented as full streaming implementation, which allows full access (streaming, data-binding, tree-model)
 * [HOCON](https://github.com/jclawson/jackson-dataformat-hocon): experimental, partial implementation to support [HOCON](https://github.com/typesafehub/config) format -- work in progress
@@ -133,6 +134,10 @@ For all these reasons, we decided to create a much simpler, smaller library, whi
 functionality, called [Jackson jr](../../../jackson-jr).
 It builds on [Jackson Streaming API](../../../jackson-core), but does not depend on databind. As a result
 its size (both jar, and runtime memory usage) is considerably smaller; and its API is very compact.
+
+### Third-party non-module libraries based on Jackson
+
+* [MongoJack](http://mongojack.org/) supports efficient handling of [BSON](http://en.wikipedia.org/wiki/BSON) encoded data store in [MongoDB](http://en.wikipedia.org/wiki/MongoDB).
 
 ## Documentation
 
