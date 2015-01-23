@@ -83,11 +83,20 @@ Currently following data format modules are fully usable and supported:
 * [XML](../../../jackson-dataformat-xml): supports XML; provides both `streaming` and `databind` implementations. Similar to JAXB' "code-first" mode (no support for "XML Schema first", but can use JAXB beans)
 * [YAML](../../../jackson-dataformat-yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
 
+In addition, following modules are being developed, but not yet complete:
+
+* [Protobuf](../../../jackson-dataformat-profobuf): will eventually be supported similar to `Avro`. Current state as of January 2015 is:
+    * `protoc` (schema) handling works, using Square's [Protoparser](https://github.com/square/protoparser) library
+    * Serialization works, and is very fast (similar to the official Google Java protobuf project)
+    * Deserialization not yet implemented -- plan is to complete this by version 2.6
+
+https://www.linkedin.com/groups/Can-anyone-recommend-good-Java-50472.S.226644043
+
 There are also other data format modules, provided by developers outside Jackson core team:
 
 * [bson4jackson](https://github.com/michel-kraemer/bson4jackson): adds support for [BSON](http://en.wikipedia.org/wiki/BSON) data format (by Mongo project).
     * Implemented as full streaming implementation, which allows full access (streaming, data-binding, tree-model)
-    * Also see [MongoJack] library below; while not a dataformat module, it allows access to BDON data as well.
+    * Also see [MongoJack] library below; while not a dataformat module, it allows access to BSON data as well.
 * [MessagePack](https://github.com/komamitsu/jackson-dataformat-msgpack): adds [MessagePack](http://en.wikipedia.org/wiki/MessagePack) (aka `MsgPack`) support
     * Implemented as full streaming implementation, which allows full access (streaming, data-binding, tree-model)
 * [HOCON](https://github.com/jclawson/jackson-dataformat-hocon): experimental, partial implementation to support [HOCON](https://github.com/typesafehub/config) format -- work in progress
@@ -160,6 +169,16 @@ is `jackson-databind`, so you would use
 ### Paperwork
 
 * Jackson [Contributor License Agreement](../../blob/master/contributor-agreement.pdf) (CLA) is a one-page document we need from every contributor of code (we will request it for pull requests)
+
+### Java JSON library comparisons
+
+Since you probably want opinions by Java developers NOT related to Jackson project, regarding which library to use,
+here are links to some of existing independent comparisons:
+
+* [Top 7 Open-Source JSON-binding providers](http://www.developer.com/lang/jscript/top-7-open-source-json-binding-providers-available-today.html) (April 2014)
+* [Be a Lazy but a Productive Android Developer, Part 3: JSON Parsing Library](http://java.dzone.com/articles/be-lazy-productive-android] (April 2014)
+* ["Can anyone recommend a good Java JSON library"](https://www.linkedin.com/groups/Can-anyone-recommend-good-Java-50472.S.226644043) (Linked-In group) (March 2013)
+* ["Which JSON library to use on Android?"](http://thetarah.com/2012/09/21/which-json-library-should-i-use-in-my-android-and-java-projects/) (September 2012) 
 
 ### Older resources
 
