@@ -147,6 +147,12 @@ its size (both jar, and runtime memory usage) is considerably smaller; and its A
 
 ### Third-party non-module libraries based on Jackson
 
+#### Jackson helper libraries
+
+* [Jackson Ant path filter](https://github.com/Antibrumm/jackson-antpathfilter) adds powerful filtering of properties to serialize, using Ant Path notation for hierarchic filtering
+
+#### Support for datatypes
+
 * [MongoJack](http://mongojack.org/) supports efficient handling of [BSON](http://en.wikipedia.org/wiki/BSON) encoded data store in [MongoDB](http://en.wikipedia.org/wiki/MongoDB).
 
 ## Documentation
