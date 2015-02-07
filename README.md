@@ -30,7 +30,7 @@ Jackson suite has two major branches: 1.x is in maintenance mode, and only bug-f
 The latest stable versions from these branches are:
 
 * [2.4.4](../../wiki/Jackson-Release-2.4.4), released 25-Nov-2014
-* [1.9.13], released 14-Jul-2013
+* [1.9.13](wiki.fasterxml.com/JacksonRelease19), released 14-Jul-2013
 
 Recommended way to use Jackson is via Maven; releases are made to Central Maven Repository (CMR).
 Individual project pages typically contain download links, leading to CMR.
