@@ -1,19 +1,27 @@
 ## Jackson Project Home @github
 
-This will be the portal page for Jackson Project.
-Jackson is a suite of data-processing tools for Java (and JVM platform),
-including the flagship [JSON](https://en.wikipedia.org/wiki/JSON) parsing and generation library,
-as well as additional modules to process data encoded in
+This is the Home Page of Jackson Project; formerly known as the standard JSON library for Java
+(or JVM plaform in general), or, as the "best JSON parser for Java".
+
+But more than that, Jackson is a suite of data-processing tools for Java (and JVM platform),
+including the flagship [JSON](https://en.wikipedia.org/wiki/JSON) parser / generator library,
+the matching data-binding library (POJOs to and from JSON)
+as well as additional data format modules to process data encoded in
 [Avro](https://github.com/FasterXML/jackson-dataformat-avro),
 [CBOR](https://github.com/FasterXML/jackson-dataformat-cbor),
 [CSV](https://github.com/FasterXML/jackson-dataformat-csv),
 [Smile](https://github.com/FasterXML/jackson-dataformat-smile),
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
-or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml)
-(and list of supported format is still growing -- see additional experimental/external projects listed below!)
+or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml);
+and even large set of data format modules to support data types of widely used
+data types such as [Joda](../../jackson-dataformat-joda), [Guava](../../jackson-dataformat-guava] and
+many more.
 
-Portal shall contain links to all active Jackson projects owned by Jackson project team;
-as well as additional links to external resources.
+While the actual core components live under their own projects -- including the 3 core packages
+([streaming](../../jackson-core), [databind](../../jackson-databind), [annotations](../../jackson-annotations),
+data format libraries, data type libraries, [JAX-RS provider](../../jackson-jaxrs-providers),
+and miscellaneous set of other extension modules -- this project act as the central hub
+for linking all the pieces together.
 
 ## Actively developed versions
 
