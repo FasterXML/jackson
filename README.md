@@ -1,7 +1,7 @@
 ## Jackson Project Home @github
 
 This is the Home Page of Jackson Project; formerly known as the standard JSON library for Java
-(or JVM plaform in general), or, as the "best JSON parser for Java".
+(or JVM platform in general), or, as the "best JSON parser for Java".
 
 But more than that, Jackson is a suite of data-processing tools for Java (and JVM platform),
 including the flagship [JSON](https://en.wikipedia.org/wiki/JSON) parser / generator library,
