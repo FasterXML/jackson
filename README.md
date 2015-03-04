@@ -14,12 +14,12 @@ as well as additional data format modules to process data encoded in
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
 or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml);
 and even large set of data format modules to support data types of widely used
-data types such as [Joda](../../jackson-dataformat-joda), [Guava](../../jackson-dataformat-guava) and
+data types such as [Joda](../../../jackson-dataformat-joda), [Guava](../../../jackson-dataformat-guava) and
 many more.
 
 While the actual core components live under their own projects -- including the 3 core packages
-([streaming](../../jackson-core), [databind](../../jackson-databind), [annotations](../../jackson-annotations),
-data format libraries, data type libraries, [JAX-RS provider](../../jackson-jaxrs-providers),
+([streaming](../../../jackson-core), [databind](../../../jackson-databind), [annotations](../../../jackson-annotations),
+data format libraries, data type libraries, [JAX-RS provider](../../../jackson-jaxrs-providers),
 and miscellaneous set of other extension modules -- this project act as the central hub
 for linking all the pieces together.
 
