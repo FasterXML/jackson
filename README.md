@@ -1,19 +1,19 @@
 ## Jackson Project Home @github
 
 This is the Home Page of Jackson Project; formerly known as the standard JSON library for Java
-(or JVM platform in general), or, as the "best JSON parser for Java".
+(or JVM platform in general), or, as the "best JSON parser for Java". Or simply as "JSON for Java".
 
 But more than that, Jackson is a suite of data-processing tools for Java (and JVM platform),
-including the flagship [JSON](https://en.wikipedia.org/wiki/JSON) parser / generator library,
-the matching data-binding library (POJOs to and from JSON)
-as well as additional data format modules to process data encoded in
+including the flagship streaming [JSON](https://en.wikipedia.org/wiki/JSON) parser / generator library,
+matching data-binding library (POJOs to and from JSON)
+and additional data format modules to process data encoded in
 [Avro](https://github.com/FasterXML/jackson-dataformat-avro),
 [CBOR](https://github.com/FasterXML/jackson-dataformat-cbor),
 [CSV](https://github.com/FasterXML/jackson-dataformat-csv),
 [Smile](https://github.com/FasterXML/jackson-dataformat-smile),
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
 or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml);
-and even large set of data format modules to support data types of widely used
+and even the large set of data format modules to support data types of widely used
 data types such as [Joda](../../../jackson-dataformat-joda), [Guava](../../../jackson-dataformat-guava) and
 many more.
 
@@ -25,14 +25,17 @@ for linking all the pieces together.
 
 ## Actively developed versions
 
-Jackson suite has two major branches: 1.x is in maintenance mode, and only bug-fix versions are released; 2.x is the actively developed version. Versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x, without conflicts. This is by design.
+Jackson suite has two major branches: 1.x is in maintenance mode, and only bug-fix versions are released;
+2.x is the actively developed version.
+These two major versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x, without conflicts.
+This is by design and was chosen as the strategy to allow smoother migration from 1.x to 2.x.
 
 The latest stable versions from these branches are:
 
-* [2.4.4](../../wiki/Jackson-Release-2.4.4), released 25-Nov-2014
+* [2.5.2](../../wiki/Jackson-Release-2.5.2), released 30-Mar-2015
 * [1.9.13](wiki.fasterxml.com/JacksonRelease19), released 14-Jul-2013
 
-Recommended way to use Jackson is via Maven; releases are made to Central Maven Repository (CMR).
+Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
 Individual project pages typically contain download links, leading to CMR.
 
 Release notes found from [Jackson Releases](../../wiki/Jackson-Releases) page.
