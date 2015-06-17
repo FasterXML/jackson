@@ -164,6 +164,19 @@ its size (both jar, and runtime memory usage) is considerably smaller; and its A
 
 * [MongoJack](http://mongojack.org/) supports efficient handling of [BSON](http://en.wikipedia.org/wiki/BSON) encoded data store in [MongoDB](http://en.wikipedia.org/wiki/MongoDB).
 
+## Participation
+
+The easiest ways to participate beyond using Jackson is to join one of Jackson mailing lists (Jackson google groups):
+
+* [Jackson Announce](https://groups.google.com/forum/#!forum/jackson-announce): Announcement-only list for new Jackson releases, meetups and other events related to Jackson
+* [Jackson User](https://groups.google.com/forum/#!forum/jackson-user): List dedicated for discussion on Jackson usage
+* [Jackson Dev](https://groups.google.com/forum/#!forum/jackson-dev): List for developers of Jackson core components and modules, discussing implementation details, API changes.
+
+There are other related lists and forums as well:
+
+* [Smile Format Discussion](https://groups.google.com/forum/#!forum/smile-format-discussion): List for discussing details of the binary JSON format called [Smile](https://en.wikipedia.org/wiki/Smile_%28data_interchange_format%29) (see [Smile Specification](http://wiki.fasterxml.com/SmileFormat))
+* [Jackson Users](http://jackson-users.ning.com) is a Jackson-specific discussion forum for usage questions.
+
 ## Documentation
 
 ### Web sites
@@ -171,7 +184,6 @@ its size (both jar, and runtime memory usage) is considerably smaller; and its A
 * [jackson-docs](../../../jackson-docs) is our Github Jackson documentation hub
 * [Jackson Wiki](http://wiki.fasterxml.com/JacksonHome) contains older documentation (some 1.x specific; but mostly relevant for both 1.x and 2.x)
 * [CowTalk](http://cowtowncoder.com/blog/blog.html) -- Blog with lots of Jackson-specific content
-* [Jackson Users](http://jackson-users.ning.com) is a Jackson-specific discussion forum
 
 ### Note on reporting Bugs
 
@@ -199,5 +211,4 @@ here are links to some of existing independent comparisons:
 
 These are obsolete resources, mostly useful for historical interest:
 
-* [Old Jackson project home](http://jackson.codehaus.org)
-
+- NONE -
