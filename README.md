@@ -195,7 +195,11 @@ is `jackson-databind`, so you would use
 
 ### Paperwork
 
-* Jackson [Contributor License Agreement](../../blob/master/contributor-agreement.pdf) (CLA) is a one-page document we need from every contributor of code (we will request it for pull requests)
+* Contributor License Agreement, needed by core team to accept contributions. There are 2 options:
+    * Standard Jackson [Contributor License Agreement](../../blob/master/contributor-agreement.pdf) (CLA) is a one-page document we need from every contributor of code (we will request it for pull requests), used mostly by individual contributors
+    * [Corporate CLA](../../blob/contributor-agreement-corporate.txt) is used by Corporations to avoid individual employees from having to send separate CLAs; it is also favored by corporate IP lawyers.
+
+Note that the first option is available for corporations as well, but most companies have opted to use the second option instead. Core team has no preference over which one gets used; both work; we care more about actual contributions.
 
 ### Java JSON library comparisons
 
