@@ -14,7 +14,7 @@ and additional data format modules to process data encoded in
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
 or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml);
 and even the large set of data format modules to support data types of widely used
-data types such as [Joda](../../../jackson-dataformat-joda), [Guava](../../../jackson-dataformat-guava) and
+data types such as [Joda](../../../jackson-datatype-joda), [Guava](../../../jackson-datatype-guava) and
 many more.
 
 While the actual core components live under their own projects -- including the 3 core packages
@@ -96,7 +96,7 @@ Currently following data format modules are fully usable and supported:
 
 In addition, following modules are being developed, but not yet complete:
 
-* [Protobuf](../../../jackson-dataformat-profobuf): will eventually be supported similar to `Avro`. Current state as of June 2015 is:
+* [Protobuf](../../../jackson-dataformat-protobuf): will eventually be supported similar to `Avro`. Current state as of June 2015 is:
     * `protoc` (schema) handling works, using Square's [Protoparser](https://github.com/square/protoparser) library
     * Serialization works, and is very fast (similar to the official Google Java protobuf project)
     * Deserialization also works, speed reasonable (faster than JSON, similar to Smile)
@@ -197,7 +197,7 @@ is `jackson-databind`, so you would use
 
 * Contributor License Agreement, needed by core team to accept contributions. There are 2 options:
     * Standard Jackson [Contributor License Agreement](../../blob/master/contributor-agreement.pdf) (CLA) is a one-page document we need from every contributor of code (we will request it for pull requests), used mostly by individual contributors
-    * [Corporate CLA](../../blob/contributor-agreement-corporate.txt) is used by Corporations to avoid individual employees from having to send separate CLAs; it is also favored by corporate IP lawyers.
+    * [Corporate CLA](../../blob/master/contributor-agreement-corporate.txt) is used by Corporations to avoid individual employees from having to send separate CLAs; it is also favored by corporate IP lawyers.
 
 Note that the first option is available for corporations as well, but most companies have opted to use the second option instead. Core team has no preference over which one gets used; both work; we care more about actual contributions.
 
