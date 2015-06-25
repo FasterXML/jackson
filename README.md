@@ -14,7 +14,7 @@ and additional data format modules to process data encoded in
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
 or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml);
 and even the large set of data format modules to support data types of widely used
-data types such as [Joda](../jackson-datatype-joda), [Guava](../jackson-datatype-guava) and
+data types such as [Joda](../../../jackson-datatype-joda), [Guava](../../jackson-datatype-guava) and
 many more.
 
 While the actual core components live under their own projects -- including the 3 core packages
