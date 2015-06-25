@@ -96,7 +96,7 @@ Currently following data format modules are fully usable and supported:
 
 In addition, following modules are being developed, but not yet complete:
 
-* [Protobuf](../../../jackson-dataformat-profobuf): will eventually be supported similar to `Avro`. Current state as of June 2015 is:
+* [Protobuf](../../../jackson-dataformat-protobuf): will eventually be supported similar to `Avro`. Current state as of June 2015 is:
     * `protoc` (schema) handling works, using Square's [Protoparser](https://github.com/square/protoparser) library
     * Serialization works, and is very fast (similar to the official Google Java protobuf project)
     * Deserialization also works, speed reasonable (faster than JSON, similar to Smile)
