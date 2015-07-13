@@ -76,17 +76,17 @@ Datatype modules directly maintained by Jackson team are:
 
 In addition, we are aware of additional modules that are not directly maintained by core Jackson team:
 
-* [(Apache) Commons Lang3](https://github.com/bramp/jackson-datatype-commons-lang3) for [Apache Commons v3](https://commons.apache.org/proper/commons-lang/)
-* [javax.money](https://github.com/zalando/jackson-datatype-money)
-* [json-lib](https://github.com/swquinn/jackson-datatype-json-lib) for supporting types defined by "net.sf.json" library (aka "json-lib"
+* [jackson-datatype-bolts](https://github.com/v1ctor/jackson-datatype-bolts) support for reading/writing types defined by [Yandex Bolts](https://bitbucket.org/stepancheg/bolts/wiki/Home) collection types (Functional Programming inspired immutable collections)
+* [jackson-datatype-commons-lang3](https://github.com/bramp/jackson-datatype-commons-lang3) for types of [Apache Commons Lang v3](https://commons.apache.org/proper/commons-lang/)
+* [jackson-datatype-money](https://github.com/zalando/jackson-datatype-money) for "Java Money", see [javax.money](http://javamoney.github.io/api.html)
+* [json-lib](https://github.com/swquinn/jackson-datatype-json-lib) for supporting types defined by "net.sf.json" library (aka "json-lib")
 * [JTS Geometry](https://github.com/bedatadriven/jackson-datatype-jts) for [GeoJSON](https://en.wikipedia.org/wiki/GeoJSON) support
 * [Mongo](https://github.com/commercehub-oss/jackson-datatype-mongo) for MongoDB types
     * NOTE: there are a few alternatives to handling MongoDB datatypes
-* [Objectify](https://github.com/tburch/jackson-module-objectify) for datatypes of [Objectify](http://code.google.com/p/objectify-appengine/)
-* [Protobuf datatype](https://github.com/HubSpot/jackson-datatype-protobuf) for handling datatypes defined by the standard Java protobuf library:
+* [jackson-module-objectify](https://github.com/tburch/jackson-module-objectify) for datatypes of [Objectify](http://code.google.com/p/objectify-appengine/)
+* [Protobuf datatype](https://github.com/HubSpot/jackson-datatype-protobuf) for handling datatypes defined by the standard Java protobuf library, developed by [HubSpot](http://www.hubspot.com/)
     * NOTE! This is different from `jackson-dataformat-protobuf` which adds support for encoding/decoding protobuf content but which does NOT depend on standard Java protobuf library
-* [Vertx JsonObject](https://github.com/Crunc/jackson-datatype-vertx) for reading/writing `org.vertx.java.core.json.JsonObject` objects (repackaged `org.json` node types)
-* [Yandex Bolts](https://github.com/v1ctor/jackson-datatype-bolts) support for reading/writing types defined by [Yandex Bolts](https://bitbucket.org/stepancheg/bolts/wiki/Home) collection types (Functional Programming inspired immutable collections)
+* [jackson-datatype-vertx](https://github.com/Crunc/jackson-datatype-vertx) for reading/writing [Vert.x](http://vertx.io/) `org.vertx.java.core.json.JsonObject` objects (repackaged `org.json` node types)
 
 ### Providers for JAX-RS
 
