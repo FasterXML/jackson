@@ -69,8 +69,10 @@ Datatype modules directly maintained by Jackson team are:
 * [Joda](../../../jackson-datatype-joda): support for types of [Joda](http://joda-time.sourceforge.net/) date/time library datatypes
 * [JDK7](../../../jackson-datatype-jdk7): support for JDK 7 data types not included in previous versions
 * [JDK8](../../../jackson-datatype-jdk8): support for JDK 8 data types not included in previous versions, including `Optional` (but excluding new Date types which are in JSR-310 module above)
-* [JSR-310](../../../jackson-datatype-jsr310): support for "Java 8 Dates" (ones added in JDK 8)
-    * Also, for pre-Java8 users can use ["ThreeTen"](https://github.com/lldata/jackson-datatype-threetenbp) module for backport on Java7
+* [JSR-310 (Java 8 Date)](../../../jackson-datatype-jsr310): support for "Java 8 Dates" (ones added in JDK 8)
+    * Also, for pre-Java8 users can use one of alternate pre-Java8 backports:
+        * [joschi/jackson-datatype-threetenbp](https://github.com/joschi/jackson-datatype-threetenbp)
+        * [lldata/jackson-datatype-threetenbp](https://github.com/lldata/jackson-datatype-threetenbp)
 * [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
 * [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
 
