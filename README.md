@@ -49,7 +49,7 @@ We try to keep versioning of modules compatible to reduce confusion regarding wh
 ### Core modules
 
 Core modules are the foundation on which extensions (modules) build upon.
-These are three and they are known as:
+There are 3 such modules currently (as of Jackson 2.6):
 
 * [Streaming](../../../jackson-core) ([docs](../../../jackson-core/wiki)) ("jackson-core") defines low-level streaming API, and includes JSON-specific implementations
 * [Annotations](../../../jackson-annotations) ([docs](../../../jackson-annotations/wiki)) ("jackson-annotations") contains standard Jackson annotations
@@ -61,6 +61,8 @@ These extensions are plug-in Jackson `Module`s (registered with `ObjectMapper.re
 and add support for datatypes of various commonly used Java libraries, by adding
 serializers and deserializers so that Jackson `databind` package (`ObjectMapper` / `ObjectReader` / `ObjectWriter`) can read and write these types.
 
+Datatype modules directly maintained by Jackson team are:
+
 * [Guava](../../../jackson-datatype-guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
 * [Hibernate](../../../jackson-datatype-hibernate): support for Hibernate features (lazy-loading, proxies)
 * [HPPC](../../../jackson-datatype-hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
@@ -71,6 +73,19 @@ serializers and deserializers so that Jackson `databind` package (`ObjectMapper`
     * Also, for pre-Java8 users can use ["ThreeTen"](https://github.com/lldata/jackson-datatype-threetenbp) module for backport on Java7
 * [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
 * [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
+
+In addition, we are aware of additional modules that are not directly maintained by core Jackson team:
+
+* [(Apache) Commons Lang3](https://github.com/bramp/jackson-datatype-commons-lang3) for [Apache Commons v3](https://commons.apache.org/proper/commons-lang/)
+* [javax.money](https://github.com/zalando/jackson-datatype-money)
+* [json-lib](https://github.com/swquinn/jackson-datatype-json-lib) for supporting types defined by "net.sf.json" library (aka "json-lib"
+* [JTS Geometry](https://github.com/bedatadriven/jackson-datatype-jts) for [GeoJSON](https://en.wikipedia.org/wiki/GeoJSON) support
+* [Mongo](https://github.com/commercehub-oss/jackson-datatype-mongo) for MongoDB types
+    * NOTE: there are a few alternatives to handling MongoDB datatypes
+* [Objectify](https://github.com/tburch/jackson-module-objectify) for datatypes of [Objectify](http://code.google.com/p/objectify-appengine/)
+* [Protobuf datatype](https://github.com/HubSpot/jackson-datatype-protobuf) for handling datatypes defined by the standard Java protobuf library:
+    * NOTE! This is different from `jackson-dataformat-protobuf` which adds support for encoding/decoding protobuf content but which does NOT depend on standard Java protobuf library
+* [Vertx JsonObject](https://github.com/Crunc/jackson-datatype-vertx) for reading/writing `org.vertx.java.core.json.JsonObject` objects (repackaged `org.json` node types)
 * [Yandex Bolts](https://github.com/v1ctor/jackson-datatype-bolts) support for reading/writing types defined by [Yandex Bolts](https://bitbucket.org/stepancheg/bolts/wiki/Home) collection types (Functional Programming inspired immutable collections)
 
 ### Providers for JAX-RS
