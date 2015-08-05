@@ -86,7 +86,7 @@ In addition, we are aware of additional modules that are not directly maintained
 * [Lombok](https://github.com/xebia/jackson-lombok) for better support of [Lombok](http://projectlombok.org/) classes
 * [Mongo](https://github.com/commercehub-oss/jackson-datatype-mongo) for MongoDB types
     * NOTE: there are a few alternatives to handling MongoDB datatypes
-* [jackson-module-objectify](https://github.com/tburch/jackson-module-objectify) for datatypes of [Objectify](http://code.google.com/p/objectify-appengine/)
+* [jackson-module-objectify](https://github.com/tburch/jackson-module-objectify) for datatypes of [Objectify](https://github.com/objectify/objectify)
 * [Protobuf datatype](https://github.com/HubSpot/jackson-datatype-protobuf) for handling datatypes defined by the standard Java protobuf library, developed by [HubSpot](http://www.hubspot.com/)
     * NOTE! This is different from `jackson-dataformat-protobuf` which adds support for encoding/decoding protobuf content but which does NOT depend on standard Java protobuf library
 * [jackson-datatype-vertx](https://github.com/Crunc/jackson-datatype-vertx) for reading/writing [Vert.x](http://vertx.io/) `org.vertx.java.core.json.JsonObject` objects (repackaged `org.json` node types)
