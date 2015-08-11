@@ -1,9 +1,9 @@
 ## Jackson Project Home @github
 
 This is the Home Page of Jackson Project; formerly known as the standard JSON library for Java
-(or JVM platform in general), or, as the "best JSON parser for Java". Or simply as "JSON for Java".
-
-But more than that, Jackson is a suite of data-processing tools for Java (and JVM platform),
+(or JVM platform in general), or, as the "best JSON parser for Java".
+Or simply as "JSON for Java".
+More than that, Jackson is a suite of data-processing tools for Java (and JVM platform),
 including the flagship streaming [JSON](https://en.wikipedia.org/wiki/JSON) parser / generator library,
 matching data-binding library (POJOs to and from JSON)
 and additional data format modules to process data encoded in
@@ -32,7 +32,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.5.4](../../wiki/Jackson-Release-2.5.4), released 09-Jun-2015
+* [2.6.1](../../wiki/Jackson-Release-2.6.1), released 09-Aug-2015
 * [1.9.13](wiki.fasterxml.com/JacksonRelease19), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
