@@ -8,14 +8,16 @@ including the flagship streaming [JSON](https://en.wikipedia.org/wiki/JSON) pars
 matching data-binding library (POJOs to and from JSON)
 and additional data format modules to process data encoded in
 [Avro](https://github.com/FasterXML/jackson-dataformat-avro),
+[BSON](https://github.com/michel-kraemer/bson4jackson),
 [CBOR](https://github.com/FasterXML/jackson-dataformat-cbor),
 [CSV](https://github.com/FasterXML/jackson-dataformat-csv),
 [Smile](https://github.com/FasterXML/jackson-dataformat-smile),
+[Protobuf](https://github.com/FasterXML/jackson-dataformat-protobuf),
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
 or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml);
 and even the large set of data format modules to support data types of widely used
 data types such as [Joda](../../../jackson-datatype-joda), [Guava](../../../jackson-datatype-guava) and
-many more.
+many, many more.
 
 While the actual core components live under their own projects -- including the 3 core packages
 ([streaming](../../../jackson-core), [databind](../../../jackson-databind), [annotations](../../../jackson-annotations),
@@ -151,6 +153,7 @@ Other fully usable modules by FasterXML team include:
 * [Afterburner](../../../jackson-module-afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection
 * [JAXB Annotations](../../../jackson-module-jaxb-annotations): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
 * [Mr Bean](../../../jackson-module-mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
+* [OSGi](../../../jackson-module-osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
 * [Paranamer](../../../jackson-module-paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
 
 ### Other modules, experimental
