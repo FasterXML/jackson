@@ -155,6 +155,7 @@ Other fully usable modules by FasterXML team include:
 * [Mr Bean](../../../jackson-module-mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
 * [OSGi](../../../jackson-module-osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
 * [Paranamer](../../../jackson-module-paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
+* [JDK 8 Parameter names](../../../jackson-module-parameter-names): Module that adds support for using a new JDK8 feature: ability to access names of constructor and method parameters.
 
 ### Other modules, experimental
 
@@ -162,7 +163,6 @@ And finally, there are other still experimental modules provided by FasterXML te
 
 * [Guice](../../../jackson-module-guice): extension that allows injection values from Guice injectors (and basic Guice annotations), instead of standard `@JacksonInject` (or in addition to)
     * note: as of 2.2.x, this is in proof-of-concept stage; should become stable for 2.3
-* [JDK 8 Parameter names](../../../jackson-module-parameter-names): Module that adds support for using a new JDK8 feature: ability to access names of constructor and method parameters.
 
 ### Jackson jr
 
