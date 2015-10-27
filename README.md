@@ -91,6 +91,7 @@ In addition, we are aware of additional modules that are not directly maintained
 * [jackson-module-objectify](https://github.com/tburch/jackson-module-objectify) for datatypes of [Objectify](https://github.com/objectify/objectify)
 * [Protobuf datatype](https://github.com/HubSpot/jackson-datatype-protobuf) for handling datatypes defined by the standard Java protobuf library, developed by [HubSpot](http://www.hubspot.com/)
     * NOTE! This is different from `jackson-dataformat-protobuf` which adds support for encoding/decoding protobuf content but which does NOT depend on standard Java protobuf library
+* [TinyTypes](https://github.com/caligin/tinytypes) module (group id `com.github.caligin.tinytypes`, artifact `tinytypes-jackson`
 * [jackson-datatype-vertx](https://github.com/Crunc/jackson-datatype-vertx) for reading/writing [Vert.x](http://vertx.io/) `org.vertx.java.core.json.JsonObject` objects (repackaged `org.json` node types)
 
 ### Providers for JAX-RS
