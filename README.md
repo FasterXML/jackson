@@ -111,16 +111,11 @@ Currently following data format modules are fully usable and supported:
 * [Avro](../../../jackson-dataformat-avro): supports [Avro](http://en.wikipedia.org/wiki/Apache_Avro) data format, with `streaming` implementation plus additional `databind`-level support for Avro Schemas
 * [CBOR](../../../jackson-dataformat-cbor): supports [CBOR](http://tools.ietf.org/search/rfc7049) data format (a binary JSON variant).
 * [CSV](../../../jackson-dataformat-csv): supports [Comma-separated values](http://en.wikipedia.org/wiki/Comma-separated_values) format -- `streaming` api, with optional convenience `databind` additions
+* [Protobuf](../../../jackson-dataformat-protobuf) (NEW with Jackson 2.6!): supported similar to `Avro`
 * [Smile](../../../jackson-dataformat-smile): supports [Smile (binary JSON)](http://wiki.fasterxml.com/SmileFormatSpec) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
 * [XML](../../../jackson-dataformat-xml): supports XML; provides both `streaming` and `databind` implementations. Similar to JAXB' "code-first" mode (no support for "XML Schema first", but can use JAXB beans)
 * [YAML](../../../jackson-dataformat-yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
 
-In addition, following modules are being developed, but not yet complete:
-
-* [Protobuf](../../../jackson-dataformat-protobuf): will eventually be supported similar to `Avro`. Current state as of June 2015 is:
-    * `protoc` (schema) handling works, using Square's [Protoparser](https://github.com/square/protoparser) library
-    * Serialization works, and is very fast (similar to the official Google Java protobuf project)
-    * Deserialization also works, speed reasonable (faster than JSON, similar to Smile)
 
 There are also other data format modules, provided by developers outside Jackson core team:
 
