@@ -34,7 +34,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.6.1](../../wiki/Jackson-Release-2.6.1), released 09-Aug-2015
+* [2.6.3](../../wiki/Jackson-Release-2.6.3), released 12-Oct-2015
 * [1.9.13](wiki.fasterxml.com/JacksonRelease19), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
