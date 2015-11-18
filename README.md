@@ -94,6 +94,7 @@ In addition, we are aware of additional modules that are not directly maintained
     * NOTE! This is different from `jackson-dataformat-protobuf` which adds support for encoding/decoding protobuf content but which does NOT depend on standard Java protobuf library
 * [TinyTypes](https://github.com/caligin/tinytypes) module (group id `com.github.caligin.tinytypes`, artifact `tinytypes-jackson`)
 * [jackson-datatype-vertx](https://github.com/Crunc/jackson-datatype-vertx) for reading/writing [Vert.x](http://vertx.io/) `org.vertx.java.core.json.JsonObject` objects (repackaged `org.json` node types)
+* [javaslang-jackson](https://github.com/javaslang/javaslang-jackson) for [Javaslang](https://github.com/javaslang/javaslang) support (Feature-rich & self-contained functional programming in Java™ 8 and above)
 
 ### Providers for JAX-RS
 
