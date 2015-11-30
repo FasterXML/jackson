@@ -25,6 +25,21 @@ data format libraries, data type libraries, [JAX-RS provider](../../../jackson-j
 and miscellaneous set of other extension modules -- this project act as the central hub
 for linking all the pieces together.
 
+## On reporting issues
+
+First things first: unless you know what you are doing *DO NOT FILE ISSUES ON THIS REPOSITORY'S ISSUE TRACKER*.
+
+Instead, do one of following:
+
+* For Jackson usage questions (for core components or modules), please use [Jackson-user](https://groups.google.com/forum/#!forum/jackson-user) Google group
+    * or, [StackOverflow](http://stackoverflow.com), `#jackson`
+* For reporting issue on Jackson implementation, report it against one of components
+    * Most commonly issue you have is with [Jackson databind](../../../jackson-databind/issues)
+
+With that the valid use case for *issues for this repository* are:
+    * Changes to this `README.md`, including links, often for adding links to new related projects
+    * Suggestions for new Jackson modules, possibly including transfer of existing github projects under `FasterXML` organization
+
 ## Actively developed versions
 
 Jackson suite has two major branches: 1.x is in maintenance mode, and only bug-fix versions are released;
