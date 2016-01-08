@@ -93,6 +93,7 @@ Datatype modules directly maintained by Jackson team are:
         * [lldata/jackson-datatype-threetenbp](https://github.com/lldata/jackson-datatype-threetenbp)
 * [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
 * [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
+* [PCollections](../../../jackson-datatype-pcollections): support for [PCollections](http://pcollections.org/) datatypes (NEW in Jackson 2.7!)
 
 In addition, we are aware of additional modules that are not directly maintained by core Jackson team:
 
