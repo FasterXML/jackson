@@ -137,6 +137,7 @@ Currently following data format modules are fully usable and supported:
 
 There are also other data format modules, provided by developers outside Jackson core team:
 
+* [BEncode](https://github.com/zsoltm/jackson-dataformat-bencode): support for reading/writing [BEncode](https://en.wikipedia.org/wiki/Bencode) (BitTorrent format) encoded data
 * [bson4jackson](https://github.com/michel-kraemer/bson4jackson): adds support for [BSON](http://en.wikipedia.org/wiki/BSON) data format (by Mongo project).
     * Implemented as full streaming implementation, which allows full access (streaming, data-binding, tree-model)
     * Also see [MongoJack] library below; while not a dataformat module, it allows access to BSON data as well.
