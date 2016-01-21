@@ -80,12 +80,14 @@ serializers and deserializers so that Jackson `databind` package (`ObjectMapper`
 
 Datatype modules directly maintained by Jackson team are:
 
+* [Collections](../../../jackson-datatype-collections) contains:
+    * [HPPC](../../../jackson-datatype-collections/hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
+    * [PCollections](../../../jackson-datatype-collections/pcollections): support for [PCollections](http://pcollections.org/) datatypes (NEW in Jackson 2.7!)
 * [Guava](../../../jackson-datatype-guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
 * [Hibernate](../../../jackson-datatype-hibernate): support for Hibernate features (lazy-loading, proxies)
-* [HPPC](../../../jackson-datatype-hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
 * [Joda](../../../jackson-datatype-joda): support for types of [Joda](http://joda-time.sourceforge.net/) date/time library datatypes
 * [JDK7](../../../jackson-datatype-jdk7): support for JDK 7 data types not included in previous versions
-    * Planned to be deprecated in 2.7, as baseline JDK becomes 7, support to be included in `jackson-databind`
+    * Deprecated in 2.7, as baseline JDK becomes 7, support to be included in `jackson-databind`
 * [JDK8](../../../jackson-datatype-jdk8): support for JDK 8 data types not included in previous versions, including `Optional` (but excluding new Date types which are in JSR-310 module above)
 * [JSR-310 (Java 8 Date)](../../../jackson-datatype-jsr310): support for "Java 8 Dates" (ones added in JDK 8)
     * Also, for pre-Java8 users can use one of alternate pre-Java8 backports:
@@ -93,7 +95,6 @@ Datatype modules directly maintained by Jackson team are:
         * [lldata/jackson-datatype-threetenbp](https://github.com/lldata/jackson-datatype-threetenbp)
 * [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
 * [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
-* [PCollections](../../../jackson-datatype-pcollections): support for [PCollections](http://pcollections.org/) datatypes (NEW in Jackson 2.7!)
 
 In addition, we are aware of additional modules that are not directly maintained by core Jackson team:
 
@@ -117,7 +118,7 @@ In addition, we are aware of additional modules that are not directly maintained
 [Jackson JAX-RS Providers](../../../jackson-jaxrs-providers) has handlers to add dataformat
 support for JAX-RS implementations (like Jersey, RESTeasy, CXF).
 Providers implement `MessageBodyReader` and `MessageBodyWriter`.
-Supported formats currently include `JSON`, `Smile`, `XML` and `CBOR`.
+Supported formats currently include `JSON`, `Smile`, `XML`, `YAML` and `CBOR`.
 
 ### Data format modules
 
@@ -168,10 +169,11 @@ Other fully usable modules by FasterXML team include:
 
 * [Afterburner](../../../jackson-module-afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection
 * [JAXB Annotations](../../../jackson-module-jaxb-annotations): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
-* [Mr Bean](../../../jackson-module-mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
-* [OSGi](../../../jackson-module-osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
 * [Paranamer](../../../jackson-module-paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
 * [JDK 8 Parameter names](../../../jackson-module-parameter-names): Module that adds support for using a new JDK8 feature: ability to access names of constructor and method parameters.
+* Under [Base Modules](../../../jackson-base-modules)
+    * [Mr Bean](../../../jackson-base-modules/mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
+    * [OSGi](../../../jackson-base-modules/osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
 
 ### Other modules, experimental
 
