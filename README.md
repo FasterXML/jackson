@@ -80,7 +80,7 @@ serializers and deserializers so that Jackson `databind` package (`ObjectMapper`
 
 Datatype modules directly maintained by Jackson team are:
 
-* [Collections](../../../jackson-datatypes-collections) contains:
+* Standard [Collections](../../../jackson-datatypes-collections) datatype modules:
     * [HPPC](../../../jackson-datatypes-collections/tree/master/hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
     * [PCollections](../../../jackson-datatypes-collections/tree/master/pcollections): support for [PCollections](http://pcollections.org/) datatypes (NEW in Jackson 2.7!)
 * [Guava](../../../jackson-datatype-guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
@@ -171,7 +171,7 @@ Other fully usable modules by FasterXML team include:
 * [JAXB Annotations](../../../jackson-module-jaxb-annotations): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
 * [Paranamer](../../../jackson-module-paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
 * [JDK 8 Parameter names](../../../jackson-module-parameter-names): Module that adds support for using a new JDK8 feature: ability to access names of constructor and method parameters.
-* [Base Modules](../../../jackson-modules-base)
+* [Base](../../../jackson-modules-base) modules:
     * [Mr Bean](../../../jackson-modules-base/tree/master/mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
     * [OSGi](../../../jackson-modules-base/tree/master/osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
 
