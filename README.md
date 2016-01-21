@@ -171,9 +171,9 @@ Other fully usable modules by FasterXML team include:
 * [JAXB Annotations](../../../jackson-module-jaxb-annotations): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
 * [Paranamer](../../../jackson-module-paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
 * [JDK 8 Parameter names](../../../jackson-module-parameter-names): Module that adds support for using a new JDK8 feature: ability to access names of constructor and method parameters.
-* Under [Base Modules](../../../jackson-base-modules)
-    * [Mr Bean](../../../jackson-base-modules/mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
-    * [OSGi](../../../jackson-base-modules/osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
+* [Base Modules](../../../jackson-modules-base)
+    * [Mr Bean](../../../jackson--modules-base/mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
+    * [OSGi](../../../jackson-modules-base/osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
 
 ### Other modules, experimental
 
