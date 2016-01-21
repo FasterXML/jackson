@@ -80,9 +80,9 @@ serializers and deserializers so that Jackson `databind` package (`ObjectMapper`
 
 Datatype modules directly maintained by Jackson team are:
 
-* [Collections](../../../jackson-datatype-collections) contains:
-    * [HPPC](../../../jackson-datatype-collections/tree/master/hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
-    * [PCollections](../../../jackson-datatype-collections/tree/master/pcollections): support for [PCollections](http://pcollections.org/) datatypes (NEW in Jackson 2.7!)
+* [Collections](../../../jackson-datatypes-collections) contains:
+    * [HPPC](../../../jackson-datatypes-collections/tree/master/hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
+    * [PCollections](../../../jackson-datatypes-collections/tree/master/pcollections): support for [PCollections](http://pcollections.org/) datatypes (NEW in Jackson 2.7!)
 * [Guava](../../../jackson-datatype-guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
 * [Hibernate](../../../jackson-datatype-hibernate): support for Hibernate features (lazy-loading, proxies)
 * [Joda](../../../jackson-datatype-joda): support for types of [Joda](http://joda-time.sourceforge.net/) date/time library datatypes
