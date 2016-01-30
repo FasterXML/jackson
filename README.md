@@ -35,10 +35,7 @@ Instead, do one of following:
     * or, [StackOverflow](http://stackoverflow.com), `#jackson`
 * For reporting issue on Jackson implementation, report it against one of components
     * Most commonly issue you have is with [Jackson databind](../../../jackson-databind/issues)
-
-With that the valid use case for *issues for this repository* are:
-    * Changes to this `README.md`, including links, often for adding links to new related projects
-    * Suggestions for new Jackson modules, possibly including transfer of existing github projects under `FasterXML` organization
+* For suggestion new ideas try [Jackson Future Ideas](../../../jackson-future-ideas)
 
 ## Actively developed versions
 
