@@ -85,7 +85,7 @@ Datatype modules directly maintained by Jackson team are:
 * [Joda](../../../jackson-datatype-joda): support for types of [Joda](http://joda-time.sourceforge.net/) date/time library datatypes
 * [JDK7](../../../jackson-datatype-jdk7): support for JDK 7 data types not included in previous versions
     * Deprecated in 2.7, as baseline JDK becomes 7, support to be included in `jackson-databind`
-* [JDK8](../../../jackson-datatype-jdk8): support for JDK 8 data types not included in previous versions, including `Optional` (but excluding new Date types which are in JSR-310 module above)
+* [JDK8](../../../jackson-datatype-jdk8): support for JDK 8 data types not included in previous versions, including `Optional` (but excluding new Date types which are in JSR-310 module below)
 * [JSR-310 (Java 8 Date)](../../../jackson-datatype-jsr310): support for "Java 8 Dates" (ones added in JDK 8)
     * Also, for pre-Java8 users can use one of alternate pre-Java8 backports:
         * [joschi/jackson-datatype-threetenbp](https://github.com/joschi/jackson-datatype-threetenbp)
