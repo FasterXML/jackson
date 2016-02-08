@@ -156,9 +156,15 @@ using this for reading/writing JSON and other formats, it also allows generation
 Some of this functionality is included in above-mentioned data-format extensions; but there are also
 many stand-alone Schema tools, such as:
 
-* [Ember Schema Generator](../../../../marcus-nl/ember-schema-generator): Generate schemas for [Ember.js](https://github.com/emberjs/ember.js)
-* [JSON Schema generator](../../../jackson-module-jsonSchema): Generate JSON Schema, based on Jackson POJO introspection, including annotations
+#### JSON Schema
+
+* [Ant Task for JSON Schema Generation](https://github.com/xdarklight/jackson-jsonschema-ant-task): Generate JSON Schemas from your Java classes with Apache Ant using the Jackson library and extension modules.
+* [JSON Schema generator module](../../../jackson-module-jsonSchema): programmatically generate JSON Schema, based on Jackson POJO introspection, including annotations
 * [Maven plug-in](../../../jackson-schema-maven-plugin) for JSON Schema generation (based on JSON Schema module)
+
+#### Other schema languages
+
+* [Ember Schema Generator](../../../../marcus-nl/ember-schema-generator): Generate schemas for [Ember.js](https://github.com/emberjs/ember.js)
 
 ### Other modules, stable
 
@@ -185,10 +191,6 @@ It builds on [Jackson Streaming API](../../../jackson-core), but does not depend
 its size (both jar, and runtime memory usage) is considerably smaller; and its API is very compact.
 
 ### Third-party non-module libraries based on Jackson
-
-#### Build tools, extensions
-
-* [Ant Task for JSON Schema Generation](https://github.com/xdarklight/jackson-jsonschema-ant-task): Easily generate JSON Schemas from your Java classes with Apache Ant using the Jackson library and extension modules.
 
 #### Jackson helper libraries
 
