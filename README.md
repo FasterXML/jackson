@@ -186,6 +186,10 @@ its size (both jar, and runtime memory usage) is considerably smaller; and its A
 
 ### Third-party non-module libraries based on Jackson
 
+#### Build tools, extensions
+
+* [Ant Task for JSON Schema Generation](https://github.com/xdarklight/jackson-jsonschema-ant-task): Easily generate JSON Schemas from your Java classes with Apache Ant using the Jackson library and extension modules.
+
 #### Jackson helper libraries
 
 * [Jackson Ant path filter](https://github.com/Antibrumm/jackson-antpathfilter) adds powerful filtering of properties to serialize, using Ant Path notation for hierarchic filtering
