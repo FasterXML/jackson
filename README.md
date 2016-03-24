@@ -139,7 +139,7 @@ There are also other data format modules, provided by developers outside Jackson
 * [bson4jackson](https://github.com/michel-kraemer/bson4jackson): adds support for [BSON](http://en.wikipedia.org/wiki/BSON) data format (by Mongo project).
     * Implemented as full streaming implementation, which allows full access (streaming, data-binding, tree-model)
     * Also see [MongoJack] library below; while not a dataformat module, it allows access to BSON data as well.
-* [MessagePack](https://github.com/komamitsu/jackson-dataformat-msgpack): adds [MessagePack](http://en.wikipedia.org/wiki/MessagePack) (aka `MsgPack`) support
+* [jackson-dataformat-msgpack](https://github.com/msgpack/msgpack-java/tree/develop/msgpack-jackson) adds support [MessagePack](http://en.wikipedia.org/wiki/MessagePack) (aka `MsgPack`) format
     * Implemented as full streaming implementation, which allows full access (streaming, data-binding, tree-model)
 * [HOCON](https://github.com/jclawson/jackson-dataformat-hocon): experimental, partial implementation to support [HOCON](https://github.com/typesafehub/config) format -- work in progress
 
