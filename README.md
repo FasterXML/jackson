@@ -213,6 +213,10 @@ There are other related lists and forums as well:
 * [Smile Format Discussion](https://groups.google.com/forum/#!forum/smile-format-discussion): List for discussing details of the binary JSON format called [Smile](https://en.wikipedia.org/wiki/Smile_%28data_interchange_format%29) (see [Smile Specification](http://wiki.fasterxml.com/SmileFormat))
 * [Jackson Users](http://jackson-users.ning.com) is a Jackson-specific discussion forum for usage questions.
 
+### Other things related to or inspired by Jackson
+
+* [Pyckson](https://github.com/antidot/Pyckson) is a Python library that aims for same goals as Java Jackson, such as Convention over Configuration
+
 ## Documentation
 
 ### Web sites
