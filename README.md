@@ -1,9 +1,9 @@
 ## Jackson Project Home @github
 
-This is the Home Page of Jackson Project; formerly known as the standard JSON library for Java
-(or JVM platform in general), or, as the "best JSON parser for Java".
-Or simply as "JSON for Java".
-More than that, Jackson is a suite of data-processing tools for Java (and JVM platform),
+This is the home page of the Jackson Project, formerly known as the standard JSON library for Java
+(or JVM platform in general), or, as the "best JSON parser for Java."
+Or simply as "JSON for Java."
+More than that, Jackson is a suite of data-processing tools for Java (and the JVM platform),
 including the flagship streaming [JSON](https://en.wikipedia.org/wiki/JSON) parser / generator library,
 matching data-binding library (POJOs to and from JSON)
 and additional data format modules to process data encoded in
@@ -19,23 +19,23 @@ and even the large set of data format modules to support data types of widely us
 data types such as [Joda](../../../jackson-datatype-joda), [Guava](../../../jackson-datatype-guava) and
 many, many more.
 
-While the actual core components live under their own projects -- including the 3 core packages
-([streaming](../../../jackson-core), [databind](../../../jackson-databind), [annotations](../../../jackson-annotations),
-data format libraries, data type libraries, [JAX-RS provider](../../../jackson-jaxrs-providers),
-and miscellaneous set of other extension modules -- this project act as the central hub
+While the actual core components live under their own projects -- including the three core packages
+([streaming](../../../jackson-core), [databind](../../../jackson-databind), [annotations](../../../jackson-annotations);
+data format libraries; data type libraries; [JAX-RS provider](../../../jackson-jaxrs-providers);
+and a miscellaneous set of other extension modules -- this project act as the central hub
 for linking all the pieces together.
 
 ## On reporting issues
 
-First things first: unless you know what you are doing *DO NOT FILE ISSUES ON THIS REPOSITORY'S ISSUE TRACKER*.
+First things first: unless you know what you are doing, *DO NOT FILE ISSUES ON THIS REPOSITORY'S ISSUE TRACKER*.
 
-Instead, do one of following:
+Instead, do one of the following:
 
-* For Jackson usage questions (for core components or modules), please use [Jackson-user](https://groups.google.com/forum/#!forum/jackson-user) Google group
+* For Jackson usage questions (for core components or modules), please use the [Jackson-user](https://groups.google.com/forum/#!forum/jackson-user) Google group
     * or, [StackOverflow](http://stackoverflow.com), `#jackson`
-* For reporting issue on Jackson implementation, report it against one of components
-    * Most commonly issue you have is with [Jackson databind](../../../jackson-databind/issues)
-* For suggestion new ideas try [Jackson Future Ideas](../../../jackson-future-ideas)
+* For reporting issues on Jackson implementation, report it against one of the components
+    * The most common issue you will have is with [Jackson databind](../../../jackson-databind/issues)
+* For suggestions and new ideas, try [Jackson Future Ideas](../../../jackson-future-ideas)
 
 ## Actively developed versions
 
