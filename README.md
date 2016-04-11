@@ -216,6 +216,7 @@ There are other related lists and forums as well:
 ### Other things related to or inspired by Jackson
 
 * [Pyckson](https://github.com/antidot/Pyckson) is a Python library that aims for same goals as Java Jackson, such as Convention over Configuration
+* [Rackson](https://github.com/griffindy/rackson) is a Ruby library that offers Jackson-like functionality on Ruby platform
 
 ## Documentation
 
