@@ -127,7 +127,8 @@ Currently following data format modules are fully usable and supported:
 * [Avro](../../../jackson-dataformat-avro): supports [Avro](http://en.wikipedia.org/wiki/Apache_Avro) data format, with `streaming` implementation plus additional `databind`-level support for Avro Schemas
 * [CBOR](../../../jackson-dataformat-cbor): supports [CBOR](http://tools.ietf.org/search/rfc7049) data format (a binary JSON variant).
 * [CSV](../../../jackson-dataformat-csv): supports [Comma-separated values](http://en.wikipedia.org/wiki/Comma-separated_values) format -- `streaming` api, with optional convenience `databind` additions
-* [Protobuf](../../../jackson-dataformat-protobuf) (NEW with Jackson 2.6!): supported similar to `Avro`
+* [(Java) Protoperties](../../../jackson-dataformat-properties) (NEW with Jackson 2.7.2!): creating nested structure out of implied notation (dotted by default, configurable), flattening similarly on serialization
+* [Protobuf](../../../jackson-dataformat-protobuf) (NEW with Jackson 2.6): supported similar to `Avro`
 * [Smile](../../../jackson-dataformat-smile): supports [Smile (binary JSON)](http://wiki.fasterxml.com/SmileFormatSpec) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
 * [XML](../../../jackson-dataformat-xml): supports XML; provides both `streaming` and `databind` implementations. Similar to JAXB' "code-first" mode (no support for "XML Schema first", but can use JAXB beans)
 * [YAML](../../../jackson-dataformat-yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
@@ -142,6 +143,7 @@ There are also other data format modules, provided by developers outside Jackson
 * [jackson-dataformat-msgpack](https://github.com/msgpack/msgpack-java/tree/develop/msgpack-jackson) adds support [MessagePack](http://en.wikipedia.org/wiki/MessagePack) (aka `MsgPack`) format
     * Implemented as full streaming implementation, which allows full access (streaming, data-binding, tree-model)
 * [HOCON](https://github.com/jclawson/jackson-dataformat-hocon): experimental, partial implementation to support [HOCON](https://github.com/typesafehub/config) format -- work in progress
+* [Rison](https://github.com/Hronom/jackson-dataformat-rison): Jackson backend to support [Rison](https://github.com/Nanonid/rison))
 
 ### JVM Language modules
 
