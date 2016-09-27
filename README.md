@@ -25,9 +25,11 @@ data format libraries; data type libraries; [JAX-RS provider](../../../jackson-j
 and a miscellaneous set of other extension modules -- this project act as the central hub
 for linking all the pieces together.
 
+A good companion to this README is the [Jackson Project FAQ](../../wiki/FAQ).
+
 ## On reporting issues
 
-First things first: unless you know what you are doing, *DO NOT FILE ISSUES ON THIS REPOSITORY'S ISSUE TRACKER*.
+First things first: unless you know what you are doing, *DO NOT FILE ISSUES ON THE ISSUE TRACKER OF THIS REPO*.
 
 Instead, do one of the following:
 
@@ -46,7 +48,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.7.0](../../wiki/Jackson-Release-2.7), released 10-Dec-2015
+* [2.8.3](../../wiki/Jackson-Release-2.8.3), released 17-Sep-2016
 * [1.9.13](wiki.fasterxml.com/JacksonRelease19), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
