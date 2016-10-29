@@ -12,12 +12,16 @@ and additional data format modules to process data encoded in
 [CBOR](https://github.com/FasterXML/jackson-dataformat-cbor),
 [CSV](https://github.com/FasterXML/jackson-dataformat-csv),
 [Smile](https://github.com/FasterXML/jackson-dataformat-smile),
+[(Java) Properties](https://github.com/FasterXML/jackson-dataformat-properties),
 [Protobuf](https://github.com/FasterXML/jackson-dataformat-protobuf),
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
 or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml);
 and even the large set of data format modules to support data types of widely used
-data types such as [Joda](../../../jackson-datatype-joda), [Guava](../../../jackson-datatype-guava) and
-many, many more.
+data types such as
+[Guava](../../../jackson-datatype-guava),
+[Joda](../../../jackson-datatype-joda),
+[PCollections](../../../jackson-datatypes-collections)
+and many, many more (see below).
 
 While the actual core components live under their own projects -- including the three core packages
 ([streaming](../../../jackson-core), [databind](../../../jackson-databind), [annotations](../../../jackson-annotations);
@@ -48,7 +52,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.8.3](../../wiki/Jackson-Release-2.8.3), released 17-Sep-2016
+* [2.8.4](../../wiki/Jackson-Release-2.8.3), released 14-Oct-2016
 * [1.9.13](wiki.fasterxml.com/JacksonRelease19), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
