@@ -24,7 +24,7 @@ data types such as
 and many, many more (see below).
 
 While the actual core components live under their own projects -- including the three core packages
-([streaming](../../../jackson-core), [databind](../../../jackson-databind), [annotations](../../../jackson-annotations);
+([streaming](../../../jackson-core), [databind](../../../jackson-databind), [annotations](../../../jackson-annotations));
 data format libraries; data type libraries; [JAX-RS provider](../../../jackson-jaxrs-providers);
 and a miscellaneous set of other extension modules -- this project act as the central hub
 for linking all the pieces together.
@@ -52,13 +52,13 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.8.9](../../wiki/Jackson-Release-2.8.9), released 12-June-2017
+* [2.9.0](../../wiki/Jackson-Release-2.9), released on 30-Jul-2017
 * [1.9.13](wiki.fasterxml.com/JacksonRelease19), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
-Individual project pages typically contain download links, leading to CMR.
+Individual projects' wiki pages sometimes also contain direct download links, pointing to CMR.
 
-Release notes found from [Jackson Releases](../../wiki/Jackson-Releases) page.
+Release notes for 2.x releases are found from [Jackson Releases](../../wiki/Jackson-Releases) page.
 
 ## Active Jackson projects
 
@@ -69,7 +69,7 @@ We try to keep versioning of modules compatible to reduce confusion regarding wh
 ### Core modules
 
 Core modules are the foundation on which extensions (modules) build upon.
-There are 3 such modules currently (as of Jackson 2.6):
+There are 3 such modules currently (as of Jackson 2.x):
 
 * [Streaming](../../../jackson-core) ([docs](../../../jackson-core/wiki)) ("jackson-core") defines low-level streaming API, and includes JSON-specific implementations
 * [Annotations](../../../jackson-annotations) ([docs](../../../jackson-annotations/wiki)) ("jackson-annotations") contains standard Jackson annotations
@@ -81,21 +81,23 @@ These extensions are plug-in Jackson `Module`s (registered with `ObjectMapper.re
 and add support for datatypes of various commonly used Java libraries, by adding
 serializers and deserializers so that Jackson `databind` package (`ObjectMapper` / `ObjectReader` / `ObjectWriter`) can read and write these types.
 
-Datatype modules directly maintained by Jackson team are:
+Datatype modules directly maintained by Jackson team are under following Gitgub repositories:
 
 * Standard [Collections](../../../jackson-datatypes-collections) datatype modules:
+    * [Guava](../../../jackson-datatypes-collections/tree/master/guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
     * [HPPC](../../../jackson-datatypes-collections/tree/master/hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
     * [PCollections](../../../jackson-datatypes-collections/tree/master/pcollections): support for [PCollections](http://pcollections.org/) datatypes (NEW in Jackson 2.7!)
-* [Guava](../../../jackson-datatype-guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
 * [Hibernate](../../../jackson-datatype-hibernate): support for Hibernate features (lazy-loading, proxies)
 * [Joda](../../../jackson-datatype-joda): support for types of [Joda](http://joda-time.sourceforge.net/) date/time library datatypes
 * [JDK7](../../../jackson-datatype-jdk7): support for JDK 7 data types not included in previous versions
     * Deprecated in 2.7, as baseline JDK becomes 7, support to be included in `jackson-databind`
-* [JDK8](../../../jackson-datatype-jdk8): support for JDK 8 data types not included in previous versions, including `Optional` (but excluding new Date types which are in JSR-310 module below)
-* [JSR-310 (Java 8 Date)](../../../jackson-datatype-jsr310): support for "Java 8 Dates" (ones added in JDK 8)
-    * Also, for pre-Java8 users can use one of alternate pre-Java8 backports:
-        * [joschi/jackson-datatype-threetenbp](https://github.com/joschi/jackson-datatype-threetenbp)
-        * [lldata/jackson-datatype-threetenbp](https://github.com/lldata/jackson-datatype-threetenbp)
+* [Java 8 Modules](../../../jackson-modules-java8): support or JDK 8 features and datatypes through 3 separate modules
+    * `jackson-module-parameter-names`: Module that adds support for using a new JDK8 feature, ability to access names of constructor and method parameters, to allow omitting `@JsonProperty`.
+    * `jackson-datatype-jsr310`: support for "Java 8 Dates" (ones added in JDK 8)
+        * Also, for pre-Java8 users can use one of alternate pre-Java8 backports:
+            * [joschi/jackson-datatype-threetenbp](https://github.com/joschi/jackson-datatype-threetenbp)
+            * [lldata/jackson-datatype-threetenbp](https://github.com/lldata/jackson-datatype-threetenbp)
+    * `jackson-datatype-jdk8`: support for JDK 8 data types other than date/time types, including `Optional`
 * [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
 * [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
 
@@ -128,13 +130,15 @@ Supported formats currently include `JSON`, `Smile`, `XML`, `YAML` and `CBOR`.
 Data format modules offer support for data formats other than JSON.
 Most of them simply implement `streaming` API abstractions, so that databinding component can be used as is; some offer (and few require) additional `databind` level functionality for handling things like schemas.
 
-Currently following data format modules are fully usable and supported:
+Currently following data format modules are fully usable and supported (version number in parenthesis, if included, is the
+first Jackson 2.x version to include module; if missing, included from 2.0)
 
 * [Avro](../../../jackson-dataformat-avro): supports [Avro](http://en.wikipedia.org/wiki/Apache_Avro) data format, with `streaming` implementation plus additional `databind`-level support for Avro Schemas
 * [CBOR](../../../jackson-dataformat-cbor): supports [CBOR](http://tools.ietf.org/search/rfc7049) data format (a binary JSON variant).
 * [CSV](../../../jackson-dataformat-csv): supports [Comma-separated values](http://en.wikipedia.org/wiki/Comma-separated_values) format -- `streaming` api, with optional convenience `databind` additions
-* [(Java) Properties](../../../jackson-dataformat-properties) (NEW with Jackson 2.7.2!): creating nested structure out of implied notation (dotted by default, configurable), flattening similarly on serialization
-* [Protobuf](../../../jackson-dataformat-protobuf) (NEW with Jackson 2.6): supported similar to `Avro`
+* [Ion](../../../jackson-dataformats-binary/tree/master/ion) (NEW with Jackson 2.9!): support for [Amazon Ion](https://amznlabs.github.io/ion-docs/) binary data format (similar to CBOR, Smile, i.e. binary JSON - like)
+* [(Java) Properties](../../../jackson-dataformat-properties) (2.8): creating nested structure out of implied notation (dotted by default, configurable), flattening similarly on serialization
+* [Protobuf](../../../jackson-dataformat-protobuf) (2.6): supported similar to `Avro`
 * [Smile](../../../jackson-dataformat-smile): supports [Smile (binary JSON)](http://wiki.fasterxml.com/SmileFormatSpec) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
 * [XML](../../../jackson-dataformat-xml): supports XML; provides both `streaming` and `databind` implementations. Similar to JAXB' "code-first" mode (no support for "XML Schema first", but can use JAXB beans)
 * [YAML](../../../jackson-dataformat-yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
@@ -156,7 +160,7 @@ There are also other data format modules, provided by developers outside Jackson
 
 * [Kotlin](https://github.com/FasterXML/jackson-module-kotlin) to handle native types of [Kotlin](http://kotlinlang.org/)
 * [Scala](https://github.com/FasterXML/jackson-module-scala) to handle native Scala types (including but not limited to Scala collection/map types, case classes)
-    * Currently (December 2015) Scala 2.10 and 2.11 supported (2.9 was supported up to Jackson 2.3)
+    * Currently (July 2017) Scala 2.10, 2.11 and 2.12 are supported (2.9 was supported up to Jackson 2.3)
 
 ### Support for Schemas
 
@@ -179,11 +183,10 @@ many stand-alone Schema tools, such as:
 
 Other fully usable modules by FasterXML team include:
 
-* [JAXB Annotations](../../../jackson-module-jaxb-annotations): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
-* [JDK 8 Parameter names](../../../jackson-module-parameter-names): Module that adds support for using a new JDK8 feature: ability to access names of constructor and method parameters.
 * [Base](../../../jackson-modules-base) modules:
     * [Afterburner](../../../jackson-modules-base/tree/master/afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection for field access, method/constructor calls
     * [Guice](../../../jackson-modules-base/tree/master/guice): extension that allows injection values from Guice injectors (and basic Guice annotations), instead of standard `@JacksonInject` (or in addition to)
+    * [JAXB Annotations](../../../jackson-modules-base/tree/master/jackson-module-jaxb-annotations): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
     * [Mr Bean](../../../jackson-modules-base/tree/master/mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
     * [OSGi](../../../jackson-modules-base/tree/master/osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
     * [Paranamer](../../../jackson-modules-base/tree/master/paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
