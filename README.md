@@ -81,7 +81,7 @@ These extensions are plug-in Jackson `Module`s (registered with `ObjectMapper.re
 and add support for datatypes of various commonly used Java libraries, by adding
 serializers and deserializers so that Jackson `databind` package (`ObjectMapper` / `ObjectReader` / `ObjectWriter`) can read and write these types.
 
-Datatype modules directly maintained by Jackson team are under following Gitgub repositories:
+Datatype modules directly maintained by Jackson team are under the following Github repositories:
 
 * Standard [Collections](../../../jackson-datatypes-collections) datatype modules:
     * [Guava](../../../jackson-datatypes-collections/tree/master/guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
