@@ -139,7 +139,7 @@ first Jackson 2.x version to include module; if missing, included from 2.0)
 * [Ion](../../../jackson-dataformats-binary/tree/master/ion) (NEW with Jackson 2.9!): support for [Amazon Ion](https://amznlabs.github.io/ion-docs/) binary data format (similar to CBOR, Smile, i.e. binary JSON - like)
 * [(Java) Properties](../../../jackson-dataformat-properties) (2.8): creating nested structure out of implied notation (dotted by default, configurable), flattening similarly on serialization
 * [Protobuf](../../../jackson-dataformat-protobuf) (2.6): supported similar to `Avro`
-* [Smile](../../../jackson-dataformat-smile): supports [Smile (binary JSON)](http://wiki.fasterxml.com/SmileFormatSpec) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
+* [Smile](../../../jackson-dataformat-smile): supports [Smile (binary JSON)](https://github.com/FasterXML/smile-format-specification) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
 * [XML](../../../jackson-dataformat-xml): supports XML; provides both `streaming` and `databind` implementations. Similar to JAXB' "code-first" mode (no support for "XML Schema first", but can use JAXB beans)
 * [YAML](../../../jackson-dataformat-yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
 
@@ -222,7 +222,7 @@ The easiest ways to participate beyond using Jackson is to join one of Jackson m
 
 There are other related lists and forums as well:
 
-* [Smile Format Discussion](https://groups.google.com/forum/#!forum/smile-format-discussion): List for discussing details of the binary JSON format called [Smile](https://en.wikipedia.org/wiki/Smile_%28data_interchange_format%29) (see [Smile Specification](http://wiki.fasterxml.com/SmileFormat))
+* [Smile Format Discussion](https://groups.google.com/forum/#!forum/smile-format-discussion): List for discussing details of the binary JSON format called [Smile](https://en.wikipedia.org/wiki/Smile_%28data_interchange_format%29) (see [Smile Specification](https://github.com/FasterXML/smile-format-specification))
 * [Jackson Users](http://jackson-users.ning.com) is a Jackson-specific discussion forum for usage questions.
 
 ### Other things related to or inspired by Jackson
@@ -235,7 +235,7 @@ There are other related lists and forums as well:
 ### Web sites
 
 * [jackson-docs](../../../jackson-docs) is our Github Jackson documentation hub
-* [Jackson Wiki](http://wiki.fasterxml.com/JacksonHome) contains older documentation (some 1.x specific; but mostly relevant for both 1.x and 2.x)
+* [Jackson Wiki](https://github.com/FasterXML/jackson/wiki/) contains older documentation (some 1.x specific; but mostly relevant for both 1.x and 2.x)
 * [CowTalk](http://cowtowncoder.com/blog/blog.html) -- Blog with lots of Jackson-specific content
 
 ### Note on reporting Bugs
