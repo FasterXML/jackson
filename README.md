@@ -13,7 +13,7 @@ and additional data format modules to process data encoded in
 [CSV](https://github.com/FasterXML/jackson-dataformat-csv),
 [Smile](https://github.com/FasterXML/jackson-dataformat-smile),
 [(Java) Properties](https://github.com/FasterXML/jackson-dataformat-properties),
-[Protobuf](https://github.com/FasterXML/jackson-dataformat-protobuf),
+[Protobuf](https://github.com/FasterXML/jackson-dataformats-binary/tree/master/protobuf),
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
 or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml);
 and even the large set of data format modules to support data types of widely used
