@@ -7,15 +7,15 @@ More than that, Jackson is a suite of data-processing tools for Java (and the JV
 including the flagship streaming [JSON](https://en.wikipedia.org/wiki/JSON) parser / generator library,
 matching data-binding library (POJOs to and from JSON)
 and additional data format modules to process data encoded in
-[Avro](https://github.com/FasterXML/jackson-dataformat-avro),
+[Avro](https://github.com/FasterXML/jackson-dataformats-binary/blob/master/avro),
 [BSON](https://github.com/michel-kraemer/bson4jackson),
-[CBOR](https://github.com/FasterXML/jackson-dataformat-cbor),
-[CSV](https://github.com/FasterXML/jackson-dataformat-csv),
-[Smile](https://github.com/FasterXML/jackson-dataformat-smile),
-[(Java) Properties](https://github.com/FasterXML/jackson-dataformat-properties),
+[CBOR](https://github.com/FasterXML/jackson-dataformats-binary/blob/master/cbor),
+[CSV](https://github.com/FasterXML/jackson-dataformats-text/blob/master/csv),
+[Smile](https://github.com/FasterXML/jackson-dataformats-binary/tree/master/smile),
+[(Java) Properties](https://github.com/FasterXML/jackson-dataformats-text/blob/master/properties),
 [Protobuf](https://github.com/FasterXML/jackson-dataformats-binary/tree/master/protobuf),
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
-or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml);
+or [YAML](https://github.com/FasterXML/jackson-dataformats-text/blob/master/yaml);
 and even the large set of data format modules to support data types of widely used
 data types such as
 [Guava](../../../jackson-datatype-guava),
