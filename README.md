@@ -171,9 +171,17 @@ many stand-alone Schema tools, such as:
 
 #### JSON Schema
 
-* [Ant Task for JSON Schema Generation](https://github.com/xdarklight/jackson-jsonschema-ant-task): Generate JSON Schemas from your Java classes with Apache Ant using the Jackson library and extension modules.
-* [JSON Schema generator module](../../../jackson-module-jsonSchema): programmatically generate JSON Schema, based on Jackson POJO introspection, including annotations
-* [Maven plug-in](../../../jackson-schema-maven-plugin) for JSON Schema generation (based on JSON Schema module)
+* Build tool plug-ins
+    * [Ant Task for JSON Schema Generation](https://github.com/xdarklight/jackson-jsonschema-ant-task): Generate JSON Schemas from your Java classes with Apache Ant using the Jackson library and extension modules.
+    * [Maven plug-in](../../../jackson-schema-maven-plugin) for JSON Schema generation (based on JSON Schema module)
+* Stand-alone JSON Schema generators
+    * [Java JSON Schema Generator](https://github.com/victools/jsonschema-generator) (supports json schema draft v7!)
+    * [Jackson jsonSchema Generator (Scala)](https://github.com/mbknor/mbknor-jackson-jsonSchema)
+    * [JSON Schema generator module](../../../jackson-module-jsonSchema): programmatically generate JSON Schema, based on Jackson POJO introspection, including annotations (ONLY SUPPORTS json schema v3!!!)
+* Code generators based on JSON Schema
+    * [jsonschema2pojo](https://github.com/joelittlejohn/jsonschema2pojo) - Generate Java types from JSON or JSON Schema
+* JSON Schema validators
+    * [Java JSON Schema validator](https://github.com/java-json-tools/json-schema-validator)
 
 #### Other schema languages
 
