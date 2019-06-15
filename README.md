@@ -7,15 +7,15 @@ More than that, Jackson is a suite of data-processing tools for Java (and the JV
 including the flagship streaming [JSON](https://en.wikipedia.org/wiki/JSON) parser / generator library,
 matching data-binding library (POJOs to and from JSON)
 and additional data format modules to process data encoded in
-[Avro](https://github.com/FasterXML/jackson-dataformat-avro),
+[Avro](https://github.com/FasterXML/jackson-dataformats-binary/blob/master/avro),
 [BSON](https://github.com/michel-kraemer/bson4jackson),
-[CBOR](https://github.com/FasterXML/jackson-dataformat-cbor),
-[CSV](https://github.com/FasterXML/jackson-dataformat-csv),
-[Smile](https://github.com/FasterXML/jackson-dataformat-smile),
-[(Java) Properties](https://github.com/FasterXML/jackson-dataformat-properties),
-[Protobuf](https://github.com/FasterXML/jackson-dataformat-protobuf),
+[CBOR](https://github.com/FasterXML/jackson-dataformats-binary/blob/master/cbor),
+[CSV](https://github.com/FasterXML/jackson-dataformats-text/blob/master/csv),
+[Smile](https://github.com/FasterXML/jackson-dataformats-binary/tree/master/smile),
+[(Java) Properties](https://github.com/FasterXML/jackson-dataformats-text/blob/master/properties),
+[Protobuf](https://github.com/FasterXML/jackson-dataformats-binary/tree/master/protobuf),
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
-or [YAML](https://github.com/FasterXML/jackson-dataformat-yaml);
+or [YAML](https://github.com/FasterXML/jackson-dataformats-text/blob/master/yaml);
 and even the large set of data format modules to support data types of widely used
 data types such as
 [Guava](../../../jackson-datatype-guava),
@@ -52,8 +52,8 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.9.0](../../wiki/Jackson-Release-2.9), released on 30-Jul-2017
-* [1.9.13](wiki.fasterxml.com/JacksonRelease19), released 14-Jul-2013
+* [2.9.9](../../wiki/Jackson-Release-2.9), released on 16-May-2019.
+* [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
 Individual projects' wiki pages sometimes also contain direct download links, pointing to CMR.
@@ -81,7 +81,7 @@ These extensions are plug-in Jackson `Module`s (registered with `ObjectMapper.re
 and add support for datatypes of various commonly used Java libraries, by adding
 serializers and deserializers so that Jackson `databind` package (`ObjectMapper` / `ObjectReader` / `ObjectWriter`) can read and write these types.
 
-Datatype modules directly maintained by Jackson team are under following Gitgub repositories:
+Datatype modules directly maintained by Jackson team are under the following Github repositories:
 
 * Standard [Collections](../../../jackson-datatypes-collections) datatype modules:
     * [Guava](../../../jackson-datatypes-collections/tree/master/guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
@@ -139,7 +139,7 @@ first Jackson 2.x version to include module; if missing, included from 2.0)
 * [Ion](../../../jackson-dataformats-binary/tree/master/ion) (NEW with Jackson 2.9!): support for [Amazon Ion](https://amznlabs.github.io/ion-docs/) binary data format (similar to CBOR, Smile, i.e. binary JSON - like)
 * [(Java) Properties](../../../jackson-dataformat-properties) (2.8): creating nested structure out of implied notation (dotted by default, configurable), flattening similarly on serialization
 * [Protobuf](../../../jackson-dataformat-protobuf) (2.6): supported similar to `Avro`
-* [Smile](../../../jackson-dataformat-smile): supports [Smile (binary JSON)](http://wiki.fasterxml.com/SmileFormatSpec) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
+* [Smile](../../../jackson-dataformat-smile): supports [Smile (binary JSON)](https://github.com/FasterXML/smile-format-specification) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
 * [XML](../../../jackson-dataformat-xml): supports XML; provides both `streaming` and `databind` implementations. Similar to JAXB' "code-first" mode (no support for "XML Schema first", but can use JAXB beans)
 * [YAML](../../../jackson-dataformat-yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
 
@@ -230,7 +230,7 @@ The easiest ways to participate beyond using Jackson is to join one of Jackson m
 
 There are other related lists and forums as well:
 
-* [Smile Format Discussion](https://groups.google.com/forum/#!forum/smile-format-discussion): List for discussing details of the binary JSON format called [Smile](https://en.wikipedia.org/wiki/Smile_%28data_interchange_format%29) (see [Smile Specification](http://wiki.fasterxml.com/SmileFormat))
+* [Smile Format Discussion](https://groups.google.com/forum/#!forum/smile-format-discussion): List for discussing details of the binary JSON format called [Smile](https://en.wikipedia.org/wiki/Smile_%28data_interchange_format%29) (see [Smile Specification](https://github.com/FasterXML/smile-format-specification))
 * [Jackson Users](http://jackson-users.ning.com) is a Jackson-specific discussion forum for usage questions.
 
 ### Other things related to or inspired by Jackson
@@ -243,7 +243,7 @@ There are other related lists and forums as well:
 ### Web sites
 
 * [jackson-docs](../../../jackson-docs) is our Github Jackson documentation hub
-* [Jackson Wiki](http://wiki.fasterxml.com/JacksonHome) contains older documentation (some 1.x specific; but mostly relevant for both 1.x and 2.x)
+* [Jackson Wiki](https://github.com/FasterXML/jackson/wiki/) contains older documentation (some 1.x specific; but mostly relevant for both 1.x and 2.x)
 * [CowTalk](http://cowtowncoder.com/blog/blog.html) -- Blog with lots of Jackson-specific content
 
 ### Note on reporting Bugs
