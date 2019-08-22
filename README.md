@@ -244,7 +244,18 @@ There are other related lists and forums as well:
 
 * [jackson-docs](../../../jackson-docs) is our Github Jackson documentation hub
 * [Jackson Wiki](https://github.com/FasterXML/jackson/wiki/) contains older documentation (some 1.x specific; but mostly relevant for both 1.x and 2.x)
-* [CowTalk](http://cowtowncoder.com/blog/blog.html) -- Blog with lots of Jackson-specific content
+* Blogs
+    * [CowTalk](http://cowtowncoder.com/blog/blog.html) -- Blog with lots of Jackson-specific content
+    * [Cowtowncoder@medium](http://medium.com/@cowtowncoder/) -- More recent blogging about Jackson
+
+### Tutorials
+
+For first-time users there are many good Jackson usage tutorials, including:
+
+* [Baeldung Jackson JSON Tutorial](https://www.baeldung.com/jackson)
+* [Jenkov.com Jackson Tutorial](http://tutorials.jenkov.com/java-json/index.html)
+* [LogicBig.com Jackson Tutorial](https://www.logicbig.com/tutorials/misc/jackson.html)
+* [StudyTrails Jackson Introduction](http://www.studytrails.com/java/json/java-jackson-introduction/)
 
 ### Note on reporting Bugs
 
