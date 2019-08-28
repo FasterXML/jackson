@@ -228,10 +228,13 @@ The easiest ways to participate beyond using Jackson is to join one of Jackson m
 * [Jackson User](https://groups.google.com/forum/#!forum/jackson-user): List dedicated for discussion on Jackson usage
 * [Jackson Dev](https://groups.google.com/forum/#!forum/jackson-dev): List for developers of Jackson core components and modules, discussing implementation details, API changes.
 
+or to chat on
+
+* [Jackson-databind gitter](https://gitter.im/FasterXML/jackson-databind) forum
+
 There are other related lists and forums as well:
 
 * [Smile Format Discussion](https://groups.google.com/forum/#!forum/smile-format-discussion): List for discussing details of the binary JSON format called [Smile](https://en.wikipedia.org/wiki/Smile_%28data_interchange_format%29) (see [Smile Specification](https://github.com/FasterXML/smile-format-specification))
-* [Jackson Users](http://jackson-users.ning.com) is a Jackson-specific discussion forum for usage questions.
 
 ### Other things related to or inspired by Jackson
 
