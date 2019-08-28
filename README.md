@@ -254,6 +254,7 @@ For first-time users there are many good Jackson usage tutorials, including:
 
 * [Baeldung Jackson JSON Tutorial](https://www.baeldung.com/jackson)
 * [Jenkov.com Jackson Tutorial](http://tutorials.jenkov.com/java-json/index.html)
+* [JournalDev Jackson Tutorial](https://www.journaldev.com/2324/jackson-json-java-parser-api-example-tutorial)
 * [LogicBig.com Jackson Tutorial](https://www.logicbig.com/tutorials/misc/jackson.html)
 * [StudyTrails Jackson Introduction](http://www.studytrails.com/java/json/java-jackson-introduction/)
 
