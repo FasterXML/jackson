@@ -18,7 +18,7 @@ and additional data format modules to process data encoded in
 or [YAML](https://github.com/FasterXML/jackson-dataformats-text/blob/master/yaml);
 and even the large set of data format modules to support data types of widely used
 data types such as
-[Guava](../../../jackson-datatype-guava),
+[Guava](../../../jackson-datatypes-collections),
 [Joda](../../../jackson-datatype-joda),
 [PCollections](../../../jackson-datatypes-collections)
 and many, many more (see below).
