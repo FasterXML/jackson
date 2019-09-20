@@ -220,7 +220,30 @@ its size (both jar, and runtime memory usage) is considerably smaller; and its A
 
 * [MongoJack](http://mongojack.org/) supports efficient handling of [BSON](http://en.wikipedia.org/wiki/BSON) encoded data store in [MongoDB](http://en.wikipedia.org/wiki/MongoDB).
 
-## Participation
+#### Other things related to or inspired by Jackson 
+
+* [Pyckson](https://github.com/antidot/Pyckson) is a Python library that aims for same goals as Java Jackson, such as Convention over Configuration 
+* [Rackson](https://github.com/griffindy/rackson) is a Ruby library that offers Jackson-like functionality on Ruby platform 
+
+## Support 
+
+### Community support
+
+Jackson components are supported by the Jackson community: see "Participation, Contribution"
+below for details.
+
+### Commercial support
+
+In addition to free (for all) community support, starting with version 2.10 (released around end of September 2019), [Tidelift](https://tidelift.com) subscriptions are also available for (most)
+Jackson components: links are added to relevant Github repos for easy discovery.
+Tidelift also has tools to find relevant components in your deployments.
+
+The most commonly subscribed component is [jackson-databind](../../../jackson-databind),
+and Tidelift subscription for it can be found [here](https://tidelift.com/subscription/pkg/maven-com-fasterxml-jackson-core-jackson-databind?utm_source=maven-com-fasterxml-jackson-core-jackson-databind&utm_medium=referral&utm_campaign=readme)
+
+## Participation, Contributing
+
+### General
 
 The easiest ways to participate beyond using Jackson is to join one of Jackson mailing lists (Jackson google groups):
 
@@ -236,10 +259,17 @@ There are other related lists and forums as well:
 
 * [Smile Format Discussion](https://groups.google.com/forum/#!forum/smile-format-discussion): List for discussing details of the binary JSON format called [Smile](https://en.wikipedia.org/wiki/Smile_%28data_interchange_format%29) (see [Smile Specification](https://github.com/FasterXML/smile-format-specification))
 
-### Other things related to or inspired by Jackson
+### Reporting security vulnerabilities
 
-* [Pyckson](https://github.com/antidot/Pyckson) is a Python library that aims for same goals as Java Jackson, such as Convention over Configuration
-* [Rackson](https://github.com/griffindy/rackson) is a Ruby library that offers Jackson-like functionality on Ruby platform
+The recommended mechanism for reporting possible security vulnerabilities is to use
+[Tidelift security contact](https://tidelift.com/security); Tidelift will route all reports via
+their system to maintainers of relevant package(s); you will not need to be a Tidelift
+subscriber to file reports.
+
+Alternatively you may also report possible vulnerabilities to `info` at fasterxml dot com
+mailing address. Note that filing an issue to go with report is fine, but if you do that please
+DO NOT include details of security problem in the issue but only in email contact.
+This is important to give us time to provide a patch, if necessary, for the problem.
 
 ## Documentation
 
@@ -248,7 +278,7 @@ There are other related lists and forums as well:
 * [jackson-docs](../../../jackson-docs) is our Github Jackson documentation hub
 * [Jackson Wiki](https://github.com/FasterXML/jackson/wiki/) contains older documentation (some 1.x specific; but mostly relevant for both 1.x and 2.x)
 * Blogs
-    * [CowTalk](http://cowtowncoder.com/blog/blog.html) -- Blog with lots of Jackson-specific content
+    * [CowTalk](http://cowtowncoder.com/blog/blog.html) (deprecated) -- Blog with lots of Jackson-specific content. Not updated since 2013.
     * [Cowtowncoder@medium](http://medium.com/@cowtowncoder/) -- More recent blogging about Jackson
 
 ### Tutorials
