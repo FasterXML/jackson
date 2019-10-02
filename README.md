@@ -229,7 +229,7 @@ its size (both jar, and runtime memory usage) is considerably smaller; and its A
 
 ### Community support
 
-Jackson components are supported by the Jackson community: see "Participation, Contribution"
+Jackson components are supported by the Jackson community: see "Participation, Contributing"
 below for details.
 
 ### Commercial support
@@ -258,6 +258,13 @@ or to chat on
 There are other related lists and forums as well:
 
 * [Smile Format Discussion](https://groups.google.com/forum/#!forum/smile-format-discussion): List for discussing details of the binary JSON format called [Smile](https://en.wikipedia.org/wiki/Smile_%28data_interchange_format%29) (see [Smile Specification](https://github.com/FasterXML/smile-format-specification))
+
+### "New Contributor Friendly" issues
+
+A new (as of October 2019) effort is to try to collect issues that might be particularly good for
+new contributors:
+
+[Issues for New Contributors](https://github.com/FasterXML/jackson/wiki/Issues-For-New-Contributors) (Added for Hacktoberfest 2019)
 
 ### Reporting security vulnerabilities
 
