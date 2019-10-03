@@ -234,8 +234,9 @@ below for details.
 
 ### Commercial support
 
-In addition to free (for all) community support, starting with version 2.10 (released around end of September 2019), [Tidelift](https://tidelift.com) subscriptions are also available for (most)
-Jackson components: links are added to relevant Github repos for easy discovery.
+In addition to free (for all) community support, starting with version 2.10 [Tidelift](https://tidelift.com)
+subscriptions are also available for (most) Jackson components:
+links are added to relevant Github repos for easy discovery.
 Tidelift also has tools to find relevant components in your deployments.
 
 The most commonly subscribed component is [jackson-databind](../../../jackson-databind),
