@@ -52,7 +52,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.9.9](../../wiki/Jackson-Release-2.9), released on 16-May-2019.
+* [2.10.0](../../wiki/Jackson-Release-2.10), released on 26-Sep-2019.
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
