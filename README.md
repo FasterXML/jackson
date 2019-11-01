@@ -229,18 +229,13 @@ its size (both jar, and runtime memory usage) is considerably smaller; and its A
 
 ### Community support
 
-Jackson components are supported by the Jackson community: see "Participation, Contributing"
-below for details.
+Jackson components are supported by the Jackson community through mailing lists, Gitter forum, Github issues. See [Participation, Contributing](#participation-contributing) for full details.
 
-### Commercial support
+### Enterprise support
 
-In addition to free (for all) community support, starting with version 2.10 [Tidelift](https://tidelift.com)
-subscriptions are also available for (most) Jackson components:
-links are added to relevant Github repos for easy discovery.
-Tidelift also has tools to find relevant components in your deployments.
+In addition to free (for all) community support, enterprise support—starting with version 2.10—is available as part of the [Tidelift Subscription](https://tidelift.com?utm_source=maven-com-fasterxml-jackson-core-jackson-core&utm_medium=referral&utm_campaign=enterprise&utm_term=repo) for (most) Jackson components.
 
-The most commonly subscribed component is [jackson-databind](../../../jackson-databind),
-and Tidelift subscription for it can be found [here](https://tidelift.com/subscription/pkg/maven-com-fasterxml-jackson-core-jackson-databind?utm_source=maven-com-fasterxml-jackson-core-jackson-databind&utm_medium=referral&utm_campaign=readme)
+The maintainers of `Jackson` and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/maven-com-fasterxml-jackson-core-jackson-core?utm_source=maven-com-fasterxml-jackson-core-jackson-core&utm_medium=referral&utm_campaign=enterprise&utm_term=repo)
 
 ## Participation, Contributing
 
