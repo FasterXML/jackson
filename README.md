@@ -52,7 +52,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.10.0](../../wiki/Jackson-Release-2.10), released on 26-Sep-2019.
+* [2.11.0](../../wiki/Jackson-Release-2.11), released on 26-Apr-2020.
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
@@ -88,7 +88,9 @@ Datatype modules directly maintained by Jackson team are under the following Git
     * [HPPC](../../../jackson-datatypes-collections/tree/master/hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
     * [PCollections](../../../jackson-datatypes-collections/tree/master/pcollections): support for [PCollections](http://pcollections.org/) datatypes (NEW in Jackson 2.7!)
 * [Hibernate](../../../jackson-datatype-hibernate): support for Hibernate features (lazy-loading, proxies)
-* [Joda](../../../jackson-datatype-joda): support for types of [Joda](http://joda-time.sourceforge.net/) date/time library datatypes
+* Joda datatypes:
+    * [Joda-time](../../../jackson-datatype-joda): support for types of [Joda-Time](https://www.joda.org/joda-time/) date/time library datatypes
+    * [Joda-Money](../../../jackson-datatypes-misc/joda-money): support types of [Joda-Money](https://www.joda.org/joda-money/) datatypes (`Money`, `CurrencyUnit`)
 * [JDK7](../../../jackson-datatype-jdk7): support for JDK 7 data types not included in previous versions
     * Deprecated in 2.7, as baseline JDK becomes 7, support to be included in `jackson-databind`
 * [Java 8 Modules](../../../jackson-modules-java8): support or JDK 8 features and datatypes through 3 separate modules
@@ -98,8 +100,8 @@ Datatype modules directly maintained by Jackson team are under the following Git
             * [joschi/jackson-datatype-threetenbp](https://github.com/joschi/jackson-datatype-threetenbp)
             * [lldata/jackson-datatype-threetenbp](https://github.com/lldata/jackson-datatype-threetenbp)
     * `jackson-datatype-jdk8`: support for JDK 8 data types other than date/time types, including `Optional`
-* [JSR-353](../../../jackson-datatype-jsr353): support for "Java JSON API" types (specifically, its tree model objects)
-* [org.json](../../../jackson-datatype-json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
+* [JSR-353](../../../jackson-datatypes-misc/jsr-353): support for "Java JSON API" types (specifically, its tree model objects)
+* [org.json](../../../jackson-datatypes-misc/json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
 
 In addition, we are aware of additional modules that are not directly maintained by core Jackson team:
 
