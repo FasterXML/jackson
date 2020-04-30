@@ -45,14 +45,14 @@ Instead, do one of the following:
 
 ## Actively developed versions
 
-Jackson suite has two major branches: 1.x is in maintenance mode, and only bug-fix versions are released;
+Jackson suite has two major branches: 1.x is deprecated and no versions are released;
 2.x is the actively developed version.
 These two major versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x, without conflicts.
 This is by design and was chosen as the strategy to allow smoother migration from 1.x to 2.x.
 
 The latest stable versions from these branches are:
 
-* [2.11.0](../../wiki/Jackson-Release-2.11), released on 26-Apr-2020.
+* [2.11.0](../../wiki/Jackson-Release-2.11), released on 26-Apr-2020
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
@@ -85,15 +85,10 @@ Datatype modules directly maintained by Jackson team are under the following Git
 
 * Standard [Collections](../../../jackson-datatypes-collections) datatype modules:
     * [jackson-datatype-eclipse-collections](../../../jackson-datatypes-collections/tree/master/eclipse-collections): support for [Eclipse Collections](https://www.eclipse.org/collections/) (NEW in Jackson 2.10!)
-    * [jackson-datatype-guava](../../../jackson-datatypes-collections/tree/master/guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes.
+    * [jackson-datatype-guava](../../../jackson-datatypes-collections/tree/master/guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes
     * [jackson-datatype-hppc](../../../jackson-datatypes-collections/tree/master/hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
     * [jackson-datatype-pcollections](../../../jackson-datatypes-collections/tree/master/pcollections): support for [PCollections](http://pcollections.org/) datatypes (since Jackson 2.7)
 * [Hibernate](../../../jackson-datatype-hibernate): support for Hibernate features (lazy-loading, proxies)
-* Joda datatypes:
-    * [Joda-time](../../../jackson-datatype-joda): support for types of [Joda-Time](https://www.joda.org/joda-time/) date/time library datatypes
-    * [Joda-Money](../../../jackson-datatypes-misc/joda-money): support types of [Joda-Money](https://www.joda.org/joda-money/) datatypes (`Money`, `CurrencyUnit`)
-* [JDK7](../../../jackson-datatype-jdk7): support for JDK 7 data types not included in previous versions
-    * Deprecated in 2.7, as baseline JDK becomes 7, support to be included in `jackson-databind`
 * [Java 8 Modules](../../../jackson-modules-java8): support or JDK 8 features and datatypes through 3 separate modules
     * `jackson-module-parameter-names`: Module that adds support for using a new JDK8 feature, ability to access names of constructor and method parameters, to allow omitting `@JsonProperty`.
     * `jackson-datatype-jsr310`: support for "Java 8 Dates" (ones added in JDK 8)
@@ -101,8 +96,11 @@ Datatype modules directly maintained by Jackson team are under the following Git
             * [joschi/jackson-datatype-threetenbp](https://github.com/joschi/jackson-datatype-threetenbp)
             * [lldata/jackson-datatype-threetenbp](https://github.com/lldata/jackson-datatype-threetenbp)
     * `jackson-datatype-jdk8`: support for JDK 8 data types other than date/time types, including `Optional`
-* [JSR-353](../../../jackson-datatypes-misc/jsr-353): support for "Java JSON API" types (specifically, its tree model objects)
-* [org.json](../../../jackson-datatypes-misc/json-org): support for "org.json JSON lib" types like `JSONObject`, `JSONArray`
+* Joda datatypes:
+    * [Joda-time](../../../jackson-datatype-joda): support for types of [Joda-Time](https://www.joda.org/joda-time/) date/time library datatypes
+    * [Joda-Money](../../../jackson-datatypes-misc/tree/master/joda-money): support types of [Joda-Money](https://www.joda.org/joda-money/) datatypes (`Money`, `CurrencyUnit`)
+* [JSR-353](../../../jackson-datatypes-misc/jsr-353): support for JSON-P ("Java JSON API") types (specifically its tree model objects)
+* [org.json](../../../jackson-datatypes-misc/json-org): support for "org.json" library types like `JSONObject`, `JSONArray`
 
 In addition, we are aware of additional modules that are not directly maintained by core Jackson team:
 
