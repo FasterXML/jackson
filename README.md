@@ -162,7 +162,7 @@ There are also other data format modules, provided by developers outside Jackson
 
 * [Kotlin](https://github.com/FasterXML/jackson-module-kotlin) to handle native types of [Kotlin](http://kotlinlang.org/)
 * [Scala](https://github.com/FasterXML/jackson-module-scala) to handle native Scala types (including but not limited to Scala collection/map types, case classes)
-    * Currently (July 2017) Scala 2.10, 2.11 and 2.12 are supported (2.9 was supported up to Jackson 2.3)
+    * Currently (April 2020) Scala 2.10, 2.11, 2.12 and 2.13 are supported (2.9 was supported up to Jackson 2.3)
 
 ### Support for Schemas
 
@@ -175,7 +175,6 @@ many stand-alone Schema tools, such as:
 
 * Build tool plug-ins
     * [Ant Task for JSON Schema Generation](https://github.com/xdarklight/jackson-jsonschema-ant-task): Generate JSON Schemas from your Java classes with Apache Ant using the Jackson library and extension modules.
-    * [Maven plug-in](../../../jackson-schema-maven-plugin) for JSON Schema generation (based on JSON Schema module)
 * Stand-alone JSON Schema generators
     * [Java JSON Schema Generator](https://github.com/victools/jsonschema-generator) (supports json schema draft v7!)
     * [Jackson jsonSchema Generator (Scala)](https://github.com/mbknor/mbknor-jackson-jsonSchema)
@@ -225,7 +224,7 @@ its size (both jar, and runtime memory usage) is considerably smaller; and its A
 #### Other things related to or inspired by Jackson 
 
 * [Pyckson](https://github.com/antidot/Pyckson) is a Python library that aims for same goals as Java Jackson, such as Convention over Configuration 
-* [Rackson](https://github.com/griffindy/rackson) is a Ruby library that offers Jackson-like functionality on Ruby platform 
+* [Rackson](https://github.com/griffindy/rackson) is a Ruby library that offers Jackson-like functionality on Ruby platform
 
 ## Support 
 
