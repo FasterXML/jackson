@@ -97,10 +97,10 @@ Datatype modules directly maintained by Jackson team are under the following Git
             * [lldata/jackson-datatype-threetenbp](https://github.com/lldata/jackson-datatype-threetenbp)
     * `jackson-datatype-jdk8`: support for JDK 8 data types other than date/time types, including `Optional`
 * Joda datatypes:
-    * [Joda-time](../../../jackson-datatype-joda): support for types of [Joda-Time](https://www.joda.org/joda-time/) date/time library datatypes
-    * [Joda-Money](../../../jackson-datatypes-misc/tree/master/joda-money): support types of [Joda-Money](https://www.joda.org/joda-money/) datatypes (`Money`, `CurrencyUnit`)
-* [JSR-353](../../../jackson-datatypes-misc/jsr-353): support for JSON-P ("Java JSON API") types (specifically its tree model objects)
-* [org.json](../../../jackson-datatypes-misc/json-org): support for "org.json" library types like `JSONObject`, `JSONArray`
+    * [jackson-datatype-joda](../../../jackson-datatype-joda): support for types of [Joda-Time](https://www.joda.org/joda-time/) date/time library datatypes
+    * [jackson-datatype-joda-money](../../../jackson-datatypes-misc/tree/master/joda-money): support types of [Joda-Money](https://www.joda.org/joda-money/) datatypes (`Money`, `CurrencyUnit`)
+* [jackson-datatype-jsr353](../../../jackson-datatypes-misc/jsr-353): support for JSON-P ("Java JSON API") types (specifically its tree model objects)
+* [jackson-datatype-json-org](../../../jackson-datatypes-misc/json-org): support for [org.json](https://github.com/stleary/JSON-java) library types like `JSONObject`, `JSONArray`
 
 In addition, we are aware of additional modules that are not directly maintained by core Jackson team:
 
@@ -143,7 +143,6 @@ first Jackson 2.x version to include module; if missing, included from 2.0)
 * [Smile](../../../jackson-dataformat-smile): supports [Smile (binary JSON)](https://github.com/FasterXML/smile-format-specification) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
 * [XML](../../../jackson-dataformat-xml): supports XML; provides both `streaming` and `databind` implementations. Similar to JAXB' "code-first" mode (no support for "XML Schema first", but can use JAXB beans)
 * [YAML](../../../jackson-dataformat-yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
-
 
 There are also other data format modules, provided by developers outside Jackson core team:
 
