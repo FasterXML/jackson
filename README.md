@@ -45,7 +45,7 @@ Instead, do one of the following:
 
 ## Actively developed versions
 
-Jackson suite has two major branches: 1.x is deprecated and no versions are released;
+Jackson suite has two major versions: 1.x is deprecated and no versions are released;
 2.x is the actively developed version.
 These two major versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x, without conflicts.
 This is by design and was chosen as the strategy to allow smoother migration from 1.x to 2.x.
@@ -59,6 +59,19 @@ Recommended way to use Jackson is through Maven repositories; releases are made 
 Individual projects' wiki pages sometimes also contain direct download links, pointing to CMR.
 
 Release notes for 2.x releases are found from [Jackson Releases](../../wiki/Jackson-Releases) page.
+
+### Active developed Jackson 2.x branches
+
+Currently Jackson 2.x repositories have following actively developed branches:
+
+* `2.12`: next minor version being developed (as of May 2020)
+* `2.11`: current stable, actively maintained branch from which patch releases are still made
+* `2.10`: previous stable branch, patch releases still made
+* `2.9`: non-active branch from which micro-patch releases (like 2.9.10.5) MAY be made for individual components (`jackson-databind` usually)
+* `master`: next major version, 3.0. Still changing rapidly
+
+Other `2.x` branches exist but no full releases are planned. Micro-patches still possible
+for critical security issues.
 
 ## Active Jackson projects
 
