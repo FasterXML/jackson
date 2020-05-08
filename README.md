@@ -241,38 +241,13 @@ its size (both jar, and runtime memory usage) is considerably smaller; and its A
 
 ### Community support
 
-Jackson components are supported by the Jackson community through mailing lists, Gitter forum, Github issues. See [Participation, Contributing](#participation-contributing) for full details.
+Jackson components are supported by the Jackson community through mailing lists, Gitter forum, Github issues. See [Contributing](CONTRIBUTING.md) for full details.
 
 ### Enterprise support
 
 In addition to free (for all) community support, enterprise support—starting with version 2.10—is available as part of the [Tidelift Subscription](https://tidelift.com?utm_source=maven-com-fasterxml-jackson-core-jackson-core&utm_medium=referral&utm_campaign=enterprise&utm_term=repo) for (most) Jackson components.
 
 The maintainers of `Jackson` and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/maven-com-fasterxml-jackson-core-jackson-core?utm_source=maven-com-fasterxml-jackson-core-jackson-core&utm_medium=referral&utm_campaign=enterprise&utm_term=repo)
-
-## Participation, Contributing
-
-### General
-
-The easiest ways to participate beyond using Jackson is to join one of Jackson mailing lists (Jackson google groups):
-
-* [Jackson Announce](https://groups.google.com/forum/#!forum/jackson-announce): Announcement-only list for new Jackson releases, meetups and other events related to Jackson
-* [Jackson User](https://groups.google.com/forum/#!forum/jackson-user): List dedicated for discussion on Jackson usage
-* [Jackson Dev](https://groups.google.com/forum/#!forum/jackson-dev): List for developers of Jackson core components and modules, discussing implementation details, API changes.
-
-or to chat on
-
-* [Jackson-databind gitter](https://gitter.im/FasterXML/jackson-databind) forum
-
-There are other related lists and forums as well:
-
-* [Smile Format Discussion](https://groups.google.com/forum/#!forum/smile-format-discussion): List for discussing details of the binary JSON format called [Smile](https://en.wikipedia.org/wiki/Smile_%28data_interchange_format%29) (see [Smile Specification](https://github.com/FasterXML/smile-format-specification))
-
-### "New Contributor Friendly" issues
-
-A new (as of October 2019) effort is to try to collect issues that might be particularly good for
-new contributors:
-
-[Issues for New Contributors](https://github.com/FasterXML/jackson/wiki/Issues-For-New-Contributors) (Added for Hacktoberfest 2019)
 
 ### Reporting security vulnerabilities
 
@@ -315,14 +290,6 @@ is not enabled for this project.
 If you are unsure which specific project issue affects, the most likely component
 is `jackson-databind`, so you would use
 [Jackson Databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues).
-
-### Paperwork
-
-* Contributor License Agreement, needed by core team to accept contributions. There are 2 options:
-    * Standard Jackson [Contributor License Agreement](../../blob/master/contributor-agreement.pdf) (CLA) is a one-page document we need from every contributor of code (we will request it for pull requests), used mostly by individual contributors
-    * [Corporate CLA](../../blob/master/contributor-agreement-corporate.txt) is used by Corporations to avoid individual employees from having to send separate CLAs; it is also favored by corporate IP lawyers.
-
-Note that the first option is available for corporations as well, but most companies have opted to use the second option instead. Core team has no preference over which one gets used; both work; we care more about actual contributions.
 
 ### Java JSON library comparisons
 
