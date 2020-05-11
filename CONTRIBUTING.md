@@ -57,7 +57,10 @@ for more information.
 
 ## Testing
 
-TODO
+Jackson's functionality is vast and is used widely, so automated testing for any changes is
+important for preventing accidental breakage in the future.  Tests also document and demonstrate
+the bounds of functionality, showing the author's intent to others working on the code in the
+future.
 
 ## Paperwork
 
