@@ -268,7 +268,8 @@ This is important to give us time to provide a patch, if necessary, for the prob
 ### Web sites
 
 * [jackson-docs](../../../jackson-docs) is our Github Jackson documentation hub
-* [Jackson Wiki](https://github.com/FasterXML/jackson/wiki/) contains older documentation (some 1.x specific; but mostly relevant for both 1.x and 2.x)
+* [Wiki](https://github.com/FasterXML/jackson/wiki/) of this repo contains:
+    * [Jackson Releases](../../wiki/Jackson Releases) [FAQ](../../wiki/FAQ)
 * Blogs
     * [CowTalk](http://cowtowncoder.com/blog/blog.html) (deprecated) -- Blog with lots of Jackson-specific content. Not updated since 2013.
     * [Cowtowncoder@medium](http://medium.com/@cowtowncoder/) -- More recent blogging about Jackson
