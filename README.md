@@ -120,7 +120,7 @@ In addition, we are aware of additional modules that are not directly maintained
 * [jackson-datatype-bolts](https://github.com/v1ctor/jackson-datatype-bolts) support for reading/writing types defined by [Yandex Bolts](https://bitbucket.org/stepancheg/bolts/wiki/Home) collection types (Functional Programming inspired immutable collections)
 * [jackson-datatype-commons-lang3](https://github.com/bramp/jackson-datatype-commons-lang3) for types of [Apache Commons Lang v3](https://commons.apache.org/proper/commons-lang/)
 * [jackson-datatype-money](https://github.com/zalando/jackson-datatype-money) for "Java Money", see [javax.money](http://javamoney.github.io/api.html)
-* [javaslang-jackson](https://github.com/javaslang/javaslang-jackson) for [Javaslang](https://github.com/javaslang/javaslang) support (Feature-rich & self-contained functional programming in Java™ 8 and above)
+* [vavr-jackson](https://github.com/vavr-io/vavr-jackson) for [VAVR](https://github.com/vavr-io/vavr) support (Feature-rich & self-contained functional programming in Java™ 8 and above)
 * [jackson-datatype-json-lib](https://github.com/swquinn/jackson-datatype-json-lib) for supporting types defined by "net.sf.json" library (aka "json-lib")
 * [jackson-datatype-jts](https://github.com/bedatadriven/jackson-datatype-jts) (JTS Geometry) for [GeoJSON](https://en.wikipedia.org/wiki/GeoJSON) support
 * [jackson-lombok](https://github.com/xebia/jackson-lombok) for better support of [Lombok](http://projectlombok.org/) classes
