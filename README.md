@@ -1,8 +1,16 @@
-## Jackson Project Home @github
+# Jackson Project Home @github
 
-This is the home page of the Jackson Project, formerly known as the standard JSON library for Java
-(or JVM platform in general), or, as the "best JSON parser for Java."
-Or simply as "JSON for Java."
+This is the home page of the Jackson Project.
+
+## What is New?
+
+* Oct 1, 2020: Jackson participates in [Hacktoberfest2020](https://hacktoberfest.digitalocean.com/) and we have a [Jackson/Hacktoberfest](https://github.com/FasterXML/Hacktoberfest2020) repo too!
+
+## What is Jackson?
+
+Jackson has been known as "the Java JSON library"
+or "the best JSON parser for Java". Or simply as "JSON for Java".
+
 More than that, Jackson is a suite of data-processing tools for Java (and the JVM platform),
 including the flagship streaming [JSON](https://en.wikipedia.org/wiki/JSON) parser / generator library,
 matching data-binding library (POJOs to and from JSON)
