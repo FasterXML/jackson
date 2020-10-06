@@ -1,12 +1,19 @@
 ## Contributing to Jackson
 
-The easiest ways to participate beyond using Jackson is to join one of Jackson mailing lists (Jackson google groups):
+First of all: we would love to get your contributions, whether they are in form of bug reports,
+Requests for Enhancement (RFE), documentation, or code patches.
+This page lists things that are important to know about contributing to Jackson project repositories.
+
+### Community, Communication
+
+The easiest ways to participate beyond using Jackson is to join one of Jackson mailing lists
+(Jackson google groups):
 
 * [Jackson Announce](https://groups.google.com/forum/#!forum/jackson-announce): Announcement-only list for new Jackson releases, meetups and other events related to Jackson
 * [Jackson User](https://groups.google.com/forum/#!forum/jackson-user): List dedicated for discussion on Jackson usage
 * [Jackson Dev](https://groups.google.com/forum/#!forum/jackson-dev): List for developers of Jackson core components and modules, discussing implementation details, API changes.
 
-or to chat on
+or to join chat on
 
 * [Jackson-databind gitter](https://gitter.im/FasterXML/jackson-databind) forum
 
@@ -17,30 +24,48 @@ There are other related lists and forums as well:
 Note that individual Jackson projects have different maintainers; see the individual project
 README for the list of maintainers of that module.
 
-## "New Contributor Friendly" issues
+### Issue Tracking
 
-A new (as of October 2019) effort is to try to collect issues that might be particularly good for
+#### "New Contributor Friendly" issues
+
+One effort to help new contributors is to try to collect issues that might be particularly good for
 new contributors:
 
 [Issues for New Contributors](https://github.com/FasterXML/jackson/wiki/Issues-For-New-Contributors) (Added for Hacktoberfest 2019)
 
-## Branches
+### Code contributions, related
+
+#### PRs, Bug Reports, RFE ideas
+
+All code contributions are made via Github (as Pull Requests); bug reports, improvements ideas
+and RFEs are handled as Github Issues using per-repository Issue Tracker.
+For example, issues related to Jackson databinding (main json-to/from-Java objects handling)
+component would go to [jackson-databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues).
+
+#### Branches
+
+When creating code (or documentation, test) change for eventual Pull Request, it is important to
+understand which Git Branch to use as the base.
 
 Jackson projects maintain a few branches:
 
-* `master` for developing the still-far-off 3.0.0 release
+* `master` for developing the still-far-off 3.0.0 release -- but is also used for `README.md`s
 * `2.12` the next minor version in development
 * `2.11` the current stable release
 * `2.10` the previous stable branch, for which patch releases are still made
 * `2.9` inactive branch that may receive micro-patches for urgent security issues (usually only [`jackson-databind`](https://github.com/FasterXML/jackson-databind))
 
-Most pull requests should be made against the current stable branch, `2.11`.  Pull requests for
-major new functionality or that significantly alter internals, but which is backwards-compatible
-with existing behavior should be made against the next minor version branch (`2.12`).  If
-Jackson's functionality or default behavior is to be altered, `master` is the correct branch, but
+Most bug-fix Pull Requests should be made against the current stable branch, `2.11`.
+Pull requests for major new functionality or that significantly alter internals,
+but are backwards-compatible with existing behavior should be made against the next minor version
+branch (`2.12`).
+If Jackson's functionality or default behavior is to be altered, `master` is the correct branch, but
 discussion is probably in order.
 
-## Backwards Compatibility
+If you have any concerns or doubts about branch to use, feel free to reach out on user mailing
+list or chat; or even on issue tracker of relevant repository.
+
+#### Backwards Compatibility
 
 When submitting a pull request, your choice of a base branch should take into account backwards
 compatibility.
@@ -55,14 +80,14 @@ functionality must be part of a major version release.
 See [Jackson Releases on the wiki](https://github.com/FasterXML/jackson/wiki/Jackson-Releases)
 for more information.
 
-## Testing
+#### Testing
 
 Jackson's functionality is vast and is used widely, so automated testing for any changes is
 important for preventing accidental breakage in the future.  Tests also document and demonstrate
 the bounds of functionality, showing the author's intent to others working on the code in the
 future.
 
-## Paperwork
+#### Paperwork
 
 * Contributor License Agreement, needed by core team to accept contributions. There are 2 options:
     * Standard Jackson [Contributor License Agreement](../../blob/master/contributor-agreement.pdf) (CLA) is a one-page document we need from every contributor of code (we will request it for pull requests), used mostly by individual contributors
