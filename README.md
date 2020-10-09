@@ -44,18 +44,6 @@ for linking all the pieces together.
 
 A good companion to this README is the [Jackson Project FAQ](../../wiki/FAQ).
 
-## On reporting issues
-
-First things first: unless you know what you are doing, *DO NOT FILE ISSUES ON THE ISSUE TRACKER OF THIS REPO*.
-
-Instead, do one of the following:
-
-* For Jackson usage questions (for core components or modules), please use the [Jackson-user](https://groups.google.com/forum/#!forum/jackson-user) Google group
-    * or, [StackOverflow](http://stackoverflow.com), `#jackson`
-* For reporting issues on Jackson implementation, report it against one of the components
-    * The most common issue you will have is with [Jackson databind](../../../jackson-databind/issues)
-* For suggestions and new ideas, try [Jackson Future Ideas](../../../jackson-future-ideas)
-
 ## Actively developed versions
 
 Jackson suite has two major versions: 1.x is deprecated and no versions are released;
@@ -290,15 +278,19 @@ This is important to give us time to provide a patch, if necessary, for the prob
 
 ### Tutorials
 
-For first-time users there are many good Jackson usage tutorials, including:
+For first-time users there are many good Jackson usage tutorials, 
+including general usage / JSON tutorials:
 
 * [Baeldung Jackson JSON Tutorial](https://www.baeldung.com/jackson)
+* [Javarevisited Jackson JSON Tutorial](https://javarevisited.blogspot.com/search/label/Java%20JSON%20tutorial)
 * [Jenkov.com Jackson Tutorial](http://tutorials.jenkov.com/java-json/index.html)
 * [JournalDev Jackson Tutorial](https://www.journaldev.com/2324/jackson-json-java-parser-api-example-tutorial)
 * [LogicBig.com Jackson Tutorial](https://www.logicbig.com/tutorials/misc/jackson.html)
 * [StudyTrails Jackson Introduction](http://www.studytrails.com/java/json/java-jackson-introduction/)
-* [Java67 Javakcson CSV Tutorial](https://www.java67.com/2019/05/how-to-read-csv-file-in-java-using-jackson-library.html)
-* [Javarevisited Jackson JSON Tutorial](https://javarevisited.blogspot.com/search/label/Java%20JSON%20tutorial)
+
+and more specific tutorials:
+
+* [Java67 Javakcson CSV Tutorial](https://www.java67.com/2019/05/how-to-read-csv-file-in-java-using-jackson-library.html) (CSV)
 
 ### Note on reporting Bugs
 
@@ -307,6 +299,8 @@ is not enabled for this project.
 If you are unsure which specific project issue affects, the most likely component
 is `jackson-databind`, so you would use
 [Jackson Databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues).
+
+For suggestions and new ideas, try [Jackson Future Ideas](../../../jackson-future-ideas)
 
 ### Java JSON library comparisons
 
