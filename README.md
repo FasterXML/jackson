@@ -296,6 +296,8 @@ For first-time users there are many good Jackson usage tutorials, including:
 * [JournalDev Jackson Tutorial](https://www.journaldev.com/2324/jackson-json-java-parser-api-example-tutorial)
 * [LogicBig.com Jackson Tutorial](https://www.logicbig.com/tutorials/misc/jackson.html)
 * [StudyTrails Jackson Introduction](http://www.studytrails.com/java/json/java-jackson-introduction/)
+* [Java67 Javakcson CSV Tutorial](https://www.java67.com/2019/05/how-to-read-csv-file-in-java-using-jackson-library.html)
+* [Javarevisited Jackson JSON Tutorial](https://javarevisited.blogspot.com/search/label/Java%20JSON%20tutorial)
 
 ### Note on reporting Bugs
 
