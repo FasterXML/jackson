@@ -9,6 +9,7 @@ This is the home page of the Jackson Project.
 ## What is New?
 
 * Oct 1, 2020: Jackson participates in [Hacktoberfest2020](https://hacktoberfest.digitalocean.com/) and we have a [Jackson/Hacktoberfest](https://github.com/FasterXML/Hacktoberfest2020) repo too!
+* Oct 9, 2020: Added [Contributing](CONTRIBUTING.md)
 
 ## What is Jackson?
 
@@ -64,7 +65,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.11.2](../../wiki/Jackson-Release-2.11.2), released on 02-Aug-2020
+* [2.11.3](../../wiki/Jackson-Release-2.11.3), released on 02-Oct-2020
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
