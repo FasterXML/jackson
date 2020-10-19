@@ -148,15 +148,15 @@ Most of them simply implement `streaming` API abstractions, so that databinding 
 Currently following data format modules are fully usable and supported (version number in parenthesis, if included, is the
 first Jackson 2.x version to include module; if missing, included from 2.0)
 
-* [Avro](../../../jackson-dataformat-avro): supports [Avro](http://en.wikipedia.org/wiki/Apache_Avro) data format, with `streaming` implementation plus additional `databind`-level support for Avro Schemas
-* [CBOR](../../../jackson-dataformat-cbor): supports [CBOR](http://tools.ietf.org/search/rfc7049) data format (a binary JSON variant).
-* [CSV](../../../jackson-dataformat-csv): supports [Comma-separated values](http://en.wikipedia.org/wiki/Comma-separated_values) format -- `streaming` api, with optional convenience `databind` additions
-* [Ion](../../../jackson-dataformats-binary/tree/master/ion) (NEW with Jackson 2.9!): support for [Amazon Ion](https://amznlabs.github.io/ion-docs/) binary data format (similar to CBOR, Smile, i.e. binary JSON - like)
-* [(Java) Properties](../../../jackson-dataformat-properties) (2.8): creating nested structure out of implied notation (dotted by default, configurable), flattening similarly on serialization
-* [Protobuf](../../../jackson-dataformat-protobuf) (2.6): supported similar to `Avro`
-* [Smile](../../../jackson-dataformat-smile): supports [Smile (binary JSON)](https://github.com/FasterXML/smile-format-specification) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
+* [Avro](../../../jackson-dataformats-binary/tree/master/avro): supports [Avro](http://en.wikipedia.org/wiki/Apache_Avro) data format, with `streaming` implementation plus additional `databind`-level support for Avro Schemas
+* [CBOR](../../../jackson-dataformats-binary/tree/master/cbor): supports [CBOR](http://tools.ietf.org/search/rfc7049) data format (a binary JSON variant).
+* [CSV](../../../jackson-dataformats-text/blob/master/csv): supports [Comma-separated values](http://en.wikipedia.org/wiki/Comma-separated_values) format -- `streaming` api, with optional convenience `databind` additions
+* [Ion](../../../jackson-dataformats-binary/tree/master/ion) (2.9): support for [Amazon Ion](https://amznlabs.github.io/ion-docs/) binary data format (similar to CBOR, Smile, i.e. binary JSON - like)
+* [(Java) Properties](../../../jackson-dataformats-text/blob/master/properties) (2.8): creating nested structure out of implied notation (dotted by default, configurable), flattening similarly on serialization
+* [Protobuf](../../../jackson-dataformats-binary/tree/master/protobuf) (2.6): supported similar to `Avro`
+* [Smile](../../../jackson-dataformats-binary/tree/master/smile): supports [Smile (binary JSON)](https://github.com/FasterXML/smile-format-specification) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
 * [XML](../../../jackson-dataformat-xml): supports XML; provides both `streaming` and `databind` implementations. Similar to JAXB' "code-first" mode (no support for "XML Schema first", but can use JAXB beans)
-* [YAML](../../../jackson-dataformat-yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
+* [YAML](../../../jackson-dataformats-text/blob/master/yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
 
 There are also other data format modules, provided by developers outside Jackson core team:
 
