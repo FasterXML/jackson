@@ -53,7 +53,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.11.3](../../wiki/Jackson-Release-2.11.3), released on 02-Oct-2020
+* [2.12.0](../../wiki/Jackson-Release-2.12), released on 29-Nov-2020
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
@@ -65,10 +65,10 @@ Release notes for 2.x releases are found from [Jackson Releases](../../wiki/Jack
 
 Currently Jackson 2.x repositories have following actively developed branches:
 
-* `2.12`: next minor version being developed (as of May 2020)
-* `2.11`: current stable, actively maintained branch from which patch releases are still made
-* `2.10`: previous stable branch, patch releases still made
-* `2.9`: non-active branch from which micro-patch releases (like 2.9.10.5) MAY be made for individual components (`jackson-databind` usually)
+* `2.13`: next minor version being developed (as of November 2020)
+* `2.12`: current stable, actively maintained branch from which patch releases are still made
+* `2.11`: previous stable branch, patch releases still made
+* `2.10`: non-active branch from which micro-patch releases (like 2.9.10.5) MAY be made for individual components (`jackson-databind` usually)
 * `master`: next major version, 3.0. Still changing rapidly
 
 Other `2.x` branches exist but no full releases are planned. Micro-patches still possible
