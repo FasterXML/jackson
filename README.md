@@ -53,7 +53,8 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.12.0](../../wiki/Jackson-Release-2.12), released on 29-Nov-2020
+* [2.12.2](../../wiki/Jackson-Release-2.12), released on 03-Mar-2021
+    * [2.11.4](../../wiki/Jackson-Release-2.11) is the latest patch from previous stable branch
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
@@ -67,8 +68,8 @@ Currently Jackson 2.x repositories have following actively developed branches:
 
 * `2.13`: next minor version being developed (as of November 2020)
 * `2.12`: current stable, actively maintained branch from which patch releases are still made
-* `2.11`: previous stable branch, patch releases still made
-* `2.10`: non-active branch from which micro-patch releases (like 2.9.10.5) MAY be made for individual components (`jackson-databind` usually)
+* `2.11`: previous stable branch, one patch release possible
+* `2.10`: non-active branch from which micro-patch releases (like 2.10.5.1) MAY be made for individual components
 * `master`: next major version, 3.0. Still changing rapidly
 
 Other `2.x` branches exist but no full releases are planned. Micro-patches still possible
@@ -113,7 +114,9 @@ Datatype modules directly maintained by Jackson team are under the following Git
 * Joda datatypes:
     * [jackson-datatype-joda](../../../jackson-datatype-joda): support for types of [Joda-Time](https://www.joda.org/joda-time/) date/time library datatypes
     * [jackson-datatype-joda-money](../../../jackson-datatypes-misc/tree/master/joda-money): support types of [Joda-Money](https://www.joda.org/joda-money/) datatypes (`Money`, `CurrencyUnit`)
-* [jackson-datatype-jsr353](../../../jackson-datatypes-misc/jsr-353): support for JSON-P ("Java JSON API") types (specifically its tree model objects)
+* JSON-P ("json processing"): two datatype modules for "old" (`javax.json`) and "new" (`jakarta.json`):
+    * [jackson-datatype-jakarta-jsonp](../../../jackson-datatypes-misc/jakarta-jsonp): support for "new" JSON-P types in `jakarta.json`
+    * [jackson-datatype-jsr353](../../../jackson-datatypes-misc/jsr-353): support for "old" JSON-P types in `javax.json`
 * [jackson-datatype-json-org](../../../jackson-datatypes-misc/json-org): support for [org.json](https://github.com/stleary/JSON-java) library types like `JSONObject`, `JSONArray`
 
 In addition, we are aware of additional modules that are not directly maintained by core Jackson team:
