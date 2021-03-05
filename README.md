@@ -115,7 +115,7 @@ Datatype modules directly maintained by Jackson team are under the following Git
     * [jackson-datatype-joda](../../../jackson-datatype-joda): support for types of [Joda-Time](https://www.joda.org/joda-time/) date/time library datatypes
     * [jackson-datatype-joda-money](../../../jackson-datatypes-misc/tree/master/joda-money): support types of [Joda-Money](https://www.joda.org/joda-money/) datatypes (`Money`, `CurrencyUnit`)
 * JSON-P ("json processing"): two datatype modules for "old" (`javax.json`) and "new" (`jakarta.json`):
-    * [jackson-datatype-jakarta-jsonp](../../../jackson-datatypes-misc/jakarta-jsonp): support for "new" JSON-P types in `jakarta.json`
+    * [jackson-datatype-jakarta-jsonp](../../../jackson-datatypes-misc/jakarta-jsonp): support for "new" JSON-P types in `jakarta.json` (*added in Jackson 2.12.2*)
     * [jackson-datatype-jsr353](../../../jackson-datatypes-misc/jsr-353): support for "old" JSON-P types in `javax.json`
 * [jackson-datatype-json-org](../../../jackson-datatypes-misc/json-org): support for [org.json](https://github.com/stleary/JSON-java) library types like `JSONObject`, `JSONArray`
 
