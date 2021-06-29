@@ -27,7 +27,7 @@ and additional data format modules to process data encoded in
 [Smile](https://github.com/FasterXML/jackson-dataformats-binary/tree/master/smile),
 [(Java) Properties](https://github.com/FasterXML/jackson-dataformats-text/blob/master/properties),
 [Protobuf](https://github.com/FasterXML/jackson-dataformats-binary/tree/master/protobuf),
-[TOML](https://github.com/FasterXML/jackson-dataformats-text/blob/master/toml),
+[TOML](https://github.com/FasterXML/jackson-dataformats-text/blob/2.13/toml),
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
 or [YAML](https://github.com/FasterXML/jackson-dataformats-text/blob/master/yaml);
 and even the large set of data format modules to support data types of widely used
@@ -159,7 +159,7 @@ first Jackson 2.x version to include module; if missing, included from 2.0)
 * [(Java) Properties](../../../jackson-dataformats-text/blob/master/properties) (2.8): creating nested structure out of implied notation (dotted by default, configurable), flattening similarly on serialization
 * [Protobuf](../../../jackson-dataformats-binary/tree/master/protobuf) (2.6): supported similar to `Avro`
 * [Smile](../../../jackson-dataformats-binary/tree/master/smile): supports [Smile (binary JSON)](https://github.com/FasterXML/smile-format-specification) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
-* [TOML](../../../jackson-dataformats-text/blob/master/toml): (NEW in upcoming 2.13) supports [TOML](http://en.wikipedia.org/wiki/TOML), supported with both `streaming` and `databind` implementations
+* [TOML](../../../jackson-dataformats-text/blob/2.13/toml): (NEW in upcoming 2.13) supports [TOML](http://en.wikipedia.org/wiki/TOML), supported with both `streaming` and `databind` implementations
 * [XML](../../../jackson-dataformat-xml): supports XML; provides both `streaming` and `databind` implementations. Similar to JAXB' "code-first" mode (no support for "XML Schema first", but can use JAXB beans)
 * [YAML](../../../jackson-dataformats-text/blob/master/yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
 
