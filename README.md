@@ -54,7 +54,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.12.2](../../wiki/Jackson-Release-2.12), released on 03-Mar-2021
+* [2.12.4](../../wiki/Jackson-Release-2.14), released on 06-Jul-2021
     * [2.11.4](../../wiki/Jackson-Release-2.11) is the latest patch from previous stable branch
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
@@ -67,9 +67,9 @@ Release notes for 2.x releases are found from [Jackson Releases](../../wiki/Jack
 
 Currently Jackson 2.x repositories have following actively developed branches:
 
-* `2.13`: next minor version being developed (as of November 2020)
-* `2.12`: current stable, actively maintained branch from which patch releases are still made
-* `2.11`: previous stable branch, one patch release possible
+* `2.13`: next minor version being developed (as of July 2021)
+* `2.12`: current stable, actively maintained branch from which one more patch release is possible
+* `2.11`: previous stable branch, only micro-patches likely to be released
 * `2.10`: non-active branch from which micro-patch releases (like 2.10.5.1) MAY be made for individual components
 * `master`: next major version, 3.0. Still changing rapidly
 
