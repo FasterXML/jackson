@@ -26,10 +26,6 @@ README for the list of maintainers of that module.
 
 <br>
 
-### Hacktoberfest 2020!
-
-Jackson project is participating in [Hacktoberfest 2020](): see [Jackson/Hacktoberfest 2020](https://github.com/FasterXML/Hacktoberfest2020) repo for details!
-
 ### Issue Tracking
 
 All bug reports, improvements ideas and RFEs are handled as Github Issues using
