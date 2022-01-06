@@ -8,6 +8,7 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
+* Sep 30, 2021: Jackon 2.13.0 (new stable) released
 * Oct 1, 2020: Jackson participates in [Hacktoberfest2020](https://hacktoberfest.digitalocean.com/) and we have a [Jackson/Hacktoberfest](https://github.com/FasterXML/Hacktoberfest2020) repo too!
 * Oct 9, 2020: Added [Contributing](CONTRIBUTING.md)
 
@@ -54,8 +55,8 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.12.4](../../wiki/Jackson-Release-2.14), released on 06-Jul-2021
-    * [2.11.4](../../wiki/Jackson-Release-2.11) is the latest patch from previous stable branch
+* [2.13.1](../../wiki/Jackson-Release-2.13), released on 19-Dec-2021
+    * [2.12.6](../../wiki/Jackson-Release-2.12) is the latest patch from previous stable branch
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
@@ -67,10 +68,9 @@ Release notes for 2.x releases are found from [Jackson Releases](../../wiki/Jack
 
 Currently Jackson 2.x repositories have following actively developed branches:
 
-* `2.13`: next minor version being developed (as of July 2021)
-* `2.12`: current stable, actively maintained branch from which one more patch release is possible
-* `2.11`: previous stable branch, only micro-patches likely to be released
-* `2.10`: non-active branch from which micro-patch releases (like 2.10.5.1) MAY be made for individual components
+* `2.14`: next minor version being developed (as of January 2022)
+* `2.13`: current stable, actively maintained branch from which one more patch release is possible
+* `2.12`: previous stable branch, only micro-patches likely to be released
 * `master`: next major version, 3.0. Still changing rapidly
 
 Other `2.x` branches exist but no full releases are planned. Micro-patches still possible
