@@ -1,6 +1,8 @@
 			    FasterXML, LLC
   Software Grant and Corporate Contributor License Agreement ("Agreement")
-		       http://fasterxml.com/cla
+  
+  https://github.com/FasterXML/jackson/blob/master/contributor-agreement-corporate.txt
+
 				 (v1)
 
 
