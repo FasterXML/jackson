@@ -4,6 +4,31 @@ It is an attempt to follow practices outlined in https://infra.apache.org/releas
 (although is not auto-generated or anything fancy like that)
 
 ----------------------------------------------------------------------------
+
+pub   rsa4096 2013-07-25 [SC] [expired: 2016-07-24]
+      064F04959CD99ACCC4DFB54C9CD8549ACF9BD0CE
+uid           [ expired] Tatu Saloranta (Home mac 2013/7) <tatu.saloranta@iki.fi>
+sig 3        9CD8549ACF9BD0CE 2013-07-25  Tatu Saloranta (Home mac 2013/7) <tatu.saloranta@iki.fi>
+
+pub   rsa2048 2016-07-26 [SC] [expired: 2020-07-25]
+      6214760097DC5CFAD0175AC2C9FBAA83A8753994
+uid           [ expired] Tatu Saloranta (cowtowncoder) <tatu.saloranta@iki.fi>
+sig 3        C9FBAA83A8753994 2016-07-26  Tatu Saloranta (cowtowncoder) <tatu.saloranta@iki.fi>
+
+pub   rsa2048 2020-08-01 [SC] [expired: 2022-08-01]
+      8A10792983023D5D14C93B488D7F1BEC1E2ECAE7
+uid           [ expired] Tatu Saloranta (cowtowncoder) <tatu.saloranta@iki.fi>
+sig 3        8D7F1BEC1E2ECAE7 2020-08-01  Tatu Saloranta (cowtowncoder) <tatu.saloranta@iki.fi>
+uid           [ expired] Tatu Saloranta <tatu.saloranta@iki.fi>
+sig 3        8D7F1BEC1E2ECAE7 2020-08-01  Tatu Saloranta (cowtowncoder) <tatu.saloranta@iki.fi>
+
+pub   rsa4096 2022-08-13 [SC] [expires: 2027-08-12]
+      28118C070CB22A0175A2E8D43D12CA2AC19F3181
+uid           [ultimate] Tatu Saloranta (cowtowncoder) <tatu.saloranta@iki.fi>
+sig 3        3D12CA2AC19F3181 2022-08-13  Tatu Saloranta (cowtowncoder) <tatu.saloranta@iki.fi>
+sub   rsa4096 2022-08-13 [E] [expires: 2027-08-12]
+sig          3D12CA2AC19F3181 2022-08-13  Tatu Saloranta (cowtowncoder) <tatu.saloranta@iki.fi>
+
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBFHwqdQBEADP5azWYCE4RWbVpnCwf7HoDRcTGUs68oqZrwJO7B5o1PaAcFDe
@@ -112,13 +137,53 @@ SAM7a+QuuUHMIvmkcw0k52vhQ8yaCDCKjT7mkFHCixha6VFBb54PXkZ4e+9wPOvF
 w4i7R4qqdQRp9xe4OgWZjeH26Zy/lwGluaIJmXfaVYHLQe2+evPgtBP3dFNI/WXx
 9Q3iy8K6bD/7xryK7frastmCg8yVtPKoFFknP5z1nHkLOpYTvz9RRYHcexiDSvhx
 vObWkNdfWM/gnSw/4+AKYWBH4m9rQzOtKfGcgIYM2uIHlATC0ILt7gGcAWmEj7bX
-Ezy9Jqg9YirnHcrlYF0r
-=cBTl
+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
+=0UOY
 -----END PGP PUBLIC KEY BLOCK-----
-
-pub   rsa2048 2020-08-01 [SC] [expires: 2022-08-01]
-      8A10792983023D5D14C93B488D7F1BEC1E2ECAE7
-uid           [ultimate] Tatu Saloranta (cowtowncoder) <tatu.saloranta@iki.fi>
-uid           [ultimate] Tatu Saloranta <tatu.saloranta@iki.fi>
-sub   rsa2048 2020-08-01 [E] [expires: 2022-08-01]
-----------------------------------------------------------------------------
