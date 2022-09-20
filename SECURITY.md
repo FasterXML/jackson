@@ -25,9 +25,12 @@ This is important to give us time to provide a patch, if necessary, for the prob
 
 ## Verifying Artifact signatures
 
-(for more in-depth explanation, see [Apache Release Signing](https://infra.apache.org/release-signing#keys-policy) document)
+(for more in-depth explanation, see [Apache Release Signing](https://infra.apache.org/release-signing#keys-po\
+licy) document)
 
-If you want to verify that any given Jackson artifact has been signed with valid key, you can have a look at KEYS file of the main Jackson repo:
+To verify that any given Jackson artifact has been signed with a valid key, have a look at `KEYS` file of the\
+ main Jackson repo:
 
 https://github.com/FasterXML/jackson/blob/master/KEYS
 
+which lists all	known valid keys in use.
