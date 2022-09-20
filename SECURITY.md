@@ -1,6 +1,6 @@
 # Security Policy
 
-Last Updated: 2019-11-26
+Last Updated: 2022-09-20
 
 This policy covers ALL Jackson projects/repos: some repos may have their own copy of this policy document.
 
