@@ -179,7 +179,7 @@ There are also other data format modules, provided by developers outside Jackson
 
 * [Kotlin](https://github.com/FasterXML/jackson-module-kotlin) to handle native types of [Kotlin](http://kotlinlang.org/)
 * [Scala](https://github.com/FasterXML/jackson-module-scala) to handle native Scala types (including but not limited to Scala collection/map types, case classes)
-    * Currently (April 2020) Scala 2.10, 2.11, 2.12 and 2.13 are supported (2.9 was supported up to Jackson 2.3)
+    * Currently (October 2022) Scala 2.11, 2.12, 2.13 and 3 are supported (2.9 was supported up to Jackson 2.3 and 2.10 up to Jackson 2.11)
 
 ### Support for Schemas
 
