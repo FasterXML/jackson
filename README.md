@@ -1,13 +1,13 @@
 <a href="CONTRIBUTING.md" alt="Hacktoberfest"><img src="https://badgen.net/badge/hacktoberfest/friendly/pink" /></a>
  [![Open Source](https://badges.frapsoft.com/os/v3/open-source.svg?v=103)](https://opensource.org/)
 
-
 # Jackson Project Home @github
 
 This is the home page of the Jackson Project.
 
 ## What is New?
 
+* Nov 2, 2022: AdaLogics Security Audit for Jackson released -- see Document/Reports
 * Oct 28, 2022: Jackson 2.14 Release Candidate 3 (2.14.0-rc3) released; 2.14.0 itself soon to be released!
 * Sep 3, 2022: Jackson 2.13.4 patch released
 * Sep 30, 2021: Jackson 2.13.0 (new stable) released
@@ -271,6 +271,16 @@ mailing address. Note that filing an issue to go with report is fine, but if you
 DO NOT include details of security problem in the issue but only in email contact.
 This is important to give us time to provide a patch, if necessary, for the problem.
 
+### Note on reporting Bugs
+
+Jackson bugs need to be reported against component they affect: for this reason, issue tracker
+is not enabled for this project.
+If you are unsure which specific project issue affects, the most likely component
+is `jackson-databind`, so you would use
+[Jackson Databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues).
+
+For suggestions and new ideas, try [Jackson Future Ideas](../../../jackson-future-ideas)
+
 ## Documentation
 
 ### Web sites
@@ -299,15 +309,11 @@ and more specific tutorials:
 
 * [Java67 Javakcson CSV Tutorial](https://www.java67.com/2019/05/how-to-read-csv-file-in-java-using-jackson-library.html) (CSV)
 
-### Note on reporting Bugs
+### Reports
 
-Jackson bugs need to be reported against component they affect: for this reason, issue tracker
-is not enabled for this project.
-If you are unsure which specific project issue affects, the most likely component
-is `jackson-databind`, so you would use
-[Jackson Databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues).
+Following reports have been published about Jackson components
 
-For suggestions and new ideas, try [Jackson Future Ideas](../../../jackson-future-ideas)
+* [AdaLogics Jackson Security Audit (2022)](../../blob/master/docs/AdaLogics-Security-Audit-Jackson-2022.pdf) (jackson-core, jackson-databind)
 
 ### Java JSON library comparisons
 
