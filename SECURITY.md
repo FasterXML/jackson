@@ -1,6 +1,6 @@
 # Security Policy
 
-Last Updated: 2022-09-20
+Last Updated: 2022-11-02
 
 This policy covers ALL Jackson projects/repos: some repos may have their own copy of this policy document.
 
@@ -32,3 +32,11 @@ To verify that any given Jackson artifact has been signed with a valid key, have
 https://github.com/FasterXML/jackson/blob/master/KEYS
 
 which lists all	known valid keys in use.
+
+## Related documents
+
+There is a published security audit about 2 main Jackson components (`jackson-core`, `jackson-databind`):
+
+* [AdaLogics Jackson Security Audit (2022)](../../blob/master/docs/AdaLogics-Security-Audit-Jackson-2022.pdf)
+
+which documents a thorough investigation into Jackson design, implementation, as well as some security design suggestions for developers using Jackson libraries.
