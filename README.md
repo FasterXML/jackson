@@ -242,6 +242,7 @@ its size (both jar, and runtime memory usage) is considerably smaller; and its A
 
 #### Other things related to or inspired by Jackson 
 
+* [Jackson-js](https://github.com/pichillilorenzo/jackson-js) is a Javascript/Node object serialization/deserialization library with API inspired by Jackson
 * [Pyckson](https://github.com/antidot/Pyckson) is a Python library that aims for same goals as Java Jackson, such as Convention over Configuration 
 * [Rackson](https://github.com/griffindy/rackson) is a Ruby library that offers Jackson-like functionality on Ruby platform
 
