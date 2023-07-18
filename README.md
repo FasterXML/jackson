@@ -7,12 +7,14 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
+* April 23, 2023: Jackson 2.15(.0) (latest stable) released
+* Nov 5, 2022: Jackson 2.14 released
 * Nov 2, 2022: AdaLogics Security Audit for Jackson released -- see Document/Reports
-* Oct 28, 2022: Jackson 2.14 Release Candidate 3 (2.14.0-rc3) released; 2.14.0 itself soon to be released!
-* Sep 3, 2022: Jackson 2.13.4 patch released
-* Sep 30, 2021: Jackson 2.13.0 (new stable) released
+* Sep 30, 2021: Jackson 2.13 released
 * Oct 1, 2020: Jackson participates in [Hacktoberfest2020](https://hacktoberfest.digitalocean.com/) and we have a [Jackson/Hacktoberfest](https://github.com/FasterXML/Hacktoberfest2020) repo too!
 * Oct 9, 2020: Added [Contributing](CONTRIBUTING.md)
+
+(note: for up-to-date release info, see [Jackson Releases](../../wiki/Jackson-Releases))
 
 ## What is Jackson?
 
