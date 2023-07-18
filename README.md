@@ -59,26 +59,14 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.13.4](../../wiki/Jackson-Release-2.13), released on 3-Sept-2022
-    * [2.12.7](../../wiki/Jackson-Release-2.12) is the latest patch from previous stable branch
+* [2.15.2](../../wiki/Jackson-Release-2.15), released on 05-May-2023
+    * [2.14.3](../../wiki/Jackson-Release-2.14) is the latest patch from previous stable branch
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
 Individual projects' wiki pages sometimes also contain direct download links, pointing to CMR.
 
 Release notes for 2.x releases are found from [Jackson Releases](../../wiki/Jackson-Releases) page.
-
-### Active developed Jackson 2.x branches
-
-Currently Jackson 2.x repositories have following actively developed branches:
-
-* `2.14`: next minor version being developed (as of May 2022)
-* `2.13`: current stable, actively maintained branch from which one more patch release is possible
-* `2.12`: previous stable branch, only micro-patches likely to be released
-* `master`: next major version, 3.0. Still changing rapidly
-
-Other `2.x` branches exist but no full releases are planned. Micro-patches still possible
-for critical security issues.
 
 ## Active Jackson projects
 
