@@ -62,7 +62,7 @@ Jackson projects maintain a few branches:
 * `2.14` the previous stable branch, for which patch releases are still made
 * `2.13` inactive branch that may receive micro-patches for urgent security issues (usually only [`jackson-databind`](https://github.com/FasterXML/jackson-databind))
 
-Most bug-fix Pull Requests should be made against the current stable branch, `2.14`.
+Most bug-fix Pull Requests should be made against the current stable branch, `2.15`.
 Pull requests for major new functionality or that significantly alter internals,
 but are backwards-compatible with existing behavior should be made against the next minor version
 branch (`2.16`).
