@@ -1,0 +1,40 @@
+== Jackson Release: 1.6 ==
+
+(code name: Smiley Bean)
+
+[[JacksonHome | Jackson]] 1.6 was released on September 6th 2010, about 6 months after [[JacksonRelease15 | 1.5]].
+
+It is classified as a "minor" update over 1.5, since it will be mostly backwards compatible (hence not a "major" version bump), but will introduce new features (hence not a "patch" release).
+
+This release had ambitious goals for extending functionality into new areas: both with respect to kinds of use cases supported (bean materialization, ability to update ("merge") existing objects), data types ("Smile" binary format) and third party libraries (parent/child relationship support for {{{ORM}}}. But additionally it significantly improved existing functionality, so that working with Java Enums is more convenient; support for generic types is even more powerful; and [[JacksonTreeModel | JSON Tree Model]] support is more convenient.
+
+Following is the list of functionality that was implemented for this release.
+
+=== Implemented features: major ===
+
+ * [[http://jira.codehaus.org/browse/JACKSON-41 | JACKSON-41]]: Add support for [[JacksonFeatureMaterializedBeans | Materialized Beans]]: ability to generate classes that implement interfaces (and abstract classes) for deserialization, in cases where no other mappings exist.
+ * [[http://jira.codehaus.org/browse/JACKSON-235 | JACKSON-235]]: [[JacksonFeatureBiDirReferences | Handle bi-directional references]] using declarative method(s) (especially useful/important for ORM like Hibernate, iBatis)
+ * [[http://jira.codehaus.org/browse/JACKSON-264 | JACKSON-264]]: Ability to [[JacksonFeatureUpdateValue | "update" values]]; to read and bind JSON content as properties of existing beans. This is done by using {{{ObjectMapper.updatingReader()}}}" (and {{{reader.readValue(source)}}} on resulting reader object)
+ * [[http://jira.codehaus.org/browse/JACKSON-331 | JACKSON-331]]: Add support for [[http://wiki.fasterxml.com/SmileFormat | Smile (binary JSON) format]]; used with new SmileFactory (a sub-type of JsonFactory to use with Smile format)
+
+=== Implemented features: minor ===
+
+ * [[http://jira.codehaus.org/browse/JACKSON-210 | JACKSON-210]]: Add methods in {{{JsonNode}}} for [[JacksonFeatureTreeFindValue | finding values]] of named property
+ * [[http://jira.codehaus.org/browse/JACKSON-212 | JACKSON-212]]: Allow using {{{Enum.toString()}}} as external serialization instead of Enum.value()
+ * [[http://jira.codehaus.org/browse/JACKSON-257 | JACKSON-257]]: Allow registering subtypes for [[JacksonPolymorphicDeserialization | polymorphic type handling]] (using {{{ObjectMapper.registerSubtypes()}}}).
+ * [[http://jira.codehaus.org/browse/JACKSON-261 | JACKSON-261]]: {{{@JsonView}}} now implies that the associated thing is a property (regardless of its visibility), to reduce amount of annotations needed when exposing non-public fields.
+ * [[http://jira.codehaus.org/browse/JACKSON-282 | JACKSON-282]]: Add {{{SerializationConfig.Feature.CLOSE_CLOSEABLE}}} to force calling value.close() on serialization. Meaning that if you want to have automatic resource cleanup for root-level values objects, it is easy to enable.
+ * [[http://jira.codehaus.org/browse/JACKSON-287 | JACKSON-287]]: Add {{{JsonParser.releaseBufferedContent()}}} for pushing back buffered but unused content, usually after parsing all content of interest (but not necessarily whole stream).
+ * [[http://jira.codehaus.org/browse/JACKSON-292 | JACKSON-292]]: Add [[JacksonFeatureAnyGetter | @JsonAnyGetter]] to allow convenient serialization of properties bound using {{{@JsonAnySetter}}} (on deserialization).
+ * [[http://jira.codehaus.org/browse/JACKSON-300 | JACKSON-300]]: {{{JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER}}} to make parser accept any all possible backslash-escapes.
+ * [[http://jira.codehaus.org/browse/JACKSON-302 | JACKSON-302]]: Add {{{JsonNode.has()}}} for more convenient checking of whether JSON Object or Array node has specified property or element.
+ * [[http://jira.codehaus.org/browse/JACKSON-316 | JACKSON-316]]: Add {{{SerializationConfig.Feature.WRITE_NULL_MAP_VALUES}}}, for suppressing writing of null-valued Map entries.
+
+=== Planned but deferred features ===
+
+Following features were considered for inclusion, but deferred due to time constraints
+
+ * [[http://jira.codehaus.org/browse/JACKSON-163 | JACKSON-163]]:  Add ser/deser feature for {{{ObjectMapper}}} to allow "wrapped" output (mostly for JAXB compatibility)
+
+----
+CategoryJackson

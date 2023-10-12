@@ -1,0 +1,50 @@
+== Jackson Release: 1.3 "Great Pumpkin" ==
+
+Release 1.3 of [[JacksonHome | Jackson]] (code name "Great Pumpkin") was released October 30th 2009.
+It is classified as a "minor" update over [[JacksonRelease11 | 1.2]], since it will be fully backwards compatible (hence not a "major" version bump), but will introduce number of new features (hence not a "patch" release -- although "Pumpkin Patch" would be an apt term, maybe use that for 1.3.1).
+
+Following is the list of significant improvements release contains.
+
+Check out complete [[http://jackson.codehaus.org/1.3.0/release-notes/VERSION | release notes]] for full list of changes)
+
+=== Implemented features ===
+
+==== Implemented: major ====
+
+ * [[http://jira.codehaus.org/browse/JACKSON-129 | JACKSON-129]] Allow constructing {{{JsonParser}}} to read from {{{JsonNode}}} ([[JacksonTreeModel | Tree Model]]): can be used for binding JSON Trees as Java objects, similar to how textual JSON content can be bound to objects
+ * [[http://jira.codehaus.org/browse/JACKSON-159 | JACKSON-159]]: Added {{{org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider}}} for easier use of [[JacksonJAXBAnnotations | JAXB annotations]] with {{{JAX-RS}}}.
+ * [[http://jira.codehaus.org/browse/JACKSON-174 | JACKSON-174]]: Added {{{ObjectMapper.convertValue()}}} for convenient conversions between compatible (but not necessarily Java castable!) types -- functionally identical to serializing from source value to JSON, deserializing to target type, but more efficient.
+
+==== Implemented: minor ====
+
+ * [[http://jira.codehaus.org/browse/JACKSON-152 | JACKSON-152]]: Convenience method ({{{ObjectMapper.writeValueAsString()}}}) to simplify serializing Java objects as JSON Strings.
+ * [[http://jira.codehaus.org/browse/JACKSON-153 | JACKSON-153]]: Allow use of {{{@JsonCreator}}} with Map types too
+ * [[http://jira.codehaus.org/browse/JACKSON-154 | JACKSON-154]]: Added {{{.keyUsing}}} and {{{.contentUsing}}} for {{{JsonDeserialize}}} annotation, to allow specifying deserializer to use for key and content/value types of structured-value (Collection, Map, array) properties
+ * [[http://jira.codehaus.org/browse/JACKSON-158 | JACKSON-158]]: Simple checking for self-references (tight cycle) during serialization, instead of waiting for {{{StackOverflowError}}}
+ * [[http://jira.codehaus.org/browse/JACKSON-165 | JACKSON-165]]: Add {{{JsonParser.getBooleanValue()}}} convenience method
+ * [[http://jira.codehaus.org/browse/JACKSON-173 | JACKSON-173]]: Add feature {{{JsonParser.Feature.ALLOW_SINGLE_QUOTES}}} to allow parsing invalid JSON content that uses single-quotes (apostrophes) instead of double quotes
+ * [[http://jira.codehaus.org/browse/JACKSON-176 | JACKSON-176]]: Added {{{JsonGenerator.Feature.WRITE_NUMBER_AS_STRINGS}}} as a workaround for  Javascript problems with big longs (due to always representing numbers as 64-bit doubles internally)
+ * [[http://jira.codehaus.org/browse/JACKSON-180 | JACKSON-180]]: Added {{{JsonParser.Feature.INTERN_FIELD_NAMES}}} to allow disabling field name intern()ing.
+
+==== Important bug fixes ====
+
+ * Deserialization:
+  * [[http://jira.codehaus.org/browse/JACKSON-167 | JACKSON-167]]: Generic type information lost for {{{Maps}}} and {{{Collections}}}
+  * [[http://jira.codehaus.org/browse/JACKSON-179 | JACKSON-179]]: Single-argument constructor {{{Creators}}} sometimes not found (reported for {{{long}}} arguments)
+  * [[http://jira.codehaus.org/browse/JACKSON-183 | JACKSON-183]]: Root-level Bean annotations not handled completely 
+ * OSGi packaging:
+  * [[http://jira.codehaus.org/browse/JACKSON-162 | JACKSON-162]]: Jackson-xc module's dependencies were incorrectly declared.
+
+=== Initially planned, but deferred ===
+
+==== Major ====
+
+ * [[http://jira.codehaus.org/browse/JACKSON-138 | JACKSON-138]]: Add support for [[JacksonJsonViews | "JSON views"]] (using {{{@JsonView}}} annotations)
+  * Will be the first new thing to be added for 1.4...
+
+==== Minor ====
+
+ * [[http://jira.codehaus.org/browse/JACKSON-137 | JACKSON-137]]: Allow use of proxy object to simplify handling of generic objects -- will possibly add "Jackson Sandbox" to first introduce this clever construct?
+ * [[http://jira.codehaus.org/browse/JACKSON-163 | JACKSON-163]]: Support "wrapped" output for JAXB compatibility: additional dummy Map with a single key (from JAXB {{{@XmlRootElement}}} annotation), used to make output more similar to XML output.
+----
+CategoryJackson

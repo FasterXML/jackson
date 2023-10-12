@@ -1,0 +1,35 @@
+## page was renamed from JacksonFeatures12
+== Jackson Release: 1.2 ==
+
+Version 1.2 of [[JacksonHome | Jackson]] was released 02-Aug-2009.
+It is classified as a "minor" update over [[JacksonRelease11 | 1.1]], since it will be fully backwards compatible (hence not a "major" version bump), but will introduce number of new features (hence not a "patch" release).
+
+New functionality consists of following notable features (check out complete [[http://jackson.codehaus.org/1.2.0/release-notes/VERSION | release notes]] for full list) 
+
+=== Implemented features ===
+
+==== Implemented: major ====
+
+ * [[http://jira.codehaus.org/browse/JACKSON-33 | JACKSON-33]]: [[JacksonFeatureCreators | Allow use of non-default constructors]] (like: {{{x = new MyBean(1, "abc");}}}) and factory methods.
+ * [[http://jira.codehaus.org/browse/JACKSON-69 | JACKSON-69]]: Support parsing [[JacksonFeaturesNonStandard | non-standard JSON]] where Object keys are not quoted
+ * [[http://jira.codehaus.org/browse/JACKSON-76 | JACKSON-76]]: [[JacksonMixInAnnotations | Mix-in Annnotations]]
+ * [[http://jira.codehaus.org/browse/JACKSON-114 | JACKSON-114]]: [[JacksonSerializeWithStaticTypes | Ability to force static (declared) type on serialization]] (instead of dynamic runtime type)
+
+==== Implemented: minor ====
+
+ * [[http://jira.codehaus.org/browse/JACKSON-92 | JACKSON-92]]: Ability to deserialize using creator-methods that take instances of any deserializable type (usually {{{java.util.Map}}})
+ * [[http://jira.codehaus.org/browse/JACKSON-135 | JACKSON-135]]: Ability to construct {{{JsonNode}}} instances directly from {{{ObjectMapper}}}, using methods {{{ObjectMapper.createObjectNode}}} and {{{ObjectMapper.createArrayNode}}}.
+ * [[http://jira.codehaus.org/browse/JACKSON-147 | JACKSON-147]]: Allow disabling exception throwing for unknown properties during deserialization ({{{DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES}}})
+ * [[http://jira.codehaus.org/browse/JACKSON-148 | JACKSON-148]]: Make configuration methods (of {{{JsonFactory}}}, {{{ObjectMapper}}}, {{{JsonParser}}}, {{{JsonGenerator}}}) chainable by returning 'this'.
+ * [[http://jira.codehaus.org/browse/JACKSON-149 | JACKSON-149]]: Added {{{DeserializationConfig.Feature.USE_ANNOTATIONS}}} and {{{SerializationConfig.Feature.USE_ANNOTATIONS}}} to allow disabling use of annotations for configuring serialization and/or deserialization aspects (by default features are on)
+
+=== Initially planned, but deferred ===
+
+=== Deferred to 1.3 ===
+
+ * [[http://jira.codehaus.org/browse/JACKSON-138 | JACKSON-138]]: Add support for "views" ({{{@JsonView}}})
+ * [[http://jira.codehaus.org/browse/JACKSON-129 | JACKSON-129]]: Allow creating {{{JsonParser}}}, {{{JsonGenerator}}} to/from {{{java.util.Map}}} (mostly to allow data binding to/from Maps via parser/generator)
+ * [[http://jira.codehaus.org/browse/JACKSON-137 | JACKSON-137]]: Allow use of proxy object to simplify handling of generic objects -- will possibly add "Jackson Sandbox" to first introduce this clever construct?
+
+----
+CategoryJackson

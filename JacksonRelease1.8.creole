@@ -1,0 +1,59 @@
+== Jackson Release: 1.8 ==
+
+Version 1.8 was released April 20th, 2011, about 4 months after [[JacksonRelease17 | 1.7]]; see [[JacksonDownload | Download]] page.
+
+As with all "minor versions", it is backwards compatible with earlier version, regarding public API; and with only minor changes with internal (or semi-public) interfaces.
+Set of such mostly-internal changes is included in release notes.
+
+Goal for this version was to address "most wanted" features, both by users and development team.
+In addition, modular extensibility was a priority, so multiple improvements to [[JacksonFeatureModules | Module API]] were included.
+-----
+
+=== Implemented features, Major ===
+
+ * Customized low-level output encoding:
+  * [[http://jira.codehaus.org/browse/JACKSON-102 | JACKSON-102]]: Allow forced escaping of non-ASCII characters, using JsonGenerator.{{{Feature.ESCAPE_NON_ASCII}}} (or JsonGenerator.{{{setHighestNonEscapedChar}}}
+  * [[http://jira.codehaus.org/browse/JACKSON-106 | JACKSON-106]]: Added {{{org.codehaus.jackson.io}}}.CharacterEscapes which can be registered with JsonFactory, JsonGenerator, to add fully customized character escaping functionality.
+ * [[http://jira.codehaus.org/browse/JACKSON-178 | JACKSON-178]]: Add support for [[JacksonFeaturePropertyNamingStrategy | custom property naming strategy]].
+ * [[http://jira.codehaus.org/browse/JACKSON-494 | JACKSON-494]]: Add pluggable format auto-detection support
+  * Support added for basic JSON (JsonFactory), Smile (SmileFactory), as well as "jackson-xml-databinding" module ({{{XmlFactory}}}).
+ * Full support for configurable key serializers, deserializers:
+  * [[http://jira.codehaus.org/browse/JACKSON-513 | JACKSON-513]]: Add methods for registering key serializers, deserializers, via Module API
+  * [[http://jira.codehaus.org/browse/JACKSON-519 | JACKSON-519]]: Add support for contextual serializers, deserializers.
+
+=== Implemented features, Medium ===
+
+ * [[http://jira.codehaus.org/browse/JACKSON-43 | JACKSON-43]]: Add ObjectMapper.{{{readValues()}}}, ObjectReader.{{{readValues()}}} to allow convenient binding of sequences (arrays, root-level sequences) of values.
+ * [[http://jira.codehaus.org/browse/JACKSON-204 | JACKSON-204]] Add feature to allow deserializing empty Strings as nulls (for POJOs).
+ * [[http://jira.codehaus.org/browse/JACKSON-427 | JACKSON-427]] JsonNode: add "upsert" accessor for JsonNode (although only usable for ObjectNode); {{{JsonNode.with(String property)}}} -- gets or creates ObjectNode-valued property of an ObjectNode.
+ * [[http://jira.codehaus.org/browse/JACKSON-464 | JACKSON-464]]: Add SimpleAbstractTypeResolver to allow defining mapping from abstract types to concrete types (like, say, from {{{java.util.Collection}}} to {{{java.util.HashSet}}})
+ * [[http://jira.codehaus.org/browse/JACKSON-520 | JACKSON-520]]: Add "FormatSchema" abstraction (mostly a tag interface); add to JsonGenerator, JsonParser, as well as to ObjectMapper, ObjectReader and ObjectWriter. For latter group of objects it will just passed to generators and parsers as opaque value.
+ * [[http://jira.codehaus.org/browse/JACKSON-521 | JACKSON-521]] Add a mechanism to indicate that certain non-Collection/Map types be considered Collections, Maps, by framework (needed by Scala plug-in)
+ * [[http://jira.codehaus.org/browse/JACKSON-526 | JACKSON-526]]: Add [[JacksonFeaturesDeserialization | DeserializationConfig.Feature]].ACCEPT_SINGLE_VALUE_AS_ARRAY, which allows implicit conversions in case where JSON format is omitting JSON array surroinding a single value (sort of invalid structure produced by some XML-to-JSON converters)
+ * [[http://jira.codehaus.org/browse/JACKSON-527 | JACKSON-527]]: Add HandlerInstantiator abstraction (to implement, register with ObjectMapper) to allow customizing details of how JsonDeserializer, JsonSerializer, TypeIdResolver instances (and any other handler types added in future) are constructed: useful for integrating with Dependency Injection frameworks, work around class loader issues.
+
+=== Implemented features, Minor ===
+
+ * [[http://jira.codehaus.org/browse/JACKSON-142 | JACKSON-142]]: Add [[JacksonFeaturesParser | JsonParser.Feature]].ALLOW_NON_NUMERIC_NUMBERS ([[JacksonFeaturesNonStandard | non-standard]]) feature that allows parsing "NaN", "+INF"/"+Infinite", "-INF"/"-Infinite" as double values
+ * [[http://jira.codehaus.org/browse/JACKSON-358 | JACKSON-358]]: JsonParser: optional support for accepting leading zeroes for numbers
+ * [[http://jira.codehaus.org/browse/JACKSON-459 | JACKSON-459]]: Add mapper-level configuration to allow default ordering of serialized properties
+ * [[http://jira.codehaus.org/browse/JACKSON-487 | JACKSON-487]]: Change DeserializationConfig.{{{Feature.USE_ANNOTATIONS}}} to fully block introspection of any annotations
+ * [[http://jira.codehaus.org/browse/JACKSON-502 | JACKSON-502]]: Change [[JacksonFeatureMaterializedBeans | mr Bean]] functionality be basic [[JacksonFeatureModules | Module]] (to simplify registration)
+ * [[http://jira.codehaus.org/browse/JACKSON-512 | JACKSON-512]]: Allow decorating {{{InputStream}}}/{{{OutputStream}}} (and other sources/destinations) when creating JsonParser, JsonGenerator
+ * [[http://jira.codehaus.org/browse/JACKSON-555 | JACKSON-555]]: Add JsonParser.{{{getInputSource()}}}, JsonGenerator.{{{getOutputTarget()}}} to give access to raw stream/reader/writer objects.
+
+=== Initially planned but deferred features ===
+
+ * [[http://jira.codehaus.org/browse/JACKSON-132 | JACKSON-132]] (note: '''high vote count'''): Allow inlining/unwrapping of child objects
+ * [[http://jira.codehaus.org/browse/JACKSON-275 | JACKSON-275]]: Support multi-argument setters (to allow co-constraints)
+ * [[http://jira.codehaus.org/browse/JACKSON-279 | JACKSON-279]]: Retain timezone information during serialization, deserialization 
+ * [[http://jira.codehaus.org/browse/JACKSON-350 | JACKSON-350]]: Resolve classloading issues (for eg. OSGi) without changing API
+ * [[http://jira.codehaus.org/browse/JACKSON-406 | JACKSON-406]]: Allow injection of values during deserialization
+  * Also: [[http://jira.codehaus.org/browse/JACKSON-471 | JACKSON-471]]: similarly, allow injection during serialization
+ * [[http://jira.codehaus.org/browse/JACKSON-453 | JACKSON-453]]: Support for 'external type id'; and possibly related issues:
+  * [[http://jira.codehaus.org/browse/JACKSON-437 | JACKSON-437]]: Support to set logical property with value of type id that was used for deserialization
+ * [[http://jira.codehaus.org/browse/JACKSON-490 | JACKSON-490]] Allow subclasses to "inherit" @JsonCreator annotation from superclass constructor
+
+----
+
+CategoryJackson
