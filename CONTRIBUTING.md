@@ -90,7 +90,7 @@ for more information.
 #### Coding Style
 
 Jackson projects usually adhere to well-known conventional coding guides, but there still have
-Jackson-specific coding conventions. Please refer to [Jackson Code Style](../../contribution/jackson-java-coding-style-guide.md) for details.
+Jackson-specific coding conventions. Please refer to [Jackson Code Style](../../blob/master/contribution/jackson-java-coding-style-guide.md) for details.
 
 #### Testing
 
