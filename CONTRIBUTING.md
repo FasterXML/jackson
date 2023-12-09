@@ -87,6 +87,11 @@ functionality must be part of a major version release.
 See [Jackson Releases on the wiki](https://github.com/FasterXML/jackson/wiki/Jackson-Releases)
 for more information.
 
+#### Coding Style
+
+Jackson projects usually adhere to well-known conventional coding guides, but there still have
+Jackson-specific coding conventions. Please refer to [Jackson Code Style](../../blob/master/contribution/jackson-java-coding-style-guide.md) for details.
+
 #### Testing
 
 Jackson's functionality is vast and is used widely, so automated testing for any changes is
