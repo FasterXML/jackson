@@ -32,9 +32,28 @@ Some parts of this document only apply to Java source code, while others apply t
 
 #### Ordering
 
+Import statements should be grouped and ordered in the following manner:
+
 1. **JDK Imports**: Begin with standard Java (JDK) imports.
-2. **Jackson Imports**: Follow with Jackson imports, starting from base types (annotations, core, databind), ordered
-   from foundational to higher-level.
+2. **General 3rd Party Imports**: Follow with imports from third-party libraries (e.g., JUnit).
+3. **Jackson Core Types**: Next, import Jackson core types, in the order of annotations, core, and databind.
+4. **Component-Specific Types**: For non-core Jackson components, import component-specific types last.
+
+```java
+import java.io.*;           // JDK imports
+import java.util.*;
+
+import org.junit.*;         // General 3rd party imports
+
+import com.fasterxml.jackson.annotation.*;  // Jackson core types: annotations
+import com.fasterxml.jackson.core.*;        // Jackson core types: core
+import com.fasterxml.jackson.databind.*;    // Jackson core types: databind
+import com.fasterxml.jackson.other.modules.*; // and some Component-specific imports (if any)
+
+// same mechanism for static imports
+
+... more import statements ...
+```
 
 ## Naming Conventions
 
