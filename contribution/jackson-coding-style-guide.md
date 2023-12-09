@@ -1,7 +1,7 @@
-# Jackson-Java Coding Style Guide
+# Jackson Coding Style Guide
 
-This document serves as the coding conventions for Java source code in the Jackson project. It's inspired by the Google
-Java Style Guide.
+This document serves as the coding conventions for Java source code in the Jackson project.
+Some parts of this document only apply to Java source code, while others apply to all source code in the project.
 
 ## Table of Contents
 
