@@ -67,3 +67,14 @@ import com.fasterxml.jackson.other.modules.*; // and some Component-specific imp
 - **Internal Methods**: Prefix methods used within the class with an underscore.
 - **Sub-Class Methods**: Optionally, use a leading underscore for methods intended for subclass use, but not for
   external class calls.
+
+## Use of `final` keyword
+
+- **Fields**: Strongly encourage the use of `final` for fields, assigning them in the constructor to promote immutability.
+- **Method Parameters**: Allowed but not necessarily encouraged.
+- **Local Variables**: Encouraged where applicable.
+
+## Maximum Line Length
+
+- **Recommendation**: Lines should not exceed 100 characters.
+- **Javadocs**: Strict adherence to a maximum of 100 characters per line is recommended.
