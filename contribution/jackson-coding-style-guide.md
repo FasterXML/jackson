@@ -13,6 +13,11 @@ Some parts of this document only apply to Java source code, while others apply t
 2. [Naming Conventions](#naming-conventions)
     1. [Field Naming](#field-naming)
     2. [Method Naming](#method-naming)
+3. [Use of `final` Keyword](#use-of-final-keyword)
+4. [Maximum Line Length](#maximum-line-length)
+5. [Testing Conventions](#testing-conventions)
+    1. [Test Class Naming](#test-class-naming)
+    2. [Failing Tests](#failing-tests)
 
 ## Source Formatting
 
@@ -46,13 +51,15 @@ import java.util.*;
 import org.junit.*;         // General 3rd party imports
 
 import com.fasterxml.jackson.annotation.*;  // Jackson core types: annotations
+
 import com.fasterxml.jackson.core.*;        // Jackson core types: core
 import com.fasterxml.jackson.databind.*;    // Jackson core types: databind
+
 import com.fasterxml.jackson.other.modules.*; // and some Component-specific imports (if any)
 
 // same mechanism for static imports
 
-... more import statements ...
+...static import statements...
 ```
 
 ## Naming Conventions
@@ -70,7 +77,8 @@ import com.fasterxml.jackson.other.modules.*; // and some Component-specific imp
 
 ## Use of `final` keyword
 
-- **Fields**: Strongly encourage the use of `final` for fields, assigning them in the constructor to promote immutability.
+- **Fields**: Strongly encourage the use of `final` for fields, assigning them in the constructor to promote
+  immutability.
 - **Method Parameters**: Allowed but not necessarily encouraged.
 - **Local Variables**: Encouraged where applicable.
 
@@ -78,3 +86,20 @@ import com.fasterxml.jackson.other.modules.*; // and some Component-specific imp
 
 - **Recommendation**: Lines should not exceed 100 characters.
 - **Javadocs**: Strict adherence to a maximum of 100 characters per line is recommended.
+
+## Testing Conventions
+
+### Test Class Naming
+
+- **XxxxTest**: Now The preferred naming convention has shifted to "XxxTest". In the past, test classes were typically
+  named "TestXxx".
+- **JUnit and Maven Compatibility**: It is important to note that for `JUnit` integration with `Maven`, test classes
+  must
+  either start or end with `"Test"` to be automatically included in test runs.
+
+### Failing Tests
+
+- **Dedicated Directory for Failing Tests**: For reproduction of bugs, Jackson projects keep a set of failing tests
+  under `src/test/java/**/failing`.
+- **Execution Policy**: These tests are excluded from automatic execution. They are specifically designed for manual
+  runs to facilitate the reproduction and investigation of reported issues.
