@@ -89,7 +89,7 @@ for more information.
 
 #### Coding Style
 
-Jackson projects usually adhere to well-known conventional coding guides, but there still have
+Jackson projects usually adhere to well-known conventional coding guides, but there are some
 Jackson-specific coding conventions. Please refer to [Jackson Code Style](../../blob/master/contribution/jackson-coding-style-guide.md) for details.
 
 #### Testing
