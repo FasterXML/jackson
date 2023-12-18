@@ -44,6 +44,10 @@ Import statements should be grouped and ordered in the following manner:
 3. **Jackson Core Types**: Next, import Jackson core types, in the order of annotations, core, and databind.
 4. **Component-Specific Types**: For non-core Jackson components, import component-specific types last.
 
+Static import statements should be grouped after non-static ones, using same ordering.
+
+So, for example we might have:
+
 ```java
 import java.io.*;           // JDK imports
 import java.util.*;
@@ -65,6 +69,8 @@ import com.fasterxml.jackson.other.modules.*; // and some Component-specific imp
 ## Naming Conventions
 
 ### Field Naming
+
+Standard Java Language naming recommendation (camel-case) is followed with following modifications:
 
 - **Non-Public Fields**: Prefix non-public member fields with an underscore (e.g., `_fieldName`).
 
