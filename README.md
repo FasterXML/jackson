@@ -7,7 +7,8 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
-* April 23, 2023: Jackson 2.15(.0) (latest stable) released
+* Nov 15, 2023: Jackson 2.16(.0) (latest stable) released
+* April 23, 2023: Jackson 2.15 released
 * Nov 5, 2022: Jackson 2.14 released
 * Nov 2, 2022: AdaLogics Security Audit for Jackson released -- see Document/Reports
 * Sep 30, 2021: Jackson 2.13 released
