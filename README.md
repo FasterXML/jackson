@@ -7,6 +7,7 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
+* Dec 17, 2023: [Jackson Coding StyleGuide](contribution/jackson-coding-style-guide.md)
 * Nov 15, 2023: Jackson 2.16(.0) (latest stable) released
 * April 23, 2023: Jackson 2.15 released
 * Nov 5, 2022: Jackson 2.14 released
@@ -60,8 +61,8 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.15.2](../../wiki/Jackson-Release-2.15), released on 05-May-2023
-    * [2.14.3](../../wiki/Jackson-Release-2.14) is the latest patch from previous stable branch
+* [2.16.1](../../wiki/Jackson-Release-2.16), released on 24-Dec-2023
+    * [2.15.3](../../wiki/Jackson-Release-2.15) is the latest patch from previous stable branch
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
