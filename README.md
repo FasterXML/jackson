@@ -7,7 +7,7 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
-* Dec 17, 2023: [Jackson Coding StyleGuide](contribution/jackson-coding-style-guide.md)
+* Dec 17, 2023: contributing/[Jackson Coding Style Guide](contribution/jackson-coding-style-guide.md)
 * Nov 15, 2023: Jackson 2.16(.0) (latest stable) released
 * April 23, 2023: Jackson 2.15 released
 * Nov 5, 2022: Jackson 2.14 released
@@ -237,6 +237,14 @@ its size (both jar, and runtime memory usage) is considerably smaller; and its A
 * [Jackson-js](https://github.com/pichillilorenzo/jackson-js) is a Javascript/Node object serialization/deserialization library with API inspired by Jackson
 * [Pyckson](https://github.com/antidot/Pyckson) is a Python library that aims for same goals as Java Jackson, such as Convention over Configuration 
 * [Rackson](https://github.com/griffindy/rackson) is a Ruby library that offers Jackson-like functionality on Ruby platform
+
+## Contributing
+
+If you would like to help with Jackson project, please check out [Contributing](CONTRIBUTING.md).
+
+You may also want to check out:
+
+* [Jackson Coding Style](contribution/jackson-coding-style-guide.md)
 
 ## Support 
 
