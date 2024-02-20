@@ -7,6 +7,7 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
+* Feb 19, 2024: Another OSTIF/AdaLogics Security Audit -- on jackson-dataformat-xxx's and jackson-datatype-xxx's -- released: https://ostif.org/dataformatsdatatypes-audit-complete/
 * Dec 17, 2023: contributing/[Jackson Coding Style Guide](contribution/jackson-coding-style-guide.md)
 * Nov 15, 2023: Jackson 2.16(.0) (latest stable) released
 * April 23, 2023: Jackson 2.15 released
