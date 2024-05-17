@@ -57,15 +57,15 @@ understand which Git Branch to use as the base.
 Jackson projects maintain a few branches:
 
 * `master` for developing the still-far-off 3.0.0 release -- but is also used for `README.md`s
-* `2.17` the next minor version in development
-* `2.16` the current stable release
-* `2.15` the previous stable branch, for which patch releases may still occur
-* `2.14` inactive branch that may receive micro-patches for urgent security issues (usually only [`jackson-databind`](https://github.com/FasterXML/jackson-databind))
+* `2.18` the next minor version in development
+* `2.17` the current stable release
+* `2.16` the previous stable branch, for which patch releases may still occur
+* `2.15` inactive branch that may receive micro-patches for urgent security issues (usually only [`jackson-databind`](https://github.com/FasterXML/jackson-databind))
 
-Most bug-fix Pull Requests should be made against the current stable branch, `2.16`.
+Most bug-fix Pull Requests should be made against the current stable branch, `2.17`.
 Pull requests for major new functionality or that significantly alter internals,
 but are backwards-compatible with existing behavior should be made against the next minor version
-branch (`2.17`).
+branch (`2.18`).
 If Jackson's functionality or default behavior is to be altered, `master` is the correct branch, but
 discussion is probably in order.
 
