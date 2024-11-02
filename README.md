@@ -7,7 +7,8 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
-* Mar 12, 2024: Jackson 2.17(.0) (latest stable) released
+* Sep 26, 2024: Jackson 2.18(.0) (latest stable major) released
+* Mar 12, 2024: Jackson 2.17 released
 * Feb 19, 2024: Another OSTIF/AdaLogics Security Audit -- on jackson-dataformat-xxx's and jackson-datatype-xxx's -- released: https://ostif.org/dataformatsdatatypes-audit-complete/
 * Dec 17, 2023: contributing/[Jackson Coding Style Guide](contribution/jackson-coding-style-guide.md)
 * Nov 15, 2023: Jackson 2.16 released
@@ -63,8 +64,8 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.17.2](../../wiki/Jackson-Release-2.17.2), released on 05-Jul-2024
-    * [2.16.2](../../wiki/Jackson-Release-2.16.2) is the latest patch from previous stable branch
+* [2.18.1](../../wiki/Jackson-Release-2.18.1), released on 28-Oct-2024
+    * [2.17.3](../../wiki/Jackson-Release-2.17.3) is the latest patch from previous stable branch
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
