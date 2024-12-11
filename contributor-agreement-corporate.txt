@@ -21,7 +21,7 @@
    and to grant copyright and patent licenses thereto.
 
    If you have not already done so, please complete and sign, then
-   scan and email a pdf file of this Agreement to cla@fasterxml.com.
+   scan and email a pdf file of this Agreement to "cla@fasterxml.com".
    If necessary, send an original signed Agreement to FasterXML, LLC,
    600 N 36th Ave, Suite 409, Seattle, WA 98103.
 
