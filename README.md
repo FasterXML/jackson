@@ -64,7 +64,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.18.1](../../wiki/Jackson-Release-2.18.1), released on 28-Oct-2024
+* [2.18.3](../../wiki/Jackson-Release-2.18.3), released on 28-Feb-2025
     * [2.17.3](../../wiki/Jackson-Release-2.17.3) is the latest patch from previous stable branch
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
