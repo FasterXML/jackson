@@ -7,6 +7,7 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
+* Apr 8, 2025: Minor updates wrt Jackson 3.x
 * Sep 26, 2024: Jackson 2.18(.0) (latest stable major) released
 * Mar 12, 2024: Jackson 2.17 released
 * Feb 19, 2024: Another OSTIF/AdaLogics Security Audit -- on jackson-dataformat-xxx's and jackson-datatype-xxx's -- released: https://ostif.org/dataformatsdatatypes-audit-complete/
@@ -30,16 +31,16 @@ More than that, Jackson is a suite of data-processing tools for Java (and the JV
 including the flagship streaming [JSON](https://en.wikipedia.org/wiki/JSON) parser / generator library,
 matching data-binding library (POJOs to and from JSON)
 and additional data format modules to process data encoded in
-[Avro](https://github.com/FasterXML/jackson-dataformats-binary/blob/master/avro),
+[Avro](https://github.com/FasterXML/jackson-dataformats-binary/blob/2.19/avro),
 [BSON](https://github.com/michel-kraemer/bson4jackson),
-[CBOR](https://github.com/FasterXML/jackson-dataformats-binary/blob/master/cbor),
-[CSV](https://github.com/FasterXML/jackson-dataformats-text/blob/master/csv),
-[Smile](https://github.com/FasterXML/jackson-dataformats-binary/tree/master/smile),
-[(Java) Properties](https://github.com/FasterXML/jackson-dataformats-text/blob/master/properties),
-[Protobuf](https://github.com/FasterXML/jackson-dataformats-binary/tree/master/protobuf),
-[TOML](https://github.com/FasterXML/jackson-dataformats-text/blob/2.13/toml),
+[CBOR](https://github.com/FasterXML/jackson-dataformats-binary/blob/2.19/cbor),
+[CSV](https://github.com/FasterXML/jackson-dataformats-text/blob/2.19/csv),
+[Smile](https://github.com/FasterXML/jackson-dataformats-binary/tree/2.19/smile),
+[(Java) Properties](https://github.com/FasterXML/jackson-dataformats-text/blob/2.19/properties),
+[Protobuf](https://github.com/FasterXML/jackson-dataformats-binary/tree/2.19/protobuf),
+[TOML](https://github.com/FasterXML/jackson-dataformats-text/blob/2.19/toml),
 [XML](https://github.com/FasterXML/jackson-dataformat-xml)
-or [YAML](https://github.com/FasterXML/jackson-dataformats-text/blob/master/yaml);
+or [YAML](https://github.com/FasterXML/jackson-dataformats-text/blob/2.19/yaml);
 and even the large set of data format modules to support data types of widely used
 data types such as
 [Guava](../../../jackson-datatypes-collections),
@@ -57,10 +58,10 @@ A good companion to this README is the [Jackson Project FAQ](../../wiki/FAQ).
 
 ## Actively developed versions
 
-Jackson suite has two major versions: 1.x is deprecated and no versions are released;
-2.x is the actively developed version.
-These two major versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x, without conflicts.
-This is by design and was chosen as the strategy to allow smoother migration from 1.x to 2.x.
+Jackson suite has three major versions: 1.x is deprecated and no versions are released;
+2.x is the actively developed version; and 3.x is the next major version being developed (as of April 2025).
+These major versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x (and eventually 3.x), without conflicts.
+This is by design and was chosen as the strategy to allow smoother migration from 1.x to 2.x (and from 2.x to 3.x, eventually).
 
 The latest stable versions from these branches are:
 
@@ -97,10 +98,10 @@ serializers and deserializers so that Jackson `databind` package (`ObjectMapper`
 Datatype modules directly maintained by Jackson team are under the following Github repositories:
 
 * Standard [Collections](../../../jackson-datatypes-collections) datatype modules:
-    * [jackson-datatype-eclipse-collections](../../../jackson-datatypes-collections/tree/master/eclipse-collections): support for [Eclipse Collections](https://www.eclipse.org/collections/) (NEW in Jackson 2.10!)
-    * [jackson-datatype-guava](../../../jackson-datatypes-collections/tree/master/guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes
-    * [jackson-datatype-hppc](../../../jackson-datatypes-collections/tree/master/hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
-    * [jackson-datatype-pcollections](../../../jackson-datatypes-collections/tree/master/pcollections): support for [PCollections](http://pcollections.org/) datatypes (since Jackson 2.7)
+    * [jackson-datatype-eclipse-collections](../../../jackson-datatypes-collections/tree/2.19/eclipse-collections): support for [Eclipse Collections](https://www.eclipse.org/collections/) (NEW in Jackson 2.10!)
+    * [jackson-datatype-guava](../../../jackson-datatypes-collections/tree/2.19/guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes
+    * [jackson-datatype-hppc](../../../jackson-datatypes-collections/tree/2.19/hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
+    * [jackson-datatype-pcollections](../../../jackson-datatypes-collections/tree/2.19/pcollections): support for [PCollections](http://pcollections.org/) datatypes (since Jackson 2.7)
 * [Hibernate](../../../jackson-datatype-hibernate): support for Hibernate features (lazy-loading, proxies)
 * [Java 8 Modules](../../../jackson-modules-java8): support or JDK 8 features and datatypes through 3 separate modules
     * `jackson-module-parameter-names`: Module that adds support for using a new JDK8 feature, ability to access names of constructor and method parameters, to allow omitting `@JsonProperty`.
@@ -111,11 +112,11 @@ Datatype modules directly maintained by Jackson team are under the following Git
     * `jackson-datatype-jdk8`: support for JDK 8 data types other than date/time types, including `Optional`
 * Joda datatypes:
     * [jackson-datatype-joda](../../../jackson-datatype-joda): support for types of [Joda-Time](https://www.joda.org/joda-time/) date/time library datatypes
-    * [jackson-datatype-joda-money](../../../jackson-datatypes-misc/tree/master/joda-money): support types of [Joda-Money](https://www.joda.org/joda-money/) datatypes (`Money`, `CurrencyUnit`)
+    * [jackson-datatype-joda-money](../../../jackson-datatypes-misc/tree/2.19/joda-money): support types of [Joda-Money](https://www.joda.org/joda-money/) datatypes (`Money`, `CurrencyUnit`)
 * JSON-P ("json processing"): two datatype modules for "old" (`javax.json`) and "new" (`jakarta.json`):
-    * [jackson-datatype-jakarta-jsonp](../../../jackson-datatypes-misc/tree/master/jakarta-jsonp): support for "new" JSON-P types in `jakarta.json` (*added in Jackson 2.12.2*)
-    * [jackson-datatype-jsr353](../../../jackson-datatypes-misc/tree/master/jsr-353): support for "old" JSON-P types in `javax.json`
-* [jackson-datatype-json-org](../../../jackson-datatypes-misc/tree/master/json-org): support for [org.json](https://github.com/stleary/JSON-java) library types like `JSONObject`, `JSONArray`
+    * [jackson-datatype-jakarta-jsonp](../../../jackson-datatypes-misc/tree/2.19/jakarta-jsonp): support for "new" JSON-P types in `jakarta.json` (*added in Jackson 2.12.2*)
+    * [jackson-datatype-jsr353](../../../jackson-datatypes-misc/tree/2.19/jsr-353): support for "old" JSON-P types in `javax.json`
+* [jackson-datatype-json-org](../../../jackson-datatypes-misc/tree/2.19/json-org): support for [org.json](https://github.com/stleary/JSON-java) library types like `JSONObject`, `JSONArray`
 
 In addition, we are aware of additional modules that are not directly maintained by core Jackson team:
 
@@ -149,16 +150,16 @@ Most of them simply implement `streaming` API abstractions, so that databinding 
 Currently following data format modules are fully usable and supported (version number in parenthesis, if included, is the
 first Jackson 2.x version to include module; if missing, included from 2.0)
 
-* [Avro](../../../jackson-dataformats-binary/tree/master/avro): supports [Avro](http://en.wikipedia.org/wiki/Apache_Avro) data format, with `streaming` implementation plus additional `databind`-level support for Avro Schemas
-* [CBOR](../../../jackson-dataformats-binary/tree/master/cbor): supports [CBOR](http://tools.ietf.org/search/rfc7049) data format (a binary JSON variant).
-* [CSV](../../../jackson-dataformats-text/blob/master/csv): supports [Comma-separated values](http://en.wikipedia.org/wiki/Comma-separated_values) format -- `streaming` api, with optional convenience `databind` additions
-* [Ion](../../../jackson-dataformats-binary/tree/master/ion) (2.9): support for [Amazon Ion](https://amznlabs.github.io/ion-docs/) binary data format (similar to CBOR, Smile, i.e. binary JSON - like)
-* [(Java) Properties](../../../jackson-dataformats-text/blob/master/properties) (2.8): creating nested structure out of implied notation (dotted by default, configurable), flattening similarly on serialization
-* [Protobuf](../../../jackson-dataformats-binary/tree/master/protobuf) (2.6): supported similar to `Avro`
-* [Smile](../../../jackson-dataformats-binary/tree/master/smile): supports [Smile (binary JSON)](https://github.com/FasterXML/smile-format-specification) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
+* [Avro](../../../jackson-dataformats-binary/tree/2.19/avro): supports [Avro](http://en.wikipedia.org/wiki/Apache_Avro) data format, with `streaming` implementation plus additional `databind`-level support for Avro Schemas
+* [CBOR](../../../jackson-dataformats-binary/tree/2.19/cbor): supports [CBOR](http://tools.ietf.org/search/rfc7049) data format (a binary JSON variant).
+* [CSV](../../../jackson-dataformats-text/blob/2.19/csv): supports [Comma-separated values](http://en.wikipedia.org/wiki/Comma-separated_values) format -- `streaming` api, with optional convenience `databind` additions
+* [Ion](../../../jackson-dataformats-binary/tree/2.19/ion) (2.9): support for [Amazon Ion](https://amznlabs.github.io/ion-docs/) binary data format (similar to CBOR, Smile, i.e. binary JSON - like)
+* [(Java) Properties](../../../jackson-dataformats-text/blob/2.19/properties) (2.8): creating nested structure out of implied notation (dotted by default, configurable), flattening similarly on serialization
+* [Protobuf](../../../jackson-dataformats-binary/tree/2.19/protobuf) (2.6): supported similar to `Avro`
+* [Smile](../../../jackson-dataformats-binary/tree/2.19/smile): supports [Smile (binary JSON)](https://github.com/FasterXML/smile-format-specification) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
 * [TOML](../../../jackson-dataformats-text/blob/2.13/toml): (NEW in upcoming 2.13) supports [TOML](http://en.wikipedia.org/wiki/TOML), supported with both `streaming` and `databind` implementations
 * [XML](../../../jackson-dataformat-xml): supports XML; provides both `streaming` and `databind` implementations. Similar to JAXB' "code-first" mode (no support for "XML Schema first", but can use JAXB beans)
-* [YAML](../../../jackson-dataformats-text/blob/master/yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
+* [YAML](../../../jackson-dataformats-text/blob/2.19/yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
 
 There are also other data format modules, provided by developers outside Jackson core team:
 
@@ -207,12 +208,12 @@ many stand-alone Schema tools, such as:
 Other fully usable modules by FasterXML team include:
 
 * [Base](../../../jackson-modules-base) modules:
-    * [Afterburner](../../../jackson-modules-base/tree/master/afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection for field access, method/constructor calls
-    * [Guice](../../../jackson-modules-base/tree/master/guice): extension that allows injection values from Guice injectors (and basic Guice annotations), instead of standard `@JacksonInject` (or in addition to)
-    * [JAXB Annotations](../../../jackson-modules-base/tree/master/jaxb): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
-    * [Mr Bean](../../../jackson-modules-base/tree/master/mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
-    * [OSGi](../../../jackson-modules-base/tree/master/osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
-    * [Paranamer](../../../jackson-modules-base/tree/master/paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
+    * [Afterburner](../../../jackson-modules-base/tree/2.19/afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection for field access, method/constructor calls
+    * [Guice](../../../jackson-modules-base/tree/2.19/guice): extension that allows injection values from Guice injectors (and basic Guice annotations), instead of standard `@JacksonInject` (or in addition to)
+    * [JAXB Annotations](../../../jackson-modules-base/tree/2.19/jaxb): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
+    * [Mr Bean](../../../jackson-modules-base/tree/2.19/mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
+    * [OSGi](../../../jackson-modules-base/tree/2.19/osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
+    * [Paranamer](../../../jackson-modules-base/tree/2.19/paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
 
 ### Jackson jr
 
