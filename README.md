@@ -78,7 +78,8 @@ Release notes for 2.x releases are found from [Jackson Releases](../../wiki/Jack
 
 Most projects listed below are lead by Jackson development team; but some by
 other at-large Jackson community members.
-We try to keep versioning of modules compatible to reduce confusion regarding which versions work together.
+
+We try to keep versioning of modules lined up to reduce confusion regarding which versions work together. One known exception to this is "jackson-annotations" that has a different versioning starting from 2.20 ([more details](https://github.com/FasterXML/jackson-annotations/issues/294)).
 
 ### Core modules
 
@@ -86,7 +87,7 @@ Core modules are the foundation on which extensions (modules) build upon.
 There are 3 such modules currently (as of Jackson 2.x):
 
 * [Streaming](../../../jackson-core) ([docs](../../../jackson-core/wiki)) ("jackson-core") defines low-level streaming API, and includes JSON-specific implementations
-* [Annotations](../../../jackson-annotations) ([docs](../../../jackson-annotations/wiki)) ("jackson-annotations") contains standard Jackson annotations
+* [Annotations](../../../jackson-annotations) ([docs](../../../jackson-annotations/wiki)) ("jackson-annotations") contains standard Jackson annotations; it has a different versioning starting from 2.20 ([more details](https://github.com/FasterXML/jackson-annotations/issues/294))
 * [Databind](../../../jackson-databind) ([docs](../../../jackson-databind/wiki)) ("jackson-databind") implements data-binding (and object serialization) support on `streaming` package; it depends both on `streaming` and `annotations` packages
 
 ### Third-party datatype modules
