@@ -7,20 +7,22 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
+* Aug 28, 2025: [Jackson 2.20](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.20) released
+* Apr 24, 2025: [Jackson 2.19](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.19) released
 * Apr 8, 2025: Minor updates wrt Jackson 3.x
-* Sep 26, 2024: Jackson 2.18(.0) (latest stable major) released
-* Mar 12, 2024: Jackson 2.17 released
+* Sep 26, 2024: [Jackson 2.18](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.18) released
+* Mar 12, 2024: [Jackson 2.17](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.17) released
 * Feb 19, 2024: Another OSTIF/AdaLogics Security Audit -- on jackson-dataformat-xxx's and jackson-datatype-xxx's -- released: https://ostif.org/dataformatsdatatypes-audit-complete/
 * Dec 17, 2023: contributing/[Jackson Coding Style Guide](contribution/jackson-coding-style-guide.md)
-* Nov 15, 2023: Jackson 2.16 released
-* Apr 23, 2023: Jackson 2.15 released
-* Nov 5, 2022: Jackson 2.14 released
+* Nov 15, 2023: [Jackson 2.16](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.16) released
+* Apr 23, 2023: [Jackson 2.15](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.15) released
+* Nov 5, 2022: [Jackson 2.14](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.14) released
 * Nov 2, 2022: AdaLogics Security Audit for Jackson released -- see Document/Reports
-* Sep 30, 2021: Jackson 2.13 released
+* Sep 30, 2021: [Jackson 2.13](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.13) released
 * Oct 1, 2020: Jackson participates in [Hacktoberfest2020](https://hacktoberfest.digitalocean.com/) and we have a [Jackson/Hacktoberfest](https://github.com/FasterXML/Hacktoberfest2020) repo too!
 * Oct 9, 2020: Added [Contributing](CONTRIBUTING.md)
 
-(note: for up-to-date release info, see [Jackson Releases](../../wiki/Jackson-Releases))
+_See more releases information at [Jackson Releases](../../wiki/Jackson-Releases)._
 
 ## What is Jackson?
 
@@ -65,8 +67,8 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [2.18.3](../../wiki/Jackson-Release-2.18.3), released on 28-Feb-2025
-    * [2.17.3](../../wiki/Jackson-Release-2.17.3) is the latest patch from previous stable branch
+* [2.20.0](../../wiki/Jackson-Release-2.20), released on 28-Aug-2025
+    * [2.19.2](../../wiki/Jackson-Release-2.19.2) is the latest patch from previous stable branch
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
