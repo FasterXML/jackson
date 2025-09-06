@@ -7,6 +7,7 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
+* Sep 5, 2025: Added note of `jackson-annotations` versioning scheme change in 2.20
 * Aug 28, 2025: [Jackson 2.20](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.20) released
 * Apr 24, 2025: [Jackson 2.19](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.19) released
 * Apr 8, 2025: Minor updates wrt Jackson 3.x
@@ -61,7 +62,7 @@ A good companion to this README is the [Jackson Project FAQ](../../wiki/FAQ).
 ## Actively developed versions
 
 Jackson suite has three major versions: 1.x is deprecated and no versions are released;
-2.x is the actively developed version; and 3.x is the next major version being developed (as of April 2025).
+2.x is the actively developed version; and 3.x is the next major version being developed (as of September 2025).
 These major versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x (and eventually 3.x), without conflicts.
 This is by design and was chosen as the strategy to allow smoother migration from 1.x to 2.x (and from 2.x to 3.x, eventually).
 
@@ -97,7 +98,7 @@ There are 3 such modules currently (as of Jackson 2.x):
 
 In addition:
 
-* [Jackson BOM](../../../jackson-bom) is useful for ensuring fully consistent set of versions for all official Jackson components. It is usually used by importing as pom in "managed dependencies" Maven section (or using similar mechanism in Gradle etc)
+* [Jackson BOM](../../../jackson-bom) (`jackson-bom`) is useful for ensuring fully consistent set of versions for all official Jackson components. It is usually used by importing as pom in "managed dependencies" Maven section (or using similar mechanism in Gradle etc).
 
 ### Third-party datatype modules
 
@@ -108,7 +109,7 @@ serializers and deserializers so that Jackson `databind` package (`ObjectMapper`
 Datatype modules directly maintained by Jackson team are under the following Github repositories:
 
 * Standard [Collections](../../../jackson-datatypes-collections) datatype modules:
-    * [jackson-datatype-eclipse-collections](../../../jackson-datatypes-collections/tree/2.19/eclipse-collections): support for [Eclipse Collections](https://www.eclipse.org/collections/) (NEW in Jackson 2.10!)
+    * [jackson-datatype-eclipse-collections](../../../jackson-datatypes-collections/tree/2.19/eclipse-collections): support for [Eclipse Collections](https://www.eclipse.org/collections/) (added in 2.10)
     * [jackson-datatype-guava](../../../jackson-datatypes-collections/tree/2.19/guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes
     * [jackson-datatype-hppc](../../../jackson-datatypes-collections/tree/2.19/hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
     * [jackson-datatype-pcollections](../../../jackson-datatypes-collections/tree/2.19/pcollections): support for [PCollections](http://pcollections.org/) datatypes (since Jackson 2.7)
@@ -124,7 +125,7 @@ Datatype modules directly maintained by Jackson team are under the following Git
     * [jackson-datatype-joda](../../../jackson-datatype-joda): support for types of [Joda-Time](https://www.joda.org/joda-time/) date/time library datatypes
     * [jackson-datatype-joda-money](../../../jackson-datatypes-misc/tree/2.19/joda-money): support types of [Joda-Money](https://www.joda.org/joda-money/) datatypes (`Money`, `CurrencyUnit`)
 * JSON-P ("json processing"): two datatype modules for "old" (`javax.json`) and "new" (`jakarta.json`):
-    * [jackson-datatype-jakarta-jsonp](../../../jackson-datatypes-misc/tree/2.19/jakarta-jsonp): support for "new" JSON-P types in `jakarta.json` (*added in Jackson 2.12.2*)
+    * [jackson-datatype-jakarta-jsonp](../../../jackson-datatypes-misc/tree/2.19/jakarta-jsonp): support for "new" JSON-P types in `jakarta.json` (*added in Jackson 2.13*)
     * [jackson-datatype-jsr353](../../../jackson-datatypes-misc/tree/2.19/jsr-353): support for "old" JSON-P types in `javax.json`
 * [jackson-datatype-json-org](../../../jackson-datatypes-misc/tree/2.19/json-org): support for [org.json](https://github.com/stleary/JSON-java) library types like `JSONObject`, `JSONArray`
 
