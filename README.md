@@ -78,10 +78,13 @@ Release notes for 2.x releases are found from [Jackson Releases](../../wiki/Jack
 
 ## Active Jackson projects
 
-Most projects listed below are lead by Jackson development team; but some by
-other at-large Jackson community members.
+Most projects listed below are lead by Jackson development team; but some by other at-large Jackson community members.
 
-We try to keep versioning of modules lined up to reduce confusion regarding which versions work together. One known exception to this is "jackson-annotations" that has a different versioning starting from 2.20 ([more details](https://github.com/FasterXML/jackson-annotations/issues/294)).
+We try to keep versioning of modules lined up to reduce confusion regarding which versions work together.
+
+* One exception to this is [jackson-annotations](../../../jackson-annotations) which has a different versioning starting from 2.20 -- `2.20` instead of `2.20.0` (no patch digit)
+    * See [more details](../../../jackson-annotations/issues/294).
+* For fully consistent set of versions, consider using Jackson BOM ([jackson-bom](../../../jackson-bom))
 
 ### Core modules
 
@@ -89,8 +92,12 @@ Core modules are the foundation on which extensions (modules) build upon.
 There are 3 such modules currently (as of Jackson 2.x):
 
 * [Streaming](../../../jackson-core) ([docs](../../../jackson-core/wiki)) ("jackson-core") defines low-level streaming API, and includes JSON-specific implementations
-* [Annotations](../../../jackson-annotations) ([docs](../../../jackson-annotations/wiki)) ("jackson-annotations") contains standard Jackson annotations; it has a different versioning starting from 2.20 ([more details](https://github.com/FasterXML/jackson-annotations/issues/294))
+* [Annotations](../../../jackson-annotations) ([docs](../../../jackson-annotations/wiki)) ("jackson-annotations") contains standard Jackson annotations
 * [Databind](../../../jackson-databind) ([docs](../../../jackson-databind/wiki)) ("jackson-databind") implements data-binding (and object serialization) support on `streaming` package; it depends both on `streaming` and `annotations` packages
+
+In addition:
+
+* [Jackson BOM](../../../jackson-bom) is useful for ensuring fully consistent set of versions for all official Jackson components. It is usually used by importing as pom in "managed dependencies" Maven section (or using similar mechanism in Gradle etc)
 
 ### Third-party datatype modules
 
@@ -153,16 +160,16 @@ Most of them simply implement `streaming` API abstractions, so that databinding 
 Currently following data format modules are fully usable and supported (version number in parenthesis, if included, is the
 first Jackson 2.x version to include module; if missing, included from 2.0)
 
-* [Avro](../../../jackson-dataformats-binary/tree/2.19/avro): supports [Avro](http://en.wikipedia.org/wiki/Apache_Avro) data format, with `streaming` implementation plus additional `databind`-level support for Avro Schemas
-* [CBOR](../../../jackson-dataformats-binary/tree/2.19/cbor): supports [CBOR](http://tools.ietf.org/search/rfc7049) data format (a binary JSON variant).
-* [CSV](../../../jackson-dataformats-text/blob/2.19/csv): supports [Comma-separated values](http://en.wikipedia.org/wiki/Comma-separated_values) format -- `streaming` api, with optional convenience `databind` additions
-* [Ion](../../../jackson-dataformats-binary/tree/2.19/ion) (2.9): support for [Amazon Ion](https://amznlabs.github.io/ion-docs/) binary data format (similar to CBOR, Smile, i.e. binary JSON - like)
-* [(Java) Properties](../../../jackson-dataformats-text/blob/2.19/properties) (2.8): creating nested structure out of implied notation (dotted by default, configurable), flattening similarly on serialization
-* [Protobuf](../../../jackson-dataformats-binary/tree/2.19/protobuf) (2.6): supported similar to `Avro`
-* [Smile](../../../jackson-dataformats-binary/tree/2.19/smile): supports [Smile (binary JSON)](https://github.com/FasterXML/smile-format-specification) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
-* [TOML](../../../jackson-dataformats-text/blob/2.13/toml): (NEW in upcoming 2.13) supports [TOML](http://en.wikipedia.org/wiki/TOML), supported with both `streaming` and `databind` implementations
+* [Avro](../../../jackson-dataformats-binary/tree/2.20/avro): supports [Avro](http://en.wikipedia.org/wiki/Apache_Avro) data format, with `streaming` implementation plus additional `databind`-level support for Avro Schemas
+* [CBOR](../../../jackson-dataformats-binary/tree/2.20/cbor): supports [CBOR](http://tools.ietf.org/search/rfc7049) data format (a binary JSON variant).
+* [CSV](../../../jackson-dataformats-text/blob/2.20/csv): supports [Comma-separated values](http://en.wikipedia.org/wiki/Comma-separated_values) format -- `streaming` api, with optional convenience `databind` additions
+* [Ion](../../../jackson-dataformats-binary/tree/2.20/ion) (2.9): support for [Amazon Ion](https://amznlabs.github.io/ion-docs/) binary data format (similar to CBOR, Smile, i.e. binary JSON - like)
+* [(Java) Properties](../../../jackson-dataformats-text/blob/2.20/properties) (2.8): creating nested structure out of implied notation (dotted by default, configurable), flattening similarly on serialization
+* [Protobuf](../../../jackson-dataformats-binary/tree/2.20/protobuf) (2.6): supported similar to `Avro`
+* [Smile](../../../jackson-dataformats-binary/tree/2.20/smile): supports [Smile (binary JSON)](https://github.com/FasterXML/smile-format-specification) -- 100% API/logical model compatible via `streaming` API, no changes for `databind`
+* [TOML](../../../jackson-dataformats-text/blob/2.20/toml): (added in 2.13) supports [TOML](http://en.wikipedia.org/wiki/TOML), supported with both `streaming` and `databind` implementations
 * [XML](../../../jackson-dataformat-xml): supports XML; provides both `streaming` and `databind` implementations. Similar to JAXB' "code-first" mode (no support for "XML Schema first", but can use JAXB beans)
-* [YAML](../../../jackson-dataformats-text/blob/2.19/yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
+* [YAML](../../../jackson-dataformats-text/blob/2.20/yaml): supports [YAML](http://en.wikipedia.org/wiki/Yaml), which being similar to JSON is fully supported with simple `streaming` implementation
 
 There are also other data format modules, provided by developers outside Jackson core team:
 
@@ -211,12 +218,12 @@ many stand-alone Schema tools, such as:
 Other fully usable modules by FasterXML team include:
 
 * [Base](../../../jackson-modules-base) modules:
-    * [Afterburner](../../../jackson-modules-base/tree/2.19/afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection for field access, method/constructor calls
-    * [Guice](../../../jackson-modules-base/tree/2.19/guice): extension that allows injection values from Guice injectors (and basic Guice annotations), instead of standard `@JacksonInject` (or in addition to)
-    * [JAXB Annotations](../../../jackson-modules-base/tree/2.19/jaxb): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
-    * [Mr Bean](../../../jackson-modules-base/tree/2.19/mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
-    * [OSGi](../../../jackson-modules-base/tree/2.19/osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
-    * [Paranamer](../../../jackson-modules-base/tree/2.19/paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
+    * [Afterburner](../../../jackson-modules-base/tree/2.20/afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection for field access, method/constructor calls
+    * [Guice](../../../jackson-modules-base/tree/2.20/guice): extension that allows injection values from Guice injectors (and basic Guice annotations), instead of standard `@JacksonInject` (or in addition to)
+    * [JAXB Annotations](../../../jackson-modules-base/tree/2.20/jaxb): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
+    * [Mr Bean](../../../jackson-modules-base/tree/2.20/mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
+    * [OSGi](../../../jackson-modules-base/tree/2.20/osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
+    * [Paranamer](../../../jackson-modules-base/tree/2.20/paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
 
 ### Jackson jr
 
