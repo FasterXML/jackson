@@ -247,6 +247,10 @@ its size (both jar, and runtime memory usage) is considerably smaller; and its A
 
 * [MongoJack](http://mongojack.org/) supports efficient handling of [BSON](http://en.wikipedia.org/wiki/BSON) encoded data store in [MongoDB](http://en.wikipedia.org/wiki/MongoDB).
 
+#### Event processing
+
+* [json-events](https://gitlab.com/bhabegger/json-events) -- Event processing for JSON, similar to SAX (for XML), based on `jackson-core`.
+
 #### Other things related to or inspired by Jackson 
 
 * [Jackson-js](https://github.com/pichillilorenzo/jackson-js) is a Javascript/Node object serialization/deserialization library with API inspired by Jackson
