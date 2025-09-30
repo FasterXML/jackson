@@ -1,10 +1,14 @@
 # Jackson 3 Migration Guide
 
-## Key-Points
+## Highlights
 
-1. Biggest change from Jackson 2 to 3 would be `ObjectMapper` and `JsonFactory` would now be fully immutable.
+1. New group-id (Maven/Gradle) and Java package (com.fasterxml.jackson -> tools.jackson). 
+2. Shared `annotations` module between Jackson 2 and 3
+   - "Shared" mean using same version
+   - [See discussion](https://github.com/FasterXML/jackson-future-ideas/discussions/90) for rationale behind
+2. Jackson 2 to 3 would be `ObjectMapper` and `JsonFactory` would now be fully immutable. Then so instances are constructed using Builder pattern
    - Only "vanilla" instantiation of `ObjectMapper` is left, which is `new ObjectMapper()`
-2. All issues resolved for 3.0: https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0
+3All issues resolved for 3.0: https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0
 
 ## High-level conversation overflow, including
 
