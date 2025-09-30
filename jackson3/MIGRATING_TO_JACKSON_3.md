@@ -3,7 +3,7 @@
 ## Key-Points
 
 1. Biggest change from Jackson 2 to 3 would be `ObjectMapper` and `JsonFactory` would now be fully immutable.
-    - Only "vanilla" instantiation of `ObjectMapper` is left, which is `new ObjectMapper()`
+   - Only "vanilla" instantiation of `ObjectMapper` is left, which is `new ObjectMapper()`
 2. All issues resolved for 3.0: https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0
 
 ## High-level conversation overflow, including
@@ -12,12 +12,12 @@
    - need to change import statements
    - Change to Java packages as per
 2. Changes to default settings (esp various XxxFeatures) -- [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2)
-    - may need to override defaults, or
-    - `builderWithJackson2Defaults()` to stick to legacy configuration settings (though highly recommended not to)
+   - may need to override defaults, or
+   - `builderWithJackson2Defaults()` to stick to legacy configuration settings (though highly recommended not to)
 3. Renaming of Classes, Methods as per [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6)
-    - need to update names
+   - need to update names
 3. All @Deprecated methods are removed from 3.0 -- convert as per 2.x version JavaDocs
-    - 2.20.0 as of writing
+   - 2.20.0 as of writing
 4. Changes to default settings (esp various XxxFeatures) -- [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2)
    - may need to override defaults, or
    - `builderWithJackson2Defaults()` to stick to legacy configuration settings (though highly recommended not to)
