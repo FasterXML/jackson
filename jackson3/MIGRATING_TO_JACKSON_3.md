@@ -1,5 +1,8 @@
 # Jackson 3 Migration Guide
 
+> This guide aims to "connect-the-dots" for Jackson 3 migration.
+> Meaning actual content should be referred to the original documentations.
+
 ## Highlights
 
 1. New group-id (Maven/Gradle) and Java package (com.fasterxml.jackson -> tools.jackson). 
