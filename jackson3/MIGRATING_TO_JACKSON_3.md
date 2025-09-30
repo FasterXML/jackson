@@ -11,7 +11,7 @@
    - [See discussion](https://github.com/FasterXML/jackson-future-ideas/discussions/90) for rationale behind
 2. Jackson 2 to 3 would be `ObjectMapper` and `JsonFactory` would now be fully immutable. Then so instances are constructed using Builder pattern
    - Only "vanilla" instantiation of `ObjectMapper` is left, which is `new ObjectMapper()`
-3All issues resolved for 3.0: https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0
+3. All issues resolved for 3.0: https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0
 
 ## High-level conversation overflow, including
 
@@ -23,13 +23,13 @@
    - `builderWithJackson2Defaults()` to stick to legacy configuration settings (though highly recommended not to)
 3. Renaming of Classes, Methods as per [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6)
    - need to update names
-3. All @Deprecated methods are removed from 3.0 -- convert as per 2.x version JavaDocs
+4. All @Deprecated methods are removed from 3.0 -- convert as per 2.x version JavaDocs
    - 2.20.0 as of writing
-4. Changes to default settings (esp various XxxFeatures) -- [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2)
+5. Changes to default settings (esp various XxxFeatures) -- [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2)
    - may need to override defaults, or
    - `builderWithJackson2Defaults()` to stick to legacy configuration settings (though highly recommended not to)
-5. Immutable JsonFactory / TokenStreamFactory: convert direct configuration with Builder alternatives
-6. Immutable ObjectMapper: convert direct configuration with Builder alternatives
+6. Immutable JsonFactory / TokenStreamFactory: convert direct configuration with Builder alternatives
+7. Immutable ObjectMapper: convert direct configuration with Builder alternatives
 
 ## Discussions and References
 
