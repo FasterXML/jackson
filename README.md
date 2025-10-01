@@ -7,7 +7,7 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
-* Sep 30, 2025: Skeletal version of [Jackson 3 Migration Guide](tree/main/jackson3/MIGRATING_TO_JACKSON_3.md)
+* Sep 30, 2025: Skeletal version of [Jackson 3 Migration Guide](../../tree/main/jackson3/MIGRATING_TO_JACKSON_3.md)
 * Sep 5, 2025: Added note of `jackson-annotations` versioning scheme change in 2.20
 * Aug 28, 2025: [Jackson 2.20](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.20) released
 * Apr 24, 2025: [Jackson 2.19](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.19) released
@@ -82,7 +82,7 @@ Release notes for 2.x releases are found from [Jackson Releases](../../wiki/Jack
 
 With Jackson 3.0.0 GA, some documentation exists to help migration:
 
-* [Jackson 3 Migration Guide](tree/main/jackson3/MIGRATING_TO_JACKSON_3.md)
+* [Jackson 3 Migration Guide](../../tree/main/jackson3/MIGRATING_TO_JACKSON_3.md)
 
 ## Active Jackson projects
 
