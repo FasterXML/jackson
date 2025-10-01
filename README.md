@@ -60,15 +60,20 @@ for linking all the pieces together.
 
 A good companion to this README is the [Jackson Project FAQ](../../wiki/FAQ).
 
-## Actively developed versions
+## Jackson Major Versions
 
-Jackson suite has three major versions: 1.x is deprecated and no versions are released;
-2.x is the actively developed version; and 3.x is the next major version being developed (as of September 2025).
+Jackson suite has three major versions:
+
+* 1.x (`org.codehaus.jackson`) is deprecated and no versions are released;
+* 2.x (`com.fasterxml.jackson`) is the actively developed and maintained version
+* 3.x (`tools.jackson`) is the next major version being developed (as of September 2025).
+
 These major versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x (and eventually 3.x), without conflicts.
 This is by design and was chosen as the strategy to allow smoother migration from 1.x to 2.x (and from 2.x to 3.x, eventually).
 
 The latest stable versions from these branches are:
 
+* [3.0.0-rc10](../../wiki/Jackson-Release-3.0) -- pre-release candidate
 * [2.20.0](../../wiki/Jackson-Release-2.20), released on 28-Aug-2025
     * [2.19.2](../../wiki/Jackson-Release-2.19.2) is the latest patch from previous stable branch
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
@@ -76,7 +81,7 @@ The latest stable versions from these branches are:
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
 Individual projects' wiki pages sometimes also contain direct download links, pointing to CMR.
 
-Release notes for 2.x releases are found from [Jackson Releases](../../wiki/Jackson-Releases) page.
+Release notes for 2.x and 3.x releases are found from [Jackson Releases](../../wiki/Jackson-Releases) page.
 
 ### Jackson 2.x to 3.0 migration
 
