@@ -19,8 +19,8 @@ Guide mostly references documentation in other repos and provides a high-level s
     - Javadocs in Jackson `2.20` updated to indicate new names where available (incomplete: PRs welcome for more!)
 4. Changes to Default Configuration Settings (esp. various XxxFeatures)
     - See [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) for rationale, the set of changes made
-5. Immutability: `ObjectMapper` and `JsonFactory` are fully immutable in 3.x: instances are constructed using Builder pattern
-   - (instantiation of "vanilla" `ObjectMapper` is left, so `new ObjectMapper()` can still be used if default settings are fine)
+5. Immutability of `ObjectMapper`, `JsonFactory`
+    - `ObjectMapper` and `JsonFactory` (and their sub-types) are fully immutable in 3.x: instances to be  constructed using Builder pattern
 6. Unchecked exceptions: all Jackson exceptions now `RuntimeException`s (unchecked)
     - [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2)  explains rationale, changes
     - Base exception (`JsonProcessingException` in 2.x, renamed as `JacksonException`) now extends `RuntimeException` and NOT `IOException` (like 2.x did)
@@ -44,9 +44,9 @@ From the high-level list, we see the need for following changes:
    - MAY need to override some defaults (where existing 2.x behavior preferred) -- but most changes are to settings developers prefer so unlikely to need to change all
        - `JsonMapper.builderWithJackson2Defaults()` may be used to use some of legacy configuration settings (cannot change all defaults but can help migration)
     - [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) lists all default changes
-5. Immutability
-    - `ObjectMapper`: convert direct configuration with Builder alternatives (`JsonMapper.builder().enable(...).build()`)
-    - `JsonFactory` / `TokenStreamFactory`: convert direct configuration with Builder alternatives (`JsonFactory.builder().enable(...).build()`)
+5. Immutability of `ObjectMapper`, `JsonFactory`
+    - `ObjectMapper`/`JsonMapper`: convert direct configuration with Builder alternatives: `JsonMapper.builder().enable(...).build()`
+    - `JsonFactory` / `TokenStreamFactory`: convert direct configuration with Builder alternatives:  `JsonFactory.builder().enable(...).build()`
 6. Unchecked exceptions
     - May require changes to handling: catching Jackson exceptions no longer required (but may catch of course)
     - No need to declare `throws` clause for Jackson calls
@@ -80,7 +80,7 @@ From the high-level list, we see the need for following changes:
 
 (TO BE WRITTEN)
 
-### Immutability
+### Immutability of `ObjectMapper`, `JsonFactory`
 
 (TO BE WRITTEN)
 
