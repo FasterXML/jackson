@@ -22,7 +22,7 @@ Guide mostly references documentation in other repos and provides a high-level s
 5. Immutability of `ObjectMapper`, `JsonFactory`
     - `ObjectMapper` and `JsonFactory` (and their sub-types) are fully immutable in 3.x: instances to be  constructed using Builder pattern
 6. Unchecked exceptions: all Jackson exceptions now `RuntimeException`s (unchecked)
-    - [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2)  explains rationale, changes
+    - [JSTEP-4](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-4)  explains rationale, changes
     - Base exception (`JsonProcessingException` in 2.x, renamed as `JacksonException`) now extends `RuntimeException` and NOT `IOException` (like 2.x did)
 
 For the full list of all issues resolved for 3.0, see [Jackson 3.0 Release Notes](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0).
