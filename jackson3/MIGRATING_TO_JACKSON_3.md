@@ -11,7 +11,7 @@ Guide mostly references documentation in other repos and provides a high-level s
     - Exception: `jackson-annotations`: 2.x version still used with 3.x, so no group-id/Java package change
          - See [this discussion](https://github.com/FasterXML/jackson-future-ideas/discussions/90) for rationale
          - Jackson 3.0 uses `jackson-annotations` `2.20`
-         - "Exception to Exception": annotations within `jackson-databind` like `@JsonSerialize` and `@JsonDeserialize` DO move to new Java package (`tools.jackson.databind.annotation`). Same for format-specific annotation like XML ones.
+         - "Exception to Exception": annotations within `jackson-databind` like `@JsonSerialize` and `@JsonDeserialize` DO move to new Java package (`tools.jackson.databind.annotation`). Same for format-specific annotation like XML (`jackson-dataformat-xml`) ones.
 2. All `@Deprecated` (as of 2.20) methods, fields and classes are removed from 3.0
     - Javadocs in Jackson `2.20` updated to indicate replacements where available (incomplete: PRs welcome for more!)
 3. Renaming of Core Entities (classes), methods, fields
