@@ -64,19 +64,82 @@ Starting from the high-level change list, we can see the need for following chan
 
 ## Detailed Conversion Guidelines
 
-### New Maven group-id and Java package
+### 1. New Maven group-id and Java package
+
+#### Java Package name change
+
+Changes to `import` statements should be quite mechanical:
+
+- Replace `com.fasterxml.jackson.` with `tools.jackson.` everywhere
+    - EXCEPT NOT for `com.fasterxml.jackson.annotation`
+
+#### Maven Group id
+
+Similarly change to Maven Group id in the build files (`pom.xml`, `build.gradle`) should be mechanical:
+
+- Replace `com.fasterxml.jackson` with `tools.jackson` for dependencies
+    - BUT NOT for `com.fasterxml.jackson.annotation`
+
+But beyond this, if you are not yet using [jackson-bom](https://github.com/FasterXML/jackson-bom) for enforcing compatible set of versions, we would highly encourage starting to do so.
+This could additionally help avoid most of complexity of `jackson-annotations` dependency since it is possible to rely on annotations package as transitive dependency. For Maven you can just do:
+
+```xml
+<project>
+  <!-- ... -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>3.0.0</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>   
+   </dependencies>
+  </dependencyManagement>
+
+  <!-- ... -->
+  <dependencies>
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <!-- jackson-core and jackson-annotations transitive dependencies -->
+  </dependencies>
+<project>
+```
+
+### 2. Deprecated method/field/class/functionality removal
+
+It is necessary to convert `@Deprecated` methods/fields/classes with document alternatives where ones exist.
+Jackson `2.20` Javadocs include replacement in many cases.
+
+Here are notes on most commonly encountered cases.
+
+
+#### Deprecated Classes
 
 (TO BE WRITTEN)
 
-### Deprecated method/field/class removal
+#### Deprecated Methods
 
 (TO BE WRITTEN)
 
-### Core entity (class), method, field renaming
+#### Deprecated Fields
+
+None reported yet
+
+#### Deprecated functionality: Format Detection
+
+Jackson 1.x and 2.x contained functionality for auto-detecting format of arbitrary content to decode: functionality was part of `jackson-core` -- Java classes under `com.fasterxml.jackson.core.format` (like `DataFormatDetector`) -- (and implemented by `jackson-dataformat-xxx` components for non-JSON formats).
+
+But due to complexity of implementation, problems with API handling, and lack of usage, this functionality was dropped from 3.0. No replacement exists
+
+### 3. Core entity, method, field renaming
 
 (TO BE WRITTEN)
 
-### Default Config Setting changes
+### 4. Default Config Setting changes
 
 [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) lists all changes, but not all changes are equally likely to cause compatibility problems.
 Here are ones that are considered most likely to cause problems or observed behavior changes:
@@ -100,10 +163,10 @@ Here are ones that are considered most likely to cause problems or observed beha
 
 * `SerializationFeature.WRITE_DATES_AS_TIMESTAMPS` (enabled in 3.0): Highly visible change to serialization; may break unit tests
 
-### Immutability of `ObjectMapper`, `JsonFactory`
+### 5. Immutability of `ObjectMapper`, `JsonFactory`
 
 (TO BE WRITTEN)
 
-### Unchecked Exceptions
+### 6. Unchecked Exceptions
 
 No additional suggestions beyond high-level explanation above.
