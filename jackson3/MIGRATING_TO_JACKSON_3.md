@@ -29,7 +29,7 @@ For the full list of all issues resolved for 3.0, see [Jackson 3.0 Release Notes
 
 ## High-level conversion overflow
 
-From the high-level list, we see the need for following changes:
+Starting from the high-level change list, we can see the need for following changes:
 
 1. Maven group id, Java package change
    - Need to update build files (`pom.xml`, `build.gradle`) to use new group id (`com.fasterxml.jackson.core` -> `tools.jackson.core` and so on)
