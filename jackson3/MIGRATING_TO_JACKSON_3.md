@@ -1,7 +1,8 @@
 # Jackson 3 Migration Guide
 
-This guide aims to "connect-the-dots" for Jackson 2.x to 3.x migration.
-It mostly references documentation in other repos and provides a high-level summary with appropriate links.
+This guide aims to "Connect the Dots" for Jackson 2.x to 3.x migration, helping developers by outlining the process. It is not a comprehensive guide, or check list.
+
+Guide mostly references documentation in other repos and provides a high-level summary with appropriate links.
 
 ## Overview of Major Changes
 
