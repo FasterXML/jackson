@@ -20,6 +20,9 @@ It mostly references documentation in other repos and provides a high-level summ
     - See [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) for rationale, the set of changes made
 5. Immutability: `ObjectMapper` and `JsonFactory` are fully immutable in 3.x: instances are constructed using Builder pattern
    - (instantiation of "vanilla" `ObjectMapper` is left, so `new ObjectMapper()` can still be used if default settings are fine)
+6. Unchecked exceptions: all Jackson exceptions now `RuntimeException`s (unchecked)
+    - [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2)  explains rationale, changes
+    - Base exception (`JsonProcessingException` in 2.x, renamed as `JacksonException`) now extends `RuntimeException` and NOT `IOException` (like 2.x did)
 
 For the full list of all issues resolved for 3.0, see [Jackson 3.0 Release Notes](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0).
 
@@ -41,8 +44,14 @@ From the high-level list, we see the need for following changes:
        - `JsonMapper.builderWithJackson2Defaults()` may be used to use some of legacy configuration settings (cannot change all defaults but can help migration)
     - [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) lists all default changes
 5. Immutability
-    a. `ObjectMapper`: convert direct configuration with Builder alternatives (`JsonMapper.builder().enable(...).build()`)
-    b. `JsonFactory` / `TokenStreamFactory`: convert direct configuration with Builder alternatives (`JsonFactory.builder().enable(...).build()`)
+    - `ObjectMapper`: convert direct configuration with Builder alternatives (`JsonMapper.builder().enable(...).build()`)
+    - `JsonFactory` / `TokenStreamFactory`: convert direct configuration with Builder alternatives (`JsonFactory.builder().enable(...).build()`)
+6. Unchecked exceptions
+    - May require changes to handling: catching Jackson exceptions no longer required (but may catch of course)
+    - No need to declare `throws` clause for Jackson calls
+    - Base exceptions renamed; specifically:
+        - `JsonProcessingException` -> `JacksonException`
+        - `JsonMappingException` -> `DatabindException`
 
 ## Discussions and References
 
@@ -51,3 +60,29 @@ From the high-level list, we see the need for following changes:
          - See all JSTEP's documentations for all changes. 
     b. [Github Discussions section](https://github.com/FasterXML/jackson-future-ideas/discussions) in the same repo as JSTEP
    c. see first (but not last) discussion [here](https://github.com/FasterXML/jackson-future-ideas/discussions/72) as example
+
+## Detailed Conversion Guidelines
+
+### New Maven group-id and Java package
+
+(TO BE WRITTEN)
+
+### Deprecated method/field/class removal
+
+(TO BE WRITTEN)
+
+### Core entity (class), method, field renamin
+
+(TO BE WRITTEN)
+
+### Default Config Setting changes
+
+(TO BE WRITTEN)
+
+### Immutability
+
+(TO BE WRITTEN)
+
+### Unchecked Exceptions
+
+(TO BE WRITTEN)
