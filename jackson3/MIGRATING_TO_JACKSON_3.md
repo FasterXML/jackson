@@ -57,10 +57,10 @@ Starting from the high-level change list, we can see the need for following chan
 ## Discussions and References
 
 1. [Jackson-future-ideas](https://github.com/FasterXML/jackson-future-ideas/wiki) Github repo contains majority of planning and discussion for Jackson 3 preparation. It includes:
-    a. [JSTEP](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP) (Jackson STrategic Enhancement Proposals)
-         - See all JSTEP's documentations for all changes. 
-    b. [Github Discussions section](https://github.com/FasterXML/jackson-future-ideas/discussions) in the same repo as JSTEP
-   c. see first (but not last) discussion [here](https://github.com/FasterXML/jackson-future-ideas/discussions/72) as example
+    - [JSTEP](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP)s (Jackson STrategic Enhancement Proposals)
+         - Sources for most major changes
+    - [Github Discussions section](https://github.com/FasterXML/jackson-future-ideas/discussions) in the same repo as JSTEP
+         - see first (but not last) discussion [here](https://github.com/FasterXML/jackson-future-ideas/discussions/72) as example
 
 ## Detailed Conversion Guidelines
 
