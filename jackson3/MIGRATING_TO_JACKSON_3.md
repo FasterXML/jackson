@@ -216,8 +216,9 @@ Methods:
 
 ### 4. Default Config Setting changes
 
-[JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) lists all changes, but not all changes are equally likely to cause compatibility problems.
-Here are ones that are considered most likely to cause problems or observed behavior changes:
+[JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) lists all changes.
+In general these changes do not necessarily cause problems or require changes: however, if you do observe runtime problems (or new unit test failures), it is good to consider possibility some default config setting change could be the cause.
+But not all changes are equally likely to cause compatibility problems: here are ones that are considered most likely to cause problems or observed behavior changes:
 
 #### Changes: MapperFeature
 
@@ -244,4 +245,4 @@ Here are ones that are considered most likely to cause problems or observed beha
 
 ### 6. Unchecked Exceptions
 
-No additional suggestions beyond high-level explanation above.
+No additional suggestions.
