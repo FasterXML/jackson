@@ -155,7 +155,7 @@ But due to complexity of implementation, problems with API handling, and lack of
 Similar to deprecations, it is necessary to change old references to use new name (including `import` statements): `2.20` Javadocs were updated in some cases to indicate replacement (if available).
 Further [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6) includes a list of renamed things as well -- possibly incomplete list, but useful.
 
-From that, here are most commonly encountered ones.
+From that, here are ones you are most likely to encounter.
 
 #### Renaming: `jackson-core`
 
@@ -174,7 +174,7 @@ Exception types:
 - `JsonEOFException` -> `UnexpectedEndOfInputException`
 - `JsonGenerationException` -> `StreamWriteException`
 
-Method renaming:
+Methods:
 
 - `JsonGenerator`:
    - replace references in method names to "field" with "property"
@@ -189,14 +189,31 @@ Method renaming:
    - `getCurrentValue()` -> `currentValue()`
    - `setCurrentValue()` -> `assignCurrentValue()`
 
-Field renaming:
+Fields:
 
 - `JsonToken.FIELD_NAME` -> `JsonToken.PROPERTY_NAME`
 
 #### Renaming: `jackson-databind`
 
-(TO BE WRITTEN)
-   
+Regular classes:
+
+* `BeanDeserializerModifier` -> `ValueDeserializerModifier`
+* `BeanSerializerModifier` -> `ValueSerializerModifier`
+* `JsonDeserializer` -> `ValueDeserializer`
+* `JsonSerializer` -> `ValueSerializer`
+* `JsonSerializable` -> `JacksonSerializable`
+* `Module` -> `JacksonModule`
+* `SerializerProvider` -> `SerializationContext`
+* `TextNode` -> `StringNode`
+
+Exception types:
+
+* `JsonMappingException` -> `DatabindException`
+
+Methods:
+
+* For `JsonNode` many renamings: see [JSTEP-3](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-3) for details
+
 ### 4. Default Config Setting changes
 
 [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) lists all changes, but not all changes are equally likely to cause compatibility problems.
