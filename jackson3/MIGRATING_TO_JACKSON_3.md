@@ -109,6 +109,22 @@ This could additionally help avoid most of complexity of `jackson-annotations` d
 <project>
 ```
 
+and for Gradle you can use something like:
+
+```
+plugins {
+    id 'java'
+}
+repositories {
+    mavenCentral()
+}
+dependencies {
+    implementation platform("tools.jackson:jackson-bom:3.0.0")
+    // Now declare Jackson modules WITHOUT versions
+    implementation "com.fasterxml.jackson.core:jackson-databind"
+}
+```
+
 ### 2. Deprecated method/field/class/functionality removal
 
 It is necessary to convert `@Deprecated` methods/fields/classes with document alternatives where ones exist.
@@ -116,16 +132,15 @@ Jackson `2.20` Javadocs include replacement in many cases.
 
 Here are notes on most commonly encountered cases.
 
-
-#### Deprecated Classes
-
-(TO BE WRITTEN)
-
 #### Deprecated Methods
 
-(TO BE WRITTEN)
+None reported yet
 
 #### Deprecated Fields
+
+None reported yet
+
+#### Deprecated Classes
 
 None reported yet
 
