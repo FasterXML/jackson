@@ -72,13 +72,33 @@ Starting from the high-level change list, we can see the need for following chan
 
 (TO BE WRITTEN)
 
-### Core entity (class), method, field renamin
+### Core entity (class), method, field renaming
 
 (TO BE WRITTEN)
 
 ### Default Config Setting changes
 
-(TO BE WRITTEN)
+[JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) lists all changes, but not all changes are equally likely to cause compatibility problems.
+Here are ones that are considered most likely to cause problems or observed behavior changes:
+
+#### Changes: MapperFeature
+
+* `MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS` (disabled in 3.0): this non-intuitive feature may have masked actual problems with Immutable classes, wherein Jackson forcibly overwrote values of `final` fields (which is possible via Reflection`!), but Developer assumed a Constructor was being used.
+    * "Is it a Bug or Feature?" -- disabled since newer JVMs less likely to allow feature to work.
+* `MapperFeature.DEFAULT_VIEW_INCLUSION` (disabled in 3.0): simple configuration change, but significant impact for `@JsonView` usage
+* `MapperFeature.SORT_PROPERTIES_ALPHABETICALLY` (enabled in 3.0): likely to change default ordering of Property serialization for POJOs (where `@JsonPropertyOrder` not used)
+    * Highly visible and may break brittle unit tests (ones that assume specific ordering)
+* `MapperFeature.USE_GETTERS_AS_SETTERS` (disabled in 3.0): another highly non-intuitive feature; but one that may have masked actual problems (no Setter or Constructor for passing `Collection` / `Map` valued properties)
+    * Originally included for JAXB compatibility
+
+#### Changes: DeserializationFeature
+
+* `DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES` (disabled in 3.0): May mask real issues with name mismatch
+* `DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES` (enabled in 3.0): May start failing `@JsonCreator` usage where missing values for primitive (like `int`) valued properties can start failing.
+
+#### Changes: SerializationFeature
+
+* `SerializationFeature.WRITE_DATES_AS_TIMESTAMPS` (enabled in 3.0): Highly visible change to serialization; may break unit tests
 
 ### Immutability of `ObjectMapper`, `JsonFactory`
 
@@ -86,4 +106,4 @@ Starting from the high-level change list, we can see the need for following chan
 
 ### Unchecked Exceptions
 
-(TO BE WRITTEN)
+No additional suggestions beyond high-level explanation above.
