@@ -152,8 +152,51 @@ But due to complexity of implementation, problems with API handling, and lack of
 
 ### 3. Core entity, method, field renaming
 
-(TO BE WRITTEN)
+Similar to deprecations, it is necessary to change old references to use new name (including `import` statements): `2.20` Javadocs were updated in some cases to indicate replacement (if available).
+Further [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6) includes a list of renamed things as well -- possibly incomplete list, but useful.
 
+From that, here are most commonly encountered ones.
+
+#### Renaming: `jackson-core`
+
+Regular classes:
+
+- `JsonFactory` split
+    - API extracted as `TokenStreamFactory`
+    - Implementation moved under `tools.jackson.core.json` (note the added "json" segment)
+- `JsonStreamContext` -> `TokenStreamContext`
+- `JsonLocation` -> `TokenStreamLocation`
+
+Exception types:
+
+- `JsonProcessingException` -> `JacksonException` (ultimate base exception)
+- `JsonParseException` -> `StreamReadException
+- `JsonEOFException` -> `UnexpectedEndOfInputException`
+- `JsonGenerationException` -> `StreamWriteException`
+
+Method renaming:
+
+- `JsonGenerator`:
+   - replace references in method names to "field" with "property"
+   - `writeObject()` -> `writePOJO()`
+   - `getCurrentValue()` -> `currentValue()`
+   - `setCurrentValue()` -> `assignCurrentValue()`
+- `JsonParser`:
+   - replace references in method names to "field" with "property"
+   - replace "xxxTextYyy" methods (like `getTextCharacters()`) with "xxxStringYyy" methods (like `getStringCharacters()`)
+   - `getCurrentLocation()` -> `currentLocation()`
+   - `getTokenLocation()` -> `currentTokenLocation()`
+   - `getCurrentValue()` -> `currentValue()`
+   - `setCurrentValue()` -> `assignCurrentValue()`
+
+Field renaming:
+
+- `JsonToken.FIELD_NAME` -> `JsonToken.PROPERTY_NAME`
+
+#### Renaming: `jackson-databind`
+
+(TO BE WRITTEN)
+   
 ### 4. Default Config Setting changes
 
 [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) lists all changes, but not all changes are equally likely to cause compatibility problems.
