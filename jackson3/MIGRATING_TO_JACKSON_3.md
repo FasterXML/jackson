@@ -5,33 +5,42 @@ It mostly references documentation in other repos and provides a high-level summ
 
 ## Overview of Major Changes
 
-1. New group-id (Maven/Gradle) and Java package (`com.fasterxml.jackson` -> `tools.jackson`)
+1. New Maven group-id and Java package: `tools.jackson` (2.x used `com.fasterxml.jackson`)
     - See [JSTEP-1](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-1) for details
-    - Exception: `jackson-annotations`: 2.x version still used with 3.x
+    - Exception: `jackson-annotations`: 2.x version still used with 3.x, so no group-id/Java package change
          - See [this discussion](https://github.com/FasterXML/jackson-future-ideas/discussions/90) for rationale
          - Jackson 3.0 uses `jackson-annotations` `2.20`
-2. All `@Deprecated` methods, fields and classes (as of 2.20.0) are removed from 3.0
-    - Javadocs in Jackson `2.20` updated to indicate replacement where available
-3. Major renaming of Classes, Methods as per [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6)
-   - Javadocs in Jackson `2.20` updated for some Classes to point to upcoming 3.0 Class/Method names
-4. `ObjectMapper` and `JsonFactory` are fully immutable in 3.x: instances are constructed using Builder pattern
+         - "Exception to Exception": annotations within `jackson-databind` WILL move to new Java package (so, `tools.jackson.databind.DatabindException`)
+2. All `@Deprecated` (as of 2.20) methods, fields and classes are removed from 3.0
+    - Javadocs in Jackson `2.20` updated to indicate replacements where available (incomplete: PRs welcome for more!)
+3. Renaming of Core Entities (classes), methods, fields
+    - See [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6) for rationale, reference to notable renamings
+    - Javadocs in Jackson `2.20` updated to indicate new names where available (incomplete: PRs welcome for more!)
+4. Changes to Default Configuration Settings (esp. various XxxFeatures)
+    - See [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) for rationale, the set of changes made
+5. Immutability: `ObjectMapper` and `JsonFactory` are fully immutable in 3.x: instances are constructed using Builder pattern
    - (instantiation of "vanilla" `ObjectMapper` is left, so `new ObjectMapper()` can still be used if default settings are fine)
 
 For the full list of all issues resolved for 3.0, see [Jackson 3.0 Release Notes](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0).
 
 ## High-level conversion overflow
 
-1. Original overall planning doc: [JSTEP-1](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-1)
+From the high-level list, we see the need for following changes:
+
+1. Maven group id, Java package change
+   - Need to update build files (`pom.xml`, `build.gradle`) to use new group id (`com.fasterxml.jackson.core` -> `tools.jackson.core` and so on)
    - Need to change import statements due to change in Java package (`com.fasterxml.jackson` -> `tools.jackson` -- EXCEPT not for `jackson-annotations`)
-2. All `@Deprecated` methods (as of 2.20.0) are removed from 3.0
-   - Need Javadocs in Jackson `2.20` updated to indicate replacement where possible
-3. Major renaming of Classes, Methods as per [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6)
-   - need to update Class, Method names
-   - Javadocs in Jackson `2.20` updated for some Classes to point to upcoming 3.0 Class/Method names
-2. Changes to default settings (esp. various XxxFeatures): [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2)
-   - may need to override defaults if existing 2.x behavior preferred
-   - `JsonMapper.builderWithJackson2Defaults()` may be used to use some of legacy configuration settings (cannot change all defaults but can help migration)
-6. Immutable factories
+2. `@Deprecated` method, field, class removal:
+   - Need to replace with non-Deprecated alternatives, as per `2.20` Javadocs updated to indicate replacement where possible
+   - See later Section for a set of common cases
+3. Renaming of Core Entities (classes), methods, fields
+   - Need to change references to use new name (including `import` statements): `2.20` Javadocs updated to indicate replacement where possible
+   - [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6) includes a list (likely incomplete) of renamed things as well
+4. Changes to Default Configuration Settings
+   - MAY need to override some defaults (where existing 2.x behavior preferred) -- but most changes are to settings developers prefer so unlikely to need to change all
+       - `JsonMapper.builderWithJackson2Defaults()` may be used to use some of legacy configuration settings (cannot change all defaults but can help migration)
+    - [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) lists all default changes
+5. Immutability
     a. `ObjectMapper`: convert direct configuration with Builder alternatives (`JsonMapper.builder().enable(...).build()`)
     b. `JsonFactory` / `TokenStreamFactory`: convert direct configuration with Builder alternatives (`JsonFactory.builder().enable(...).build()`)
 
