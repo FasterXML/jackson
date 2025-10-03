@@ -21,7 +21,9 @@ Guide mostly references documentation in other repos and provides a high-level s
     - See [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) for rationale, the set of changes made
 5. Immutability of `ObjectMapper`, `JsonFactory`
     - `ObjectMapper` and `JsonFactory` (and their sub-types) are fully immutable in 3.x: instances to be  constructed using Builder pattern
-6. Unchecked exceptions: all Jackson exceptions now `RuntimeException`s (unchecked)
+6. Use of format-aligned `ObjectMapper` mandatory: `new YAMLMapper()`, `new XmlMapper()`
+    - Old `new ObjectMapper(new YAMLFactory())` no longer allowed
+7. Unchecked exceptions: all Jackson exceptions now `RuntimeException`s (unchecked)
     - [JSTEP-4](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-4)  explains rationale, changes
     - Base exception (`JsonProcessingException` in 2.x, renamed as `JacksonException`) now extends `RuntimeException` and NOT `IOException` (like 2.x did)
 
@@ -32,23 +34,26 @@ For the full list of all issues resolved for 3.0, see [Jackson 3.0 Release Notes
 Starting from the high-level change list, we can see the need for following changes:
 
 1. Maven group id, Java package change
-   - Need to update build files (`pom.xml`, `build.gradle`) to use new group id (`com.fasterxml.jackson.core` -> `tools.jackson.core` and so on)
-   - Need to change import statements due to change in Java package (`com.fasterxml.jackson` -> `tools.jackson` -- EXCEPT not for `jackson-annotations`)
+    - Need to update build files (`pom.xml`, `build.gradle`) to use new group id (`com.fasterxml.jackson.core` -> `tools.jackson.core` and so on)
+    - Need to change import statements due to change in Java package (`com.fasterxml.jackson` -> `tools.jackson` -- EXCEPT not for `jackson-annotations`)
 2. `@Deprecated` method, field, class removal:
-   - Need to replace with non-Deprecated alternatives, as per `2.20` Javadocs updated to indicate replacement where possible
-   - See later Section for a set of common cases
+    - Need to replace with non-Deprecated alternatives, as per `2.20` Javadocs updated to indicate replacement where possible
+    - See later Section for a set of common cases
 3. Renaming of Core Entities (classes), methods, fields
-   - Need to change references to use new name (including `import` statements): `2.20` Javadocs updated to indicate replacement where possible
-   - [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6) includes a list (likely incomplete) of renamed things as well
+    - Need to change references to use new name (including `import` statements): `2.20` Javadocs updated to indicate replacement where possible
+    - [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6) includes a list (likely incomplete) of renamed things as well
 4. Changes to Default Configuration Settings
-   - MAY need to override some defaults (where existing 2.x behavior preferred) -- but most changes are to settings developers prefer so unlikely to need to change all
-       - `JsonMapper.builderWithJackson2Defaults()` may be used to use some of legacy configuration settings (cannot change all defaults but can help migration)
+    - MAY need to override some defaults (where existing 2.x behavior preferred) -- but most changes are to settings developers prefer so unlikely to need to change all
+        - `JsonMapper.builderWithJackson2Defaults()` may be used to use some of legacy configuration settings (cannot change all defaults but can help migration)
     - [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) lists all default changes
 5. Immutability of `ObjectMapper`, `JsonFactory`
     - `ObjectMapper`/`JsonMapper`: convert direct configuration with Builder alternatives: `JsonMapper.builder().enable(...).build()`
     - `JsonFactory` / `TokenStreamFactory`: convert direct configuration with Builder alternatives:  `JsonFactory.builder().enable(...).build()`
-6. Unchecked exceptions
-    - May require changes to handling: catching Jackson exceptions no longer required (but may catch of course)
+6. Use of format-aligned `ObjectMapper` mandatory
+    - Format-specific sub-types already exist for all formats in 2.20
+    - In 3.0, constructing plain `ObjectMapper` with format-specific `TokenStreamFactory` no longer allowed
+7. Unchecked exceptions
+    - May require changes to handling since catching Jackson exceptions now optional
     - No need to declare `throws` clause for Jackson calls
     - Base exceptions renamed; specifically:
         - `JsonProcessingException` -> `JacksonException`
@@ -241,8 +246,52 @@ But not all changes are equally likely to cause compatibility problems: here are
 
 ### 5. Immutability of `ObjectMapper`, `JsonFactory`
 
+Since both `ObjectMapper` and `JsonFactory` (`TokenStreamFactory`) -- along with their subtypes -- are fully immutable in 3.0, neither has direct configurability: no simple setters, or methods to configure handlers.
+Instead, Builder-based configuration is needed:
+
+#### Configuring ObjectMappers
+
+A simple example of constructing JSON-handling `ObjectMapper`:
+
+```
+final JsonMapper mapper = JsonMapper.builder() // format-specific builders
+   .addModule(new JodaModule()) // to use Joda date/time types
+   .enable(JsonWriteFeature.ESCAPE_NON_ASCII) // configure JSON-escaping
+   .build();
+```
+
+Note, too, that given a mapper instance, you CAN create a Builder with its settings to create a re-configured instance:
+
 (TO BE WRITTEN)
 
-### 6. Unchecked Exceptions
+#### Configuring TokenStreamFactories
+
+### 6. Use of format-aligned `ObjectMapper`
+
+Although use of
+
+    new ObjectMapper()
+
+is still allowed, recommended to use one of
+
+    new JsonMapper()
+    JsonMapper.builder().builder()
+
+recommend. And all construction of generic `ObjectMapper`:
+
+    new ObjectMapper(new YAMLFactory()); // and similar
+
+MUST be converted to format-specific `ObjectMapper`` subtypes:
+
+    new YAMLMapper(new YAMLFactory());
+    new YAMLMapper(); // same as above
+    new YAMLMapper(YAMLFactory().builder()
+        // configure
+        .build());
+
+In addition, it may make sense to start passing typed mapper instances along: `JsonMapper` instead of `ObjectMapper` (unless format-agnostic handling needs to be supported).
+
+
+### 7. Unchecked Exceptions
 
 No additional suggestions.
