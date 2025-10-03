@@ -262,7 +262,11 @@ final JsonMapper mapper = JsonMapper.builder() // format-specific builders
 
 Note, too, that given a mapper instance, you CAN create a Builder with its settings to create a re-configured instance:
 
-(TO BE WRITTEN)
+```
+JsonMapper mapper2 = mapper.rebuild()
+   .enable(SerializationFeature.INDENT_OUTPUT)
+   .build();
+```
 
 #### Configuring TokenStreamFactories
 
