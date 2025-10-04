@@ -26,6 +26,11 @@ Guide mostly references documentation in other repos and provides a high-level s
 7. Unchecked exceptions: all Jackson exceptions now `RuntimeException`s (unchecked)
     - [JSTEP-4](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-4)  explains rationale, changes
     - Base exception (`JsonProcessingException` in 2.x, renamed as `JacksonException`) now extends `RuntimeException` and NOT `IOException` (like 2.x did)
+8. Embedding and Removal of "Java 8 modules"
+    -  All 3 "Java 8 modules", that were separate in Jackson 2.x, are now built-in to `jackson-databind` (no need to register separately)
+        - `jackson-module-parameter-names`: auto-detection of Constructor parameter names
+        - `jackson-datatype-jdk8`: support for `java.util.Optional` and other optional types (`OptionalDouble`, ...)
+        - `jackson-datatype-jsr310`: support `java.time` types (added in 3.0.0-rc3)
 
 For the full list of all issues resolved for 3.0, see [Jackson 3.0 Release Notes](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0).
 
@@ -58,6 +63,8 @@ Starting from the high-level change list, we can see the need for following chan
     - Base exceptions renamed; specifically:
         - `JsonProcessingException` -> `JacksonException`
         - `JsonMappingException` -> `DatabindException`
+8. Embedding and Removal of "Java 8 modules"
+    - Simply remove Maven/Gradle dependencies, module registrations
 
 ## Discussions and References
 
@@ -145,9 +152,9 @@ None reported yet
 
 None reported yet
 
-#### Deprecated Classes
+#### Deprecated/Removed Classes
 
-None reported yet
+* `com.fasterxml.jackson.databind.MappingJsonFactory` is removed -- while not Deprecated in 2.x (where it is used), implementation is neither needed nor possible to support as-is.
 
 #### Deprecated functionality: Format Detection
 
@@ -297,5 +304,9 @@ In addition, it may make sense to start passing typed mapper instances along: `J
 
 
 ### 7. Unchecked Exceptions
+
+No additional suggestions.
+
+### 8. Embedding and Removal of "Java 8 modules"
 
 No additional suggestions.
