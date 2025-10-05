@@ -292,7 +292,7 @@ recommend. And all construction of generic `ObjectMapper`:
 
     new ObjectMapper(new YAMLFactory()); // and similar
 
-MUST be converted to format-specific `ObjectMapper`` subtypes:
+MUST be converted to format-specific `ObjectMapper` subtypes:
 
     new YAMLMapper(new YAMLFactory());
     new YAMLMapper(); // same as above
