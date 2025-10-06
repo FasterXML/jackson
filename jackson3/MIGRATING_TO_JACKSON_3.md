@@ -31,6 +31,9 @@ Guide mostly references documentation in other repos and provides a high-level s
         - `jackson-module-parameter-names`: auto-detection of Constructor parameter names
         - `jackson-datatype-jdk8`: support for `java.util.Optional` and other optional types (`OptionalDouble`, ...)
         - `jackson-datatype-jsr310`: support `java.time` types (added in 3.0.0-rc3)
+9. Baseline JDK raised to Java 17, from Java 8 in Jackson 2
+    - [Vote happened here](https://github.com/FasterXML/jackson-future-ideas/discussions/73)
+    - [Actual issue for works](https://github.com/FasterXML/jackson-databind/issues/4820) 
 
 For the full list of all issues resolved for 3.0, see [Jackson 3.0 Release Notes](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0).
 
