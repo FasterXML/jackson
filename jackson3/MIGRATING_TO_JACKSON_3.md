@@ -15,7 +15,8 @@ Guide mostly references documentation in other repos and provides a high-level s
 2. All `@Deprecated` (as of 2.20) methods, fields and classes are removed from 3.0
     - Javadocs in Jackson `2.20` updated to indicate replacements where available (incomplete: PRs welcome for more!)
 3. Renaming of Core Entities (classes), methods, fields
-    - See [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6) for rationale, reference to notable renamings
+    - See [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6) for rationale, references to notable renamings
+    - [JSTEP-8](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-8) covers refactoring/renaming of format-specific Read/Write features (like `JsonParser.Feature` into `JsonReadFeature` and `StreamReadFeaure`)
     - Javadocs in Jackson `2.20` updated to indicate new names where available (incomplete: PRs welcome for more!)
 4. Changes to Default Configuration Settings (esp. various XxxFeatures)
     - See [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) for rationale, the set of changes made
@@ -50,6 +51,10 @@ Starting from the high-level change list, we can see the need for following chan
 3. Renaming of Core Entities (classes), methods, fields
     - Need to change references to use the new name (including `import` statements): `2.20` Javadocs updated to indicate replacement where possible
     - [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6) includes a list (likely incomplete) of renamed things as well
+    - Streaming API Read/Write `Feature`s like former `JsonParser.Feature` and `JsonGenerator.Feature` were renamed as per [JSTEP-8](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-8)
+        - `JsonParser.Feature` split into general `StreamReadFeature`s and JSON-specific `JsonReadFeature`s
+        - `JsonGenerator.Feature` split into general `StreamWriteFeature`s and JSON-specific `JsonWriteFeature`s
+        - Same was done for other format backends as well: Avro, CBOR, CSV, Ion, Smile, XML and YAML
 4. Changes to Default Configuration Settings
     - MAY need to override some defaults (where existing 2.x behavior preferred) -- but most changes are to settings developers prefer so unlikely to need to change all
         - `JsonMapper.builderWithJackson2Defaults()` may be used to use some of legacy configuration settings (cannot change all defaults but can help migration)
@@ -207,6 +212,23 @@ Methods:
 Fields:
 
 - `JsonToken.FIELD_NAME` -> `JsonToken.PROPERTY_NAME`
+
+#### Renaming: Streaming Format backends
+
+Streaming API Read/Write `Feature`s like former `JsonParser.Feature` and `JsonGenerator.Feature` were renamed as per [JSTEP-8](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-8).
+
+* `JsonParser.Feature` split into general `StreamReadFeature`s and JSON-specific `JsonReadFeature`s
+* `JsonGenerator.Feature` split into general `StreamWriteFeature`s and JSON-specific `JsonWriteFeature`s
+
+Same was done for format backends as well:
+
+* Avro: `AvroParser.Feature` -> `AvroReadFeature`; `AvroGenerator.Feature` -> `AvroWriteFeature`
+* CBOR: `CBORGenerator.Feature` -> `CBORWriteFeature`
+* CSV: `CsvParser.Feature` -> `CsvReadFeature`; `CsvGenerator.Feature` -> `CsvWriteFeature`
+* Ion: `IonParser.Feature` -> `IonReadFeature`; `IonGenerator.Feature` -> `IonWriteFeature`
+* Smile: `SmileParser.Feature` -> `SmileReadFeature`; `SmileGenerator.Feature` -> `SmileWriteFeature`
+* XML: `FromXmlParser.Feature` -> `XmlReadFeature`; `ToXmlGenerator.Feature` -> `XmlWriteFeature`
+* YAML: `YAMLParser.Feature` -> `YAMLReadFeature`; `YAMLGenerator.Feature` -> `YAMLWriteFeature`
 
 #### Renaming: `jackson-databind`
 
