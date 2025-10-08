@@ -269,6 +269,7 @@ But not all changes are equally likely to cause compatibility problems: here are
     * Highly visible and may break brittle unit tests (ones that assume specific ordering)
 * `MapperFeature.USE_GETTERS_AS_SETTERS` (disabled in 3.0): another highly non-intuitive feature; but one that may have masked actual problems (no setter or constructor for passing `Collection` / `Map` valued properties)
     * Originally included for JAXB compatibility
+* `MapperFeature.AUTO_DETECT_CREATORS` (and 4 related `AUTO_DETECT_xxx` variants) were removed: see "Configuring ObjectMappers" section for replacement (`JsonMapper.builder().changeDefaultVisibility(...)`)
 
 #### Changes: DeserializationFeature
 
@@ -306,9 +307,32 @@ JsonMapper mapper2 = mapper.rebuild()
 
 Beside configuring simple Features via Builder instead of direct `ObjectMapper` calls, some changes are bit more involved
 
-##### ObjectMapper Visibility configuration
+##### ObjectMapper: Serialization inclusion configuration
 
-(TO BE WRITTEN)
+Instead of
+
+    // only sets value (not content) inclusion
+    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+use
+
+    ObjectMapper mapper = JsonMapper.builder()
+      .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL)
+      .build();
+
+##### ObjectMapper: Visibility configuration
+
+Instead of
+
+    mapper.disable(MapperFeature.AUTO_DETECT_FIELDS);
+
+use
+
+    ObjectMapper mapper = JsonMapper.builder()
+        .changeDefaultVisibility(vc ->
+            vc.withFieldVisibility(JsonAutoDetect.Visibility.NONE))
+    .build();
+
 
 #### Configuring TokenStreamFactories, general
 
