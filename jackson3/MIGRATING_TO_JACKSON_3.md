@@ -141,7 +141,7 @@ repositories {
 dependencies {
     implementation platform("tools.jackson:jackson-bom:3.0.0")
     // Now declare Jackson modules WITHOUT versions
-    implementation "com.fasterxml.jackson.core:jackson-databind"
+    implementation "tools.jackson.core:jackson-databind"
 }
 ```
 
