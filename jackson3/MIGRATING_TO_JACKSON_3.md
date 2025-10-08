@@ -264,12 +264,13 @@ But not all changes are equally likely to cause compatibility problems: here are
 
 * `MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS` (disabled in 3.0): this non-intuitive feature may have masked actual problems with *immutable* classes, wherein Jackson forcibly overwrote values of `final` fields (which is possible via *reflection*!), but the developer assumed a constructor was being used.
     * "Is it a Bug or Feature?" -- disabled since newer JVMs are less likely to allow the feature to work.
-* `MapperFeature.DEFAULT_VIEW_INCLUSION` (disabled in 3.0): simple configuration change, but significant impact for `@JsonView` usage
+* `MapperFeature.AUTO_DETECT_CREATORS` (and 4 related `AUTO_DETECT_xxx` variants) were removed: see "Configuring ObjectMappers" section for replacement (`JsonMapper.builder().changeDefaultVisibility(* `MapperFeature.DEFAULT_VIEW_INCLUSION` (disabled in 3.0): simple configuration change, but significant impact for `@JsonView` usage
 * `MapperFeature.SORT_PROPERTIES_ALPHABETICALLY` (enabled in 3.0): likely to change the default ordering of property serialization for POJOs (where `@JsonPropertyOrder` is not used)
     * Highly visible and may break brittle unit tests (ones that assume specific ordering)
 * `MapperFeature.USE_GETTERS_AS_SETTERS` (disabled in 3.0): another highly non-intuitive feature; but one that may have masked actual problems (no setter or constructor for passing `Collection` / `Map` valued properties)
     * Originally included for JAXB compatibility
-* `MapperFeature.AUTO_DETECT_CREATORS` (and 4 related `AUTO_DETECT_xxx` variants) were removed: see "Configuring ObjectMappers" section for replacement (`JsonMapper.builder().changeDefaultVisibility(...)`)
+...)`)
+* `MapperFeature.USE_STD_BEAN_NAMING`: removed; no longer used or needed -- 3.0 behavior same as 2.x with Feature enabled.
 
 #### Changes: DeserializationFeature
 
@@ -344,12 +345,12 @@ Although use of
 
     new ObjectMapper()
 
-is still allowed, recommended to use one of
+is still allowed, the use of one of
 
     new JsonMapper()
     JsonMapper.builder().builder()
 
-recommend. And all construction of generic `ObjectMapper`:
+is recommend. And all construction of generic `ObjectMapper`:
 
     new ObjectMapper(new YAMLFactory()); // and similar
 
@@ -370,4 +371,11 @@ No additional suggestions.
 
 ### 8. Embedding and Removal of "Java 8 modules"
 
-No additional suggestions.
+Configuration of Java 8 Date/Time handling in 3.x is done using new `DateTimeFeature` enumeration, like so:
+
+```java
+ObjectMapper MAPPER = JsonMapper.builder()
+    .enable(DateTimeFeature.WRITE_DATES_WITH_ZONE_ID)
+    .build();
+```
+
