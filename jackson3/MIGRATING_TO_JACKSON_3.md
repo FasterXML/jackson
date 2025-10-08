@@ -236,12 +236,15 @@ Regular classes:
 
 * `BeanDeserializerModifier` -> `ValueDeserializerModifier`
 * `BeanSerializerModifier` -> `ValueSerializerModifier`
+* `ContextualDeserializer` -> REMOVED -- now method `createContextual` a part of `ValueDeserializer`
+* `ContextualSerializer` -> REMOVED -- now method `createContextual` a part of `ValueSerializer`
 * `JsonDeserializer` -> `ValueDeserializer`
 * `JsonSerializer` -> `ValueSerializer`
 * `JsonSerializable` -> `JacksonSerializable`
 * `Module` -> `JacksonModule`
 * `SerializerProvider` -> `SerializationContext`
 * `TextNode` -> `StringNode`
+
 
 Exception types:
 
@@ -281,14 +284,14 @@ But not all changes are equally likely to cause compatibility problems: here are
 Since both `ObjectMapper` and `JsonFactory` (`TokenStreamFactory`) -- along with their subtypes -- are fully immutable in 3.0, neither has direct configurability: no simple setters, or methods to configure handlers.
 Instead, builder-based configuration is needed:
 
-#### Configuring ObjectMappers
+#### Configuring ObjectMappers, general
 
 A simple example of constructing JSON-handling `ObjectMapper`:
 
 ```java
 final JsonMapper mapper = JsonMapper.builder() // format-specific builders
    .addModule(new JodaModule()) // to use Joda date/time types
-   .enable(JsonWriteFeature.ESCAPE_NON_ASCII) // configure JSON-escaping
+   .enable(JsonWriteFeature.ESCAPE_NON_ASCII) // configure streaming JSON-escaping
    .build();
 ```
 
@@ -299,8 +302,17 @@ JsonMapper mapper2 = mapper.rebuild()
    .enable(SerializationFeature.INDENT_OUTPUT)
    .build();
 ```
+#### Configuring ObjectMappers, special changes
 
-#### Configuring TokenStreamFactories
+Beside configuring simple Features via Builder instead of direct `ObjectMapper` calls, some changes are bit more involved
+
+##### ObjectMapper Visibility configuration
+
+(TO BE WRITTEN)
+
+#### Configuring TokenStreamFactories, general
+
+(TO BE WRITTEN)
 
 ### 6. Use of format-aligned `ObjectMapper`
 
