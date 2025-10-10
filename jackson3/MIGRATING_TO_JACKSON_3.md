@@ -337,7 +337,33 @@ use
 
 #### Configuring TokenStreamFactories, general
 
-(TO BE WRITTEN)
+Similar to `ObjectMapper`, streaming parser/generator factories -- subtypes of `TokenStreamFactory` like `JsonFactory` -- are also built using Builders:
+
+```
+JsonFactory f = JsonFactory.builder()
+    .disable(StreamWriteFeature.AUTO_CLOSE_TARGET)
+    .build();
+```
+
+and may also be re-configured like so:
+
+```
+JsonFactory f2 = f.rebuild()
+    .enable(StreamWriteFeature.STRICT_DUPLICATE_DETECTION)
+    .build();
+```
+
+Finally, to pass customized `TokenStreamFactory` for `ObjectMapper`, you will need to pass instance to `builder()` like so:
+
+```
+JsonFactory f = JsonFactory.builder()
+   // configure
+   .build();
+ObjectMapper mapper = JsonMapper.builder(f)
+   // configure
+   .build();
+```
+
 
 ### 6. Use of format-aligned `ObjectMapper`
 
