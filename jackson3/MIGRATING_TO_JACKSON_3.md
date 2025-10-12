@@ -71,6 +71,8 @@ Starting from the high-level change list, we can see the need for following chan
     - Base exceptions renamed; specifically:
         - `JsonProcessingException` -> `JacksonException`
         - `JsonMappingException` -> `DatabindException`
+    - Other exception renamings:
+        - `JsonEOFException` -> `UnexpectedEndOfInputException`
 8. Embedding and Removal of "Java 8 modules"
     - Simply remove Maven/Gradle dependencies, module registrations
 
@@ -154,7 +156,8 @@ Here are some notes on the most commonly encountered cases.
 
 #### Deprecated Methods
 
-None reported yet
+* `JsonParser`
+    * `canWriteBinaryNatively()`, `canWriteFormattedNumbers()` replaced with `StreamWriteCapability.CAN_WRITE_BINARY_NATIVELY` / `StreamWriteCapability.CAN_WRITE_FORMATTED_NUMBERS` (respectively)
 
 #### Deprecated Fields
 
@@ -174,6 +177,12 @@ None reported yet
 Jackson 1.x and 2.x contained functionality for auto-detecting format of arbitrary content to decode: functionality was part of `jackson-core` -- Java classes under `com.fasterxml.jackson.core.format` (like `DataFormatDetector`) -- (and implemented by `jackson-dataformat-xxx` components for non-JSON formats).
 
 But due to complexity of implementation, problems with API handling, and lack of usage, this functionality was dropped from 3.0. No replacement exists
+
+#### Deprecated functionality: ObjectMapper.can[De]Serialize()
+
+Methods `ObjectMapper.canDeserialize()`, `ObjectMapper.canSerialize()` removed since they cannot be implemented in a useful way.
+
+See [databind#1917](https://github.com/FasterXML/jackson-databind/issues/1917) for details.
 
 ### 3. Core entity, method, field renaming
 
@@ -208,7 +217,7 @@ Methods:
    - `setCurrentValue()` -> `assignCurrentValue()`
 - `JsonParser`:
    - replace references in method names to "field" with "property"
-   - replace "xxxTextYyy" methods (like `getTextCharacters()`) with "xxxStringYyy" methods (like `getStringCharacters()`)
+   - replace "xxxTextYyy" methods (like `getText()`, `getTextCharacters()`) with "xxxStringYyy" methods (like `getString()`, `getStringCharacters()`)
    - `getCurrentLocation()` -> `currentLocation()`
    - `getTokenLocation()` -> `currentTokenLocation()`
    - `getCurrentValue()` -> `currentValue()`
@@ -250,14 +259,29 @@ Regular classes:
 * `SerializerProvider` -> `SerializationContext`
 * `TextNode` -> `StringNode`
 
-
 Exception types:
 
 * `JsonMappingException` -> `DatabindException`
 
+"Feature" enums
+
+* `DateTimeFeature` created: some existing `DeserializationFeature`/`SerializationFeature`s moved
+    * `DeserializationFeature`
+        * `ADJUST_DATES_TO_CONTEXT_TIME_ZONE`
+        * `READ_DATE_TIMESTAMPS_AS_NANOSECONDS`
+    * `SerializationFeature`
+        * `WRITE_DATES_AS_TIMESTAMPS`
+        * `WRITE_DATE_KEYS_AS_TIMESTAMPS`
+        * `WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS`
+        * `WRITE_DATES_WITH_ZONE_ID`
+        * `WRITE_DATES_WITH_CONTEXT_TIME_ZONE`
+        * `WRITE_DURATIONS_AS_TIMESTAMPS`
+
 Methods:
 
-* For `JsonNode` many renamings: see [JSTEP-3](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-3) for details
+* Many of `JsonNode` methods renamed: see [JSTEP-3](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-3) for details
+* `ObjectMapper.getRegisteredModuleIds()` -> `ObjectMapper.registeredModules()`
+    * note: return value changed; see [databind#5272](https://github.com/FasterXML/jackson-databind/issues/5272) for details.
 
 ### 4. Default Config Setting changes
 
