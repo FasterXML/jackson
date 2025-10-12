@@ -250,12 +250,14 @@ Regular classes:
 
 * `BeanDeserializerModifier` -> `ValueDeserializerModifier`
 * `BeanSerializerModifier` -> `ValueSerializerModifier`
-* `ContextualDeserializer` -> REMOVED -- now method `createContextual` a part of `ValueDeserializer`
-* `ContextualSerializer` -> REMOVED -- now method `createContextual` a part of `ValueSerializer`
+* `ContextualDeserializer` -> REMOVED -- now method `createContextual` part of `ValueDeserializer`
+* `ContextualSerializer` -> REMOVED -- now method `createContextual` part of `ValueSerializer`
 * `JsonDeserializer` -> `ValueDeserializer`
 * `JsonSerializer` -> `ValueSerializer`
 * `JsonSerializable` -> `JacksonSerializable`
-* `Module` -> `JacksonModule`
+* `Module` -> `JacksonModule` (to resolve naming overlap with JDK `Module`)
+* `ResolvableDeserializer` -> REMOVED -- now method `resolve()` part of `ValueDeserializer`
+* `ResolvableSerializer` -> REMOVED -- now method `resolve()` part of `ValueSerializer`
 * `SerializerProvider` -> `SerializationContext`
 * `TextNode` -> `StringNode`
 
