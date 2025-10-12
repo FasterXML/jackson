@@ -163,6 +163,11 @@ None reported yet
 #### Deprecated/Removed Classes
 
 * `com.fasterxml.jackson.databind.MappingJsonFactory` is removed -- while not Deprecated in 2.x (where it is used), implementation is neither needed nor possible to support as-is.
+* `com.fasterxml.jackson.core.ObjectCodec` (of `jackson-core`) -- which exposed subset of `ObjectMapper` functionality to streaming API was removed
+    * Replaced with 2 separate interfaces: `tools.jackson.core.ObjectReadContext`, `tools.jackson.core.ObjectWriteContext`
+    * `ObjectReadContext` implemented by `jackson-databind` class `DeserializationContext`
+    * `ObjectWriteContext` implemented by `jackson-databind` class `SerializationContext` (known as `SerializerProvider` in 2.x)
+    * See [jackson-core#413](https://github.com/FasterXML/jackson-core/issues/413) for details
 
 #### Deprecated functionality: Format Detection
 
