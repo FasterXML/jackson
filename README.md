@@ -7,6 +7,7 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
+* Oct 3, 2025: [Jackson 3.0.0](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0) GA Released!!!
 * Sep 30, 2025: Skeletal version of [Jackson 3 Migration Guide](../../tree/main/jackson3/MIGRATING_TO_JACKSON_3.md)
 * Sep 5, 2025: Added note of `jackson-annotations` versioning scheme change in 2.20
 * Aug 28, 2025: [Jackson 2.20](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.20) released
@@ -65,15 +66,15 @@ A good companion to this README is the [Jackson Project FAQ](../../wiki/FAQ).
 Jackson suite has three major versions:
 
 * 1.x (`org.codehaus.jackson`) is deprecated and no versions are released;
-* 2.x (`com.fasterxml.jackson`) is the actively developed and maintained version
-* 3.x (`tools.jackson`) is the next major version being developed (as of September 2025).
+* 2.x (`com.fasterxml.jackson`) is the older actively developed and maintained version
+* 3.x (`tools.jackson`) is the newer actively developed and maintained version
 
 These major versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x (and eventually 3.x), without conflicts.
 This is by design and was chosen as the strategy to allow smoother migration from 1.x to 2.x (and from 2.x to 3.x, eventually).
 
 The latest stable versions from these branches are:
 
-* [3.0.0-rc10](../../wiki/Jackson-Release-3.0) -- pre-release candidate
+* [3.0.0](../../wiki/Jackson-Release-3.0), released on 03-Oct-2025
 * [2.20.0](../../wiki/Jackson-Release-2.20), released on 28-Aug-2025
     * [2.19.2](../../wiki/Jackson-Release-2.19.2) is the latest patch from previous stable branch
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
@@ -121,10 +122,10 @@ serializers and deserializers so that Jackson `databind` package (`ObjectMapper`
 Datatype modules directly maintained by Jackson team are under the following Github repositories:
 
 * Standard [Collections](../../../jackson-datatypes-collections) datatype modules:
-    * [jackson-datatype-eclipse-collections](../../../jackson-datatypes-collections/tree/2.19/eclipse-collections): support for [Eclipse Collections](https://www.eclipse.org/collections/) (added in 2.10)
-    * [jackson-datatype-guava](../../../jackson-datatypes-collections/tree/2.19/guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes
-    * [jackson-datatype-hppc](../../../jackson-datatypes-collections/tree/2.19/hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
-    * [jackson-datatype-pcollections](../../../jackson-datatypes-collections/tree/2.19/pcollections): support for [PCollections](http://pcollections.org/) datatypes (since Jackson 2.7)
+    * [jackson-datatype-eclipse-collections](../../../jackson-datatypes-collections/tree/2.x/eclipse-collections): support for [Eclipse Collections](https://www.eclipse.org/collections/) (added in 2.10)
+    * [jackson-datatype-guava](../../../jackson-datatypes-collections/tree/2.x/guava): support for many of [Guava](http://code.google.com/p/guava-libraries/) datatypes
+    * [jackson-datatype-hppc](../../../jackson-datatypes-collections/tree/2.x/hppc): support for [High-Performance Primitive Containers](http://labs.carrotsearch.com/hppc.html) containers
+    * [jackson-datatype-pcollections](../../../jackson-datatypes-collections/tree/2.x/pcollections): support for [PCollections](http://pcollections.org/) datatypes (since Jackson 2.7)
 * [Hibernate](../../../jackson-datatype-hibernate): support for Hibernate features (lazy-loading, proxies)
 * [Java 8 Modules](../../../jackson-modules-java8): support or JDK 8 features and datatypes through 3 separate modules
     * `jackson-module-parameter-names`: Module that adds support for using a new JDK8 feature, ability to access names of constructor and method parameters, to allow omitting `@JsonProperty`.
