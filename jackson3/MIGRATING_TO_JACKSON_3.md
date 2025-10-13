@@ -38,6 +38,27 @@ Guide mostly references documentation in other repos and provides a high-level s
 
 For the full list of all issues resolved for 3.0, see [Jackson 3.0 Release Notes](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0).
 
+## Discussions and References
+
+1. [Jackson-future-ideas](https://github.com/FasterXML/jackson-future-ideas/wiki) Github repo contains the majority of planning and discussion for Jackson 3 preparation. It includes:
+    - [JSTEP](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP)s (Jackson STrategic Enhancement Proposals)
+        - Sources for most major changes
+    - [Github Discussions section](https://github.com/FasterXML/jackson-future-ideas/discussions) in the same repo as JSTEP
+        - see first (but not last) discussion [here](https://github.com/FasterXML/jackson-future-ideas/discussions/72) as example
+
+## Community References
+
+1. OpenRewrite recipe for Jackson 2 -> 3 migration which can be found [here](https://docs.openrewrite.org/recipes/java/jackson/upgradejackson_2_3)
+2. Blog posts about regarding Jackson 3 release [here](https://cowtowncoder.medium.com/jackson-3-0-0-ga-released-1f669cda529a) 
+3. Jackson 3 support in Spring [here](https://spring.io/blog/2025/10/07/introducing-jackson-3-support-in-spring)
+
+---
+
+# Conversion
+
+> This section aims to guide users through actual conversation from Jackson 2 to 3.
+> Starting with "High-level conversion overflow" section, followed by "Detailed Conversion Guidelines"
+
 ## High-level conversion overflow
 
 Starting from the high-level change list, we can see the need for following changes:
@@ -75,14 +96,6 @@ Starting from the high-level change list, we can see the need for following chan
         - `JsonEOFException` -> `UnexpectedEndOfInputException`
 8. Embedding and Removal of "Java 8 modules"
     - Simply remove Maven/Gradle dependencies, module registrations
-
-## Discussions and References
-
-1. [Jackson-future-ideas](https://github.com/FasterXML/jackson-future-ideas/wiki) Github repo contains the majority of planning and discussion for Jackson 3 preparation. It includes:
-    - [JSTEP](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP)s (Jackson STrategic Enhancement Proposals)
-         - Sources for most major changes
-    - [Github Discussions section](https://github.com/FasterXML/jackson-future-ideas/discussions) in the same repo as JSTEP
-         - see first (but not last) discussion [here](https://github.com/FasterXML/jackson-future-ideas/discussions/72) as example
 
 ## Detailed Conversion Guidelines
 
