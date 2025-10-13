@@ -49,7 +49,7 @@ For the full list of all issues resolved for 3.0, see [Jackson 3.0 Release Notes
 ## Community References
 
 1. OpenRewrite recipe for Jackson 2 -> 3 migration which can be found [here](https://docs.openrewrite.org/recipes/java/jackson/upgradejackson_2_3)
-2. Blog posts about regarding Jackson 3 release [here](https://cowtowncoder.medium.com/jackson-3-0-0-ga-released-1f669cda529a) 
+2. Blog posts about regarding Jackson 3 release from our own @cowtowncoder [here](https://cowtowncoder.medium.com/jackson-3-0-0-ga-released-1f669cda529a) 
 3. Jackson 3 support in Spring [here](https://spring.io/blog/2025/10/07/introducing-jackson-3-support-in-spring)
 
 ---
