@@ -276,6 +276,7 @@ Regular classes:
 
 * `BeanDeserializerModifier` -> `ValueDeserializerModifier`
 * `BeanSerializerModifier` -> `ValueSerializerModifier`
+* `ContainerSerializer` -> `StdContainerSerializer`
 * `ContextualDeserializer` -> REMOVED -- now method `createContextual` part of `ValueDeserializer`
 * `ContextualSerializer` -> REMOVED -- now method `createContextual` part of `ValueSerializer`
 * `JsonDeserializer` -> `ValueDeserializer`
