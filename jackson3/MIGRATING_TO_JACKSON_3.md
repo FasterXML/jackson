@@ -56,7 +56,46 @@ For the full list of all issues resolved for 3.0, see [Jackson 3.0 Release Notes
 * Blog posts about regarding Jackson 3 release from our own @cowtowncoder [here](https://cowtowncoder.medium.com/jackson-3-0-0-ga-released-1f669cda529a)
 * Jackson 3 support in Spring [here](https://spring.io/blog/2025/10/07/introducing-jackson-3-support-in-spring)
 
----
+## Performance considerations (new in 3.x)
+
+While the functional migration covers API and behavior changes, a couple of **default settings in 3.x can have modest performance impact** compared to 2.x. If you are sensitive to throughput/latency, consider the following:
+
+1. **Trailing-token checks**
+   - In Jackson 3.x, `DeserializationFeature.FAIL_ON_TRAILING_TOKENS` is **enabled by default** (it was off by default in 2.x). This adds a small amount of overhead because the parser validates there is no extra content after a successful value parse.
+   - If your inputs are trusted/controlled and you want to match 2.x behavior, you can disable it:
+
+     ```java
+     JsonMapper mapper = JsonMapper.builder()
+         .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+         .build();
+     ```
+
+   - Recommendation: keep it **enabled** for security/correctness unless profiling shows a measurable regression on your workload.
+
+2. **Recycler pool choice**
+   - Jackson 3.0 defaults to a **deque-based** `RecyclerPool`, which can add overhead in some common cases versus the 2.x default (`JsonRecyclerPools.threadLocalPool()`).
+   - If your workload benefited from the 2.x behavior, set the pool explicitly when building your `TokenStreamFactory` (e.g., `JsonFactory`), and then pass that factory to your mapper:
+
+     ```java
+     JsonFactory factory = JsonFactory.builder()
+         .recyclerPool(JsonRecyclerPools.threadLocalPool())
+         .build();
+
+     JsonMapper mapper = JsonMapper.builder(factory)
+         .build();
+     ```
+
+   - Note: choose the pool that matches your deployment model (single-thread hot loops vs. highly concurrent). Test both options under production-like load.
+
+
+We will expand this section as more performance-affecting defaults are identified.
+
+
+**References**
+- Default for trailing-tokens in 3.0 discussion: [jackson-databind#3406](https://github.com/FasterXML/jackson-databind/issues/3406)
+- Recycler pool defaults & alternatives: [jackson-core#1117](https://github.com/FasterXML/jackson-core/issues/1117), default change notes [jackson-core#1266](https://github.com/FasterXML/jackson-core/issues/1266), how to override in 2.17.x/3.x [jackson-core#1293](https://github.com/FasterXML/jackson-core/issues/1293)
+- Background on moving away from ThreadLocal pools (virtual threads): [jackson-core#919](https://github.com/FasterXML/jackson-core/issues/919)
+
 
 # Conversion
 
@@ -332,6 +371,7 @@ But not all changes are equally likely to cause compatibility problems: here are
 
 #### Changes: DeserializationFeature
 
+* `DeserializationFeature.FAIL_ON_TRAILING_TOKENS` (**enabled in 3.0**, disabled in 2.x): enables validation that no extra content follows a parsed value; improves safety but introduces modest overhead. Disable if inputs are trusted and performance is critical.
 * `DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES` (disabled in 3.0): May mask real issues with name mismatch
 * `DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES` (enabled in 3.0): May start failing `@JsonCreator` usage where missing values for primitive (like `int`) valued properties can start failing.
 
@@ -410,6 +450,20 @@ JsonFactory f2 = f.rebuild()
     .enable(StreamWriteFeature.STRICT_DUPLICATE_DETECTION)
     .build();
 ```
+
+##### Choosing a RecyclerPool (performance)
+
+To align with 2.x performance characteristics, you may explicitly configure the recycler pool on the factory builder:
+
+```java
+JsonFactory f = JsonFactory.builder()
+    .recyclerPool(JsonRecyclerPools.threadLocalPool())
+    .build();
+
+JsonMapper mapper = JsonMapper.builder(f).build();
+```
+
+If your workload is highly concurrent, benchmark the default deque-based pool versus `threadLocalPool()` and choose based on observed throughput/latency and memory behavior.
 
 Finally, to pass customized `TokenStreamFactory` for `ObjectMapper`, you will need to pass instance to `builder()` like so:
 
