@@ -182,8 +182,14 @@ Here are some notes on the most commonly encountered cases.
 
 #### Deprecated Methods
 
+* `JsonFactory`
+    * `getCodec()`, `setCodec()`: removed from 3.0 while not deprecated (since use ok in 2.x)
+    * No replacement since codec-style object (`ObjectMapper` or similar) no longer associated with streaming factory -- only with generators, parsers
+* `JsonGenerator`
+    * `getCodec()`: replaced with `objectWriteContext()` to provide same (or better) functionality
 * `JsonParser`
     * `canWriteBinaryNatively()`, `canWriteFormattedNumbers()` replaced with `StreamWriteCapability.CAN_WRITE_BINARY_NATIVELY` / `StreamWriteCapability.CAN_WRITE_FORMATTED_NUMBERS` (respectively)
+    * `getCodec()`: replaced with `objectReadContext()` to provide same (or better) functionality
 
 #### Deprecated Fields
 
@@ -238,12 +244,14 @@ Methods:
 
 - `JsonGenerator`:
    - replace references in method names to "field" with "property"
-   - `writeObject()` -> `writePOJO()`
+   - `getCodec()` -> `objectWriteContext()`
    - `getCurrentValue()` -> `currentValue()`
    - `setCurrentValue()` -> `assignCurrentValue()`
+   - `writeObject()` -> `writePOJO()`
 - `JsonParser`:
    - replace references in method names to "field" with "property"
    - replace "xxxTextYyy" methods (like `getText()`, `getTextCharacters()`) with "xxxStringYyy" methods (like `getString()`, `getStringCharacters()`)
+   - `getCodec()` -> `objectReadContext()`
    - `getCurrentLocation()` -> `currentLocation()`
    - `getTokenLocation()` -> `currentTokenLocation()`
    - `getCurrentValue()` -> `currentValue()`
