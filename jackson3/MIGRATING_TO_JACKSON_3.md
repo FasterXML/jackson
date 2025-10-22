@@ -68,6 +68,10 @@ While the functional migration covers API and behavior changes, a couple of **de
      JsonMapper mapper = JsonMapper.builder()
          .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
          .build();
+     // Or on read call:
+     MyValue v = mapper.readerFor(MyValue.class)
+         .without(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+         .readValue(source);
      ```
 
    - Recommendation: keep it **enabled** for security/correctness unless profiling shows a measurable regression on your workload.
@@ -86,16 +90,21 @@ While the functional migration covers API and behavior changes, a couple of **de
      ```
 
    - Note: choose the pool that matches your deployment model (single-thread hot loops vs. highly concurrent). Test both options under production-like load.
+   - Note: it is even possible that for some cases, not recycling may have least overhead:
 
+     ```java
+     JsonFactory factory = JsonFactory.builder()
+         .recyclerPool(JsonRecyclerPools.nonRecyclingPool())
+         .build();
 
 We will expand this section as more performance-affecting defaults are identified.
-
 
 **References**
 - Default for trailing-tokens in 3.0 discussion: [jackson-databind#3406](https://github.com/FasterXML/jackson-databind/issues/3406)
 - Recycler pool defaults & alternatives: [jackson-core#1117](https://github.com/FasterXML/jackson-core/issues/1117), default change notes [jackson-core#1266](https://github.com/FasterXML/jackson-core/issues/1266), how to override in 2.17.x/3.x [jackson-core#1293](https://github.com/FasterXML/jackson-core/issues/1293)
 - Background on moving away from ThreadLocal pools (virtual threads): [jackson-core#919](https://github.com/FasterXML/jackson-core/issues/919)
 
+-----
 
 # Conversion
 
