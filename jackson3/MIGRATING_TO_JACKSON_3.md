@@ -76,7 +76,10 @@ While the functional migration covers API and behavior changes, a couple of **de
 
    - Recommendation: keep it **enabled** for security/correctness unless profiling shows a measurable regression on your workload.
 
-2. **Recycler pool choice**
+2. **Buffer recycling settings**
+
+Buffer recycling is used for `byte[]` and `char[]` buffers used by Streaming parsers and generators (`JsonParser`, `JsonGenerator`). There are multiple recycler pool (`RecyclerPool`) implementations optimized for different use cases: Jackson 2.x and 3.x have different default pool choices.
+
    - Jackson 3.0 defaults to a **deque-based** `RecyclerPool`, which can add overhead in some common cases versus the 2.x default (`JsonRecyclerPools.threadLocalPool()`).
    - If your workload benefited from the 2.x behavior, set the pool explicitly when building your `TokenStreamFactory` (e.g., `JsonFactory`), and then pass that factory to your mapper:
 
