@@ -254,6 +254,10 @@ None reported yet
     * `ObjectWriteContext` implemented by `jackson-databind` class `SerializationContext` (known as `SerializerProvider` in 2.x)
     * See [jackson-core#413](https://github.com/FasterXML/jackson-core/issues/413) for details
 
+#### Classes With Changed Visibility
+
+* `tools.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator` is no longer public. Please use `BasicPolymorphicTypeValidator.builder()` to construct and configure your type validator. See "ObjectMapper: automatic inclusion of type information configuration".
+
 #### Deprecated functionality: Format Detection
 
 Jackson 1.x and 2.x contained functionality for auto-detecting format of arbitrary content to decode: functionality was part of `jackson-core` -- Java classes under `com.fasterxml.jackson.core.format` (like `DataFormatDetector`) -- (and implemented by `jackson-dataformat-xxx` components for non-JSON formats).
@@ -425,6 +429,22 @@ JsonMapper mapper2 = mapper.rebuild()
 
 Beside configuring simple Features via Builder instead of direct `ObjectMapper` calls, some changes are bit more involved
 
+##### ObjectMapper: date format/time zone configuration
+
+Instead of
+
+    mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"));
+    mapper.setTimeZone(TimeZone.getDefault());
+
+use
+
+    ObjectMapper mapper = JsonMapper.builder()
+      .defaultDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"))
+      .defaultTimeZone(TimeZone.getDefault())
+      .build();
+
+Note that the default time zone is UTC, NOT default TimeZone of JVM.
+
 ##### ObjectMapper: Serialization inclusion configuration
 
 Instead of
@@ -451,6 +471,34 @@ use
             vc.withFieldVisibility(JsonAutoDetect.Visibility.NONE))
     .build();
 
+
+##### ObjectMapper: automatic inclusion of type information configuration
+
+To configure specific type information, use `.activateDefaultTypingAsProperty()`. This did not change, however, the way this is configured did:
+
+Instead of for example
+
+    mapper.activateDefaultTypingAsProperty(LaissezFaireSubTypeValidator.instance,
+        ObjectMapper.DefaultTyping.NON_CONCRETE_AND_ARRAYS,
+        "@class");
+
+use
+
+    ObjectMapper mapper = JsonMapper.builder()
+        .activateDefaultTypingAsProperty(typeValidator, DefaultTyping.NON_CONCRETE_AND_ARRAYS, "@class")
+    .build();
+
+where `typeValidator` is built using the builder present in `BasicPolymorphicTypeValidator`:
+
+    var typeValidator = BasicPolymorphicTypeValidator.builder()
+            .allowIfSubType("my.package.base.name.")
+            .allowIfSubType("java.util.concurrent.")
+            .allowIfSubTypeIsArray()
+            // ...
+            .build();
+
+
+Note that the enum `DefaultTyping` also moved outside of the `ObjectMapper` to `tools.jackson.databind`.
 
 #### Configuring TokenStreamFactories, general
 
