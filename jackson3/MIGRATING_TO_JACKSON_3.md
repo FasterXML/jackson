@@ -35,10 +35,10 @@ Guide mostly references documentation in other repos and provides a high-level s
         - `jackson-module-parameter-names`: auto-detection of constructor parameter names
         - `jackson-datatype-jdk8`: support for `java.util.Optional` and other optional types (`OptionalDouble`, ...)
         - `jackson-datatype-jsr310`: support `java.time` types (added in 3.0.0-rc3)
-10. Deprecation of `jackson-module-jsonSchema`, `jackson-datatype-hibernateX` modules
+10. Deprecation of `jackson-module-jsonSchema` module
     - As per [JSTEP-9](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-9), some 2.x modules were Deprecated and no 3.0.0 version was produced (no 3.x branch with converted code base)
         - [JSON Schema](https://github.com/FasterXML/jackson-module-jsonSchema) module is considered Obsolete, no plans to migrate
-        - [Jackson Hibernate datatype](https://github.com/FasterXML/jackson-datatype-hibernate) modules are considered Unsupported/Unmaintained; no 3.0.0 conversions yet -- BUT! If new maintainer found, decision may be changed.
+        - [Jackson Hibernate datatype](https://github.com/FasterXML/jackson-datatype-hibernate) was added in 3.0.2.
 
 For the full list of all issues resolved for 3.0, see [Jackson 3.0 Release Notes](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0).
 
@@ -153,9 +153,8 @@ Starting from the high-level change list, we can see the need for following chan
         - `JsonEOFException` -> `UnexpectedEndOfInputException`
 9. Embedding and Removal of "Java 8 modules"
     - Simply remove Maven/Gradle dependencies, module registrations
-10. Deprecation of `jackson-module-jsonSchema`, `jackson-datatype-hibernateX` modules
+10. Deprecation of `jackson-module-jsonSchema` module
     - For `jackson-module-jsonSchema` use alternate tools
-    - For `jackson-datatype-hibernateX` consider helping find (or become!) maintainer!
 
 ## Detailed Conversion Guidelines
 
@@ -538,6 +537,6 @@ ObjectMapper MAPPER = JsonMapper.builder()
 
 instead of either module-specific `JavaTimeFeature` or renamed `DeserializationFeature` / `SerializationFeature`
 
-### 10. Deprecation of `jackson-module-jsonSchema`, `jackson-datatype-hibernateX` modules
+### 10. Deprecation of `jackson-module-jsonSchema` module
 
 No additional suggestions.
