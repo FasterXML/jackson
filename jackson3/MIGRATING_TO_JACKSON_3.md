@@ -361,20 +361,20 @@ Exception types:
         * `ADJUST_DATES_TO_CONTEXT_TIME_ZONE`
         * `READ_DATE_TIMESTAMPS_AS_NANOSECONDS`
     * `SerializationFeature`
-        * `WRITE_DATES_AS_TIMESTAMPS`
+        * `WRITE_DATES_AS_TIMESTAMPS` (default changed to `false` in 3.0)
         * `WRITE_DATE_KEYS_AS_TIMESTAMPS`
         * `WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS`
         * `WRITE_DATES_WITH_ZONE_ID`
         * `WRITE_DATES_WITH_CONTEXT_TIME_ZONE`
         * `WRITE_DURATIONS_AS_TIMESTAMPS`
-* Some existing `DeserializationFeature`/`SerializationFeature`s moved to `EnumFeature`
+* Some existing `DeserializationFeature`/`SerializationFeature`s moved to `EnumFeature` (added in 2.14)
     * `DeserializationFeature`
         * `FAIL_ON_NUMBERS_FOR_ENUMS`
-        * `READ_ENUMS_USING_TO_STRING` (default changed to true in 3.x)
+        * `READ_ENUMS_USING_TO_STRING` (default changed to `true` in 3.0)
         * `READ_UNKNOWN_ENUM_VALUES_AS_NULL`
         * `READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE`
     * `SerializationFeature`
-        * `WRITE_ENUMS_USING_TO_STRING` (default changed to true in 3.x)
+        * `WRITE_ENUMS_USING_TO_STRING` (default changed to `true` in 3.0)
         * `WRITE_ENUMS_USING_INDEX`
         * `WRITE_ENUM_KEYS_USING_INDEX`
 
