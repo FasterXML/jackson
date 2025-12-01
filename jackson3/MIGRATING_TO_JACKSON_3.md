@@ -459,13 +459,13 @@ Note that the default time zone is UTC, NOT default TimeZone of JVM.
 
 Instead of
 
-    // only sets value (not content) inclusion
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
 use
 
     ObjectMapper mapper = JsonMapper.builder()
       .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL)
+      .changeDefaultPropertyInclusion(incl -> incl.withContentInclusion(JsonInclude.Include.NON_NULL)
       .build();
 
 ##### ObjectMapper: Visibility configuration
