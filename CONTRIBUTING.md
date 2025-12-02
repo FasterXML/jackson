@@ -110,7 +110,7 @@ This is needed before your very first code contribution, but covers all Jackson 
 will NOT be needed for other future contributions.
 
 All you need to do is to download the CLA document, print it, fill and sign, scan (or take
-photo on your phone) and email that copy to `info` at `fasterxml` dot `com`.
+photo on your phone) and email that copy to `cla` at `fasterxml` dot `com`.
 
 As to document to download, you have 2 choices:
 
