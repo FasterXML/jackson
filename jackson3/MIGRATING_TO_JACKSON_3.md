@@ -513,7 +513,7 @@ Note that the enum `DefaultTyping` also moved outside of the `ObjectMapper` to `
 ##### ObjectMapper: copying an existing mapper instance
 
 `ObjectMapper.copy` method has been removed. You are encouraged to create mappers by reusing a `Mapper.Builder` instance.
-You can modify `Mapper.Builder` instances but `ObjectMapper` instances are immutable in Jackson 3 so it is now as useful to
+You can modify `Mapper.Builder` instances but `ObjectMapper` instances are immutable in Jackson 3 so it is not as useful to
 copy mappers any more. `ObjectMapper.rebuild()` is one way to get a builder instance if you don't have a cached builder instance to work with.
 
 One quick workaround if you still want to copy a mapper is to call `ObjectMapper.rebuild().build()` to create a new mapper instance.
