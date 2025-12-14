@@ -240,6 +240,10 @@ Here are some notes on the most commonly encountered cases.
 * `JsonParser`
     * `canWriteBinaryNatively()`, `canWriteFormattedNumbers()` replaced with `StreamWriteCapability.CAN_WRITE_BINARY_NATIVELY` / `StreamWriteCapability.CAN_WRITE_FORMATTED_NUMBERS` (respectively)
     * `getCodec()`: replaced with `objectReadContext()` to provide same (or better) functionality
+* `ObjectMapper`
+    * `copy()`: removed from 3.0 while not deprecated (since use ok in 2.x)
+    * No replacement as making exact copies no longer necessary or useful: creating differently configured instances needs to use new Build pattern
+        * See "ObjectMapper: copying an existing mapper instance" for details
 
 #### Deprecated Fields
 
