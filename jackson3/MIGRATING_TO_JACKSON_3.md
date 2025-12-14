@@ -125,7 +125,7 @@ Starting from the high-level change list, we can see the need for following chan
     - Need to change import statements due to the change in the Java package (`com.fasterxml.jackson` -> `tools.jackson` -- EXCEPT not for `jackson-annotations`)
 3. `@Deprecated` method, field, class removal:
     - Need to replace with non-Deprecated alternatives, as per `2.20` Javadocs updated to indicate replacement where possible
-    - See later a section for a set of common cases
+    - See a later section for a set of common cases
 4. Renaming of Core Entities (classes), methods, fields
     - Need to change references to use the new name (including `import` statements): `2.20` Javadocs updated to indicate replacement where possible
     - [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6) includes a list (likely incomplete) of renamed things as well
