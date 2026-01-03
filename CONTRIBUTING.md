@@ -35,10 +35,12 @@ to [jackson-databind Issue Tracker](https://github.com/FasterXML/jackson-databin
 
 #### "New Contributor Friendly" issues
 
+(NOTE: out-of-date -- SHOULD UPDATE)
+
 One effort to help new contributors is to try to collect issues that might be particularly good for
 new contributors:
 
-[Issues for New Contributors](https://github.com/FasterXML/jackson/wiki/Issues-For-New-Contributors) (Added for Hacktoberfest 2019)
+[Issues for New Contributors](https://github.com/FasterXML/jackson/wiki/Issues-For-New-Contributors)
 
 ### Code contributions, related
 
@@ -56,8 +58,8 @@ understand which Git Branch to use as the base.
 
 Jackson projects maintain a few branches:
 
-* `3.x` for developing the next Jackson 3.x release
-* `2.x` for developing the next Jackson 2.x release
+* `3.x` for developing the next Jackson 3.x minor release (3.1.0)
+* `2.x` for developing the next Jackson 2.x minor release (2.21.0)
 * `3.0` for the next patch for current 3.x release (f.ex 3.0.4)
 * `2.20` for the next patch for current 2.x release (f.ex 2.20.2)
 * `2.18` (LTS) for the next patch for the oldest open 2.x branch
