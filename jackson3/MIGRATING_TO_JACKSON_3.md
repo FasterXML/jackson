@@ -522,9 +522,9 @@ copy mappers any more. `ObjectMapper.rebuild()` is one way to get a builder inst
 
 One quick workaround if you still want to copy a mapper is to call `ObjectMapper.rebuild().build()` to create a new mapper instance.
 
-### Default Serialization/Deserialization Views
+##### ObjectMapper: default serialization/deserialization Views
 
-In Jackson 2.x, you could coinfigure a default view at the `ObjectMapper` level:
+In Jackson 2.x, you could configure default view at the `ObjectMapper` level:
 
 ```java
 objectMapper.setConfig(objectMapper.getSerializationConfig().withView(Views.Public.class));
