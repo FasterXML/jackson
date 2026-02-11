@@ -548,7 +548,7 @@ For per-request views, use `ObjectReader.withView()` / `ObjectWriter.withView()`
 
 Similar to `ObjectMapper`, streaming parser/generator factories -- subtypes of `TokenStreamFactory` like `JsonFactory` -- are also built using Builders:
 
-```
+```java
 JsonFactory f = JsonFactory.builder()
     .disable(StreamWriteFeature.AUTO_CLOSE_TARGET)
     .build();
@@ -556,7 +556,7 @@ JsonFactory f = JsonFactory.builder()
 
 and may also be re-configured like so:
 
-```
+```java
 JsonFactory f2 = f.rebuild()
     .enable(StreamWriteFeature.STRICT_DUPLICATE_DETECTION)
     .build();
@@ -578,7 +578,7 @@ If your workload is highly concurrent, benchmark the default deque-based pool ve
 
 Finally, to pass customized `TokenStreamFactory` for `ObjectMapper`, you will need to pass instance to `builder()` like so:
 
-```
+```java
 JsonFactory f = JsonFactory.builder()
    // configure
    .build();
@@ -596,7 +596,7 @@ Although use of
 is still allowed, the use of one of
 
     new JsonMapper()
-    JsonMapper.builder().builder()
+    JsonMapper.builder().build()
 
 is recommend. And all construction of generic `ObjectMapper`:
 
