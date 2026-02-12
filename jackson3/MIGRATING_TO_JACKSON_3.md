@@ -522,11 +522,33 @@ copy mappers any more. `ObjectMapper.rebuild()` is one way to get a builder inst
 
 One quick workaround if you still want to copy a mapper is to call `ObjectMapper.rebuild().build()` to create a new mapper instance.
 
+##### ObjectMapper: default serialization/deserialization Views
+
+In Jackson 2.x, you could configure default view at the `ObjectMapper` level:
+
+```java
+objectMapper.setConfig(objectMapper.getSerializationConfig().withView(Views.Public.class));
+objectMapper.setConfig(objectMapper.getDeserializationConfig().withView(Views.Public.class));
+```
+
+Since `ObjectMapper` is immutable in 3.x and `setConfig` is removed, this no longer works.
+
+**Jackson 3.1** ([#5575](https://github.com/FasterXML/jackson-databind/issues/5575)): Use `MapperBuilder.defaultSerializationView()` and `defaultDeserializationView()`:
+
+```java
+ObjectMapper mapper = JsonMapper.builder()
+    .defaultSerializationView(Views.Public.class)
+    .defaultDeserializationView(Views.Public.class)
+    .build();
+```
+
+For per-request views, use `ObjectReader.withView()` / `ObjectWriter.withView()` as before.
+
 #### Configuring TokenStreamFactories, general
 
 Similar to `ObjectMapper`, streaming parser/generator factories -- subtypes of `TokenStreamFactory` like `JsonFactory` -- are also built using Builders:
 
-```
+```java
 JsonFactory f = JsonFactory.builder()
     .disable(StreamWriteFeature.AUTO_CLOSE_TARGET)
     .build();
@@ -534,7 +556,7 @@ JsonFactory f = JsonFactory.builder()
 
 and may also be re-configured like so:
 
-```
+```java
 JsonFactory f2 = f.rebuild()
     .enable(StreamWriteFeature.STRICT_DUPLICATE_DETECTION)
     .build();
@@ -556,7 +578,7 @@ If your workload is highly concurrent, benchmark the default deque-based pool ve
 
 Finally, to pass customized `TokenStreamFactory` for `ObjectMapper`, you will need to pass instance to `builder()` like so:
 
-```
+```java
 JsonFactory f = JsonFactory.builder()
    // configure
    .build();
@@ -574,7 +596,7 @@ Although use of
 is still allowed, the use of one of
 
     new JsonMapper()
-    JsonMapper.builder().builder()
+    JsonMapper.builder().build()
 
 is recommend. And all construction of generic `ObjectMapper`:
 
