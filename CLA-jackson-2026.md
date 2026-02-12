@@ -44,6 +44,8 @@ Except for the license granted herein to the Project and recipients of software 
 
 Signature: ______________________________
 
+Github account: _________________________
+
 Name:      ______________________________
 
 Email:     ______________________________
