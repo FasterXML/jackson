@@ -1,8 +1,8 @@
 # Jackson Project
 
-## Individual Contributor License Agreement (ICLA)
+## Individual Contributor License Agreement (ICLA) - version 2.0 (February 2026)
 
-Thank you for your interest in contributing to the Jackson project (the "Project").
+Thank you for your interest in contributing to the Jackson project, under the Commonhaus Foundation (the "Project").
 
 In order to clarify the intellectual property license granted with Contributions from any person or entity, the Project
 must have a Contributor License Agreement (CLA) on file that has been signed by each Contributor, indicating agreement to the license terms below.
@@ -40,13 +40,13 @@ Except for the license granted herein to the Project and recipients of software 
 
 8. You agree to notify the Project of any facts or circumstances of which you become aware that would make these representations inaccurate in any respect.
 
-** Signature **
+**Signature**
 
 Signature: ______________________________
 
-Github account: _________________________
-
 Name:      ______________________________
+
+Github account: _________________________
 
 Email:     ______________________________
 
