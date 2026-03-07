@@ -23,7 +23,6 @@ See [JSTEP-13](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-13)
 for the full LTS policy discussion.
 
 
-
 ## Overview of Major Changes
 
 1. Baseline JDK raised to Java 17, from Java 8 in Jackson 2.x
