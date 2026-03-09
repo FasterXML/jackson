@@ -331,6 +331,7 @@ Methods:
    - `getCodec()` -> `objectReadContext()`
    - `getCurrentLocation()` -> `currentLocation()`
    - `getTokenLocation()` -> `currentTokenLocation()`
+   - `getCurrentName()` -> 'currentName()' ('currentName()' is available since Jackson 2.17)
    - `getCurrentValue()` -> `currentValue()`
    - `setCurrentValue()` -> `assignCurrentValue()`
 
