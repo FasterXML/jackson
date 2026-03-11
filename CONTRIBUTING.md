@@ -37,11 +37,6 @@ to [jackson-databind Issue Tracker](https://github.com/FasterXML/jackson-databin
 
 (NOTE: out-of-date -- SHOULD UPDATE)
 
-One effort to help new contributors is to try to collect issues that might be particularly good for
-new contributors:
-
-[Issues for New Contributors](https://github.com/FasterXML/jackson/wiki/Issues-For-New-Contributors)
-
 ### Code contributions, related
 
 #### Pull Requests
@@ -58,10 +53,10 @@ understand which Git Branch to use as the base.
 
 Jackson projects maintain a few branches:
 
-* `3.x` for developing the next Jackson 3.x minor release (3.1.0)
-* `2.x` for developing the next Jackson 2.x minor release (2.21.0)
-* `3.0` for the next patch for current 3.x release (f.ex 3.0.4)
-* `2.20` for the next patch for current 2.x release (f.ex 2.20.2)
+* `3.x` for developing the next Jackson 3.x minor release (3.2.0)
+* `2.x` for developing the next Jackson 2.x minor release (2.22.0)
+* `3.10` (LTS) for the next patch for the current 3.x release (f.ex 3.1.1)
+* `2.21` (LTS) for the next patch for the current 2.x release (f.ex 2.21.2)
 * `2.18` (LTS) for the next patch for the oldest open 2.x branch
 
 Most bug-fix Pull Requests should be made against `3.x`; second most likely target would be `2.x`
@@ -74,8 +69,7 @@ list or chat; or even on issue tracker of relevant repository.
 
 #### Backwards Compatibility
 
-When submitting a pull request, your choice of a base branch should take into account backwards
-compatibility.
+When submitting a pull request, your choice of a base branch should take into account backwards compatibility.
 
 The Jackson project follows [Apache versioning](https://apr.apache.org/versioning.html).  Patch
 versions maintain source and binary compatibility; functionality may be added, but existing code
@@ -84,8 +78,7 @@ add functionality, may deprecate existing functionality, and may remove function
 been deprecated for at least two minor versions.  Any changes that require breaking existing
 functionality must be part of a major version release.
 
-See [Jackson Releases on the wiki](https://github.com/FasterXML/jackson/wiki/Jackson-Releases)
-for more information.
+See [Jackson Releases on the wiki](https://github.com/FasterXML/jackson/wiki/Jackson-Releases) for more information.
 
 #### Coding Style
 
@@ -96,8 +89,7 @@ Jackson-specific coding conventions. Please refer to [Jackson Code Style](../../
 
 Jackson's functionality is vast and is used widely, so automated testing for any changes is
 important for preventing accidental breakage in the future.  Tests also document and demonstrate
-the bounds of functionality, showing the author's intent to others working on the code in the
-future.
+the bounds of functionality, showing the author's intent to others working on the code in the future.
 
 #### Paperwork
 
@@ -114,8 +106,8 @@ photo on your phone) and email that copy to `cla` at `fasterxml` dot `com`.
 
 As to document to download, you have 2 choices:
 
-* Standard Jackson [Contributor License Agreement](../../blob/master/contributor-agreement.pdf) (CLA) is a one-page document we need from every contributor of code (we will request it for pull requests), used mostly by individual contributors
-* [Corporate CLA](../../blob/master/contributor-agreement-corporate.txt) is used by Corporations to avoid individual employees from having to send separate CLAs; it is also favored by corporate IP lawyers.
+* Standard Jackson [Contributor License Agreement (2026)](../../blob/master/CLA-jackson-2026.pdf) (CLA) is a one-page document we need from every contributor of code (we will request it for pull requests), used mostly by individual contributors
+* [Corporate CLA](../../blob/master/contributor-agreement-corporate.txt) is used by Corporations to avoid individual employees from having to send separate CLAs; it is also favored by some corporate IP lawyers.
 
 of which the first option is more commonly used (by over 90% of contributors).
 
