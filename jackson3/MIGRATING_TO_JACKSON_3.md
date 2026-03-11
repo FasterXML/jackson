@@ -4,6 +4,25 @@ This guide aims to "Connect the Dots" for Jackson 2.x to 3.x migration, helping 
 
 Guide mostly references documentation in other repos and provides a high-level summary with appropriate links.
 
+## Jackson 3.x Version Support (LTS)
+
+> ⚠️ **Jackson 3.0 is not an LTS (Long-Term Support) version.**</br>
+> It is considered a transitional release. </br>
+> **Jackson 3.1** is your recommended target for long-term stability.
+
+Jackson LTS model is as follows:
+
+| Version | LTS | Notes |
+|---------|-----|-------|
+| 3.0.x   | ❌  | Transitional release — migrate to 3.1 |
+| 3.1.x   | ✅  | First LTS in the 3.x line (~2 year support window) |
+| 2.18.x  | ✅  | LTS (~2 year support window) |
+| 2.21.x  | ✅  | LTS (~2 year support window) |
+
+See [JSTEP-13](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-13)
+for the full LTS policy discussion.
+
+
 ## Overview of Major Changes
 
 1. Baseline JDK raised to Java 17, from Java 8 in Jackson 2.x
@@ -312,6 +331,7 @@ Methods:
    - `getCodec()` -> `objectReadContext()`
    - `getCurrentLocation()` -> `currentLocation()`
    - `getTokenLocation()` -> `currentTokenLocation()`
+   - `getCurrentName()` -> 'currentName()' ('currentName()' is available since Jackson 2.17)
    - `getCurrentValue()` -> `currentValue()`
    - `setCurrentValue()` -> `assignCurrentValue()`
 
