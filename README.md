@@ -134,6 +134,7 @@ Datatype modules directly maintained by Jackson team are under the following Git
             * [joschi/jackson-datatype-threetenbp](https://github.com/joschi/jackson-datatype-threetenbp)
             * [lldata/jackson-datatype-threetenbp](https://github.com/lldata/jackson-datatype-threetenbp)
     * `jackson-datatype-jdk8`: support for JDK 8 data types other than date/time types, including `Optional`
+    * **NOTE**: only Jackson 2.x versions exist: functionality merged in `jackson-databind` in 3.0
 * Joda datatypes:
     * [jackson-datatype-joda](../../../jackson-datatype-joda): support for types of [Joda-Time](https://www.joda.org/joda-time/) date/time library datatypes
     * [jackson-datatype-joda-money](../../../jackson-datatypes-misc/tree/2.19/joda-money): support types of [Joda-Money](https://www.joda.org/joda-money/) datatypes (`Money`, `CurrencyUnit`)
