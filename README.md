@@ -196,8 +196,8 @@ There are also other data format modules, provided by developers outside Jackson
     * Implemented as full streaming implementation, which allows full access (streaming, data-binding, tree-model)
 * [HOCON](https://github.com/jclawson/jackson-dataformat-hocon): experimental, partial implementation to support [HOCON](https://github.com/typesafehub/config) format -- work in progress
 * [Rison](https://github.com/Hronom/jackson-dataformat-rison): Jackson backend to support [Rison](https://github.com/Nanonid/rison)
-* [jackson-dataformat-spreadsheet](https://github.com/scndry/jackson-dataformat-spreadsheet): support for reading/writing [SpreadsheetML](https://ecma-international.org/publications-and-standards/standards/ecma-376/) (XLSX/XLS) using [Apache POI](https://poi.apache.org/) and StAX
-    * Implemented as full streaming implementation, which allows full access (streaming, data-binding, tree-model)
+* [jackson-dataformat-spreadsheet](https://github.com/scndry/jackson-dataformat-spreadsheet): support for reading/writing Excel spreadsheets (XLSX/XLS) using [Apache POI](https://poi.apache.org/) and StAX
+    * XLSX read path implemented as full streaming implementation via StAX, which allows full access (streaming, data-binding, tree-model)
 
 ### JVM Language modules
 
