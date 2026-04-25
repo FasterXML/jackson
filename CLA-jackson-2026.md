@@ -1,14 +1,14 @@
 # Jackson Project
 
-## Individual Contributor License Agreement (ICLA) - version 2.0 (February 2026)
+## Individual Contributor License Agreement (ICLA) - version 2.1 (April 2026)
 
-This Contribution License Agreement ("Agreement") is agreed to by the party signing below ("You"), and conveys certain license rights to the maintainer(s) of the Jackson project ("Maintainer") for Your contributions to the project. This Agreement is effective as of the latest signature date below.  
+This Contribution License Agreement ("Agreement") is agreed to by the party signing below ("You"), and conveys certain license rights to the maintainer(s) ("Maintainer") of the Jackson project ("Project") for Your contributions to the Jackson project. This Agreement is effective as of the latest signature date below.  
 
 1. Definitions.  
 
     "Code" means the computer software code, whether in human-readable or machine-executable form, that is delivered by You to Maintainer under this Agreement.  
 
-    "Project" means any of the projects owned or managed by Maintainer in which software is offered under a license approved by the Open Source Initiative (OSI) (www.opensource.org) and documentation offered under an OSI or a Creative Commons license (https://creativecommons.org/licenses).  
+    "Project" means the main Jackson library and its sub-projects (with name including "Jackson") owned or managed by Maintainer in which software is offered under a license approved by the Open Source Initiative (OSI) (www.opensource.org) and documentation offered under an OSI or a Creative Commons license (https://creativecommons.org/licenses).  
 
     "Submit" is the act of uploading, submitting, transmitting, or distributing code or other content to any Project, including but not limited to communication on electronic mailing lists, source code control systems, and issue tracking systems that are managed by, or on behalf of, the Project for the purpose of discussing and improving that Project, but excluding communication that is conspicuously marked or otherwise designated in writing by You as "Not a Submission."  
 
