@@ -434,7 +434,7 @@ But not all changes are equally likely to cause compatibility problems: here are
 
 #### Changes: SerializationFeature
 
-* `SerializationFeature.WRITE_DATES_AS_TIMESTAMPS` (**disabled in 3.0**, enabled in 2.x): Highly visible change to serialization; may break unit tests
+* `SerializationFeature.WRITE_DATES_AS_TIMESTAMPS` (**disabled in 3.0**, enabled in 2.x): Highly visible change to serialization; may break unit tests. (It is moved to DateTimeFeature)
 
 ### 6. Immutability of `ObjectMapper`, `JsonFactory`
 
