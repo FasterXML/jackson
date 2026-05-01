@@ -76,7 +76,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 The latest stable versions from these branches are:
 
 * [3.1.2](../../wiki/Jackson-Release-3.1), released on 11-Apr-2026
-* [2.21.2](../../wiki/Jackson-Release-2.21), released on 20-Mar-2026
+* [2.21.3](../../wiki/Jackson-Release-2.21), released on 28-Apr-2026
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
