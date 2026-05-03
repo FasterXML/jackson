@@ -418,7 +418,8 @@ But not all changes are equally likely to cause compatibility problems: here are
 
 * `MapperFeature.ALLOW_FINAL_FIELDS_AS_MUTATORS` (disabled in 3.0): this non-intuitive feature may have masked actual problems with *immutable* classes, wherein Jackson forcibly overwrote values of `final` fields (which is possible via *reflection*!), but the developer assumed a constructor was being used.
     * "Is it a Bug or Feature?" -- disabled since newer JVMs are less likely to allow the feature to work.
-* `MapperFeature.AUTO_DETECT_CREATORS` (and 4 related `AUTO_DETECT_xxx` variants) were removed: see "Configuring ObjectMappers" section for replacement (`JsonMapper.builder().changeDefaultVisibility(* `MapperFeature.DEFAULT_VIEW_INCLUSION` (disabled in 3.0): simple configuration change, but significant impact for `@JsonView` usage
+* `MapperFeature.AUTO_DETECT_CREATORS` (and 4 related `AUTO_DETECT_xxx` variants) were removed: see "Configuring ObjectMappers" section for replacement 
+* `MapperFeature.DEFAULT_VIEW_INCLUSION` (disabled in 3.0): simple configuration change, but significant impact for `@JsonView` usage
 * `MapperFeature.SORT_PROPERTIES_ALPHABETICALLY` (enabled in 3.0): likely to change the default ordering of property serialization for POJOs (where `@JsonPropertyOrder` is not used)
     * Highly visible and may break brittle unit tests (ones that assume specific ordering)
 * `MapperFeature.SORT_CREATOR_PROPERTIES_BY_DECLARATION_ORDER` (removed in 3.0, disabled in 2.x): Effective behavior in 3.0 is the same as if this was enabled.
