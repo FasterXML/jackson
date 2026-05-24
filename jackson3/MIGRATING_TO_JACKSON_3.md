@@ -14,10 +14,10 @@ Jackson LTS model is as follows:
 
 | Version | LTS | Notes |
 |---------|-----|-------|
-| 3.0.x   | ❌  | Transitional release — migrate to 3.1 |
 | 3.1.x   | ✅  | First LTS in the 3.x line (~2 year support window) |
-| 2.18.x  | ✅  | LTS (~2 year support window) |
+| 3.0.x   | ❌  | Transitional release — migrate to 3.1 |
 | 2.21.x  | ✅  | LTS (~2 year support window) |
+| 2.18.x  | ✅  | LTS (~2 year support window) |
 
 See [JSTEP-13](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-13)
 for the full LTS policy discussion.
@@ -420,6 +420,8 @@ But not all changes are equally likely to cause compatibility problems: here are
     * "Is it a Bug or Feature?" -- disabled since newer JVMs are less likely to allow the feature to work.
 * `MapperFeature.AUTO_DETECT_CREATORS` (and 4 related `AUTO_DETECT_xxx` variants) were removed: see "Configuring ObjectMappers" section for replacement (`JsonMapper.builder().changeDefaultVisibility`)
 * `MapperFeature.DEFAULT_VIEW_INCLUSION` (disabled in 3.0): simple configuration change, but significant impact for `@JsonView` usage
+* `MapperFeature.FIX_FIELD_NAME_UPPER_CASE_PREFIX` (enabled in 3.0): improves deduction of property names in case of Field name having leading upper-case character(s) OR single-lower-case followed by upper-case (like "iPhone")
+    * Affects mostly Lombok usage and some users prefer old 2.x handling
 * `MapperFeature.SORT_PROPERTIES_ALPHABETICALLY` (enabled in 3.0): likely to change the default ordering of property serialization for POJOs (where `@JsonPropertyOrder` is not used)
     * Highly visible and may break brittle unit tests (ones that assume specific ordering)
 * `MapperFeature.SORT_CREATOR_PROPERTIES_BY_DECLARATION_ORDER` (removed in 3.0, disabled in 2.x): Effective behavior in 3.0 is the same as if this was enabled.
