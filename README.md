@@ -7,7 +7,7 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
-* Apr 19, 2026: Minor updates
+* May 28, 2026: Minor version updates
 * Oct 3, 2025: [Jackson 3.0.0](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0) GA Released!!!
 * Sep 30, 2025: Skeletal version of [Jackson 3 Migration Guide](../../tree/main/jackson3/MIGRATING_TO_JACKSON_3.md)
 * Sep 5, 2025: Added note of `jackson-annotations` versioning scheme change in 2.20
@@ -76,7 +76,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 The latest stable versions from these branches are:
 
 * [3.1.3](../../wiki/Jackson-Release-3.1), released on 01-May-2026
-* [2.21.3](../../wiki/Jackson-Release-2.21), released on 28-Apr-2026
+* [2.21.4](../../wiki/Jackson-Release-2.21), released on 28-May-2026
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
