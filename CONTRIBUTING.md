@@ -33,10 +33,6 @@ per-repository Issue Tracker. For example, issues related to Jackson databinding
 (main json-to/from-Java objects handling) component would go
 to [jackson-databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues).
 
-#### "New Contributor Friendly" issues
-
-(NOTE: out-of-date -- SHOULD UPDATE)
-
 ### Code contributions, related
 
 #### Pull Requests
@@ -54,8 +50,8 @@ understand which Git Branch to use as the base.
 Jackson projects maintain a few branches:
 
 * `3.x` for developing the next Jackson 3.x minor release (3.2.0)
-* `2.x` for developing the next Jackson 2.x minor release (2.22.0)
-* `3.10` (LTS) for the next patch for the current 3.x release (f.ex 3.1.1)
+* `2.x` for developing the next Jackson 2.x minor release (2.23.0)
+* `3.1` (LTS) for the next patch for the current 3.x release (f.ex 3.1.1)
 * `2.21` (LTS) for the next patch for the current 2.x release (f.ex 2.21.2)
 * `2.18` (LTS) for the next patch for the oldest open 2.x branch
 

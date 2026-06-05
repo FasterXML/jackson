@@ -30,8 +30,8 @@ _See more releases information at [Jackson Releases](../../wiki/Jackson-Releases
 
 ## What is Jackson?
 
-Jackson has been known as "the Java JSON library"
-or "the best JSON parser for Java". Or simply as "JSON for Java".
+Jackson has been known as "the Java JSON library" or "the best JSON parser for Java".
+Or simply as "JSON for Java".
 
 More than that, Jackson is a suite of data-processing tools for Java (and the JVM platform),
 including the flagship streaming [JSON](https://en.wikipedia.org/wiki/JSON) parser / generator library,
@@ -75,7 +75,7 @@ This is by design and was chosen as the strategy to allow smoother migration fro
 
 The latest stable versions from these branches are:
 
-* [3.1.3](../../wiki/Jackson-Release-3.1), released on 01-May-2026
+* [3.1.4](../../wiki/Jackson-Release-3.1), released on 29-May-2026
 * [2.21.4](../../wiki/Jackson-Release-2.21), released on 28-May-2026
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
