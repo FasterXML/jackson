@@ -235,12 +235,13 @@ many stand-alone Schema tools, such as:
 Other fully usable modules by FasterXML team include:
 
 * [Base](../../../jackson-modules-base) modules:
-    * [Afterburner](../../../jackson-modules-base/tree/2.20/afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection for field access, method/constructor calls
-    * [Guice](../../../jackson-modules-base/tree/2.20/guice): extension that allows injection values from Guice injectors (and basic Guice annotations), instead of standard `@JacksonInject` (or in addition to)
-    * [JAXB Annotations](../../../jackson-modules-base/tree/2.20/jaxb): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
-    * [Mr Bean](../../../jackson-modules-base/tree/2.20/mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
-    * [OSGi](../../../jackson-modules-base/tree/2.20/osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
-    * [Paranamer](../../../jackson-modules-base/tree/2.20/paranamer): tiny extension for automatically figuring out creator (constructor, factory method) parameter names, to avoid having to specify `@JsonProperty`.
+    * [Afterburner](../../../jackson-modules-base/tree/3.x/afterburner): speed up databinding by 30-40% with bytecode generation to replace use of Reflection for field access, method/constructor calls
+    * [Blackbird](../../../jackson-modules-base/tree/3.x/blackbird): similar to Afterburner but designed to work well with newer JDKs (JDK 17+)
+    * [Guice](../../../jackson-modules-base/tree/3.x/guice): extension that allows injection values from Guice injectors (and basic Guice annotations), instead of standard `@JacksonInject` (or in addition to)
+    * [JAXB Annotations](../../../jackson-modules-base/tree/3.x/jaxb): allow use of `JAXB` annotations as an alternative (in addition to or instead of) standard Jackson annotations
+    * [Jakarta XML Bind Annotations](../../../jackson-modules-base/tree/3.x/jakarta-xmlbind): same as JAXB annotations but for newer "Jakarta" variants
+    * [Mr Bean](../../../jackson-modules-base/tree/3.x/mrbean): "type materialization" -- let Mr Bean generate implementation classes on-the-fly (NO source code generation), to avoid monkey code
+    * [OSGi](../../../jackson-modules-base/tree/3.x/osgi): allows injection of values from OSGi registry, via standard Jackson `@JacksonInject` annotation
 
 ### Jackson jr
 
