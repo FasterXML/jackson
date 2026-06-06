@@ -8,7 +8,15 @@ This is the home page of the Jackson Project.
 
 - [What is New](#what-is-new)
 - [What is Jackson](#what-is-jackson)
-- [Jackson Versions, Releases](#jackson-versions-releases]
+- [Jackson Versions, Releases](#jackson-versions-releases)
+- [Active Jackson projects, repos](#active-jackson-projects-repos)
+- [Contributing](#contributing)
+- [Support](#support)
+    - [Community support](#community-support)
+    - [Enterprise support](#enterprise-support)
+    - [Version support](#version-support)
+- [Reporting security vulnerabilities](#reporting-security-vulnerabilities)
+- [Documentation](#documentation)
 
 -----
 
@@ -90,7 +98,7 @@ With Jackson 3.0.0 GA, some documentation exists to help migration:
 
 * [Jackson 3 Migration Guide](../../tree/main/jackson3/MIGRATING_TO_JACKSON_3.md)
 
-## Active Jackson projects
+## Active Jackson projects, repos
 
 Most projects listed below are lead by Jackson development team; but some by other at-large Jackson community members.
 
