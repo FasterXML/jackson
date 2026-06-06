@@ -22,7 +22,7 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
-* May 28, 2026: Minor version updates
+* June 5, 2026: Major update, ToC, Support links
 * Jan 18, 2026: [Jackson 2.21](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.21) (LTS) released
 * Oct 3, 2025: [Jackson 3.0.0](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0) GA Released!!!
 * Sep 30, 2025: Skeletal version of [Jackson 3 Migration Guide](../../tree/main/jackson3/MIGRATING_TO_JACKSON_3.md)
@@ -304,17 +304,19 @@ The maintainers of `Jackson` and thousands of other packages are working with Ti
 
 ### Version support
 
-Full status (open / EOL) of various versions (and branches) can be found from [Jackson Releases](../../wiki/Jackson-Releases) page.
+[Versioning](VERSIONING.md) explains logic of how branches are maintained and versions released from branches.
+
+Full status (open / EOL) of various versions and branches can be found from [Jackson Releases](../../wiki/Jackson-Releases) page.
 
 #### Community/Project supported "open" branches
 
-Jackson project supports "open" branches by releasing new versions from those branches; many fixes are backported to a set of "Long-Term Support" branches.
+Jackson project supports "Open" branches by releasing new versions from those branches; many fixes are backported to a set of "Long-Term Support" branches.
 
-Project does not support "closed" (aka EOL) branches.
+Project does not support "Closed" (aka EOL) branches.
 
 #### Commercial Support
 
-[HeroDevs](https://www.herodevs.com/) offers security and compatibility support for EOL versions of Jackson through the [Commonhaus Foundation Open Source Sustainability Initiative (OSSI)](https://www.commonhaus.org/about/ossi.html)
+[HeroDevs](https://www.herodevs.com/) offers security and compatibility support for EOL versions of Jackson through the Commonhaus Foundation [Open Source Sustainability Initiative (OSSI)](https://www.commonhaus.org/about/ossi.html)
 
 ### Reporting security vulnerabilities
 
