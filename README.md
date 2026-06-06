@@ -1,28 +1,28 @@
-<a href="CONTRIBUTING.md" alt="Hacktoberfest"><img src="https://badgen.net/badge/hacktoberfest/friendly/pink" /></a>
  [![Open Source](https://badges.frapsoft.com/os/v3/open-source.svg?v=103)](https://opensource.org/)
 
 # Jackson Project Home @github
 
 This is the home page of the Jackson Project.
 
+## Table of Contents
+
+- [What is New](#what-is-new)
+- [What is Jackson](#what-is-jackson)
+- [Jackson Versions, Releases](#jackson-versions-releases]
+
+-----
+
 ## What is New?
 
 * May 28, 2026: Minor version updates
+* Jan 18, 2026: [Jackson 2.21](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.21) (LTS) released
 * Oct 3, 2025: [Jackson 3.0.0](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0) GA Released!!!
 * Sep 30, 2025: Skeletal version of [Jackson 3 Migration Guide](../../tree/main/jackson3/MIGRATING_TO_JACKSON_3.md)
 * Sep 5, 2025: Added note of `jackson-annotations` versioning scheme change in 2.20
-* Aug 28, 2025: [Jackson 2.20](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.20) released
-* Apr 24, 2025: [Jackson 2.19](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.19) released
-* Apr 8, 2025: Minor updates wrt Jackson 3.x
-* Sep 26, 2024: [Jackson 2.18](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.18) released
-* Mar 12, 2024: [Jackson 2.17](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.17) released
+* Sep 26, 2024: [Jackson 2.18](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.18) (LTS) released
 * Feb 19, 2024: Another OSTIF/AdaLogics Security Audit -- on jackson-dataformat-xxx's and jackson-datatype-xxx's -- released: https://ostif.org/dataformatsdatatypes-audit-complete/
 * Dec 17, 2023: contributing/[Jackson Coding Style Guide](contribution/jackson-coding-style-guide.md)
-* Nov 15, 2023: [Jackson 2.16](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.16) released
-* Apr 23, 2023: [Jackson 2.15](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.15) released
-* Nov 5, 2022: [Jackson 2.14](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.14) released
 * Nov 2, 2022: AdaLogics Security Audit for Jackson released -- see Document/Reports
-* Sep 30, 2021: [Jackson 2.13](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.13) released
 * Oct 1, 2020: Jackson participates in [Hacktoberfest2020](https://hacktoberfest.digitalocean.com/) and we have a [Jackson/Hacktoberfest](https://github.com/FasterXML/Hacktoberfest2020) repo too!
 * Oct 9, 2020: Added [Contributing](CONTRIBUTING.md)
 
@@ -62,7 +62,7 @@ for linking all the pieces together.
 
 A good companion to this README is the [Jackson Project FAQ](../../wiki/FAQ).
 
-## Jackson Major Versions
+## Jackson Versions, Releases
 
 Jackson suite has three major versions:
 
