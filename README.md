@@ -296,7 +296,17 @@ The maintainers of `Jackson` and thousands of other packages are working with Ti
 
 ### Version support
 
-* Commonhaus Foundation [Open Source Sustainability Initiative (OSSI)](https://www.commonhaus.org/about/ossi.html)
+Full status (open / EOL) of various versions (and branches) can be found from [Jackson Releases](../../wiki/Jackson-Releases) page.
+
+#### Community/Project supported "open" branches
+
+Jackson project supports "open" branches by releasing new versions from those branches; many fixes are backported to a set of "Long-Term Support" branches.
+
+Project does not support "closed" (aka EOL) branches.
+
+#### Commercial Support
+
+[HeroDevs](https://www.herodevs.com/) offers security and compatibility support for EOL versions of Jackson through the [Commonhaus Foundation Open Source Sustainability Initiative (OSSI)](https://www.commonhaus.org/about/ossi.html)
 
 ### Reporting security vulnerabilities
 
