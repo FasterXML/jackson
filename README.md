@@ -72,6 +72,8 @@ A good companion to this README is the [Jackson Project FAQ](../../wiki/FAQ).
 
 ## Jackson Versions, Releases
 
+[Versioning](VERSIONING.md) explains logic of how branches are maintained and versions released from branches.
+
 Jackson suite has three major versions:
 
 * 1.x (`org.codehaus.jackson`) is deprecated and no versions are released;
