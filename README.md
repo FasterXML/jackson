@@ -74,14 +74,14 @@ A good companion to this README is the [Jackson Project FAQ](../../wiki/FAQ).
 
 [Versioning](VERSIONING.md) explains logic of how branches are maintained and versions released from branches.
 
-Jackson suite has three major versions:
+Jackson has three major versions:
 
-* 1.x (`org.codehaus.jackson`) is deprecated and no versions are released;
+* 1.x (`org.codehaus.jackson`) is deprecated and no versions are released (sources available via [jackson-1](https://github.com/FasterXML/jackson-1) repo)
 * 2.x (`com.fasterxml.jackson`) is the older actively developed and maintained version
 * 3.x (`tools.jackson`) is the newer actively developed and maintained version
 
-These major versions use different Java packages and Maven artifact ids, so they are not mutually compatible, but can peacefully co-exist: a project can depend on both Jackson 1.x and 2.x (and eventually 3.x), without conflicts.
-This is by design and was chosen as the strategy to allow smoother migration from 1.x to 2.x (and from 2.x to 3.x, eventually).
+These major versions use different Java packages and Maven artifact ids, so they are not plug-in replaceable/upgradable, but can peacefully co-exist: a project can depend on Jackson 1.x and 2.x and even 3.x, without conflicts.
+This is by design and was chosen as the strategy to allow smoother incremental migration from 1.x to 2.x, and from 2.x to 3.x.
 
 The latest stable versions from these branches are:
 
@@ -89,8 +89,7 @@ The latest stable versions from these branches are:
 * [2.21.4](../../wiki/Jackson-Release-2.21), released on 28-May-2026
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
-Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (CMR).
-Individual projects' wiki pages sometimes also contain direct download links, pointing to CMR.
+Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (Maven Central).
 
 Release notes for 2.x and 3.x releases are found from [Jackson Releases](../../wiki/Jackson-Releases) page.
 
@@ -300,7 +299,7 @@ Jackson components are supported by the Jackson community through mailing lists,
 
 ### Enterprise support
 
-In addition to free (for all) community support, enterprise support—starting with version 2.10—is available as part of the [Tidelift Subscription](https://tidelift.com?utm_source=maven-com-fasterxml-jackson-core-jackson-core&utm_medium=referral&utm_campaign=enterprise&utm_term=repo) for (most) Jackson components.
+In addition to free (for all) community support, enterprise support is available as part of the [Tidelift Subscription](https://tidelift.com?utm_source=maven-com-fasterxml-jackson-core-jackson-core&utm_medium=referral&utm_campaign=enterprise&utm_term=repo) for (most) Jackson components.
 
 The maintainers of `Jackson` and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/maven-com-fasterxml-jackson-core-jackson-core?utm_source=maven-com-fasterxml-jackson-core-jackson-core&utm_medium=referral&utm_campaign=enterprise&utm_term=repo)
 
@@ -312,13 +311,13 @@ Full status (open / EOL) of various versions and branches can be found from [Jac
 
 #### Community/Project supported "open" branches
 
-Jackson project supports "Open" branches by releasing new versions from those branches; many fixes are backported to a set of "Long-Term Support" branches.
+Jackson project supports "Open" maintenance branches by releasing new versions from those branches; many fixes are backported to a set of "Long-Term Support" branches.
 
-Project does not support "Closed" (aka EOL) branches.
+Project does not support "Closed" (aka EOL) maintenance branches.
 
 #### Commercial Support
 
-[HeroDevs](https://www.herodevs.com/) offers security and compatibility support for EOL versions of Jackson through the Commonhaus Foundation [Open Source Sustainability Initiative (OSSI)](https://www.commonhaus.org/about/ossi.html)
+[HeroDevs](https://www.herodevs.com/) offers security and compatibility support for EOL versions of Jackson (ones built from "Closed" maintenance branches) through the Commonhaus Foundation [Open Source Sustainability Initiative (OSSI)](https://www.commonhaus.org/about/ossi.html)
 
 ### Reporting security vulnerabilities
 
