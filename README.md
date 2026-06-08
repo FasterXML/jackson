@@ -78,17 +78,19 @@ Here's a brief overview.
 Jackson has three major versions:
 
 * 1.x (`org.codehaus.jackson`) is deprecated and no versions are released (sources available via [jackson-1](https://github.com/FasterXML/jackson-1) repo)
-* 2.x (`com.fasterxml.jackson`) is the older actively developed and maintained version
+* 2.x (`com.fasterxml.jackson`) is the previous major version, still actively maintained -- and, as of June 2026, the most widely adopted
 * 3.x (`tools.jackson`) is the newer actively developed and maintained version, recommended for new projects
 
 These major versions use different Java packages and Maven artifact ids, so they are not plug-in replaceable/upgradable, but can peacefully co-exist: a project can depend on Jackson 1.x and 2.x and even 3.x, without conflicts.
 This is by design and was chosen as the strategy to allow smoother incremental migration from 1.x to 2.x, and from 2.x to 3.x.
 
-The latest stable versions from these branches are:
+The latest stable versions, released from the current "Latest Release Branches" (`2.22`, `3.1`), are:
 
 * [3.1.4](../../wiki/Jackson-Release-3.1), released on 29-May-2026
 * [2.22.0](../../wiki/Jackson-Release-2.22), released on 31-May-2026
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
+
+Active development happens on the `2.x` and `3.x` branches; patches ship from the latest release branches, and selected older minors (e.g. `2.18`, `2.21`) are kept open as Long-Term Support (LTS) branches. See [Versioning](VERSIONING.md) for the full branch model, including "Open"/"Closed" (EOL) status.
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (Maven Central).
 
@@ -106,7 +108,7 @@ Most projects listed below are lead by Jackson development team; but some by oth
 We try to keep versioning of modules lined up to reduce confusion regarding which versions work together.
 
 * One exception to this is [jackson-annotations](../../../jackson-annotations) which has a different versioning starting from 2.20 -- `2.20` instead of `2.20.0` (no patch digit)
-    * See [more details](../../../jackson-annotations/issues/294).
+    * See [Versioning](VERSIONING.md#2200-most-vs-220-jackson-annotations) and [JSTEP-1](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-1), or [issue 294](../../../jackson-annotations/issues/294) for details.
 * For fully consistent set of versions, consider using Jackson BOM ([jackson-bom](../../../jackson-bom))
 
 ### Core modules
