@@ -305,9 +305,9 @@ The maintainers of `Jackson` and thousands of other packages are working with Ti
 
 ### Version support
 
-[Versioning](VERSIONING.md) explains logic of how branches are maintained and versions released from branches.
+[Versioning](VERSIONING.md) explains logic of how branches are maintained and versions released from branches, as well as concepts "Open"/"Closed"/"Long-Term Support" (LTS) branches.
 
-Full status (open / EOL) of various versions and branches can be found from [Jackson Releases](../../wiki/Jackson-Releases) page.
+Full status (Open / Closed (aka EOL)) of various versions and branches can be found from [Jackson Releases](../../wiki/Jackson-Releases) page.
 
 #### Community Version Support
 
