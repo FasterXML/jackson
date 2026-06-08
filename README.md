@@ -90,7 +90,7 @@ The latest stable versions, released from the current "Latest Release Branches" 
 * [2.22.0](../../wiki/Jackson-Release-2.22), released on 31-May-2026
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
-Active development happens on the `2.x` and `3.x` branches; patches ship from the latest release branches, and selected older minors (e.g. `2.18`, `2.21`) are kept open as Long-Term Support (LTS) branches. See [Versioning](VERSIONING.md) for the full branch model, including "Open"/"Closed" (EOL) status.
+Active development happens on the `2.x` and `3.x` branches; patches ship from the latest release branches, and selected minors (e.g. `2.18`, `2.21`, `3.1`) are kept open as Long-Term Support (LTS) branches. See [Versioning](VERSIONING.md) for the full branch model, including "Open"/"Closed" (EOL) status.
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (Maven Central).
 

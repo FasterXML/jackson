@@ -55,7 +55,7 @@ When a new minor version is released from "Development Branch" (and matching "La
     * Status of each LTS is independent of other Branches -- EOL determined at the time of initial release
 * If not, it will only remain Open as long as it is the "Latest Release Branch" (i.e. closed after following minor version is released).
 
-Current LTS branches are `2.18` and `2.21`; see [Jackson Releases](../../wiki/Jackson-Releases) for the authoritative, up-to-date list.
+Current LTS branches are `2.18`, `2.21` and `3.1`; see [Jackson Releases](../../wiki/Jackson-Releases) for the authoritative, up-to-date list.
 
 ## Version Numbering (Apache)
 
