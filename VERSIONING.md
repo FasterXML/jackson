@@ -2,6 +2,8 @@
 
 This page explains the relationship between Jackson git branches and versions being released.
 
+See the [Jackson README](README.md#jackson-versions-releases) for the module catalog and current latest-stable versions; this page covers the branch/version model in full.
+
 ## Major Versions
 
 Jackson has three major versions:
@@ -12,7 +14,7 @@ Jackson has three major versions:
 * 3.x (`tools.jackson`) is the newer actively developed and maintained version, on which new functionality will be added. It is recommended for new projects
 
 All per-component repositories (like [jackson-databind](../../../jackson-databind)) contain branches for major versions 2 and 3 (but not 1).
-Changes are rolled forward from 2.x to 3.x branches, but not in the reverse direction.
+Changes are rolled forward from 2.x to 3.x branches, but not in the reverse direction. See the [Jackson 3 Migration Guide](jackson3/MIGRATING_TO_JACKSON_3.md) for moving from 2.x to 3.x.
 
 ## Branching structure, naming
 
@@ -21,10 +23,12 @@ For each of 2 open major branches (2.x, 3.x), component repositories have:
 * "Development Branch": `2.x`, `3.x`
     * For developing the next new minor version (2.23, 3.2)
     * All feature development occurs in these branches
-* "Latest Release Branch" (LRB): currently, `2.22`, `3.1`
+* "Latest Release Branch" (LRB): currently (as of June 2026), `2.22`, `3.1`
     * Most recently published minor version, always Open
-* Zero or more "Maintenance Branches": currently, `2.0` .. `2.21`, `3.0`
+* Zero or more "Maintenance Branches": currently (as of June 2026), `2.0` .. `2.21`, `3.0`
     * Only some are open (see LTS section below)
+
+(branch numbers above are examples valid as of June 2026; see [Jackson Releases](../../wiki/Jackson-Releases) for the current set)
 
 Once a new minor version is released from Development Branch, a new LRB is created, and previous LRB becomes regular Maintenance Branch.
 
@@ -51,19 +55,21 @@ When a new minor version is released from "Development Branch" (and matching "La
     * Status of each LTS is independent of other Branches -- EOL determined at the time of initial release
 * If not, it will only remain Open as long as it is the "Latest Release Branch" (i.e. closed after following minor version is released).
 
+Current LTS branches are `2.18` and `2.21`; see [Jackson Releases](../../wiki/Jackson-Releases) for the authoritative, up-to-date list.
+
 ## Version Numbering (Apache)
 
 Jackson follows [Apache versioning](https://apr.apache.org/versioning.html) convention, and is similar to [Semantic Versioning](http://semver.org/) from external user perspective (but not strictly following SemVer specification).
 
 That is:
 
-* Major version upgrades (1.x -> 2.x, 2.x -> 3.x) can include all kinds of changes, regardless of compatibility. To make this possible, each major version uses different Java and Maven package names, so that different major versions can co-exist on the same classpath
+* Major version upgrades (1.x -> 2.x, 2.x -> 3.x) can include all kinds of changes, regardless of compatibility. To make this possible, each major version uses different Java and Maven package names, so that different major versions can co-exist on the same classpath -- which enables smoother incremental migration between major versions
 * Minor version upgrades are backward-compatible: code compiled against the previous minor version keeps working. They may contain additions and new methods, and may deprecate existing functionality, but do not remove or break it
 * Patch releases must be fully replaceable, with no source- or binary-compatibility changes
 
 ### Micro-patches
 
-In rare cases Project may release updated version of just a single component -- this is usually for a significant security issue -- from a Closed branch. If so, a special version format is used:
+In rare cases the Project may release an updated version of just a single component -- this is usually for a significant security issue -- from a Closed branch. If so, a special version format is used:
 
 * 4th version component is appended: it uses DATE of micro-patch after "base version" (most recent release): for example, `2.21.4-20260607`
 * Micro-patch versions are meant to be used along with regular patches of other components, so, for example:
