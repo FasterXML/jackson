@@ -6,8 +6,8 @@ This is the home page of the Jackson Project.
 
 ## Table of Contents
 
-- [What is New](#what-is-new)
-- [What is Jackson](#what-is-jackson)
+- [What is New?](#what-is-new)
+- [What is Jackson?](#what-is-jackson)
 - [Jackson Versions, Releases](#jackson-versions-releases)
 - [Active Jackson projects, repos](#active-jackson-projects-repos)
 - [Contributing](#contributing)
@@ -33,8 +33,6 @@ This is the home page of the Jackson Project.
 * Nov 2, 2022: AdaLogics Security Audit for Jackson released -- see Document/Reports
 * Oct 1, 2020: Jackson participates in [Hacktoberfest2020](https://hacktoberfest.digitalocean.com/) and we have a [Jackson/Hacktoberfest](https://github.com/FasterXML/Hacktoberfest2020) repo too!
 * Oct 9, 2020: Added [Contributing](CONTRIBUTING.md)
-
-_See more releases information at [Jackson Releases](../../wiki/Jackson-Releases)._
 
 ## What is Jackson?
 
@@ -72,13 +70,14 @@ A good companion to this README is the [Jackson Project FAQ](../../wiki/FAQ).
 
 ## Jackson Versions, Releases
 
-[Versioning](VERSIONING.md) explains logic of how branches are maintained and versions released from branches.
+[Versioning](VERSIONING.md) explains full logic of how branches are maintained and versions released from branches. Release notes for 2.x and 3.x releases, as well as support status (Open/Closed) are found from [Jackson Releases](../../wiki/Jackson-Releases) page.
+Here's a brief overview.
 
 Jackson has three major versions:
 
 * 1.x (`org.codehaus.jackson`) is deprecated and no versions are released (sources available via [jackson-1](https://github.com/FasterXML/jackson-1) repo)
 * 2.x (`com.fasterxml.jackson`) is the older actively developed and maintained version
-* 3.x (`tools.jackson`) is the newer actively developed and maintained version
+* 3.x (`tools.jackson`) is the newer actively developed and maintained version, recommended for new projects
 
 These major versions use different Java packages and Maven artifact ids, so they are not plug-in replaceable/upgradable, but can peacefully co-exist: a project can depend on Jackson 1.x and 2.x and even 3.x, without conflicts.
 This is by design and was chosen as the strategy to allow smoother incremental migration from 1.x to 2.x, and from 2.x to 3.x.
@@ -86,12 +85,11 @@ This is by design and was chosen as the strategy to allow smoother incremental m
 The latest stable versions from these branches are:
 
 * [3.1.4](../../wiki/Jackson-Release-3.1), released on 29-May-2026
-* [2.21.4](../../wiki/Jackson-Release-2.21), released on 28-May-2026
+* [2.22.0](../../wiki/Jackson-Release-2.22), released on 31-May-2026
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 
 Recommended way to use Jackson is through Maven repositories; releases are made to Central Maven Repository (Maven Central).
 
-Release notes for 2.x and 3.x releases are found from [Jackson Releases](../../wiki/Jackson-Releases) page.
 
 ### Jackson 2.x to 3.0 migration
 
