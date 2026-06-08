@@ -10,7 +10,7 @@ Jackson has three major versions:
 
 * 1.x (`org.codehaus.jackson`) is deprecated and no versions are released -- new use is strongly discouraged
     * Sources are available via [jackson-1](https://github.com/FasterXML/jackson-1) repo.
-* 2.x (`com.fasterxml.jackson`) is the previous major version, still actively maintained and (as of June 2026) the most widely adopted.
+* 2.x (`com.fasterxml.jackson`) is the previous major version, still actively maintained -- and, as of June 2026, the most widely adopted
 * 3.x (`tools.jackson`) is the newer actively developed and maintained version, on which new functionality will be added. It is recommended for new projects
 
 All per-component repositories (like [jackson-databind](../../../jackson-databind)) contain branches for major versions 2 and 3 (but not 1).
@@ -63,7 +63,7 @@ Jackson follows [Apache versioning](https://apr.apache.org/versioning.html) conv
 
 That is:
 
-* Major version upgrades (1.x -> 2.x, 2.x -> 3.x) can include all kinds of changes, regardless of compatibility. To make this possible, each major version uses different Java and Maven package names, so that different major versions can co-exist on the same classpath -- which enables smoother incremental migration between major versions
+* Major version upgrades (1.x -> 2.x, 2.x -> 3.x) can include all kinds of changes, regardless of compatibility. To make this possible, each major version uses different Java packages and Maven groupIds, so that different major versions can co-exist on the same classpath -- which enables smoother incremental migration between major versions
 * Minor version upgrades are backward-compatible: code compiled against the previous minor version keeps working. They may contain additions and new methods, and may deprecate existing functionality, but do not remove or break it
 * Patch releases must be fully replaceable, with no source- or binary-compatibility changes
 

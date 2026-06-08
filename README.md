@@ -27,7 +27,7 @@ This is the home page of the Jackson Project.
 * June 5, 2026: Major update, ToC, Support links
 * Jan 18, 2026: [Jackson 2.21](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.21) (LTS) released
 * Oct 3, 2025: [Jackson 3.0.0](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0) GA Released!!!
-* Sep 30, 2025: Skeletal version of [Jackson 3 Migration Guide](../../tree/main/jackson3/MIGRATING_TO_JACKSON_3.md)
+* Sep 30, 2025: Skeletal version of [Jackson 3 Migration Guide](jackson3/MIGRATING_TO_JACKSON_3.md)
 * Sep 5, 2025: Added note of `jackson-annotations` versioning scheme change in 2.20
 * Sep 26, 2024: [Jackson 2.18](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.18) (LTS) released
 * Feb 19, 2024: Another OSTIF/AdaLogics Security Audit -- on jackson-dataformat-xxx's and jackson-datatype-xxx's -- released: https://ostif.org/dataformatsdatatypes-audit-complete/
@@ -81,7 +81,7 @@ Jackson has three major versions:
 * 2.x (`com.fasterxml.jackson`) is the previous major version, still actively maintained -- and, as of June 2026, the most widely adopted
 * 3.x (`tools.jackson`) is the newer actively developed and maintained version, recommended for new projects
 
-These major versions use different Java packages and Maven artifact ids, so they are not plug-in replaceable/upgradable, but can peacefully co-exist: a project can depend on Jackson 1.x and 2.x and even 3.x, without conflicts.
+These major versions use different Java packages and Maven groupIds, so they are not plug-in replaceable/upgradable, but can peacefully co-exist: a project can depend on Jackson 1.x and 2.x and even 3.x, without conflicts.
 This is by design and was chosen as the strategy to allow smoother incremental migration from 1.x to 2.x, and from 2.x to 3.x.
 
 The latest stable versions, released from the current "Latest Release Branches" (`2.22`, `3.1`), are:
@@ -99,7 +99,7 @@ Recommended way to use Jackson is through Maven repositories; releases are made 
 
 With Jackson 3.0.0 GA, some documentation exists to help migration:
 
-* [Jackson 3 Migration Guide](../../tree/main/jackson3/MIGRATING_TO_JACKSON_3.md)
+* [Jackson 3 Migration Guide](jackson3/MIGRATING_TO_JACKSON_3.md)
 
 ## Active Jackson projects, repos
 
