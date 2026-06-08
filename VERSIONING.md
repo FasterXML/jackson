@@ -56,9 +56,8 @@ Jackson follows [Apache versioning](https://apr.apache.org/versioning.html) conv
 
 That is:
 
-* Major version upgrades (1.x -> 2.x, 2.x -> 3.x) can include all kinds of changes, regardless of compatibility. We do this so that:
-    * Neither Java nor Maven package names are reused (we use different package names): this allows different major versions to co-exist
-* Minor version upgrades can contain additions, new methods, and may deprecate existing functionality
+* Major version upgrades (1.x -> 2.x, 2.x -> 3.x) can include all kinds of changes, regardless of compatibility. To make this possible, each major version uses different Java and Maven package names, so that different major versions can co-exist on the same classpath
+* Minor version upgrades are backward-compatible: code compiled against the previous minor version keeps working. They may contain additions and new methods, and may deprecate existing functionality, but do not remove or break it
 * Patch releases must be fully replaceable, with no source- or binary-compatibility changes
 
 ### Micro-patches
