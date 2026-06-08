@@ -1,6 +1,6 @@
 # Versioning: branches, versions released
 
-This page explains relationship between Jackson git branches and versions being released.
+This page explains the relationship between Jackson git branches and versions being released.
 
 ## Major Versions
 
@@ -30,7 +30,7 @@ Once a new minor version is released from Development Branch, a new LRB is creat
 
 ## Branch status: Open vs Closed
 
-Open branch means branch from which new releases may be made: conversely no releases are planned from Closed branches (NOTE: releases from Closed branches may be made only under exceptional circumstances -- for severe security vulnerabilities -- and if so, usually "micro-patches" -- single-component (usually [jackson-core](../../../jackson-core) or [jackson-databind](../../../jackson-databind)), special 4-digit version (`2.21.4-20260607`)).
+Open branch means branch from which new releases may be made: conversely no releases are planned from Closed branches (NOTE: releases from Closed branches may be made only under exceptional circumstances -- for severe security vulnerabilities -- and if so, usually "micro-patches" (see below)).
 
 Current status (Open/Closed) of all branches is listed on [Jackson Releases](../../wiki/Jackson-Releases).
 
@@ -57,13 +57,25 @@ Jackson follows [Apache versioning](https://apr.apache.org/versioning.html) conv
 That is:
 
 * Major version upgrades (1.x -> 2.x, 2.x -> 3.x) can include all kinds of changes, regardless of compatibility. We do this so that:
-    * Neither Java nor Maven package names are reused (we use different packages names): this allows different major versions to co-exist
-*  Minor version upgrades can contain additions, new methods, and may deprecate existing functionality
-* Patch releases need to fully replaceable and have no changes to source or binary compatibility
+    * Neither Java nor Maven package names are reused (we use different package names): this allows different major versions to co-exist
+* Minor version upgrades can contain additions, new methods, and may deprecate existing functionality
+* Patch releases must be fully replaceable, with no source- or binary-compatibility changes
+
+### Micro-patches
+
+Micro-patches are usually released only for [jackson-core](../../../jackson-core) or [jackson-databind](../../../jackson-databind)).
+
+In rare cases Project may release updated version of just a single component -- this is usually for a significant security issue -- from a Closed branch. If so, a special version format is used:
+
+* 4th version component is appended: it uses DATE of micro-patch after "base version" (most recent release): for example, `2.21.4-20260607`
+* Micro-patch versions are meant to be used along with regular patches of other components, so, for example:
+    * `jackson-core` `2.21.4-20260607` would be used with `2.21.4` of `jackson-databind`
+    * You can think of Micro-patch versions as overrides of base patch version
+
+NOTE: there are no micro-patches of 3.x versions and it is possible there will not be any -- they were used more often with 2.x patches of "Polymorphic Deserialization" CVEs.
 
 ### 2.20.0 (most) vs 2.20 (jackson-annotations)
 
 Starting with Jackson 2.20, one of components -- [jackson-annotations](https://github.com/FasterXML/jackson-annotations/) -- is versioned with just "major.minor" version, with NO PATCH version (in normal cases). See [JSTEP-1](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-1) for explanation of this difference.
 
 NOTE: before 2.20, jackson-annotations versions did use patch level as well -- but all variations were identical (no changes in patch releases).
-
