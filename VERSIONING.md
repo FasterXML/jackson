@@ -50,7 +50,7 @@ When a new minor version is released from "Development Branch" (and matching "La
     * Status of each LTS is independent of other Branches -- EOL determined at the time of initial release
 * If not, it will only remain Open as long as it is the "Latest Release Branch" (i.e. closed after following minor version is released).
 
-## Version Numbering (X.Y.Z)
+## Version Numbering (Apache)
 
 Jackson follows [Apache versioning](https://apr.apache.org/versioning.html) convention, and is similar to [Semantic Versioning](http://semver.org/) from external user perspective (but not strictly following SemVer specification).
 
@@ -63,7 +63,6 @@ That is:
 
 ### Micro-patches
 
-Micro-patches are usually released only for [jackson-core](../../../jackson-core) or [jackson-databind](../../../jackson-databind)).
 
 In rare cases Project may release updated version of just a single component -- this is usually for a significant security issue -- from a Closed branch. If so, a special version format is used:
 
@@ -71,6 +70,7 @@ In rare cases Project may release updated version of just a single component -- 
 * Micro-patch versions are meant to be used along with regular patches of other components, so, for example:
     * `jackson-core` `2.21.4-20260607` would be used with `2.21.4` of `jackson-databind`
     * You can think of Micro-patch versions as overrides of base patch version
+* Micro-patches are usually released only for [jackson-core](../../../jackson-core) or [jackson-databind](../../../jackson-databind)
 
 NOTE: there are no micro-patches of 3.x versions and it is possible there will not be any -- they were used more often with 2.x patches of "Polymorphic Deserialization" CVEs.
 
