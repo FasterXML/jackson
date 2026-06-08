@@ -11,7 +11,7 @@ Jackson has three major versions:
 * 2.x (`com.fasterxml.jackson`) is the older actively developed and maintained version; also most widely adopted as of June 2026
 * 3.x (`tools.jackson`) is the newer actively developed and maintained version, on which new functionality will be added
 
-All per-component repositories (like [jackson-databind](../../../jackson-databind)) contain branches for major versions 2 and 3 (but not 1); changes from 2.x branches are generally rolled forward to 3.x branches (reverse is not possible).
+All per-component repositories (like [jackson-databind](../../../jackson-databind)) contain branches for major versions 2 and 3 (but not 1); changes from 2.x branches are generally rolled forward to 3.x branches; reverse is not possible.
 
 ## Branching structure, naming
 
@@ -46,6 +46,7 @@ Jackson "Long-Term Support" (LTS) version concept was defined in [JSTEP-13](http
 When a new minor version is released from "Development Branch" (and matching "Latest Release Branch" created), a decision is made whether this branch should become an LTS branch or not:
 
 * If it is, it will remain Open for _at least 2 years_
+    * Status of each LTS is independent of other Branches -- EOL determined at the time of initial release
 * If not, it will only remain Open as long as it is the "Latest Release Branch" (i.e. closed after following minor version is released).
 
 
