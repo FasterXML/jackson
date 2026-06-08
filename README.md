@@ -15,6 +15,8 @@ This is the home page of the Jackson Project.
     - [Community support](#community-support)
     - [Enterprise support](#enterprise-support)
     - [Version support](#version-support)
+        - [Community-provided Version support](#community-version-support)
+        - [Commercial Version support](#commercial-version-support)
 - [Reporting security vulnerabilities](#reporting-security-vulnerabilities)
 - [Documentation](#documentation)
 
@@ -307,15 +309,17 @@ The maintainers of `Jackson` and thousands of other packages are working with Ti
 
 Full status (open / EOL) of various versions and branches can be found from [Jackson Releases](../../wiki/Jackson-Releases) page.
 
-#### Community/Project supported "open" branches
+#### Community Version Support
 
-Jackson project supports "Open" maintenance branches by releasing new versions from those branches; many fixes are backported to a set of "Long-Term Support" branches.
+Jackson project itself supports "Open" branches by releasing new versions from them; many fixes are backported to a set of "Long-Term Support" branches.
 
 Project does not support "Closed" (aka EOL) maintenance branches.
 
-#### Commercial Support
+#### Commercial Version Support
 
-[HeroDevs](https://www.herodevs.com/) offers security and compatibility support for EOL versions of Jackson (ones built from "Closed" maintenance branches) through the Commonhaus Foundation [Open Source Sustainability Initiative (OSSI)](https://www.commonhaus.org/about/ossi.html)
+In addition to Community-provided support, commercial vendors offer optional extended support:
+
+* [HeroDevs](https://www.herodevs.com/) offers security and compatibility support for EOL versions of Jackson (ones built from "Closed" maintenance branches) through the Commonhaus Foundation [Open Source Sustainability Initiative (OSSI)](https://www.commonhaus.org/about/ossi.html)
 
 ### Reporting security vulnerabilities
 
