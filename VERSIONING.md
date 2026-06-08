@@ -31,14 +31,15 @@ Once a new minor version is released from Development Branch, a new LRB is creat
 ## Branch status: Open vs Closed
 
 Open branch means branch from which new releases may be made: conversely no releases are planned from Closed branches (NOTE: releases from Closed branches may be made only under exceptional circumstances -- for severe security vulnerabilities -- and if so, usually "micro-patches" (see below)).
+Closed branches are sometimes referred to as "End-of-Life" (EOL) branches; EOL and Closed can be considered synonyms.
 
 Current status (Open/Closed) of all branches is listed on [Jackson Releases](../../wiki/Jackson-Releases).
 
-Of branch types:
+Status for branch types is determined as follows
 
 * "Development Branches" are always Open since they are for developing the next minor version to release
 * "Latest Release Branches" are also always Open: patches are released for the most recently released minor versions
-* Some of "Maintenance Branches" designated as "Long-Term Support" (LTS) are Open; non-LTS branches are always Closed
+* Some of "Maintenance Branches" (ones designated as "Long-Term Support" (LTS), see below) are Open; non-LTS branches are always Closed
 
 ### Long-Term Support (LTS) branches/versions
 
@@ -61,7 +62,6 @@ That is:
 * Patch releases must be fully replaceable, with no source- or binary-compatibility changes
 
 ### Micro-patches
-
 
 In rare cases Project may release updated version of just a single component -- this is usually for a significant security issue -- from a Closed branch. If so, a special version format is used:
 
