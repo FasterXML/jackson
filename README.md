@@ -24,7 +24,9 @@ This is the home page of the Jackson Project.
 
 ## What is New?
 
-* June 5, 2026: Major update, ToC, Support links
+* Jun 8, 2026: [Jackson 3.2](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.2) (non-LTS) released
+* Jun 5, 2026: Major update, ToC, Support links
+* Feb 23, 2026: [Jackson 3.1](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.1) (LTS) released
 * Jan 18, 2026: [Jackson 2.21](https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.21) (LTS) released
 * Oct 3, 2025: [Jackson 3.0.0](https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0) GA Released!!!
 * Sep 30, 2025: Skeletal version of [Jackson 3 Migration Guide](jackson3/MIGRATING_TO_JACKSON_3.md)
@@ -84,9 +86,9 @@ Jackson has three major versions:
 These major versions use different Java packages and Maven groupIds, so they are not plug-in replaceable/upgradable, but can peacefully co-exist: a project can depend on Jackson 1.x and 2.x and even 3.x, without conflicts.
 This is by design and was chosen as the strategy to allow smoother incremental migration from 1.x to 2.x, and from 2.x to 3.x.
 
-The latest stable versions, released from the current "Latest Release Branches" (`2.22`, `3.1`), are:
+The latest stable versions, released from the current "Latest Release Branches" (`2.22`, `3.2`), are:
 
-* [3.1.4](../../wiki/Jackson-Release-3.1), released on 29-May-2026
+* [3.2.0](../../wiki/Jackson-Release-3.2), released on 08-Jun-2026
 * [2.22.0](../../wiki/Jackson-Release-2.22), released on 31-May-2026
 * [1.9.13](../../wiki/JacksonRelease1.9), released 14-Jul-2013
 

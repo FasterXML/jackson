@@ -21,11 +21,11 @@ Changes are rolled forward from 2.x to 3.x branches, but not in the reverse dire
 For each of 2 open major branches (2.x, 3.x), component repositories have:
 
 * "Development Branch": `2.x`, `3.x`
-    * For developing the next new minor version (2.23, 3.2)
+    * For developing the next new minor version (2.23, 3.3)
     * All feature development occurs in these branches
-* "Latest Release Branch" (LRB): currently (as of June 2026), `2.22`, `3.1`
+* "Latest Release Branch" (LRB): currently (as of June 2026), `2.22`, `3.3`
     * Most recently published minor version, always Open
-* Zero or more "Maintenance Branches": currently (as of June 2026), `2.0` .. `2.21`, `3.0`
+* Zero or more "Maintenance Branches": currently (as of June 2026), `2.0` .. `2.21`, `3.0` .. `3.1`
     * Only some are open (see LTS section below)
 
 (branch numbers above are examples valid as of June 2026; see [Jackson Releases](../../wiki/Jackson-Releases) for the current set)
