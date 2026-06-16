@@ -323,7 +323,7 @@ Project does not support "Closed" (aka EOL) maintenance branches.
 
 In addition to Community-provided support, commercial vendors offer optional extended support.
 
-[HeroDevs](https://www.herodevs.com/) provides Never-Ending Support (NES) for end-of-life (EOL) versions of Jackson: drop-in replacement packages that preserve the original group ID, artifact ID, and public API. HeroDevs is a founding member of the Commonhaus Foundation Open Source Sustainability Initiative ([OSSI]((https://www.commonhaus.org/about/ossi.html))
+[HeroDevs](https://www.herodevs.com/) provides Never-Ending Support (NES) for end-of-life (EOL) versions of Jackson: [NES for Jackson](https://docs.herodevs.com/jackson) -- drop-in replacement packages that preserve the original group ID, artifact ID, and public API. HeroDevs is a founding member of the Commonhaus Foundation Open Source Sustainability Initiative ([OSSI]((https://www.commonhaus.org/about/ossi.html))
 
 ### Reporting security vulnerabilities
 
