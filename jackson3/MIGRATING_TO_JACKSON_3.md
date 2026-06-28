@@ -38,7 +38,7 @@ for the full LTS policy discussion.
     - Javadocs in Jackson `2.20` updated to indicate replacements where available (incomplete: PRs welcome for more!)
 4. Renaming of Core Entities (classes), methods, fields
     - See [JSTEP-6](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-6) for rationale, references to notable renamings
-    - [JSTEP-8](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-8) covers refactoring/renaming of format-specific Read/Write features (like `JsonParser.Feature` into `JsonReadFeature` and `StreamReadFeaure`)
+    - [JSTEP-8](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-8) covers refactoring/renaming of format-specific Read/Write features (like `JsonParser.Feature` into `JsonReadFeature` and `StreamReadFeature`)
     - Javadocs in Jackson `2.20` updated to indicate new names where available (incomplete: PRs welcome for more!)
 5. Changes to Default Configuration Settings (esp. various XxxFeatures)
     - See [JSTEP-2](https://github.com/FasterXML/jackson-future-ideas/wiki/JSTEP-2) for rationale, the set of changes made
@@ -313,7 +313,7 @@ Regular classes:
 Exception types:
 
 - `JsonProcessingException` -> `JacksonException` (ultimate base exception)
-- `JsonParseException` -> `StreamReadException
+- `JsonParseException` -> `StreamReadException`
 - `JsonEOFException` -> `UnexpectedEndOfInputException`
 - `JsonGenerationException` -> `StreamWriteException`
 
