@@ -103,7 +103,7 @@ photo on your phone) and email that copy to `cla` at `fasterxml` dot `com`.
 As to document to download, you have 2 choices:
 
 * Standard Jackson [Contributor License Agreement (2026)](../../blob/main/CLA-jackson-2026.pdf) (CLA) is a one-page document we need from every contributor of code (we will request it for pull requests), used mostly by individual contributors
-* [Corporate CLA](../../blob/main/contributor-agreement-corporate.txt) is used by Corporations to avoid individual employees from having to send separate CLAs; it is also favored by some corporate IP lawyers.
+* [Corporate CLA](../../blob/main/contributor-agreement-corporate-2026-04.txt) is used by Corporations to avoid individual employees from having to send separate CLAs; it is also favored by some corporate IP lawyers.
 
 of which the first option is more commonly used (by over 90% of contributors).
 
