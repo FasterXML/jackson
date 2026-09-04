@@ -327,25 +327,23 @@ In addition to Community-provided support, commercial vendors offer optional ext
 
 ### Reporting security vulnerabilities
 
-The recommended mechanism for reporting possible security vulnerabilities follows
-so-called "Coordinated Disclosure Plan" (see [definition of DCP](https://vuls.cert.org/confluence/display/Wiki/Coordinated+Vulnerability+Disclosure+Guidance)
-for general idea). The first step is to file a [Tidelift security contact](https://tidelift.com/security):
-Tidelift will route all reports via their system to maintainers of relevant package(s), and start the
-process that will evaluate concern and issue possible fixes, send update notices and so on.
+The recommended mechanism for reporting possible security vulnerabilities follows so-called "Coordinated Vulnerability Disclosure" (see [definition of CVD](https://vuls.cert.org/confluence/display/Wiki/Coordinated+Vulnerability+Disclosure+Guidance) for general idea).
+The first step is to file a [Tidelift security contact](https://tidelift.com/security):
+Tidelift will route all reports via their system to maintainers of relevant package(s), and start the process that will evaluate concern and issue possible fixes, send update notices and so on.
 Note that you do not need to be a Tidelift subscriber to file a security contact.
 
-Alternatively you may also report possible vulnerabilities to `info` at fasterxml dot com
-mailing address. Note that filing an issue to go with report is fine, but if you do that please
-DO NOT include details of security problem in the issue but only in email contact.
-This is important to give us time to provide a patch, if necessary, for the problem.
+Alternatively you may create a Github Security Advisory for the relevant repository, if repository has it enabled. For [jackson-databind](https://github.com/FasterXML/jackson-databind), for example, you would do it via:
+
+https://github.com/FasterXML/jackson-databind/security/advisories
+
+Finally, you may also report possible vulnerabilities to `info` at `fasterxml` dot `com` email address.
+Note that filing an issue to go with report is fine, but if you do that please DO NOT include details of security problem in the issue but only in email contact.
+This is important to give us time to provide a patch (if necessary) for the problem.
 
 ### Note on reporting Bugs
 
-Jackson bugs need to be reported against component they affect: for this reason, issue tracker
-is not enabled for this project.
-If you are unsure which specific project issue affects, the most likely component
-is `jackson-databind`, so you would use
-[Jackson Databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues).
+Jackson bugs need to be reported against component they affect: for this reason, issue tracker is not enabled for this project.
+If you are unsure which specific project issue affects, the most likely component is `jackson-databind`, so you would use [Jackson Databind Issue Tracker](https://github.com/FasterXML/jackson-databind/issues).
 
 For suggestions and new ideas, try [Jackson Future Ideas](../../../jackson-future-ideas)
 
