@@ -325,6 +325,8 @@ In addition to Community-provided support, commercial vendors offer optional ext
 
 [HeroDevs](https://www.herodevs.com/) provides Never-Ending Support (NES) for end-of-life (EOL) versions of Jackson: [NES for Jackson](https://docs.herodevs.com/jackson) -- drop-in replacement packages that preserve the original group ID, artifact ID, and public API. HeroDevs is a founding member of the Commonhaus Foundation Open Source Sustainability Initiative ([OSSI](https://www.commonhaus.org/about/ossi.html))
 
+[TuxCare](https://tuxcare.com/) provides extended support for some Closed Jackson versions, most notably 1.x line (1.9.13) and some 2.x versions (2.14).
+
 ### Reporting security vulnerabilities
 
 The recommended mechanism for reporting possible security vulnerabilities follows so-called "Coordinated Vulnerability Disclosure" (see [definition of CVD](https://vuls.cert.org/confluence/display/Wiki/Coordinated+Vulnerability+Disclosure+Guidance) for general idea).
