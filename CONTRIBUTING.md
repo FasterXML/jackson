@@ -47,20 +47,29 @@ new feature) although this is not absolutely required.
 When creating code (or documentation, test) change for eventual Pull Request, it is important to
 understand which Git Branch to use as the base.
 
-Jackson projects maintain a few branches:
+Jackson projects maintain a few branches (note: "LTS" means "Long-Term Support" version; see [VERSIONING](VERSIONING.md).
 
-* `3.x` for developing the next Jackson 3.x minor release (3.2.0)
+* `3.x` for developing the next Jackson 3.x minor release (3.3.0)
 * `2.x` for developing the next Jackson 2.x minor release (2.23.0)
-* `3.1` (LTS) for the next patch for the current 3.x release (f.ex 3.1.1)
-* `2.21` (LTS) for the next patch for the current 2.x release (f.ex 2.21.2)
-* `2.18` (LTS) for the next patch for the oldest open 2.x branch
+* `3.2` (non-LTS) for the next patch of the latest 3.x release (f.ex 3.2.4)
+* `3.1` for a LTS patch (f.ex 3.1.8)
+* `2.22` (non-LTS) for the next patch of the latest 2.x release (f.ex 2.22.4)
+* `2.21` for a LTS patch (f.ex 2.21.8)
+* `2.18` for a LTS patch (f.ex 2.18.12)
 
-Most bug-fix Pull Requests should be made against `3.x`; second most likely target would be `2.x`
+Most bug-fix Pull Requests should be made against `3.x`; second most likely target would be `2.x`.
+Security fixes should be made against the oldest LTS branch (`2.18`); other critical fixes should be made against the latest `2.x` LTS branch (`2.21`).
 Pull requests for major new functionality or that significantly alter internals,
 but are backwards-compatible with existing behavior should be made against the next minor version
 branch (`3.x` or `2.x`).
+All changes are merged forward to matching ".x" branch (from `2.21` to `2.x`; from `3.1` to `3.x`); and in case of `2.x` changes through to 3.x series (currently through `3.1`).
+So, in case of a security patch, merging would go like this:
 
-If you have any concerns or doubts about branch to use, feel free to reach out on user mailing
+    2.18 -> 2.19 -> 2.20 -> 2.21 -> 2.22 -> 2.x -> 3.1 -> 3.2 -> 3.x
+
+(skipping non-maintained `3.0` branch)
+
+If you have any concerns or doubts about which branch to use, feel free to reach out on user mailing
 list or chat; or even on issue tracker of relevant repository.
 
 #### Backwards Compatibility
