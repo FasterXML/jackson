@@ -11,17 +11,26 @@ wiki page
 
 ## Reporting a Vulnerability
 
-The recommended mechanism for reporting possible security vulnerabilities follows
-so-called "Coordinated Disclosure Plan" (see [definition of DCP](https://vuls.cert.org/confluence/display/Wiki/Coordinated+Vulnerability+Disclosure+Guidance)
-for general idea). The first step is to file a [Tidelift security contact](https://tidelift.com/security):
-Tidelift will route all reports via their system to maintainers of relevant package(s), and start the
-process that will evaluate concern and issue possible fixes, send update notices and so on.
-Note that you do not need to be a Tidelift subscriber to file a security contact.
+### Primary: filing GHSA
 
-Alternatively you may also report possible vulnerabilities to `info` at fasterxml dot com
-mailing address. Note that filing an issue to go with report is fine, but if you do that please
-DO NOT include details of security problem in the issue but only in email contact.
-This is important to give us time to provide a patch, if necessary, for the problem.
+The recommended mechanism for reporting vulnerabilities is explained on `Security and quality` tab of the repository that contains code that has the vulnerability.
+For example, for [jackson-databind](../../../jackson-databind), this would be [jackson-databind/security](https://github.com/FasterXML/jackson-databind/security).
+Most commonly you should see "Report Vulnerability" button, using which you can file a ["GitHub Security Advisory (GHSA)"](https://radicalnotion.ai/learn/what-is-ghsa) contribution.
+
+Links to most commonly necessary Jackson repos are:
+
+* [jackson-core/security](https://github.com/FasterXML/jackson-core/security)
+* [jackson-databind/security](https://github.com/FasterXML/jackson-databind/security)
+* [jackson-dataformats-binary/security](https://github.com/FasterXML/jackson-dataformats-binary/security)
+* [jackson-dataformats-text/security](https://github.com/FasterXML/jackson-dataformats-text/security)
+* [jackson-dataformat-xml/security](https://github.com/FasterXML/jackson-dataformat-xml/security)
+* [jackson-datatypes-collections/security](https://github.com/FasterXML/jackson-datatypes-collections/security)
+
+### Secondary: contact via email
+
+Alternatively you may also report possible vulnerabilities to `info` at fasterxml dot com mailing address.
+You can also ask help for filing a GHSA; for example if you are not sure which Jackson repo is the right one to use
+Note that filing a Githin issue to go with report is fine, but if you do that please DO NOT include details of security problem in the issue but only in email contact. This is important to give us time to provide a patch, if necessary, for the problem.
 
 ## Verifying Artifact signatures
 

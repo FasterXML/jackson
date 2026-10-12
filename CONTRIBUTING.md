@@ -76,8 +76,8 @@ list or chat; or even on issue tracker of relevant repository.
 
 When submitting a pull request, your choice of a base branch should take into account backwards compatibility.
 
-The Jackson project follows [Apache versioning](https://apr.apache.org/versioning.html).  Patch
-versions maintain source and binary compatibility; functionality may be added, but existing code
+The Jackson project follows [Apache versioning](https://apr.apache.org/versioning.html).
+Patch versions maintain source and binary compatibility; functionality may be added, but existing code
 that depends upon Jackson must continue to function properly without alteration.  Minor versions
 add functionality, may deprecate existing functionality, and may remove functionality that has
 been deprecated for at least two minor versions.  Any changes that require breaking existing
