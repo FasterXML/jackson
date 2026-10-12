@@ -17,7 +17,7 @@ The recommended mechanism for reporting vulnerabilities is explained on `Securit
 For example, for [jackson-databind](../../../jackson-databind), this would be [jackson-databind/security](https://github.com/FasterXML/jackson-databind/security).
 Most commonly you should see "Report Vulnerability" button, using which you can file a ["GitHub Security Advisory (GHSA)"](https://radicalnotion.ai/learn/what-is-ghsa) contribution.
 
-Links to most commonly necessary Jackson repos are:
+Links to most commonly relevant Jackson repos are:
 
 * [jackson-core/security](https://github.com/FasterXML/jackson-core/security)
 * [jackson-databind/security](https://github.com/FasterXML/jackson-databind/security)
@@ -25,6 +25,7 @@ Links to most commonly necessary Jackson repos are:
 * [jackson-dataformats-text/security](https://github.com/FasterXML/jackson-dataformats-text/security)
 * [jackson-dataformat-xml/security](https://github.com/FasterXML/jackson-dataformat-xml/security)
 * [jackson-datatypes-collections/security](https://github.com/FasterXML/jackson-datatypes-collections/security)
+* [jackson-datatypes-misc/security](https://github.com/FasterXML/jackson-datatypes-misc/security)
 
 ### Secondary: contact via email
 
