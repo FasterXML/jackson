@@ -190,6 +190,11 @@ Changes to `import` statements should be quite mechanical:
 - Replace `com.fasterxml.jackson.` with `tools.jackson.` everywhere
     - EXCEPT NOT for `com.fasterxml.jackson.annotation`
 
+Watch out for annotations from `jackson-databind` (like `@JsonSerialize`, `@JsonDeserialize`, `@JsonNaming`, `@JsonPOJOBuilder`) that keep the old `com.fasterxml.jackson.databind.annotation` import:
+if `jackson-databind` 2.x is still on the classpath (often as a transitive dependency), the code compiles, but Jackson 3 silently ignores these annotations, with no error or warning.
+Annotations from `jackson-annotations` (like `@JsonProperty`, `@JsonFormat`) keep working, so a class may end up with only some of its annotations applied.
+To find leftovers, search sources for `com.fasterxml.jackson.databind` and check the dependency tree (`mvn dependency:tree`, `gradle dependencies`) for `com.fasterxml.jackson.core:jackson-databind`.
+
 #### Maven Group id
 
 Similarly change to Maven Group id in the build files (`pom.xml`, `build.gradle`) should be mechanical:
