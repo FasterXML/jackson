@@ -1,0 +1,290 @@
+# CLA nudge (reusable workflow)
+#
+# Posts a CLA request on open PRs labeled `cla-needed`, then a reminder every
+# `interval-days` until the label is removed or swapped for `cla-received`.
+#
+# Each repo calls this from a small caller workflow (`.github/workflows/cla-nudge.yml`
+# in that repo). Every run scans all open `cla-needed` PRs of the calling repo,
+# so the trigger only decides *when* we look, never *which* PR.
+#
+# Security: this workflow never checks out or runs PR code. It only reads
+# labels / comments / events through the API and posts comments, using the
+# calling repo's GITHUB_TOKEN. No secrets are involved.
+name: CLA nudge (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      dry-run:
+        description: "Only log what would be posted; post nothing"
+        type: boolean
+        default: false
+      simulate-now:
+        description: "Testing only: ISO-8601 timestamp to treat as 'now'"
+        type: string
+        default: ''
+      interval-days:
+        description: "Days between the request and each reminder"
+        type: number
+        default: 3
+      max-reminders:
+        description: "Stop after this many reminders per PR; 0 = no limit"
+        type: number
+        default: 0
+      skip-labeled-before:
+        description: "ISO date; ignore PRs whose `cla-needed` label is older than this ('' = no cutoff)"
+        type: string
+        default: ''
+
+permissions: {}
+
+jobs:
+  nudge:
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+      pull-requests: write
+    concurrency:
+      group: cla-nudge-${{ github.repository }}
+      cancel-in-progress: false
+    steps:
+      - name: Post CLA requests and reminders
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          DRY_RUN: ${{ inputs.dry-run }}
+          SIMULATE_NOW: ${{ inputs.simulate-now }}
+          INTERVAL_DAYS: ${{ inputs.interval-days }}
+          MAX_REMINDERS: ${{ inputs.max-reminders }}
+          SKIP_LABELED_BEFORE: ${{ inputs.skip-labeled-before }}
+        with:
+          script: |
+            const LABEL = 'cla-needed';
+            const DONE_LABEL = 'cla-received';
+            const LINK = 'https://github.com/FasterXML/jackson/blob/main/CONTRIBUTING.md#paperwork';
+            const REQUEST_MARK = '<!-- cla-nudge:request -->';
+            const REMINDER_MARK = '<!-- cla-nudge:reminder -->';
+            const REQUEST =
+              `Thank you for contributing this! Before we can merge any pr, we'd need a CLA, see ${LINK} .\n\n` +
+              `Looking forward to reviewing this!\n\n${REQUEST_MARK}`;
+            const REMINDER =
+              `Gentle ping on the CLA: we still need it before we can merge this, see ${LINK} . ` +
+              `Thanks again for the PR!\n\n${REMINDER_MARK}`;
+
+            const HOUR = 3600 * 1000;
+            const DAY = 24 * HOUR;
+            const SLACK = HOUR;
+            const dryRun = process.env.DRY_RUN === 'true';
+            const interval = Number(process.env.INTERVAL_DAYS || 3) * DAY;
+            const maxReminders = Number(process.env.MAX_REMINDERS || 0);
+            const now = process.env.SIMULATE_NOW ? new Date(process.env.SIMULATE_NOW) : new Date();
+
+            if (Number.isNaN(now.getTime())) {
+              core.setFailed(`simulate-now is not a valid timestamp: ${process.env.SIMULATE_NOW}`);
+              return;
+            }
+
+            const cutoff = process.env.SKIP_LABELED_BEFORE
+              ? new Date(process.env.SKIP_LABELED_BEFORE)
+              : null;
+
+            if (cutoff && Number.isNaN(cutoff.getTime())) {
+              core.setFailed(
+                `skip-labeled-before is not a valid date: ${process.env.SKIP_LABELED_BEFORE}`
+              );
+              return;
+            }
+
+            const { owner, repo } = context.repo;
+            const days = ms => (ms / DAY).toFixed(1);
+            const latest = dates =>
+              new Date(Math.max(...dates.map(d => new Date(d).getTime())));
+
+            const isOurs = (c, mark) =>
+              c.user?.type === 'Bot' && (c.body || '').includes(mark);
+
+            const asksForCla = (c, author) =>
+              isOurs(c, REQUEST_MARK) ||
+              isOurs(c, REMINDER_MARK) ||
+              (
+                c.user?.type !== 'Bot' &&
+                c.user?.login !== author &&
+                /\bCLA\b/.test(c.body || '')
+              );
+
+            const issues = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner,
+                repo,
+                state: 'open',
+                labels: LABEL,
+                per_page: 100,
+              }
+            );
+
+            const prs = issues.filter(i => i.pull_request);
+
+            core.info(
+              `${prs.length} open PR(s) labeled ${LABEL} in ${owner}/${repo}` +
+              `${dryRun ? ' [dry run]' : ''}; now=${now.toISOString()}`
+            );
+
+            const rows = [];
+            let failures = 0;
+
+            for (const pr of prs) {
+              const author = pr.user.login;
+              const labels = pr.labels.map(l =>
+                typeof l === 'string' ? l : l.name
+              );
+
+              let action;
+              let why;
+
+              try {
+                if (labels.includes(DONE_LABEL)) {
+                  action = 'skip';
+                  why = `also labeled ${DONE_LABEL}`;
+                } else if (pr.locked) {
+                  action = 'skip';
+                  why = 'conversation is locked';
+                } else {
+                  const comments = await github.paginate(
+                    github.rest.issues.listComments,
+                    {
+                      owner,
+                      repo,
+                      issue_number: pr.number,
+                      per_page: 100,
+                    }
+                  );
+
+                  const events = await github.paginate(
+                    github.rest.issues.listEvents,
+                    {
+                      owner,
+                      repo,
+                      issue_number: pr.number,
+                      per_page: 100,
+                    }
+                  );
+
+                  const asks = comments.filter(c => asksForCla(c, author));
+
+                  const labeledAt = latest([
+                    pr.created_at,
+                    ...events
+                      .filter(
+                        e =>
+                          e.event === 'labeled' &&
+                          e.label?.name === LABEL
+                      )
+                      .map(e => e.created_at),
+                  ]);
+
+                  if (cutoff && labeledAt < cutoff) {
+                    action = 'skip';
+                    why =
+                      `labeled ${labeledAt.toISOString().slice(0, 10)}, ` +
+                      `before skip-labeled-before`;
+                  } else if (asks.length === 0) {
+                    action = 'request';
+                    why = 'nobody has asked for the CLA yet';
+                  } else {
+                    const lastAsk = latest(
+                      asks.map(c => c.created_at)
+                    );
+
+                    const reminders = comments.filter(c =>
+                      isOurs(c, REMINDER_MARK)
+                    ).length;
+
+                    const labelAge = now - labeledAt;
+                    const sinceAsk = now - lastAsk;
+
+                    why =
+                      `label on ${days(labelAge)}d, ` +
+                      `last CLA comment ${days(sinceAsk)}d ago, ` +
+                      `${reminders} reminder(s) so far`;
+
+                    if (
+                      maxReminders > 0 &&
+                      reminders >= maxReminders
+                    ) {
+                      action = 'done';
+                      why += `; reached max-reminders=${maxReminders}`;
+                    } else if (
+                      labelAge >= interval - SLACK &&
+                      sinceAsk >= interval - SLACK
+                    ) {
+                      action = 'remind';
+                    } else {
+                      action = 'wait';
+                    }
+                  }
+
+                  if (
+                    !dryRun &&
+                    (action === 'request' || action === 'remind')
+                  ) {
+                    await github.rest.issues.createComment({
+                      owner,
+                      repo,
+                      issue_number: pr.number,
+                      body:
+                        action === 'request'
+                          ? REQUEST
+                          : REMINDER,
+                    });
+                  }
+                }
+              } catch (err) {
+                failures++;
+                action = 'error';
+                why = err.message;
+                core.warning(`#${pr.number}: ${err.message}`);
+              }
+
+              const verb =
+                dryRun &&
+                (action === 'request' || action === 'remind')
+                  ? `${action} (dry run)`
+                  : action;
+
+              core.info(
+                `${verb.padEnd(18)} #${pr.number} @${author}: ${why}`
+              );
+
+              rows.push([
+                `#${pr.number}`,
+                `@${author}`,
+                verb,
+                why,
+              ]);
+            }
+
+            await core.summary
+              .addHeading(
+                `CLA nudge: ${owner}/${repo}${dryRun ? ' (dry run)' : ''}`,
+                3
+              )
+              .addRaw(
+                `${prs.length} open PR(s) labeled \`${LABEL}\`, now=${now.toISOString()}`,
+                true
+              )
+              .addTable([
+                [
+                  { data: 'PR', header: true },
+                  { data: 'Author', header: true },
+                  { data: 'Action', header: true },
+                  { data: 'Why', header: true },
+                ],
+                ...rows,
+              ])
+              .write();
+
+            if (failures > 0) {
+              core.setFailed(
+                `${failures} PR(s) failed; see warnings above`
+              );
+            }
