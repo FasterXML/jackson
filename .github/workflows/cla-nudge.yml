@@ -24,9 +24,9 @@ on:
         type: string
         default: ''
       interval-days:
-        description: "Days between the request and each reminder"
+        description: "Days between the request and each reminder; each caller must set this"
         type: number
-        default: 3
+        required: true
       max-reminders:
         description: "Stop after this many reminders per PR; 0 = no limit"
         type: number
