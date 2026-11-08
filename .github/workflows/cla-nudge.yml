@@ -9,7 +9,9 @@
 #
 # Security: this workflow never checks out or runs PR code. It only reads
 # labels / comments / events through the API and posts comments, using the
-# calling repo's GITHUB_TOKEN. No secrets are involved.
+# calling repo's GITHUB_TOKEN. No secrets are involved. Callers must grant
+# both `issues: write` (for comments) and `pull-requests: write` (as declared
+# by the job below).
 name: CLA nudge (reusable)
 
 on:
@@ -64,7 +66,7 @@ jobs:
             const REQUEST_MARK = '<!-- cla-nudge:request -->';
             const REMINDER_MARK = '<!-- cla-nudge:reminder -->';
             const REQUEST =
-              `Thank you for contributing this! Before we can merge any pr, we'd need a CLA, see ${LINK} .\n\n` +
+              `Thank you for contributing this! Before we can merge any PR, we'd need a CLA, see ${LINK} .\n\n` +
               `Looking forward to reviewing this!\n\n${REQUEST_MARK}`;
             const REMINDER =
               `Gentle ping on the CLA: we still need it before we can merge this, see ${LINK} . ` +
@@ -74,7 +76,12 @@ jobs:
             const DAY = 24 * HOUR;
             const SLACK = HOUR;
             const dryRun = process.env.DRY_RUN === 'true';
-            const interval = Number(process.env.INTERVAL_DAYS || 3) * DAY;
+            const intervalDays = Number(process.env.INTERVAL_DAYS);
+            if (!Number.isFinite(intervalDays) || intervalDays * DAY <= SLACK) {
+              core.setFailed('interval-days must be a finite number greater than 1 hour');
+              return;
+            }
+            const interval = intervalDays * DAY;
             const maxReminders = Number(process.env.MAX_REMINDERS || 0);
             const now = process.env.SIMULATE_NOW ? new Date(process.env.SIMULATE_NOW) : new Date();
 
@@ -99,17 +106,16 @@ jobs:
             const latest = dates =>
               new Date(Math.max(...dates.map(d => new Date(d).getTime())));
 
-            const isOurs = (c, mark) =>
-              c.user?.type === 'Bot' && (c.body || '').includes(mark);
+            const isOurs = (c, mark) => (c.body || '').includes(mark);
 
-            const asksForCla = (c, author) =>
-              isOurs(c, REQUEST_MARK) ||
-              isOurs(c, REMINDER_MARK) ||
-              (
-                c.user?.type !== 'Bot' &&
-                c.user?.login !== author &&
-                /\bCLA\b/.test(c.body || '')
-              );
+            const asksForCla = (c, author) => {
+              if (isOurs(c, REQUEST_MARK) || isOurs(c, REMINDER_MARK)) return true;
+              if (c.user?.type === 'Bot' || c.user?.login === author) return false;
+              const body = c.body || '';
+              if (/\b(?:no|without|not required|not needed|already (?:signed|submitted|have))\b[^.!?\n]{0,50}\b(?:CLA|Contributor License Agreement)\b/i.test(body)) return false;
+              return /\b(?:CLA|Contributor License Agreement)\b/i.test(body) &&
+                /\b(?:please|need|must|require|sign|submit|complete|provide|send|execute)\b/i.test(body);
+            };
 
             const issues = await github.paginate(
               github.rest.issues.listForRepo,
@@ -159,44 +165,48 @@ jobs:
                     }
                   );
 
-                  const events = await github.paginate(
-                    github.rest.issues.listEvents,
-                    {
-                      owner,
-                      repo,
-                      issue_number: pr.number,
-                      per_page: 100,
-                    }
-                  );
-
                   const asks = comments.filter(c => asksForCla(c, author));
+                  let firstLabeledAt = new Date(pr.created_at);
+                  let labeledAt = firstLabeledAt;
 
-                  const labeledAt = latest([
-                    pr.created_at,
-                    ...events
-                      .filter(
-                        e =>
-                          e.event === 'labeled' &&
-                          e.label?.name === LABEL
-                      )
-                      .map(e => e.created_at),
-                  ]);
+                  // Events are only needed to enforce the rollout cutoff or
+                  // to time reminders after a CLA request has been made.
+                  if (cutoff || asks.length > 0) {
+                    const events = await github.paginate(
+                      github.rest.issues.listEvents,
+                      {
+                        owner,
+                        repo,
+                        issue_number: pr.number,
+                        per_page: 100,
+                      }
+                    );
+                    const labelDates = events
+                      .filter(e => e.event === 'labeled' && e.label?.name === LABEL)
+                      .map(e => new Date(e.created_at));
+                    if (labelDates.length > 0) {
+                      firstLabeledAt = new Date(Math.min(...labelDates));
+                      labeledAt = new Date(Math.max(...labelDates));
+                    }
+                  }
 
-                  if (cutoff && labeledAt < cutoff) {
+                  const currentAsks = asks.filter(c => new Date(c.created_at) >= labeledAt);
+
+                  if (cutoff && firstLabeledAt < cutoff) {
                     action = 'skip';
                     why =
-                      `labeled ${labeledAt.toISOString().slice(0, 10)}, ` +
+                      `first labeled ${firstLabeledAt.toISOString().slice(0, 10)}, ` +
                       `before skip-labeled-before`;
-                  } else if (asks.length === 0) {
+                  } else if (currentAsks.length === 0) {
                     action = 'request';
-                    why = 'nobody has asked for the CLA yet';
+                    why = 'no CLA request since the current label was applied';
                   } else {
                     const lastAsk = latest(
-                      asks.map(c => c.created_at)
+                      currentAsks.map(c => c.created_at)
                     );
 
                     const reminders = comments.filter(c =>
-                      isOurs(c, REMINDER_MARK)
+                      isOurs(c, REMINDER_MARK) && new Date(c.created_at) >= labeledAt
                     ).length;
 
                     const labelAge = now - labeledAt;
