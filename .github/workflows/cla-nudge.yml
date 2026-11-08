@@ -83,6 +83,10 @@ jobs:
             }
             const interval = intervalDays * DAY;
             const maxReminders = Number(process.env.MAX_REMINDERS || 0);
+            if (!Number.isFinite(maxReminders) || maxReminders < 0 || !Number.isInteger(maxReminders)) {
+              core.setFailed('max-reminders must be a non-negative integer');
+              return;
+            }
             const now = process.env.SIMULATE_NOW ? new Date(process.env.SIMULATE_NOW) : new Date();
 
             if (Number.isNaN(now.getTime())) {
@@ -106,15 +110,28 @@ jobs:
             const latest = dates =>
               new Date(Math.max(...dates.map(d => new Date(d).getTime())));
 
-            const isOurs = (c, mark) => (c.body || '').includes(mark);
+            const isOurs = (c, mark) =>
+              (c.body || '').includes(mark) &&
+              (c.user?.type === 'Bot' ||
+                ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(c.author_association));
 
             const asksForCla = (c, author) => {
               if (isOurs(c, REQUEST_MARK) || isOurs(c, REMINDER_MARK)) return true;
               if (c.user?.type === 'Bot' || c.user?.login === author) return false;
               const body = c.body || '';
-              if (/\b(?:no|without|not required|not needed|already (?:signed|submitted|have))\b[^.!?\n]{0,50}\b(?:CLA|Contributor License Agreement)\b/i.test(body)) return false;
-              return /\b(?:CLA|Contributor License Agreement)\b/i.test(body) &&
-                /\b(?:please|need|must|require|sign|submit|complete|provide|send|execute)\b/i.test(body);
+              const cla = String.raw`(?:CLA|Contributor License Agreement)`;
+              if (!new RegExp(String.raw`\b${cla}\b`, 'i').test(body)) return false;
+
+              const alreadyHandled = new RegExp(
+                String.raw`\b(?:no|without)\b.{0,40}\b${cla}\b|\b${cla}\b.{0,40}\b(?:not needed|not required|already (?:signed|submitted|received)|received|signed|submitted|completed)\b|\b(?:do not|don't|does not|doesn't|did not|didn't)\s+(?:need|require)\b.{0,40}\b${cla}\b`,
+                'i'
+              );
+              if (alreadyHandled.test(body)) return false;
+
+              return new RegExp(
+                String.raw`\b(?:please|kindly)\b.{0,80}\b(?:sign|submit|complete|provide|send|execute|return|fill out)\b.{0,40}\b${cla}\b|\b(?:sign|submit|complete|provide|send|execute|return|fill out)\b.{0,40}\b${cla}\b|\b(?:need|require|must|should)\b.{0,40}\b${cla}\b|\b${cla}\b.{0,40}\b(?:required|needed|missing|outstanding)\b|\b(?:waiting for|awaiting)\b.{0,40}\b${cla}\b`,
+                'i'
+              ).test(body);
             };
 
             const issues = await github.paginate(
