@@ -8,7 +8,7 @@
 # so the trigger only decides *when* we look, never *which* PR.
 #
 # Security: this workflow never checks out or runs PR code. It only reads
-# labels / comments / events through the API and posts comments, using the
+# labels / comments / reviews / events through the API and posts comments, using the
 # calling repo's GITHUB_TOKEN. No secrets are involved. Callers must grant
 # both `issues: write` (for comments) and `pull-requests: write` (as declared
 # by the job below).
@@ -34,7 +34,7 @@ on:
         type: number
         default: 0
       skip-labeled-before:
-        description: "ISO date; ignore PRs whose `cla-needed` label is older than this ('' = no cutoff)"
+        description: "UTC calendar date (YYYY-MM-DD); ignore PRs first labeled before it ('' = no cutoff)"
         type: string
         default: ''
 
@@ -100,13 +100,15 @@ jobs:
               return;
             }
 
-            const cutoff = process.env.SKIP_LABELED_BEFORE
-              ? new Date(process.env.SKIP_LABELED_BEFORE)
-              : null;
-
-            if (cutoff && Number.isNaN(cutoff.getTime())) {
+            const cutoffInput = process.env.SKIP_LABELED_BEFORE;
+            const cutoff = cutoffInput ? new Date(cutoffInput + 'T00:00:00Z') : null;
+            if (cutoff && (
+              !/^\d{4}-\d{2}-\d{2}$/.test(cutoffInput) ||
+              Number.isNaN(cutoff.getTime()) ||
+              cutoff.toISOString().slice(0, 10) !== cutoffInput
+            )) {
               core.setFailed(
-                `skip-labeled-before is not a valid date: ${process.env.SKIP_LABELED_BEFORE}`
+                `skip-labeled-before is not a valid date (expected YYYY-MM-DD): ${cutoffInput}`
               );
               return;
             }
@@ -202,7 +204,22 @@ jobs:
                   const manualAsks = comments.filter(c =>
                     !isOurs(c, REQUEST_MARK) && !isOurs(c, REMINDER_MARK) &&
                     maintainerAsked(c, author)
-                  );
+                  ).map(c => c.created_at);
+                  const reviews = await github.paginate(github.rest.pulls.listReviews, {
+                    owner,
+                    repo,
+                    pull_number: pr.number,
+                    per_page: 100,
+                  });
+                  for (const review of reviews) {
+                    if (
+                      review.state !== 'PENDING' &&
+                      Number.isFinite(Date.parse(review.submitted_at)) &&
+                      maintainerAsked(review, author)
+                    ) {
+                      manualAsks.push(review.submitted_at);
+                    }
+                  }
                   let firstLabeledAt = new Date(pr.created_at);
                   let labeledAt = firstLabeledAt;
                   let lastUnlabeledAt = -Infinity;
@@ -236,10 +253,10 @@ jobs:
 
                   const inCurrentCycle = c => Date.parse(c.created_at) >= labeledAt;
                   const currentAsks = [
-                    ...markedAsks.filter(inCurrentCycle),
-                    ...manualAsks.filter(c => {
-                      const time = Date.parse(c.created_at);
-                      return inCurrentCycle(c) ||
+                    ...markedAsks.filter(inCurrentCycle).map(c => c.created_at),
+                    ...manualAsks.filter(timestamp => {
+                      const time = Date.parse(timestamp);
+                      return time >= labeledAt ||
                         (time >= labeledAt - PRE_LABEL_GRACE && time > lastUnlabeledAt);
                     }),
                   ];
@@ -253,9 +270,7 @@ jobs:
                     action = 'request';
                     why = 'no CLA request for the current label cycle';
                   } else {
-                    const lastAsk = latest(
-                      currentAsks.map(c => c.created_at)
-                    );
+                    const lastAsk = latest(currentAsks);
 
                     const reminderCount = reminders.filter(inCurrentCycle).length;
 

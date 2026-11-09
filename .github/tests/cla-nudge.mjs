@@ -42,7 +42,7 @@ function comment(body, options = {}) {
   };
 }
 
-function makeHarness({ prs = [], comments = {}, events = {}, currentPrs = {}, env = {}, failures = {} } = {}) {
+function makeHarness({ prs = [], comments = {}, reviews = {}, events = {}, currentPrs = {}, env = {}, failures = {} } = {}) {
   const calls = { list: 0, commentsFetched: [], eventsFetched: [], posts: [], failed: false, logs: [] };
   const github = {
     paginate: async (method, params) => (await method(params)).data,
@@ -66,6 +66,11 @@ function makeHarness({ prs = [], comments = {}, events = {}, currentPrs = {}, en
         return { data: { ...listed, ...currentPrs[issue_number] } };
       },
       createComment: async params => { calls.posts.push(params); return { data: {} }; },
+    }, pulls: {
+      listReviews: async params => {
+        assert.deepEqual(params, { owner: 'FasterXML', repo: 'jackson-databind', pull_number: params.pull_number, per_page: 100 });
+        return { data: reviews[params.pull_number] || [] };
+      },
     } },
   };
   const core = {
@@ -223,7 +228,7 @@ test('cutoff uses the first cla-needed label event after later re-labeling', asy
     { event: 'labeled', label: { name: 'cla-needed' }, created_at: '2026-10-01T00:00:00Z' },
     { event: 'unlabeled', label: { name: 'cla-needed' }, created_at: '2026-10-10T00:00:00Z' },
     { event: 'labeled', label: { name: 'cla-needed' }, created_at: '2026-11-06T00:00:00Z' },
-  ] }, env: { SKIP_LABELED_BEFORE: '2026-11-01T00:00:00Z' } });
+  ] }, env: { SKIP_LABELED_BEFORE: '2026-11-01' } });
   await h.run();
   assert.equal(h.calls.posts.length, 0);
   assert(h.calls.logs.some(x => x.includes('skip') && x.includes('first labeled 2026-10-01')));
@@ -258,18 +263,31 @@ test('label events are fetched only when the cutoff or a CLA request needs them'
 });
 
 test('skip-labeled-before ignores older label events', async () => {
-  const h = makeHarness({ prs: [pr(70)], events: { 70: [{ event: 'labeled', label: { name: 'cla-needed' }, created_at: '2026-11-06T23:59:59Z' }] }, env: { SKIP_LABELED_BEFORE: '2026-11-07T00:00:00Z' } });
+  const h = makeHarness({ prs: [pr(70)], events: { 70: [{ event: 'labeled', label: { name: 'cla-needed' }, created_at: '2026-11-06T23:59:59Z' }] }, env: { SKIP_LABELED_BEFORE: '2026-11-07' } });
   await h.run();
   assert.equal(h.calls.posts.length, 0);
   assert(h.calls.logs.some(x => x.includes('skip') && x.includes('before skip-labeled-before')));
 });
 
 test('invalid cutoff fails before posting', async () => {
-  const h = makeHarness({ prs: [pr(80)], env: { SKIP_LABELED_BEFORE: 'not-a-date' } });
+  for (const cutoff of ['not-a-date', '2026-11-31', '2026-02-29', '2026-11-07T00:00:00Z', '2026-1-01']) {
+    const h = makeHarness({ prs: [pr(80)], env: { SKIP_LABELED_BEFORE: cutoff } });
+    await h.run();
+    assert.match(h.calls.failed, /skip-labeled-before is not a valid date/, cutoff);
+    assert.equal(h.calls.list, 0);
+    assert.equal(h.calls.posts.length, 0);
+  }
+});
+
+test('a valid leap day is accepted and the cutoff includes midnight UTC', async () => {
+  const h = makeHarness({
+    prs: [pr(81, { created: '2024-02-29T00:00:00Z' })],
+    events: { 81: [{ event: 'labeled', label: { name: 'cla-needed' }, created_at: '2024-02-29T00:00:00Z' }] },
+    env: { SKIP_LABELED_BEFORE: '2024-02-29' },
+  });
   await h.run();
-  assert.match(h.calls.failed, /skip-labeled-before is not a valid date/);
-  assert.equal(h.calls.list, 0);
-  assert.equal(h.calls.posts.length, 0);
+  assert.equal(h.calls.failed, false);
+  assert.deepEqual(h.calls.posts.map(post => post.issue_number), [81]);
 });
 
 test('one failing PR does not stop processing other PRs', async () => {
@@ -423,6 +441,36 @@ test('live posts are skipped when a PR becomes ineligible after listing', async 
     assert(h.calls.logs.some(line => line.startsWith('skip') && line.includes('#171')));
     assert.equal(h.calls.failed, false);
   }
+});
+
+test('submitted maintainer review summaries prevent duplicate requests and delay reminders', async () => {
+  const beforeLabel = '2026-11-06T22:45:00Z';
+  const review = {
+    ...comment('Please sign the CLA.'),
+    created_at: '2026-11-01T00:00:00Z',
+    submitted_at: beforeLabel,
+    state: 'COMMENTED',
+  };
+  const h = makeHarness({
+    prs: [pr(180), pr(181), pr(182), pr(183), pr(184), pr(185)],
+    reviews: {
+      180: [review],
+      181: [review],
+      182: [{ ...review, state: 'PENDING', submitted_at: undefined }],
+      183: [{ ...review, author_association: 'CONTRIBUTOR' }],
+      184: [{ ...review, user: { type: 'User', login: 'author-184' } }],
+      185: [{ ...review, submitted_at: '2026-11-06T21:59:59Z' }],
+    },
+    events: Object.fromEntries([180, 185].map(number => [number, [{
+      event: 'labeled', label: { name: 'cla-needed' }, created_at: '2026-11-06T23:00:00Z',
+    }]])),
+    comments: { 181: [comment(REQUEST, { type: 'Bot', login: 'github-actions[bot]' })] },
+  });
+  await h.run();
+  assert.equal(h.calls.failed, false);
+  assert.deepEqual(h.calls.posts.map(post => post.issue_number), [182, 183, 184, 185]);
+  assert(h.calls.logs.some(line => line.startsWith('wait') && line.includes('#180')));
+  assert(h.calls.logs.some(line => line.startsWith('wait') && line.includes('#181')));
 });
 
 let passed = 0;
