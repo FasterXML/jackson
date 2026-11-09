@@ -24,6 +24,7 @@ function pr(number, options = {}) {
   const created = options.created || '2026-11-01T00:00:00Z';
   return {
     number,
+    state: 'open',
     user: { login: options.author || `author-${number}`, type: 'User' },
     created_at: created,
     pull_request: { url: `https://api.github.com/repos/owner/repo/pulls/${number}` },
@@ -41,7 +42,7 @@ function comment(body, options = {}) {
   };
 }
 
-function makeHarness({ prs = [], comments = {}, events = {}, env = {}, failures = {} } = {}) {
+function makeHarness({ prs = [], comments = {}, events = {}, currentPrs = {}, env = {}, failures = {} } = {}) {
   const calls = { list: 0, commentsFetched: [], eventsFetched: [], posts: [], failed: false, logs: [] };
   const github = {
     paginate: async (method, params) => (await method(params)).data,
@@ -59,6 +60,10 @@ function makeHarness({ prs = [], comments = {}, events = {}, env = {}, failures 
       listEvents: async params => {
         calls.eventsFetched.push(params.issue_number);
         return { data: events[params.issue_number] || [] };
+      },
+      get: async ({ issue_number }) => {
+        const listed = prs.find(pr => pr.number === issue_number);
+        return { data: { ...listed, ...currentPrs[issue_number] } };
       },
       createComment: async params => { calls.posts.push(params); return { data: {} }; },
     } },
@@ -397,6 +402,27 @@ test('simulated time cannot post and is still usable for a reminder preview', as
   assert.equal(preview.calls.failed, false);
   assert.deepEqual(preview.calls.posts, []);
   assert(preview.calls.logs.some(x => x.startsWith('remind (dry run)')));
+});
+
+test('live posts are skipped when a PR becomes ineligible after listing', async () => {
+  const changes = [
+    { state: 'closed' },
+    { labels: [] },
+    { labels: [{ name: 'cla-needed' }, { name: 'cla-received' }] },
+    { locked: true },
+  ];
+  for (const change of changes) {
+    const h = makeHarness({
+      prs: [pr(170), pr(171), pr(172)],
+      currentPrs: { 170: change, 171: change },
+      comments: { 171: [comment(REQUEST, { type: 'Bot', login: 'github-actions[bot]' })] },
+    });
+    await h.run();
+    assert.deepEqual(h.calls.posts.map(post => post.issue_number), [172]);
+    assert(h.calls.logs.some(line => line.startsWith('skip') && line.includes('#170')));
+    assert(h.calls.logs.some(line => line.startsWith('skip') && line.includes('#171')));
+    assert.equal(h.calls.failed, false);
+  }
 });
 
 let passed = 0;

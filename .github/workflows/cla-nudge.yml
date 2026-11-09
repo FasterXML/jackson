@@ -116,6 +116,17 @@ jobs:
             const latest = dates =>
               new Date(Math.max(...dates.map(d => new Date(d).getTime())));
 
+            const skipReason = pr => {
+              const labels = pr.labels.map(label =>
+                typeof label === 'string' ? label : label.name
+              );
+              if (pr.state !== 'open') return 'PR is no longer open';
+              if (pr.locked) return 'conversation is locked';
+              if (labels.includes(DONE_LABEL)) return 'also labeled ' + DONE_LABEL;
+              if (!labels.includes(LABEL)) return 'no longer labeled ' + LABEL;
+              return null;
+            };
+
             const isMaintainer = c =>
               c.user?.type === 'User' &&
               ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(c.author_association);
@@ -169,15 +180,9 @@ jobs:
               let why;
 
               try {
-                const labels = pr.labels.map(l =>
-                  typeof l === 'string' ? l : l.name
-                );
-                if (labels.includes(DONE_LABEL)) {
+                why = skipReason(pr);
+                if (why) {
                   action = 'skip';
-                  why = `also labeled ${DONE_LABEL}`;
-                } else if (pr.locked) {
-                  action = 'skip';
-                  why = 'conversation is locked';
                 } else {
                   const comments = await github.paginate(
                     github.rest.issues.listComments,
@@ -282,15 +287,19 @@ jobs:
                     !dryRun &&
                     (action === 'request' || action === 'remind')
                   ) {
-                    await github.rest.issues.createComment({
-                      owner,
-                      repo,
-                      issue_number: pr.number,
-                      body:
-                        action === 'request'
-                          ? REQUEST
-                          : REMINDER,
-                    });
+                    // Labels or PR state can change while the scan reads history.
+                    const issue = { owner, repo, issue_number: pr.number };
+                    const { data: current } = await github.rest.issues.get(issue);
+                    const reason = skipReason(current);
+                    if (reason) {
+                      action = 'skip';
+                      why = reason;
+                    } else {
+                      await github.rest.issues.createComment({
+                        ...issue,
+                        body: action === 'request' ? REQUEST : REMINDER,
+                      });
+                    }
                   }
                 }
               } catch (err) {
