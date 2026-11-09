@@ -22,7 +22,7 @@ on:
         type: boolean
         default: false
       simulate-now:
-        description: "Testing only: ISO-8601 timestamp to treat as 'now'"
+        description: "Dry run only: ISO-8601 timestamp to treat as 'now'"
         type: string
         default: ''
       interval-days:
@@ -75,6 +75,7 @@ jobs:
             const HOUR = 3600 * 1000;
             const DAY = 24 * HOUR;
             const SLACK = HOUR;
+            const PRE_LABEL_GRACE = HOUR;
             const dryRun = process.env.DRY_RUN === 'true';
             const intervalDays = Number(process.env.INTERVAL_DAYS);
             if (!Number.isFinite(intervalDays) || intervalDays * DAY <= SLACK) {
@@ -87,7 +88,12 @@ jobs:
               core.setFailed('max-reminders must be a non-negative integer');
               return;
             }
-            const now = process.env.SIMULATE_NOW ? new Date(process.env.SIMULATE_NOW) : new Date();
+            const simulatedNow = process.env.SIMULATE_NOW;
+            if (simulatedNow && !dryRun) {
+              core.setFailed('simulate-now requires dry-run: true');
+              return;
+            }
+            const now = simulatedNow ? new Date(simulatedNow) : new Date();
 
             if (Number.isNaN(now.getTime())) {
               core.setFailed(`simulate-now is not a valid timestamp: ${process.env.SIMULATE_NOW}`);
@@ -110,29 +116,30 @@ jobs:
             const latest = dates =>
               new Date(Math.max(...dates.map(d => new Date(d).getTime())));
 
+            const isMaintainer = c =>
+              c.user?.type === 'User' &&
+              ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(c.author_association);
             const isOurs = (c, mark) =>
               (c.body || '').includes(mark) &&
-              (c.user?.type === 'Bot' ||
-                ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(c.author_association));
+              ((c.user?.type === 'Bot' && c.user.login === 'github-actions[bot]') ||
+                isMaintainer(c));
 
-            const asksForCla = (c, author) => {
-              if (isOurs(c, REQUEST_MARK) || isOurs(c, REMINDER_MARK)) return true;
-              if (c.user?.type === 'Bot' || c.user?.login === author) return false;
-              const body = c.body || '';
-              const cla = String.raw`(?:CLA|Contributor License Agreement)`;
-              if (!new RegExp(String.raw`\b${cla}\b`, 'i').test(body)) return false;
+            const cla = String.raw`(?:CLA|Contributor License Agreement)\b`;
+            const agreement = String.raw`(?:(?:a|an|the|your)\s+)?(?:signed\s+)?(?:individual\s+|corporate\s+)?\[?${cla}`;
+            const requestPatterns = [
+              String.raw`^(?:(?:could|can|would|will)\s+you\s+)?(?:(?:please|kindly)\s+)?(?:sign|submit|complete|provide|send|execute|return|fill out)\s+${agreement}`,
+              String.raw`^(?:(?:we|you)\s+|we['’](?:d|ll)\s+)?(?:still\s+)?(?:need|require)\s+${agreement}`,
+              String.raw`^(?:the\s+)?${cla}\s+(?:is\s+)?(?:still\s+)?(?:required|needed|missing|outstanding)\b`,
+              String.raw`^we\s+(?:cannot|can['’]t)\s+merge\b[^.!?;]{0,50}\bwithout\s+${agreement}`,
+            ].map(pattern => new RegExp(pattern, 'i'));
 
-              const alreadyHandled = new RegExp(
-                String.raw`\b(?:no|without)\b.{0,40}\b${cla}\b|\b${cla}\b.{0,40}\b(?:not needed|not required|already (?:signed|submitted|received)|received|signed|submitted|completed)\b|\b(?:do not|don't|does not|doesn't|did not|didn't)\s+(?:need|require)\b.{0,40}\b${cla}\b`,
-                'i'
+            // Positive clauses count on their own. A separate acknowledgment or
+            // a condition about future receipt must not cancel an explicit ask.
+            const maintainerAsked = (c, author) =>
+              isMaintainer(c) && c.user.login !== author &&
+              (c.body || '').split(/[.!?;,\n]/).some(clause =>
+                requestPatterns.some(pattern => pattern.test(clause.trim()))
               );
-              if (alreadyHandled.test(body)) return false;
-
-              return new RegExp(
-                String.raw`\b(?:please|kindly)\b.{0,80}\b(?:sign|submit|complete|provide|send|execute|return|fill out)\b.{0,40}\b${cla}\b|\b(?:sign|submit|complete|provide|send|execute|return|fill out)\b.{0,40}\b${cla}\b|\b(?:need|require|must|should)\b.{0,40}\b${cla}\b|\b${cla}\b.{0,40}\b(?:required|needed|missing|outstanding)\b|\b(?:waiting for|awaiting)\b.{0,40}\b${cla}\b`,
-                'i'
-              ).test(body);
-            };
 
             const issues = await github.paginate(
               github.rest.issues.listForRepo,
@@ -156,15 +163,15 @@ jobs:
             let failures = 0;
 
             for (const pr of prs) {
-              const author = pr.user.login;
-              const labels = pr.labels.map(l =>
-                typeof l === 'string' ? l : l.name
-              );
+              const author = pr.user?.login;
 
               let action;
               let why;
 
               try {
+                const labels = pr.labels.map(l =>
+                  typeof l === 'string' ? l : l.name
+                );
                 if (labels.includes(DONE_LABEL)) {
                   action = 'skip';
                   why = `also labeled ${DONE_LABEL}`;
@@ -182,13 +189,22 @@ jobs:
                     }
                   );
 
-                  const asks = comments.filter(c => asksForCla(c, author));
+                  const reminders = comments.filter(c => isOurs(c, REMINDER_MARK));
+                  const markedAsks = [
+                    ...comments.filter(c => isOurs(c, REQUEST_MARK)),
+                    ...reminders,
+                  ];
+                  const manualAsks = comments.filter(c =>
+                    !isOurs(c, REQUEST_MARK) && !isOurs(c, REMINDER_MARK) &&
+                    maintainerAsked(c, author)
+                  );
                   let firstLabeledAt = new Date(pr.created_at);
                   let labeledAt = firstLabeledAt;
+                  let lastUnlabeledAt = -Infinity;
 
                   // Events are only needed to enforce the rollout cutoff or
                   // to time reminders after a CLA request has been made.
-                  if (cutoff || asks.length > 0) {
+                  if (cutoff || markedAsks.length || manualAsks.length) {
                     const events = await github.paginate(
                       github.rest.issues.listEvents,
                       {
@@ -198,16 +214,30 @@ jobs:
                         per_page: 100,
                       }
                     );
-                    const labelDates = events
-                      .filter(e => e.event === 'labeled' && e.label?.name === LABEL)
-                      .map(e => new Date(e.created_at));
+                    const labelEvents = events.filter(e => e.label?.name === LABEL);
+                    const labelDates = labelEvents
+                      .filter(e => e.event === 'labeled')
+                      .map(e => Date.parse(e.created_at));
                     if (labelDates.length > 0) {
                       firstLabeledAt = new Date(Math.min(...labelDates));
                       labeledAt = new Date(Math.max(...labelDates));
                     }
+                    for (const event of labelEvents) {
+                      if (event.event === 'unlabeled') {
+                        lastUnlabeledAt = Math.max(lastUnlabeledAt, Date.parse(event.created_at));
+                      }
+                    }
                   }
 
-                  const currentAsks = asks.filter(c => new Date(c.created_at) >= labeledAt);
+                  const inCurrentCycle = c => Date.parse(c.created_at) >= labeledAt;
+                  const currentAsks = [
+                    ...markedAsks.filter(inCurrentCycle),
+                    ...manualAsks.filter(c => {
+                      const time = Date.parse(c.created_at);
+                      return inCurrentCycle(c) ||
+                        (time >= labeledAt - PRE_LABEL_GRACE && time > lastUnlabeledAt);
+                    }),
+                  ];
 
                   if (cutoff && firstLabeledAt < cutoff) {
                     action = 'skip';
@@ -216,15 +246,13 @@ jobs:
                       `before skip-labeled-before`;
                   } else if (currentAsks.length === 0) {
                     action = 'request';
-                    why = 'no CLA request since the current label was applied';
+                    why = 'no CLA request for the current label cycle';
                   } else {
                     const lastAsk = latest(
                       currentAsks.map(c => c.created_at)
                     );
 
-                    const reminders = comments.filter(c =>
-                      isOurs(c, REMINDER_MARK) && new Date(c.created_at) >= labeledAt
-                    ).length;
+                    const reminderCount = reminders.filter(inCurrentCycle).length;
 
                     const labelAge = now - labeledAt;
                     const sinceAsk = now - lastAsk;
@@ -232,11 +260,11 @@ jobs:
                     why =
                       `label on ${days(labelAge)}d, ` +
                       `last CLA comment ${days(sinceAsk)}d ago, ` +
-                      `${reminders} reminder(s) so far`;
+                      `${reminderCount} reminder(s) so far`;
 
                     if (
                       maxReminders > 0 &&
-                      reminders >= maxReminders
+                      reminderCount >= maxReminders
                     ) {
                       action = 'done';
                       why += `; reached max-reminders=${maxReminders}`;
@@ -279,12 +307,12 @@ jobs:
                   : action;
 
               core.info(
-                `${verb.padEnd(18)} #${pr.number} @${author}: ${why}`
+                `${verb.padEnd(18)} #${pr.number} ${author ? `@${author}` : '(unknown author)'}: ${why}`
               );
 
               rows.push([
                 `#${pr.number}`,
-                `@${author}`,
+                author ? `@${author}` : '(unknown author)',
                 verb,
                 why,
               ]);
