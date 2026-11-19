@@ -1,17 +1,5 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const here = path.dirname(fileURLToPath(import.meta.url));
-const workflowPath = path.join(here, '../workflows/cla-nudge.yml');
-const yaml = fs.readFileSync(workflowPath, 'utf8');
-const scriptStart = yaml.indexOf('          script: |\n');
-assert.notEqual(scriptStart, -1, 'reusable workflow must contain a script block');
-const script = yaml.slice(scriptStart + '          script: |\n'.length)
-  .split('\n')
-  .map(line => line.startsWith('            ') ? line.slice(12) : '')
-  .join('\n');
+import claNudge from '../scripts/cla-nudge.cjs';
 
 const DAY = 24 * 60 * 60 * 1000;
 const REQUEST_MARK = '<!-- cla-nudge:request -->';
@@ -87,15 +75,12 @@ function makeHarness({ prs = [], comments = {}, reviews = {}, events = {}, curre
     MAX_REMINDERS: '0', SKIP_LABELED_BEFORE: '', ...env,
   } };
   let clock = '2026-11-07T00:00:00Z';
-  class FixtureDate extends Date {
-    constructor(...args) {
-      super(...(args.length ? args : [clock]));
-    }
-  }
-  const runScript = new Function('github', 'context', 'core', 'process', 'Date', `return (async () => {\n${script}\n})();`);
   return {
     calls,
-    run: () => runScript(github, { repo: { owner: 'FasterXML', repo: 'jackson-databind' } }, core, fakeProcess, FixtureDate),
+    run: () => claNudge({
+      github, context: { repo: { owner: 'FasterXML', repo: 'jackson-databind' } },
+      core, env: fakeProcess.env, now: new Date(clock),
+    }),
     setClock: value => { clock = value; },
     addComment: (number, c) => { (comments[number] ||= []).push(c); },
   };
