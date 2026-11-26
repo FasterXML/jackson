@@ -25,7 +25,7 @@ For each of 2 open major branches (2.x, 3.x), component repositories have:
     * All feature development occurs in these branches
 * "Latest Release Branch" (LRB): currently (as of November 2026), `2.23`, `3.3`
     * Most recently published minor version, always Open
-* Zero or more "Maintenance Branches": currently (as of November 2026), `2.0` .. `2.21`, `3.0` .. `3.1`
+* Zero or more "Maintenance Branches": currently (as of November 2026), `2.0` .. `2.22`, `3.0` .. `3.2`
     * Only some are open (see LTS section below)
 
 (branch numbers above are examples valid as of November 2026; see [Jackson Releases](../../wiki/Jackson-Releases) for the current set)

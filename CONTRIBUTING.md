@@ -47,7 +47,7 @@ new feature) although this is not absolutely required.
 When creating code (or documentation, test) change for eventual Pull Request, it is important to
 understand which Git Branch to use as the base.
 
-Jackson projects maintain a few branches (note: "LTS" means "Long-Term Support" version; see [VERSIONING](VERSIONING.md); which are used to develop [Jackson Releases](https://github.com/FasterXML/jackson/wiki/Jackson-Releases):
+Jackson projects maintain a few branches (note: "LTS" means "Long-Term Support" version; see [VERSIONING](VERSIONING.md)), which are used to develop [Jackson Releases](https://github.com/FasterXML/jackson/wiki/Jackson-Releases):
 
 * `3.x` for developing the next Jackson 3.x minor release (currently 3.4.0)
 * `2.x` for developing the next Jackson 2.x minor release (currently 2.24.0)
@@ -62,7 +62,7 @@ Security fixes should be made against the oldest LTS branch (`2.18`); other crit
 Pull requests for major new functionality or that significantly alter internals,
 but are backwards-compatible with existing behavior should be made against the next minor version
 branch (`3.x` or `2.x`).
-All changes are merged forward to matching ".x" branch (from `2.21` to `2.x`; from `3.1` to `3.x`); and in case of `2.x` changes through to 3.x series (currently through `3.1`).
+All changes are merged forward to matching ".x" branch (from `2.21` to `2.x`; from `3.1` to `3.x`); and `2.x` changes are further merged into the 3.x series (currently entering at `3.1`).
 So, in case of a security patch, merging would go like this:
 
     2.18 -> 2.19 -> 2.20 -> 2.21 -> 2.22 -> 2.23 -> 2.x -> 3.1 -> 3.2 -> 3.3 -> 3.x
