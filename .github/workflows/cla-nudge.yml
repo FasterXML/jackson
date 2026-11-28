@@ -54,8 +54,10 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           repository: FasterXML/jackson
-          # This immutable commit contains the script used by this workflow.
-          ref: 6d8cd183e578032c7cc627282071af5cb4fda18b
+          # Merge this PR with a merge commit to retain the pinned source in main.
+          # After squash/rebase, re-pin to main before enabling any callers.
+          # Update this ref whenever the script changes.
+          ref: 8cb58fe4071329b630ce59a1480b7b7e91e76040
           path: cla-nudge-source
           sparse-checkout: .github/scripts/cla-nudge.cjs
           sparse-checkout-cone-mode: false
