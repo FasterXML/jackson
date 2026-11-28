@@ -322,6 +322,17 @@ test('explicit maintainer requests count even alongside references to missing or
     'Please send the CLA; once the CLA is received I can merge.',
     'Before we can merge, we’d need a CLA.',
     'Please sign the [CLA](https://example.test/cla).',
+    '@contributor please sign the CLA',
+    '**Please sign the CLA**',
+    'Thanks — please sign the CLA',
+    'Please sign our CLA',
+    'sign this CLA',
+    'please sign and return the CLA',
+    'please send us the CLA',
+    'you will need to sign the CLA',
+    'I need a signed CLA',
+    '@first-person @second-person **Please sign and return our CLA**',
+    'Thanks - please send me the Contributor License Agreement',
   ];
   for (const body of examples) {
     for (const priorBotAsk of [false, true]) {

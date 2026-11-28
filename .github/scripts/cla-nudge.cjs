@@ -78,10 +78,12 @@ module.exports = async function claNudge({ github, context, core, env = process.
       isMaintainer(c));
 
   const cla = String.raw`(?:CLA|Contributor License Agreement)\b`;
-  const agreement = String.raw`(?:(?:a|an|the|your)\s+)?(?:signed\s+)?(?:individual\s+|corporate\s+)?\[?${cla}`;
+  const agreement = String.raw`(?:(?:a|an|the|your|our|this)\s+)?(?:signed\s+)?(?:individual\s+|corporate\s+)?\[?${cla}`;
+  const verb = String.raw`(?:sign|submit|complete|provide|send|execute|return|fill out)`;
+  const requestedAction = String.raw`${verb}(?:\s+and\s+${verb})?(?:\s+(?:us|me))?\s+${agreement}`;
   const requestPatterns = [
-    String.raw`^(?:(?:could|can|would|will)\s+you\s+)?(?:(?:please|kindly)\s+)?(?:sign|submit|complete|provide|send|execute|return|fill out)\s+${agreement}`,
-    String.raw`^(?:(?:we|you)\s+|we['’](?:d|ll)\s+)?(?:still\s+)?(?:need|require)\s+${agreement}`,
+    String.raw`^(?:(?:could|can|would|will)\s+you\s+)?(?:(?:please|kindly)\s+)?${requestedAction}`,
+    String.raw`^(?:(?:we|you|I)\s+(?:will\s+)?|we['’](?:d|ll)\s+)?(?:still\s+)?(?:need|require)\s+(?:${agreement}|to\s+${requestedAction})`,
     String.raw`^(?:the\s+)?${cla}\s+(?:is\s+)?(?:still\s+)?(?:required|needed|missing|outstanding)\b`,
     String.raw`^we\s+(?:cannot|can['’]t)\s+merge\b[^.!?;]{0,50}\bwithout\s+${agreement}`,
   ].map(pattern => new RegExp(pattern, 'i'));
@@ -90,8 +92,10 @@ module.exports = async function claNudge({ github, context, core, env = process.
   // a condition about future receipt must not cancel an explicit ask.
   const maintainerAsked = (c, author) =>
     isMaintainer(c) && c.user.login !== author &&
-    (c.body || '').split(/[.!?;,\n]/).some(clause =>
-      requestPatterns.some(pattern => pattern.test(clause.trim()))
+    (c.body || '').replace(/[*_\x60]/g, '').split(/[.!?;,\n\u2014\u2013]|\s+-\s+/).some(clause =>
+      requestPatterns.some(pattern =>
+        pattern.test(clause.trim().replace(/^(?:@[\w-]+\s+)+/, ''))
+      )
     );
 
   const issues = await github.paginate(
